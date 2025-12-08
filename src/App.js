@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { Analytics } from '@vercel/analytics/react';
 import {
   Users,
   LayoutDashboard,
@@ -1097,6 +1098,7 @@ export default function App() {
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-gray-900">
       <SpeedInsights />
+      <Analytics />
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col shadow-xl z-30 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative`}>
         <div className="p-6 border-b border-slate-700 flex justify-between items-center">
