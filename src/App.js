@@ -690,7 +690,7 @@ export default function App() {
 
   // Form State
   const [newEmployeeForm, setNewEmployeeForm] = useState({
-    name: '', role: '', dept: 'Security', location: 'Headquarters', shift: 'Morning (12 Hours)', salary: 60000, photo: ''
+    name: '', role: '', dept: 'Security', location: 'Headquarters', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: ''
   });
 
   const [newSiteForm, setNewSiteForm] = useState({
@@ -758,7 +758,8 @@ export default function App() {
         batch.set(newRef, {
           name: cols[0],
           date: cols[1],
-          status: cols[3] || 'Pending'
+          status: cols[3] || 'Pending',
+          userId: user.uid
         });
         count++;
       });
@@ -857,16 +858,16 @@ export default function App() {
     try {
       await addDoc(collection(db, 'employees'), {
         ...newEmployeeForm,
-        salary: Number(newEmployeeForm.salary),
-        bonus: Number(newEmployeeForm.bonus),
-        overtime: Number(newEmployeeForm.overtime),
+        salary: Number(newEmployeeForm.salary) || 0,
+        bonus: Number(newEmployeeForm.bonus) || 0,
+        overtime: Number(newEmployeeForm.overtime) || 0,
         userId: user.uid,
         status: 'Active',
         createdAt: new Date().toISOString()
       });
       alert("Employee Saved Successfully!"); // Debug Confirmation
       setIsAddModalOpen(false);
-      setNewEmployeeForm({ name: '', role: '', dept: 'Security', location: 'Headquarters', shift: 'Morning (12 Hours)', salary: 60000, photo: '', deductionHours: 0 });
+      setNewEmployeeForm({ name: '', role: '', dept: 'Security', location: 'Headquarters', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: '' });
     } catch (err) {
       console.error(err);
       alert("Error saving: " + err.message);
