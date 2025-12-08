@@ -35,7 +35,13 @@ import {
 
   Image as ImageIcon,
   Menu, // Hamburger Menu
-  LogOut // Logout Icon
+  LogOut, // Logout Icon
+  Calculator, // General Accounts
+  ShoppingCart, // Sales & Purchases
+  Package, // Warehouses
+  FileText as InvoiceIcon, // Electronic Invoice
+  CreditCard,
+  Truck
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
@@ -164,11 +170,24 @@ export default function App() {
       assignedGuards: 'Assigned Employees',
       deleteLocation: 'Delete Location',
       terminateGuard: 'Terminate / Delete Employee',
+      costAnalysis: 'Real-time cost analysis.',
+      aiInsights: 'AI Insights',
+      siteStats: 'Site Statistics',
+      assignedGuards: 'Assigned Employees',
+      deleteLocation: 'Delete Location',
+      terminateGuard: 'Terminate / Delete Employee',
       aiAssistant: 'AI Assistant',
       genReview: 'Generate Performance Review',
       generating: 'Generating...',
       downloadReport: 'Download Report',
       editLocation: 'Edit Location',
+
+      // New Modules
+      menuAccounts: 'General Accounts',
+      menuSalesPurchases: 'Sales & Purchases',
+      menuWarehouses: 'Warehouses',
+      menuInvoices: 'Electronic Invoice',
+
       details: 'Employee Info',
       manageDetails: 'Manage Selection',
       siteName: 'Site Name',
@@ -429,6 +448,13 @@ export default function App() {
       city: 'المدينة / المنطقة',
       manager: 'مدير الموقع',
       operationalStatus: 'الحالة التشغيلية',
+
+      // New Modules
+      menuAccounts: 'الحسابات العامة',
+      menuSalesPurchases: 'المبيعات والمشتريات',
+      menuWarehouses: 'المستودعات',
+      menuInvoices: 'الفاتورة الإلكترونية',
+
       photoUrl: 'صورة الموظف',
       uploadPhoto: 'رفع صورة',
       unassigned: 'غير معين',
@@ -696,6 +722,64 @@ export default function App() {
     };
   }, [user]);
 
+  // --- New Modules State & Listeners ---
+  const [accounts, setAccounts] = useState([]);
+  const [journalEntries, setJournalEntries] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [purchases, setPurchases] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Accounts Listener
+    const unsubAccounts = onSnapshot(query(collection(db, 'accounts'), where('userId', '==', user.uid)), (snapshot) => {
+      setAccounts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // Journal Entries Listener
+    const unsubJournal = onSnapshot(query(collection(db, 'journal_entries'), where('userId', '==', user.uid)), (snapshot) => {
+      setJournalEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // Sales Listener
+    const unsubSales = onSnapshot(query(collection(db, 'sales'), where('userId', '==', user.uid)), (snapshot) => {
+      setSales(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // Purchases Listener
+    const unsubPurchases = onSnapshot(query(collection(db, 'purchases'), where('userId', '==', user.uid)), (snapshot) => {
+      setPurchases(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // Suppliers Listener
+    const unsubSuppliers = onSnapshot(query(collection(db, 'suppliers'), where('userId', '==', user.uid)), (snapshot) => {
+      setSuppliers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // Inventory Listener
+    const unsubInventory = onSnapshot(query(collection(db, 'inventory'), where('userId', '==', user.uid)), (snapshot) => {
+      setInventory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // Electronic Invoices Listener
+    const unsubInvoices = onSnapshot(query(collection(db, 'invoices'), where('userId', '==', user.uid)), (snapshot) => {
+      setInvoices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => {
+      unsubAccounts();
+      unsubJournal();
+      unsubSales();
+      unsubPurchases();
+      unsubSuppliers();
+      unsubInventory();
+      unsubInvoices();
+    };
+  }, [user]);
+
   // --- Persistence Effects replaced by Firestore Listeners ---
 
   const shifts = ['Morning (12 Hours)', 'Night (12 Hours)'];
@@ -786,6 +870,112 @@ export default function App() {
     };
     reader.readAsText(file);
     event.target.value = null;
+  };
+
+  // --- Accounts Logic ---
+  const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
+  const [newAccountForm, setNewAccountForm] = useState({ name: '', type: 'Asset', balance: 0 });
+
+  const handleAddAccount = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'accounts'), {
+        ...newAccountForm,
+        userId: user.uid,
+        createdAt: serverTimestamp()
+      });
+      setIsAddAccountModalOpen(false);
+      setNewAccountForm({ name: '', type: 'Asset', balance: 0 });
+    } catch (err) {
+      console.error(err);
+      alert("Error adding account: " + err.message);
+    }
+  };
+
+  // --- Inventory Logic ---
+  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [newItemForm, setNewItemForm] = useState({ name: '', sku: '', quantity: 0, location: '', category: '' });
+
+  const handleAddItem = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'inventory'), {
+        ...newItemForm,
+        userId: user.uid,
+        updatedAt: serverTimestamp()
+      });
+      setIsAddItemModalOpen(false);
+      setNewItemForm({ name: '', sku: '', quantity: 0, location: '', category: '' });
+    } catch (err) {
+      console.error(err);
+      alert("Error adding item: " + err.message);
+    }
+  };
+
+  // --- Sales & Purchases Logic ---
+  const [isAddSaleModalOpen, setIsAddSaleModalOpen] = useState(false);
+  const [newSaleForm, setNewSaleForm] = useState({ customer: '', amount: 0, status: 'Pending', items: '' });
+
+  const handleAddSale = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'sales'), {
+        ...newSaleForm,
+        userId: user.uid,
+        date: new Date().toISOString().split('T')[0],
+        createdAt: serverTimestamp()
+      });
+      setIsAddSaleModalOpen(false);
+      setNewSaleForm({ customer: '', amount: 0, status: 'Pending', items: '' });
+    } catch (err) {
+      console.error(err);
+      alert("Error adding sale: " + err.message);
+    }
+  };
+
+  const [isAddPurchaseModalOpen, setIsAddPurchaseModalOpen] = useState(false);
+  const [newPurchaseForm, setNewPurchaseForm] = useState({ supplier: '', amount: 0, status: 'Ordered', items: '' });
+
+  const handleAddPurchase = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'purchases'), {
+        ...newPurchaseForm,
+        userId: user.uid,
+        date: new Date().toISOString().split('T')[0],
+        createdAt: serverTimestamp()
+      });
+      setIsAddPurchaseModalOpen(false);
+      setNewPurchaseForm({ supplier: '', amount: 0, status: 'Ordered', items: '' });
+    } catch (err) {
+      console.error(err);
+      alert("Error adding purchase: " + err.message);
+    }
+  };
+
+  // --- Invoice Logic ---
+  const [isAddInvoiceModalOpen, setIsAddInvoiceModalOpen] = useState(false);
+  const [newInvoiceForm, setNewInvoiceForm] = useState({ client: '', amount: 0, status: 'Issued', date: new Date().toISOString().split('T')[0] });
+
+  const handleAddInvoice = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'invoices'), {
+        ...newInvoiceForm,
+        userId: user.uid,
+        createdAt: serverTimestamp()
+      });
+      setIsAddInvoiceModalOpen(false);
+      setNewInvoiceForm({ client: '', amount: 0, status: 'Issued', date: new Date().toISOString().split('T')[0] });
+    } catch (err) {
+      console.error(err);
+      alert("Error generating invoice: " + err.message);
+    }
   };
 
   const handleImportPayroll = (event) => {
@@ -1119,6 +1309,13 @@ export default function App() {
           <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); setIsSidebarOpen(false); }} />
           <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); setIsSidebarOpen(false); }} />
           <SidebarItem icon={<BarChart3 size={20} />} label={t('menuReports')} active={activeTab === 'reports'} onClick={() => { setActiveTab('reports'); setIsSidebarOpen(false); }} />
+
+          <div className="my-2 border-t border-slate-700/50"></div>
+
+          <SidebarItem icon={<Calculator size={20} />} label={t('menuAccounts')} active={activeTab === 'accounts'} onClick={() => { setActiveTab('accounts'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Package size={20} />} label={t('menuWarehouses')} active={activeTab === 'warehouses'} onClick={() => { setActiveTab('warehouses'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<InvoiceIcon size={20} />} label={t('menuInvoices')} active={activeTab === 'invoices'} onClick={() => { setActiveTab('invoices'); setIsSidebarOpen(false); }} />
         </nav>
 
         <div className="p-4 border-t border-slate-800 space-y-2">
@@ -1578,6 +1775,193 @@ export default function App() {
                   </div>
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* --- New Modules Views --- */}
+
+          {activeTab === 'accounts' && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('menuAccounts')}</h2>
+                  <p className="text-gray-500">Track assets, liabilities, and expenses.</p>
+                </div>
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                  <Plus size={20} /> New Transaction
+                </button>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Account Name</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Type</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {accounts.length === 0 ? (
+                      <tr><td colSpan="3" className="px-6 py-8 text-center text-gray-500">No accounts found. Add one to get started.</td></tr>
+                    ) : (
+                      accounts.map(acc => (
+                        <tr key={acc.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 font-medium text-gray-900">{acc.name}</td>
+                          <td className="px-6 py-4 text-gray-500"><span className={`px-2 py-1 rounded text-xs font-bold ${acc.type === 'Asset' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{acc.type}</span></td>
+                          <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(acc.balance)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'sales_purchases' && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('menuSalesPurchases')}</h2>
+                  <p className="text-gray-500">Manage orders, suppliers, and customers.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setIsAddSaleModalOpen(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 flex items-center gap-2">
+                    <Plus size={20} /> New Sale
+                  </button>
+                  <button onClick={() => setIsAddPurchaseModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                    <Plus size={20} /> New Purchase
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><ShoppingCart size={20} className="text-emerald-600" /> Recent Sales</h3>
+                  <div className="overflow-y-auto max-h-64">
+                    {sales.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">No recent sales found.</div>
+                    ) : (
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50"><tr><th className="p-2">Customer</th><th className="p-2">Amount</th><th className="p-2">Status</th></tr></thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {sales.map(s => (
+                            <tr key={s.id}>
+                              <td className="p-2">{s.customer}</td>
+                              <td className="p-2 font-mono">{formatCurrency(s.amount)}</td>
+                              <td className="p-2"><span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs">{s.status}</span></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Truck size={20} className="text-blue-600" /> Recent Purchases</h3>
+                  <div className="overflow-y-auto max-h-64">
+                    {purchases.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">No recent purchases found.</div>
+                    ) : (
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50"><tr><th className="p-2">Supplier</th><th className="p-2">Amount</th><th className="p-2">Status</th></tr></thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {purchases.map(p => (
+                            <tr key={p.id}>
+                              <td className="p-2">{p.supplier}</td>
+                              <td className="p-2 font-mono">{formatCurrency(p.amount)}</td>
+                              <td className="p-2"><span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs">{p.status}</span></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'warehouses' && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('menuWarehouses')}</h2>
+                  <p className="text-gray-500">Inventory levels and stock movements.</p>
+                </div>
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                  <Plus size={20} /> Add Item
+                </button>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Item Name</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">SKU</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Location</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {inventory.length === 0 ? (
+                      <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No inventory items found.</td></tr>
+                    ) : (
+                      inventory.map(item => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
+                          <td className="px-6 py-4 text-gray-500 font-mono text-xs">{item.sku}</td>
+                          <td className="px-6 py-4 text-gray-500">{item.location}</td>
+                          <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.quantity}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'invoices' && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('menuInvoices')}</h2>
+                  <p className="text-gray-500">Generate and manage electronic invoices.</p>
+                </div>
+                <button onClick={() => setIsAddInvoiceModalOpen(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+                  <Plus size={20} /> Create Invoice
+                </button>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Client / Customer</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Date</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Amount</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {invoices.length === 0 ? (
+                      <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No invoices generated yet.</td></tr>
+                    ) : (
+                      invoices.map(inv => (
+                        <tr key={inv.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 font-medium text-gray-900">{inv.client}</td>
+                          <td className="px-6 py-4 text-gray-500">{inv.date}</td>
+                          <td className="px-6 py-4 font-mono font-bold text-gray-900">{formatCurrency(inv.amount)}</td>
+                          <td className="px-6 py-4 text-right"><span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">{inv.status}</span></td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -2087,7 +2471,145 @@ export default function App() {
         )
       }
 
-    </div >
+      {/* Add Account Modal */}
+      {isAddAccountModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-lg text-gray-900">Add Account</h3>
+              <button onClick={() => setIsAddAccountModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddAccount} className="p-6 space-y-4">
+              <input className="input-field" placeholder="Account Name" value={newAccountForm.name} onChange={e => setNewAccountForm({ ...newAccountForm, name: e.target.value })} required />
+
+              <select className="input-field" value={newAccountForm.type} onChange={e => setNewAccountForm({ ...newAccountForm, type: e.target.value })}>
+                <option value="Asset">Asset</option>
+                <option value="Liability">Liability</option>
+                <option value="Equity">Equity</option>
+                <option value="Revenue">Revenue</option>
+                <option value="Expense">Expense</option>
+              </select>
+
+              <input type="number" className="input-field" placeholder="Initial Balance" value={newAccountForm.balance} onChange={e => setNewAccountForm({ ...newAccountForm, balance: Number(e.target.value) })} />
+
+              <div className="pt-2 flex gap-3">
+                <button type="button" onClick={() => setIsAddAccountModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Account</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Add Item Modal */}
+      {isAddItemModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-lg text-gray-900">Add Inventory Item</h3>
+              <button onClick={() => setIsAddItemModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddItem} className="p-6 space-y-4">
+              <input className="input-field" placeholder="Item Name" value={newItemForm.name} onChange={e => setNewItemForm({ ...newItemForm, name: e.target.value })} required />
+              <input className="input-field" placeholder="SKU" value={newItemForm.sku} onChange={e => setNewItemForm({ ...newItemForm, sku: e.target.value })} required />
+
+              <select className="input-field" value={newItemForm.location} onChange={e => setNewItemForm({ ...newItemForm, location: e.target.value })}>
+                <option value="">Select Location</option>
+                {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+              </select>
+
+              <input type="number" className="input-field" placeholder="Quantity" value={newItemForm.quantity} onChange={e => setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+
+              <div className="pt-2 flex gap-3">
+                <button type="button" onClick={() => setIsAddItemModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Add Item</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Sale Modal */}
+      {isAddSaleModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-lg text-gray-900">New Sale</h3>
+              <button onClick={() => setIsAddSaleModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddSale} className="p-6 space-y-4">
+              <input className="input-field" placeholder="Customer Name" value={newSaleForm.customer} onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })} required />
+              <input type="number" className="input-field" placeholder="Total Amount" value={newSaleForm.amount} onChange={e => setNewSaleForm({ ...newSaleForm, amount: Number(e.target.value) })} required />
+              <select className="input-field" value={newSaleForm.status} onChange={e => setNewSaleForm({ ...newSaleForm, status: e.target.value })}>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+                <option value="Shipped">Shipped</option>
+              </select>
+              <input className="input-field" placeholder="Items (Summary)" value={newSaleForm.items} onChange={e => setNewSaleForm({ ...newSaleForm, items: e.target.value })} />
+
+              <div className="pt-2 flex gap-3">
+                <button type="button" onClick={() => setIsAddSaleModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-lg shadow-emerald-600/20">Create Sale</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Purchase Modal */}
+      {isAddPurchaseModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-lg text-gray-900">New Purchase</h3>
+              <button onClick={() => setIsAddPurchaseModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddPurchase} className="p-6 space-y-4">
+              <input className="input-field" placeholder="Supplier Name" value={newPurchaseForm.supplier} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, supplier: e.target.value })} required />
+              <input type="number" className="input-field" placeholder="Total Cost" value={newPurchaseForm.amount} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, amount: Number(e.target.value) })} required />
+              <select className="input-field" value={newPurchaseForm.status} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, status: e.target.value })}>
+                <option value="Ordered">Ordered</option>
+                <option value="Received">Received</option>
+                <option value="Paid">Paid</option>
+              </select>
+              <input className="input-field" placeholder="Items (Summary)" value={newPurchaseForm.items} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, items: e.target.value })} />
+
+              <div className="pt-2 flex gap-3">
+                <button type="button" onClick={() => setIsAddPurchaseModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Order</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Invoice Modal */}
+      {isAddInvoiceModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-lg text-gray-900">Create Invoice</h3>
+              <button onClick={() => setIsAddInvoiceModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddInvoice} className="p-6 space-y-4">
+              <input className="input-field" placeholder="Client / Customer" value={newInvoiceForm.client} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, client: e.target.value })} required />
+              <input type="date" className="input-field" value={newInvoiceForm.date} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, date: e.target.value })} required />
+              <input type="number" className="input-field" placeholder="Total Amount" value={newInvoiceForm.amount} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, amount: Number(e.target.value) })} required />
+              <select className="input-field" value={newInvoiceForm.status} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, status: e.target.value })}>
+                <option value="Issued">Issued</option>
+                <option value="Paid">Paid</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+
+              <div className="pt-2 flex gap-3">
+                <button type="button" onClick={() => setIsAddInvoiceModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-600/20">Generate Invoice</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
   );
 }
 
