@@ -897,7 +897,7 @@ export default function App() {
 
   // --- Inventory Logic ---
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
-  const [newItemForm, setNewItemForm] = useState({ name: '', sku: '', quantity: 0, location: '', category: '' });
+  const [newItemForm, setNewItemForm] = useState({ name: '', sku: '', quantity: 0, location: '', category: '', price: 0 });
 
   const handleAddItem = async (e) => {
     e.preventDefault();
@@ -909,7 +909,7 @@ export default function App() {
         updatedAt: serverTimestamp()
       });
       setIsAddItemModalOpen(false);
-      setNewItemForm({ name: '', sku: '', quantity: 0, location: '', category: '' });
+      setNewItemForm({ name: '', sku: '', quantity: 0, location: '', category: '', price: 0 });
     } catch (err) {
       console.error(err);
       alert("Error adding item: " + err.message);
@@ -961,19 +961,22 @@ export default function App() {
 
   // --- Invoice Logic ---
   const [isAddInvoiceModalOpen, setIsAddInvoiceModalOpen] = useState(false);
-  const [newInvoiceForm, setNewInvoiceForm] = useState({ client: '', amount: 0, status: 'Issued', date: new Date().toISOString().split('T')[0] });
+  const [newInvoiceForm, setNewInvoiceForm] = useState({ client: '', status: 'Issued', date: new Date().toISOString().split('T')[0], items: [] });
+  const [tempInvoiceItem, setTempInvoiceItem] = useState({ itemId: '', quantity: 1 }); // Logic for adding lines
 
   const handleAddInvoice = async (e) => {
     e.preventDefault();
     if (!user) return;
     try {
+      const totalAmount = newInvoiceForm.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       await addDoc(collection(db, 'invoices'), {
         ...newInvoiceForm,
+        amount: totalAmount,
         userId: user.uid,
         createdAt: serverTimestamp()
       });
       setIsAddInvoiceModalOpen(false);
-      setNewInvoiceForm({ client: '', amount: 0, status: 'Issued', date: new Date().toISOString().split('T')[0] });
+      setNewInvoiceForm({ client: '', status: 'Issued', date: new Date().toISOString().split('T')[0], items: [] });
     } catch (err) {
       console.error(err);
       alert("Error generating invoice: " + err.message);
@@ -1007,7 +1010,28 @@ export default function App() {
             <p><strong>Date:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
             <p><strong>To:</strong> ${invoiceData.client || invoiceData.customer || 'Customer'}</p>
             <p><strong>Status:</strong> ${invoiceData.status}</p>
-            ${invoiceData.items ? `<p><strong>Items:</strong> ${invoiceData.items}</p>` : ''}
+            ${Array.isArray(invoiceData.items) ? `
+              <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+                <thead>
+                  <tr style="background:#f9f9f9; border-bottom:1px solid #ddd;">
+                     <th style="text-align:left; padding:8px;">Item</th>
+                     <th style="text-align:center; padding:8px;">Qty</th>
+                     <th style="text-align:right; padding:8px;">Price</th>
+                     <th style="text-align:right; padding:8px;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${invoiceData.items.map(item => `
+                    <tr>
+                      <td style="padding:8px; border-bottom:1px solid #eee;">${item.name}</td>
+                      <td style="text-align:center; padding:8px; border-bottom:1px solid #eee;">${item.quantity}</td>
+                      <td style="text-align:right; padding:8px; border-bottom:1px solid #eee;">${formatCurrency(item.price)}</td>
+                      <td style="text-align:right; padding:8px; border-bottom:1px solid #eee;">${formatCurrency(item.price * item.quantity)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : (invoiceData.items ? `<p><strong>Items:</strong> ${invoiceData.items}</p>` : '')}
           </div>
           <div class="amount">
             Total: ${formatCurrency(invoiceData.amount)}
@@ -1961,18 +1985,20 @@ export default function App() {
                       <th className="px-6 py-4 font-semibold text-gray-900">Item Name</th>
                       <th className="px-6 py-4 font-semibold text-gray-900">SKU</th>
                       <th className="px-6 py-4 font-semibold text-gray-900">Location</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Price</th>
                       <th className="px-6 py-4 font-semibold text-right text-gray-900">Quantity</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {inventory.length === 0 ? (
-                      <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No inventory items found.</td></tr>
+                      <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">No inventory items found.</td></tr>
                     ) : (
                       inventory.map(item => (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
                           <td className="px-6 py-4 text-gray-500 font-mono text-xs">{item.sku}</td>
                           <td className="px-6 py-4 text-gray-500">{item.location}</td>
+                          <td className="px-6 py-4 text-right font-mono text-gray-900">{formatCurrency(item.price || 0)}</td>
                           <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.quantity}</td>
                         </tr>
                       ))
@@ -2582,7 +2608,10 @@ export default function App() {
                 {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
               </select>
 
-              <input type="number" className="input-field" placeholder="Quantity" value={newItemForm.quantity} onChange={e => setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+              <div className="grid grid-cols-2 gap-4">
+                <input type="number" className="input-field" placeholder="Unit Price" value={newItemForm.price} onChange={e => setNewItemForm({ ...newItemForm, price: Number(e.target.value) })} required />
+                <input type="number" className="input-field" placeholder="Quantity" value={newItemForm.quantity} onChange={e => setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+              </div>
 
               <div className="pt-2 flex gap-3">
                 <button type="button" onClick={() => setIsAddItemModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
@@ -2650,15 +2679,82 @@ export default function App() {
       {/* Add Invoice Modal */}
       {isAddInvoiceModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h3 className="font-bold text-lg text-gray-900">Create Invoice</h3>
               <button onClick={() => setIsAddInvoiceModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
             <form onSubmit={handleAddInvoice} className="p-6 space-y-4">
-              <input className="input-field" placeholder="Client / Customer" value={newInvoiceForm.client} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, client: e.target.value })} required />
-              <input type="date" className="input-field" value={newInvoiceForm.date} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, date: e.target.value })} required />
-              <input type="number" className="input-field" placeholder="Total Amount" value={newInvoiceForm.amount} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, amount: Number(e.target.value) })} required />
+              <div className="grid grid-cols-2 gap-4">
+                <input className="input-field" placeholder="Client / Customer" value={newInvoiceForm.client} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, client: e.target.value })} required />
+                <input type="date" className="input-field" value={newInvoiceForm.date} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, date: e.target.value })} required />
+              </div>
+
+              {/* Line Items Section */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h4 className="font-bold text-sm text-gray-700 mb-2">Invoice Items</h4>
+                {newInvoiceForm.items.length > 0 && (
+                  <ul className="mb-3 space-y-2">
+                    {newInvoiceForm.items.map((item, idx) => (
+                      <li key={idx} className="flex justify-between items-center text-sm bg-white p-2 rounded border border-gray-200 shadow-sm">
+                        <span>{item.name} x {item.quantity}</span>
+                        <span className="font-mono font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Item</label>
+                    <select
+                      className="input-field text-sm"
+                      value={tempInvoiceItem.itemId}
+                      onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, itemId: e.target.value })}
+                    >
+                      <option value="">Select Item...</option>
+                      {inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({formatCurrency(i.price || 0)})</option>)}
+                    </select>
+                  </div>
+                  <div className="w-20">
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Qty</label>
+                    <input
+                      type="number"
+                      className="input-field text-sm"
+                      min="1"
+                      value={tempInvoiceItem.quantity}
+                      onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, quantity: Number(e.target.value) })}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const selectedInvItem = inventory.find(i => i.id === tempInvoiceItem.itemId);
+                      if (selectedInvItem && tempInvoiceItem.quantity > 0) {
+                        setNewInvoiceForm({
+                          ...newInvoiceForm,
+                          items: [...newInvoiceForm.items, {
+                            id: selectedInvItem.id,
+                            name: selectedInvItem.name,
+                            price: selectedInvItem.price || 0,
+                            quantity: tempInvoiceItem.quantity
+                          }]
+                        });
+                        setTempInvoiceItem({ itemId: '', quantity: 1 });
+                      }
+                    }}
+                    className="bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-800 text-sm h-[42px]"
+                  >Add</button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-2 px-2">
+                <span className="font-bold text-gray-500">Total Amount:</span>
+                <span className="font-mono text-2xl font-bold text-indigo-600">
+                  {formatCurrency(newInvoiceForm.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+                </span>
+              </div>
+
               <select className="input-field" value={newInvoiceForm.status} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, status: e.target.value })}>
                 <option value="Issued">Issued</option>
                 <option value="Paid">Paid</option>
@@ -2667,7 +2763,7 @@ export default function App() {
 
               <div className="pt-2 flex gap-3">
                 <button type="button" onClick={() => setIsAddInvoiceModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-600/20">Generate Invoice</button>
+                <button type="submit" disabled={newInvoiceForm.items.length === 0} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed">Generate Invoice</button>
               </div>
             </form>
           </div>
