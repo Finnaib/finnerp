@@ -42,7 +42,8 @@ import {
   Package, // Warehouses
   FileText as InvoiceIcon, // Electronic Invoice
   CreditCard,
-  Truck
+  Truck,
+  Printer
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
@@ -979,6 +980,49 @@ export default function App() {
     }
   };
 
+  const handlePrintInvoice = (invoiceData, type = 'Invoice') => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print ${type}</title>
+          <style>
+            body { font-family: sans-serif; padding: 20px; }
+            .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+            .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+            .details { margin-bottom: 30px; }
+            .details p { margin: 5px 0; }
+            .amount { font-size: 20px; font-weight: bold; text-align: right; margin-top: 30px; }
+            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="title">${translations[language].appName}</div>
+            <div>${type} Details</div>
+          </div>
+          <div class="details">
+            <p><strong>Date:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
+            <p><strong>To:</strong> ${invoiceData.client || invoiceData.customer || 'Customer'}</p>
+            <p><strong>Status:</strong> ${invoiceData.status}</p>
+            ${invoiceData.items ? `<p><strong>Items:</strong> ${invoiceData.items}</p>` : ''}
+          </div>
+          <div class="amount">
+            Total: ${formatCurrency(invoiceData.amount)}
+          </div>
+          <div class="footer">
+            Thank you for your business!
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
   const handleImportPayroll = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -1348,6 +1392,10 @@ export default function App() {
               {activeTab === 'attendance' && <Clock className="text-orange-600" />}
               {activeTab === 'payroll' && <DollarSign className="text-purple-600" />}
               {activeTab === 'reports' && <BarChart3 className="text-indigo-600" />}
+              {activeTab === 'accounts' && <Calculator className="text-emerald-600" />}
+              {activeTab === 'sales_purchases' && <ShoppingCart className="text-blue-600" />}
+              {activeTab === 'warehouses' && <Package className="text-orange-600" />}
+              {activeTab === 'invoices' && <InvoiceIcon className="text-indigo-600" />}
               <span>
                 {activeTab === 'dashboard' && t('menuDashboard')}
                 {activeTab === 'employees' && t('menuEmployees')}
@@ -1355,6 +1403,10 @@ export default function App() {
                 {activeTab === 'attendance' && t('menuAttendance')}
                 {activeTab === 'payroll' && t('menuPayroll')}
                 {activeTab === 'reports' && t('menuReports')}
+                {activeTab === 'accounts' && t('menuAccounts')}
+                {activeTab === 'sales_purchases' && t('menuSalesPurchases')}
+                {activeTab === 'warehouses' && t('menuWarehouses')}
+                {activeTab === 'invoices' && t('menuInvoices')}
               </span>
             </h2>
           </div>
@@ -1789,8 +1841,8 @@ export default function App() {
                   <h2 className="text-2xl font-bold text-gray-900">{t('menuAccounts')}</h2>
                   <p className="text-gray-500">Track assets, liabilities, and expenses.</p>
                 </div>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                  <Plus size={20} /> New Transaction
+                <button onClick={() => setIsAddAccountModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                  <Plus size={20} /> Add Account
                 </button>
               </div>
 
@@ -1846,13 +1898,18 @@ export default function App() {
                       <div className="text-center py-8 text-gray-400">No recent sales found.</div>
                     ) : (
                       <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50"><tr><th className="p-2">Customer</th><th className="p-2">Amount</th><th className="p-2">Status</th></tr></thead>
+                        <thead className="bg-gray-50"><tr><th className="p-2">Customer</th><th className="p-2">Amount</th><th className="p-2">Status</th><th className="p-2">Action</th></tr></thead>
                         <tbody className="divide-y divide-gray-100">
                           {sales.map(s => (
                             <tr key={s.id}>
                               <td className="p-2">{s.customer}</td>
                               <td className="p-2 font-mono">{formatCurrency(s.amount)}</td>
                               <td className="p-2"><span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs">{s.status}</span></td>
+                              <td className="p-2">
+                                <button onClick={() => handlePrintInvoice(s, 'Sale Receipt')} className="p-1 hover:bg-gray-100 rounded text-gray-600" title="Print Receipt">
+                                  <Printer size={16} />
+                                </button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1892,7 +1949,7 @@ export default function App() {
                   <h2 className="text-2xl font-bold text-gray-900">{t('menuWarehouses')}</h2>
                   <p className="text-gray-500">Inventory levels and stock movements.</p>
                 </div>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
                   <Plus size={20} /> Add Item
                 </button>
               </div>
@@ -1946,6 +2003,7 @@ export default function App() {
                       <th className="px-6 py-4 font-semibold text-gray-900">Date</th>
                       <th className="px-6 py-4 font-semibold text-gray-900">Amount</th>
                       <th className="px-6 py-4 font-semibold text-right text-gray-900">Status</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1958,6 +2016,11 @@ export default function App() {
                           <td className="px-6 py-4 text-gray-500">{inv.date}</td>
                           <td className="px-6 py-4 font-mono font-bold text-gray-900">{formatCurrency(inv.amount)}</td>
                           <td className="px-6 py-4 text-right"><span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">{inv.status}</span></td>
+                          <td className="px-6 py-4 text-right">
+                            <button onClick={() => handlePrintInvoice(inv)} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Print Invoice">
+                              <Printer size={18} />
+                            </button>
+                          </td>
                         </tr>
                       ))
                     )}
