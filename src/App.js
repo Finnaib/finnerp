@@ -188,7 +188,11 @@ export default function App() {
       menuAccounts: 'Accounts',
       menuSalesPurchases: 'Sell', // Renamed
       menuWarehouses: 'Warehouses',
-      menuInvoices: 'History', // Renamed
+      menuInvoices: 'History',
+      weeklySales: 'Weekly Sales Report',
+      weeklyBuy: 'Weekly Buy/Inventory Report',
+      walkIn: 'Walk-in',
+      takeaway: 'Takeaway',
 
       details: 'Employee Info',
       manageDetails: 'Manage Selection',
@@ -387,7 +391,17 @@ export default function App() {
       attendanceExists: 'इस कर्मचारी के लिए इस तारीख को उपस्थिति पहले से मौजूद है।',
       theme: 'थीम',
       light: 'लाइट',
-      dark: 'डार्क'
+      dark: 'डार्क',
+
+      // New Modules
+      menuAccounts: 'Accounts',
+      menuSalesPurchases: 'बेचना (Sell)',
+      menuWarehouses: 'गोदाम (Warehouses)',
+      menuInvoices: 'इतिहास (History)',
+      weeklySales: 'साप्ताहिक बिक्री रिपोर्ट',
+      weeklyBuy: 'साप्ताहिक खरीद/स्टॉक रिपोर्ट',
+      walkIn: 'वॉक-इन (Walk-in)',
+      takeaway: 'टेकअवे (Takeaway)'
     },
     ar: {
       appName: 'جراند وولف',
@@ -453,12 +467,16 @@ export default function App() {
 
       // New Modules
       menuAccounts: 'الحسابات العامة',
-      menuSalesPurchases: 'بيع وشراء',
-      menuWarehouses: 'المستودعات',
-      menuInvoices: 'الفاتورة الإلكترونية',
+      menuSalesPurchases: 'بيع',
+      menuWarehouses: 'المخازن',
+      menuInvoices: 'السجل',
+      weeklySales: 'تقرير المبيعات الأسبوعي',
+      weeklyBuy: 'تقرير الشراء/المخزون الأسبوعي',
+      walkIn: 'زبون عادي',
+      takeaway: 'طلبات خارجية',
 
       photoUrl: 'صورة الموظف',
-      uploadPhoto: 'رفع صورة',
+      uploadPhoto: 'تحميل صورة',
       unassigned: 'غير معين',
       securityTeam: 'الفريق الأمني',
       guards: 'حراس',
@@ -943,6 +961,8 @@ export default function App() {
   // --- Sales & Purchases (POS) Logic ---
   const [isAddSaleModalOpen, setIsAddSaleModalOpen] = useState(false);
   const [newSaleForm, setNewSaleForm] = useState({ customer: 'Walk-in Customer', amount: 0, status: 'Completed', items: '' });
+  const [orderType, setOrderType] = useState('Walk-in'); // 'Walk-in' or 'Takeaway'
+  const [historyFilter, setHistoryFilter] = useState('All'); // 'All', 'Sale', 'Stock Update'
   const [cart, setCart] = useState([]);
 
   const addToCart = (item) => {
@@ -974,7 +994,12 @@ export default function App() {
     if (!user || cart.length === 0) return;
     try {
       const totalAmount = calculateTotal();
+      const timestampPrefix = orderType === 'Walk-in' ? 'W' : 'T';
+      const uniqueId = timestampPrefix + '-' + Date.now().toString().slice(-6);
+
       const saleData = {
+        invoiceId: uniqueId,
+        orderType: orderType,
         customer: newSaleForm.customer, // Default to Walk-in
         amount: totalAmount,
         status: 'Completed',
@@ -1080,13 +1105,16 @@ export default function App() {
         <head>
           <title>Print ${type}</title>
           <style>
-            body { font-family: sans-serif; padding: 20px; }
-            .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-            .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-            .details { margin-bottom: 30px; }
-            .details p { margin: 5px 0; }
-            .amount { font-size: 20px; font-weight: bold; text-align: right; margin-top: 30px; }
-            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
+            body { font-family: 'Courier New', monospace; padding: 0; margin: 0; width: 80mm; }
+            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px dashed #000; padding-bottom: 10px; }
+            .title { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
+            .details { margin-bottom: 15px; font-size: 12px; }
+            .details p { margin: 2px 0; }
+            .amount { font-size: 16px; font-weight: bold; text-align: right; margin-top: 15px; border-top: 1px dashed #000; pt-2; }
+            .footer { margin-top: 20px; text-align: center; font-size: 10px; }
+            table { width: 100%; font-size: 12px; }
+            th { text-align: left; border-bottom: 1px solid #000; }
+            td { padding: 4px 0; }
           </style>
         </head>
         <body>
@@ -1095,7 +1123,9 @@ export default function App() {
             <div>${type} Details</div>
           </div>
           <div class="details">
+            <p><strong>ID:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
             <p><strong>Date:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
+            <p><strong>Type:</strong> ${invoiceData.orderType || 'Standard'}</p>
             <p><strong>To:</strong> ${invoiceData.client || invoiceData.customer || 'Customer'}</p>
             <p><strong>Status:</strong> ${invoiceData.status}</p>
             ${Array.isArray(invoiceData.items) ? `
@@ -1350,6 +1380,58 @@ export default function App() {
           return [e.name, total, tax, total - tax];
         });
         filename = 'GrandWolf_Tax.csv';
+        break;
+      case 'weekly_sales':
+        headers = ['Date', 'Invoice ID', 'Type', 'Customer', 'Items Summary', 'Total Amount'];
+        const sevenDaysAgoSales = new Date();
+        sevenDaysAgoSales.setDate(sevenDaysAgoSales.getDate() - 7);
+
+        data = sales
+          .filter(s => {
+            const date = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
+            return date >= sevenDaysAgoSales;
+          })
+          .map(s => {
+            const date = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
+            const itemsSummary = Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join('; ') : 'N/A';
+            return [
+              date.toLocaleString(),
+              s.invoiceId || 'N/A',
+              s.orderType || 'Walk-in',
+              s.customer || 'Walk-in',
+              itemsSummary,
+              s.amount
+            ];
+          });
+        filename = 'Weekly_Sales_Report.csv';
+        break;
+      case 'weekly_buy':
+        // For "Buy Report", we look at Inventory items updated recently
+        headers = ['Last Updated', 'Item Name', 'Location', 'Buy Price', 'Sell Price', 'Quantity', 'Stock Value (Buy Price)', 'Stock Value (Sell Price)'];
+        const sevenDaysAgoInv = new Date();
+        sevenDaysAgoInv.setDate(sevenDaysAgoInv.getDate() - 7);
+
+        data = inventory
+          .filter(i => {
+            const date = i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date();
+            // If no updatedAt, assume standard report of all items, but user asked for "Buy Report" weekly based.
+            // Best interpretation: Items active/updated recently. If strict weekly, use date filter:
+            return date >= sevenDaysAgoInv;
+          })
+          .map(i => {
+            const date = i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date();
+            return [
+              date.toLocaleString(),
+              i.name,
+              i.location,
+              i.buyPrice || 0,
+              i.sellPrice || 0,
+              i.quantity,
+              (i.buyPrice || 0) * i.quantity,
+              (i.sellPrice || 0) * i.quantity
+            ];
+          });
+        filename = 'Weekly_Inventory_Buy_Report.csv';
         break;
       default: return;
     }
@@ -1929,6 +2011,8 @@ export default function App() {
                 { id: 'payroll', label: t('payrollReport'), icon: <DollarSign />, color: 'text-purple-600', bg: 'bg-purple-50' },
                 { id: 'turnover', label: t('staffReport'), icon: <Users />, color: 'text-blue-600', bg: 'bg-blue-50' },
                 { id: 'tax', label: t('taxReport'), icon: <FileText />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                { id: 'weekly_sales', label: t('weeklySales'), icon: <ShoppingCart />, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                { id: 'weekly_buy', label: t('weeklyBuy'), icon: <Package />, color: 'text-teal-600', bg: 'bg-teal-50' },
               ].map(report => (
                 <button key={report.id} onClick={() => downloadReport(report.id)} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all text-left group">
                   <div className={`w-12 h-12 ${report.bg} ${report.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
@@ -2101,6 +2185,22 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Order Type Toggle */}
+                  <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
+                    <button
+                      onClick={() => setOrderType('Walk-in')}
+                      className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      {t('walkIn')}
+                    </button>
+                    <button
+                      onClick={() => setOrderType('Takeaway')}
+                      className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      {t('takeaway')}
+                    </button>
+                  </div>
+
                   <input
                     className="w-full mb-3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
                     placeholder="Customer Name (Optional)"
@@ -2194,7 +2294,15 @@ export default function App() {
                   <p className="text-gray-500">Comprehensive log of sales and warehouse activities.</p>
                 </div>
                 <div className="flex gap-3">
-                  {/* Simple Date Filter (Visual for now, using today's sales in logic below can be upgraded) */}
+                  <select
+                    value={historyFilter}
+                    onChange={(e) => setHistoryFilter(e.target.value)}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="All">All Types</option>
+                    <option value="Sale">Sales</option>
+                    <option value="Stock Update">Stock Updates</option>
+                  </select>
                   <input type="date" className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
                 </div>
               </div>
@@ -2231,9 +2339,12 @@ export default function App() {
                         }))
                       ].sort((a, b) => b.date - a.date);
 
-                      if (logs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No history records found.</td></tr>;
+                      // Apply Filter
+                      const filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.type === historyFilter);
 
-                      return logs.map(log => (
+                      if (filteredLogs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No history records found.</td></tr>;
+
+                      return filteredLogs.map(log => (
                         <tr key={log.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 text-gray-500 font-mono text-sm">{log.date.toLocaleString()}</td>
                           <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${log.type === 'Sale' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{log.type}</span></td>
