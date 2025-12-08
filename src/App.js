@@ -185,10 +185,10 @@ export default function App() {
       editLocation: 'Edit Location',
 
       // New Modules
-      menuAccounts: 'General Accounts',
-      menuSalesPurchases: 'Buy & Sell',
+      menuAccounts: 'Accounts',
+      menuSalesPurchases: 'Sell', // Renamed
       menuWarehouses: 'Warehouses',
-      menuInvoices: 'Electronic Invoice',
+      menuInvoices: 'History', // Renamed
 
       details: 'Employee Info',
       manageDetails: 'Manage Selection',
@@ -897,8 +897,10 @@ export default function App() {
 
   // --- Inventory Logic ---
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
-  const [newItemForm, setNewItemForm] = useState({ name: '', sku: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0 });
+  const [newItemForm, setNewItemForm] = useState({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0 }); // SKU removed
   const [inventorySearch, setInventorySearch] = useState('');
+
+  const [editingItem, setEditingItem] = useState(null); // For Edit Flow
 
   const handleAddItem = async (e) => {
     e.preventDefault();
@@ -910,10 +912,31 @@ export default function App() {
         updatedAt: serverTimestamp()
       });
       setIsAddItemModalOpen(false);
-      setNewItemForm({ name: '', sku: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0 });
+      setNewItemForm({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0 });
     } catch (err) {
       console.error(err);
       alert("Error adding item: " + err.message);
+    }
+  };
+
+  const handleUpdateItem = async (e) => {
+    e.preventDefault();
+    if (!user || !editingItem) return;
+    try {
+      await updateDoc(doc(db, 'inventory', editingItem.id), {
+        name: editingItem.name,
+        quantity: Number(editingItem.quantity),
+        location: editingItem.location,
+        category: editingItem.category,
+        buyPrice: Number(editingItem.buyPrice),
+        sellPrice: Number(editingItem.sellPrice),
+        updatedAt: serverTimestamp()
+      });
+      setEditingItem(null);
+      setIsAddItemModalOpen(false); // Close generic modal if used, or edit modal
+    } catch (err) {
+      console.error(err);
+      alert("Error updating item: " + err.message);
     }
   };
 
@@ -1447,10 +1470,9 @@ export default function App() {
 
           <div className="my-2 border-t border-slate-700/50"></div>
 
-          <SidebarItem icon={<Calculator size={20} />} label={t('menuAccounts')} active={activeTab === 'accounts'} onClick={() => { setActiveTab('accounts'); setIsSidebarOpen(false); }} />
           <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Package size={20} />} label={t('menuWarehouses')} active={activeTab === 'warehouses'} onClick={() => { setActiveTab('warehouses'); setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<InvoiceIcon size={20} />} label={t('menuInvoices')} active={activeTab === 'invoices'} onClick={() => { setActiveTab('invoices'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Clock size={20} />} label={t('menuInvoices')} active={activeTab === 'history'} onClick={() => { setActiveTab('history'); setIsSidebarOpen(false); }} />
         </nav>
 
         <div className="p-4 border-t border-slate-800 space-y-2">
@@ -1994,7 +2016,7 @@ export default function App() {
                             <Package size={20} className="text-gray-500 group-hover:text-blue-600" />
                           </div>
                           <h4 className="font-bold text-gray-900 line-clamp-1">{item.name}</h4>
-                          <span className="text-xs text-gray-500 mb-2">{item.sku}</span>
+                          <span className="text-xs text-gray-500 mb-2">{item.location}</span>
                           <div className="mt-auto w-full flex justify-between items-center">
                             <span className="font-mono font-bold text-blue-600">{formatCurrency(item.sellPrice || 0)}</span>
                             <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-200 text-gray-600">{item.quantity} left</span>
@@ -2127,11 +2149,11 @@ export default function App() {
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
                       <th className="px-6 py-4 font-semibold text-gray-900">Item Name</th>
-                      <th className="px-6 py-4 font-semibold text-gray-900">SKU</th>
                       <th className="px-6 py-4 font-semibold text-gray-900">Location</th>
                       <th className="px-6 py-4 font-semibold text-right text-gray-900">Buy Price</th>
                       <th className="px-6 py-4 font-semibold text-right text-gray-900">Sell Price</th>
                       <th className="px-6 py-4 font-semibold text-right text-gray-900">Quantity</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Refinement</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -2146,11 +2168,15 @@ export default function App() {
                         .map(item => (
                           <tr key={item.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
-                            <td className="px-6 py-4 text-gray-500 font-mono text-xs cursor-help" title="Stock Keeping Unit">{item.sku}</td>
                             <td className="px-6 py-4 text-gray-500">{item.location}</td>
                             <td className="px-6 py-4 text-right font-mono text-gray-500">{formatCurrency(item.buyPrice || 0)}</td>
                             <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
                             <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.quantity}</td>
+                            <td className="px-6 py-4 text-right">
+                              <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium text-sm">
+                                Edit
+                              </button>
+                            </td>
                           </tr>
                         ))
                     )}
@@ -2160,47 +2186,62 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'invoices' && (
+          {activeTab === 'history' && (
             <div className="space-y-6 animate-in fade-in duration-500">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{t('menuInvoices')}</h2>
-                  <p className="text-gray-500">Generate and manage electronic invoices.</p>
+                  <h2 className="text-2xl font-bold text-gray-900">History Log</h2>
+                  <p className="text-gray-500">Comprehensive log of sales and warehouse activities.</p>
                 </div>
-                <button onClick={() => setIsAddInvoiceModalOpen(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2">
-                  <Plus size={20} /> Create Invoice
-                </button>
+                <div className="flex gap-3">
+                  {/* Simple Date Filter (Visual for now, using today's sales in logic below can be upgraded) */}
+                  <input type="date" className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                </div>
               </div>
 
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Client / Customer</th>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Date</th>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Amount</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Status</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Action</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Time</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Type</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">Description</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Value / Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {invoices.length === 0 ? (
-                      <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No invoices generated yet.</td></tr>
-                    ) : (
-                      invoices.map(inv => (
-                        <tr key={inv.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 font-medium text-gray-900">{inv.client}</td>
-                          <td className="px-6 py-4 text-gray-500">{inv.date}</td>
-                          <td className="px-6 py-4 font-mono font-bold text-gray-900">{formatCurrency(inv.amount)}</td>
-                          <td className="px-6 py-4 text-right"><span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">{inv.status}</span></td>
-                          <td className="px-6 py-4 text-right">
-                            <button onClick={() => handlePrintInvoice(inv)} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Print Invoice">
-                              <Printer size={18} />
-                            </button>
-                          </td>
+                    {(() => {
+                      // Merge Sales and Relevant Inventory Updates
+                      const logs = [
+                        ...sales.map(s => ({
+                          id: 'sale-' + s.id,
+                          type: 'Sale',
+                          date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
+                          desc: `Sold ${Array.isArray(s.items) ? s.items.length : 1} items to ${s.customer || 'Walk-in'}`,
+                          val: s.amount,
+                          isCurrency: true
+                        })),
+                        ...inventory.map(i => ({
+                          id: 'inv-' + i.id,
+                          type: 'Stock Update',
+                          date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
+                          desc: `Stock Check: ${i.name} at ${i.location}`,
+                          val: `${i.quantity} Units`,
+                          isCurrency: false
+                        }))
+                      ].sort((a, b) => b.date - a.date);
+
+                      if (logs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No history records found.</td></tr>;
+
+                      return logs.map(log => (
+                        <tr key={log.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-gray-500 font-mono text-sm">{log.date.toLocaleString()}</td>
+                          <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${log.type === 'Sale' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{log.type}</span></td>
+                          <td className="px-6 py-4 text-gray-900">{log.desc}</td>
+                          <td className="px-6 py-4 text-right font-bold text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
                         </tr>
-                      ))
-                    )}
+                      ));
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -2742,32 +2783,31 @@ export default function App() {
           </div>
         </div>
       )}
-      {/* Add Item Modal */}
+      {/* Add / Edit Item Modal */}
       {isAddItemModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-900">Add Inventory Item</h3>
-              <button onClick={() => setIsAddItemModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              <h3 className="font-bold text-lg text-gray-900">{editingItem ? 'Edit Item' : 'Add Inventory Item'}</h3>
+              <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAddItem} className="p-6 space-y-4">
-              <input className="input-field" placeholder="Item Name" value={newItemForm.name} onChange={e => setNewItemForm({ ...newItemForm, name: e.target.value })} required />
-              <input className="input-field" placeholder="SKU" value={newItemForm.sku} onChange={e => setNewItemForm({ ...newItemForm, sku: e.target.value })} required />
+            <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4">
+              <input className="input-field" placeholder="Item Name" value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
 
-              <select className="input-field" value={newItemForm.location} onChange={e => setNewItemForm({ ...newItemForm, location: e.target.value })}>
+              <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })}>
                 <option value="">Select Location</option>
                 {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
               </select>
 
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" className="input-field" placeholder="Buy Price" value={newItemForm.buyPrice} onChange={e => setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
-                <input type="number" className="input-field" placeholder="Sell Price" value={newItemForm.sellPrice} onChange={e => setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
+                <input type="number" className="input-field" placeholder="Buy Price" value={editingItem ? editingItem.buyPrice : newItemForm.buyPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, buyPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
+                <input type="number" className="input-field" placeholder="Sell Price" value={editingItem ? editingItem.sellPrice : newItemForm.sellPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, sellPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
               </div>
-              <input type="number" className="input-field" placeholder="Quantity" value={newItemForm.quantity} onChange={e => setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+              <input type="number" className="input-field" placeholder="Quantity" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
 
               <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => setIsAddItemModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Add Item</button>
+                <button type="button" onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{editingItem ? 'Update' : 'Add Item'}</button>
               </div>
             </form>
           </div>
