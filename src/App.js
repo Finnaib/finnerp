@@ -63,6 +63,9 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
+  setDoc,
+  runTransaction,
 
   onSnapshot,
   writeBatch,
@@ -118,6 +121,13 @@ function StatusBadge({ status, lateHours, t }) {
 }
 
 export default function App() {
+  const [printFormat, setPrintFormat] = useState('Thermal'); // 'Thermal' or 'A4'
+  const [printDual, setPrintDual] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [securityPin, setSecurityPin] = useState('1234'); // Default PIN
+  const [pinInput, setPinInput] = useState('');
+  const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [currency, setCurrency] = useState('EGP');
   const formatCurrency = (val) => {
     try {
@@ -200,6 +210,14 @@ export default function App() {
       weeklyBuy: 'Weekly Buy/Inventory Report',
       walkIn: 'Walk-in',
       takeaway: 'Takeaway',
+      walkInCustomer: 'Walk-in Customer',
+      takeawayCustomer: 'Takeaway Customer',
+      customerCopy: 'Customer Copy',
+      shopCopy: 'Shop Copy',
+      printSettings: 'Print Settings',
+      thermal: 'Thermal (80mm)',
+      a4: 'A4 (Standard)',
+      dualPrint: 'Dual Print (Client + Shop)',
 
       details: 'Employee Info',
       manageDetails: 'Manage Selection',
@@ -479,8 +497,11 @@ export default function App() {
       menuInvoices: 'السجل',
       weeklySales: 'تقرير المبيعات الأسبوعي',
       weeklyBuy: 'تقرير الشراء/المخزون الأسبوعي',
+      weeklyBuy: 'تقرير الشراء/المخزون الأسبوعي',
       walkIn: 'زبون عادي',
       takeaway: 'طلبات خارجية',
+      walkInCustomer: 'زبون عادي',
+      takeawayCustomer: 'زبون طلبات خارجية',
 
       photoUrl: 'صورة الموظف',
       uploadPhoto: 'تحميل صورة',
@@ -619,6 +640,8 @@ export default function App() {
       weeklyBuy: '每周采购/库存报告',
       walkIn: '直接客户',
       takeaway: '外卖',
+      walkInCustomer: '直接客户',
+      takeawayCustomer: '外卖客户',
 
       photoUrl: '员工照片',
       uploadPhoto: '上传照片',
@@ -785,8 +808,7 @@ export default function App() {
 
 
 
-  // Settings State
-  const [showSettings, setShowSettings] = useState(false);
+
 
   // --- Initial Data (Only used if localStorage is empty) ---
   const initialEmployees = [
@@ -1130,13 +1152,36 @@ export default function App() {
     if (!user || cart.length === 0) return;
     try {
       const totalAmount = calculateTotal();
-      const timestampPrefix = orderType === 'Walk-in' ? 'W' : 'T';
-      const uniqueId = timestampPrefix + '-' + Date.now().toString().slice(-6);
+      const prefix = orderType === 'Walk-in' ? 'W' : 'T';
+      let uniqueId;
+
+      try {
+        uniqueId = await runTransaction(db, async (transaction) => {
+          const counterRef = doc(db, 'counters', 'daily_invoice');
+          const counterDoc = await transaction.get(counterRef);
+          const today = new Date().toISOString().split('T')[0];
+
+          let data = counterDoc.exists() ? counterDoc.data() : { date: today, W: 0, T: 0 };
+
+          if (data.date !== today) {
+            data = { date: today, W: 0, T: 0 };
+          }
+
+          const count = (data[prefix] || 0) + 1;
+          data[prefix] = count;
+
+          transaction.set(counterRef, data);
+          return `${prefix}-${count.toString().padStart(4, '0')}`;
+        });
+      } catch (e) {
+        console.error("Counter failed, using fallback", e);
+        uniqueId = prefix + '-' + Date.now().toString().slice(-6);
+      }
 
       const saleData = {
         invoiceId: uniqueId,
         orderType: orderType,
-        customer: newSaleForm.customer, // Default to Walk-in
+        customer: newSaleForm.customer || (orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')),
         amount: totalAmount,
         status: 'Completed',
         items: cart.map(i => ({ id: i.id, name: i.name, qty: i.quantity, price: i.price })),
@@ -1236,69 +1281,121 @@ export default function App() {
     const printWindow = window.open('', '', 'width=800,height=600');
     if (!printWindow) return;
 
-    printWindow.document.write(`
+    const styles = printFormat === 'Thermal' ? `
+      body { font-family: 'Courier New', monospace; width: 80mm; padding: 5px; margin: 0 auto; color: #000; }
+      .page { margin-bottom: 20px; page-break-after: always; }
+      .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+      .title { font-size: 1.2em; font-weight: bold; }
+      .subtitle { font-size: 0.9em; margin-bottom: 5px; }
+      .details { font-size: 0.8em; margin-bottom: 10px; }
+      .details p { margin: 2px 0; }
+      table { width: 100%; font-size: 0.8em; border-collapse: collapse; }
+      th { text-align: left; border-bottom: 1px solid #000; }
+      td { padding: 4px 0; vertical-align: top; }
+      .amount { text-align: right; font-weight: bold; font-size: 1.2em; border-top: 1px dashed #000; margin-top: 10px; padding-top: 5px; }
+      .footer { text-align: center; font-size: 0.7em; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 5px; }
+      .copy-label { text-align: center; font-weight: bold; margin-top: 5px; text-transform: uppercase; font-size: 0.8em; border: 1px solid #000; display: inline-block; padding: 2px 5px; }
+    ` : `
+      body { font-family: Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 210mm; margin: 0 auto; }
+      .page { margin-bottom: 50px; page-break-after: always; border: 1px solid #eee; padding: 40px; min-height: 250mm; position: relative; }
+      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+      .brand h1 { margin: 0; color: #2c3e50; font-size: 24px; }
+      .invoice-info { text-align: right; }
+      .invoice-info h2 { margin: 0 0 10px; color: #2c3e50; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+      th { text-align: left; padding: 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #eee; }
+      td { padding: 12px; border-bottom: 1px solid #eee; color: #555; }
+      .totals { margin-left: auto; width: 300px; }
+      .row { display: flex; justify-content: space-between; padding: 8px 0; }
+      .row.final { font-weight: bold; font-size: 1.2em; color: #2c3e50; border-top: 2px solid #eee; margin-top: 10px; padding-top: 10px; }
+      .footer { margin-top: 50px; text-align: center; font-size: 0.8em; color: #999; }
+      .copy-label { position: absolute; top: 20px; right: 20px; font-size: 10px; font-weight: bold; color: #ccc; text-transform: uppercase; border: 1px solid #ccc; padding: 4px 8px; border-radius: 4px; }
+    `;
+
+    const getPageContent = (copyMatch) => `
+      <div class="page">
+        ${copyMatch ? `<div class="copy-label">${copyMatch}</div>` : ''}
+        <div class="header">
+          <div class="brand">
+            <div class="title">${t('appName')}</div>
+            <div class="subtitle">${t('appSubtitle') || 'Enterprise Resource Planning'}</div>
+          </div>
+          ${printFormat === 'A4' ? `
+          <div class="invoice-info">
+            <h2>${type.toUpperCase()}</h2>
+            <p>#${invoiceData.invoiceId || 'N/A'}</p>
+            <p>${invoiceData.date || new Date().toLocaleDateString()}</p>
+          </div>` : ''}
+        </div>
+
+        <div class="${printFormat === 'A4' ? 'grid' : 'details'}">
+          <div>
+            <strong>${t('billTo')}:</strong>
+            <p>${invoiceData.client || invoiceData.customer || 'Customer'}</p>
+            <p>${invoiceData.orderType || ''}</p>
+          </div>
+          ${printFormat === 'Thermal' ? `
+          <div style="margin-top:5px;">
+            <p><strong>${t('id')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
+            <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
+          </div>` : ''}
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th width="50%">${t('item')}</th>
+              <th width="15%" style="text-align:center">${t('qty')}</th>
+              <th width="15%" style="text-align:right">${t('price')}</th>
+              <th width="20%" style="text-align:right">${t('total')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
+              <tr>
+                <td>${item.name}</td>
+                <td style="text-align:center">${item.qty || item.quantity}</td>
+                <td style="text-align:right">${formatCurrency(item.price)}</td>
+                <td style="text-align:right">${formatCurrency((item.price) * (item.qty || item.quantity))}</td>
+              </tr>
+            `).join('') : `<tr><td colspan="4">${invoiceData.items}</td></tr>`}
+          </tbody>
+        </table>
+
+        <div class="${printFormat === 'A4' ? 'totals' : ''}">
+          <div class="amount ${printFormat === 'A4' ? 'row final' : ''}">
+            <span>${t('total')}:</span>
+            <span>${formatCurrency(invoiceData.amount)}</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>${t('thankYou') || 'Thank you for your business!'}</p>
+          <p>Generated by FinnERP</p>
+        </div>
+      </div>
+    `;
+
+    const content = `
       <html>
         <head>
           <title>Print ${type}</title>
-          <style>
-            body { font-family: 'Courier New', monospace; padding: 0; margin: 0; width: 80mm; }
-            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px dashed #000; padding-bottom: 10px; }
-            .title { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
-            .details { margin-bottom: 15px; font-size: 12px; }
-            .details p { margin: 2px 0; }
-            .amount { font-size: 16px; font-weight: bold; text-align: right; margin-top: 15px; border-top: 1px dashed #000; pt-2; }
-            .footer { margin-top: 20px; text-align: center; font-size: 10px; }
-            table { width: 100%; font-size: 12px; }
-            th { text-align: left; border-bottom: 1px solid #000; }
-            td { padding: 4px 0; }
-          </style>
+          <style>${styles}</style>
         </head>
         <body>
-          <div class="header">
-            <div class="title">${translations[language].appName}</div>
-            <div>${type} Details</div>
-          </div>
-          <div class="details">
-            <p><strong>ID:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
-            <p><strong>Date:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
-            <p><strong>Type:</strong> ${invoiceData.orderType || 'Standard'}</p>
-            <p><strong>To:</strong> ${invoiceData.client || invoiceData.customer || 'Customer'}</p>
-            <p><strong>Status:</strong> ${invoiceData.status}</p>
-            ${Array.isArray(invoiceData.items) ? `
-              <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
-                <thead>
-                  <tr style="background:#f9f9f9; border-bottom:1px solid #ddd;">
-                     <th style="text-align:left; padding:8px;">Item</th>
-                     <th style="text-align:center; padding:8px;">Qty</th>
-                     <th style="text-align:right; padding:8px;">Price</th>
-                     <th style="text-align:right; padding:8px;">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${invoiceData.items.map(item => `
-                    <tr>
-                      <td style="padding:8px; border-bottom:1px solid #eee;">${item.name}</td>
-                      <td style="text-align:center; padding:8px; border-bottom:1px solid #eee;">${item.quantity}</td>
-                      <td style="text-align:right; padding:8px; border-bottom:1px solid #eee;">${formatCurrency(item.price)}</td>
-                      <td style="text-align:right; padding:8px; border-bottom:1px solid #eee;">${formatCurrency(item.price * item.quantity)}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            ` : (invoiceData.items ? `<p><strong>Items:</strong> ${invoiceData.items}</p>` : '')}
-          </div>
-          <div class="amount">
-            Total: ${formatCurrency(invoiceData.amount)}
-          </div>
-          <div class="footer">
-            Thank you for your business!
-          </div>
+          ${getPageContent(printDual ? t('customerCopy') : '')}
+          ${printDual ? getPageContent(t('shopCopy')) : ''}
         </body>
       </html>
-    `);
+    `;
+
+    printWindow.document.write(content);
     printWindow.document.close();
     printWindow.focus();
-    printWindow.print();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
   };
 
   const handleImportPayroll = (event) => {
@@ -2149,18 +2246,18 @@ export default function App() {
                             <td className="px-6 py-4 text-gray-500">{emp.location}</td>
                             <td className="px-6 py-4 text-gray-500">{emp.role}</td>
                             <td className="px-6 py-4 text-right font-mono">{formatCurrency(baseSalary)}</td>
-                            <td className="px-6 py-4 text-right font-mono text-green-600">+EGP {bonus.toLocaleString()}</td>
-                            <td className="px-6 py-4 text-right font-mono text-orange-600">+EGP {overtime.toLocaleString()}</td>
+                            <td className="px-6 py-4 text-right font-mono text-green-600">+{formatCurrency(bonus)}</td>
+                            <td className="px-6 py-4 text-right font-mono text-orange-600">+{formatCurrency(overtime)}</td>
 
                             {/* Detailed Deductions Columns */}
                             <td className="px-6 py-4 text-right font-mono text-amber-600">
-                              {lateDeduction > 0 ? `-EGP ${Math.round(lateDeduction).toLocaleString()}` : '-'}
+                              {lateDeduction > 0 ? `-${formatCurrency(lateDeduction)}` : '-'}
                             </td>
                             <td className="px-6 py-4 text-right font-mono text-red-600">
-                              {absentDeduction > 0 ? `-EGP ${Math.round(absentDeduction).toLocaleString()}` : '-'}
+                              {absentDeduction > 0 ? `-${formatCurrency(absentDeduction)}` : '-'}
                             </td>
-                            <td className="px-6 py-4 text-right font-mono text-red-800 font-bold">-EGP {Math.round(deductionAmount).toLocaleString()}</td>
-                            <td className="px-6 py-4 text-right font-bold text-gray-900">EGP {Math.round(netPay).toLocaleString()}</td>
+                            <td className="px-6 py-4 text-right font-mono text-red-800 font-bold">-{formatCurrency(deductionAmount)}</td>
+                            <td className="px-6 py-4 text-right font-bold text-gray-900">{formatCurrency(netPay)}</td>
                           </tr>
                         );
                       })}
@@ -2239,12 +2336,32 @@ export default function App() {
               {/* Left: Product Grid */}
               <div className="flex-1 flex flex-col gap-4">
                 <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <h2 className="text-xl font-bold text-gray-900">POS Terminal</h2>
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-xl font-bold text-gray-900">{t('posTerminal')}</h2>
+                    <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                      <select
+                        value={printFormat}
+                        onChange={(e) => setPrintFormat(e.target.value)}
+                        className="bg-transparent text-sm font-medium text-gray-700 outline-none px-2 py-1 cursor-pointer hover:text-blue-600"
+                        title={t('printSettings')}
+                      >
+                        <option value="Thermal">{t('thermal')}</option>
+                        <option value="A4">{t('a4')}</option>
+                      </select>
+                      <button
+                        onClick={() => setPrintDual(!printDual)}
+                        className={`text-xs font-bold px-2 py-1 rounded transition-colors ${printDual ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}
+                        title={t('dualPrint')}
+                      >
+                        2x
+                      </button>
+                    </div>
+                  </div>
                   <div className="relative w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                       type="text"
-                      placeholder="Search products..."
+                      placeholder={t('searchProducts')}
                       className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={inventorySearch}
                       onChange={(e) => setInventorySearch(e.target.value)}
@@ -2278,9 +2395,9 @@ export default function App() {
 
                 {/* Daily History Toggle / View */}
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto">
-                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> Today's Sales</h3>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> {t('todaysSales')}</h3>
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">Time</th><th className="p-2">Amount</th><th className="p-2">Items</th><th className="p-2">Action</th></tr></thead>
+                    <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
                     <tbody className="divide-y divide-gray-100">
                       {sales
                         .filter(s => s.date === new Date().toISOString().split('T')[0])
@@ -2291,7 +2408,7 @@ export default function App() {
                             <td className="p-2 font-mono font-bold text-gray-900">{formatCurrency(s.amount)}</td>
                             <td className="p-2 text-xs truncate max-w-[150px]">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</td>
                             <td className="p-2">
-                              <button onClick={() => handlePrintInvoice(s, 'Receipt')} className="text-gray-400 hover:text-gray-600"><Printer size={16} /></button>
+                              <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="text-gray-400 hover:text-gray-600"><Printer size={16} /></button>
                             </td>
                           </tr>
                         ))}
@@ -2303,16 +2420,16 @@ export default function App() {
               {/* Right: Cart */}
               <div className="w-96 bg-white flex flex-col rounded-xl shadow-xl border border-gray-100 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                  <h3 className="font-bold text-lg flex items-center gap-2"><ShoppingCart size={20} /> Current Bill</h3>
-                  <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} Items</span>
+                  <h3 className="font-bold text-lg flex items-center gap-2"><ShoppingCart size={20} /> {t('currentBill')}</h3>
+                  <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {cart.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-gray-400">
                       <ShoppingCart size={48} className="mb-4 opacity-20" />
-                      <p>Cart is empty</p>
-                      <p className="text-sm">Select items from grid to add</p>
+                      <p>{t('cartEmpty')}</p>
+                      <p className="text-sm">{t('selectItems')}</p>
                     </div>
                   ) : (
                     cart.map(item => (
@@ -2338,15 +2455,15 @@ export default function App() {
                 <div className="p-4 bg-gray-50 border-t border-gray-200">
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>Subtotal</span>
+                      <span>{t('subtotal')}</span>
                       <span>{formatCurrency(calculateTotal())}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>Tax (0%)</span>
-                      <span>EGP 0</span>
+                      <span>{t('tax')} (0%)</span>
+                      <span>{formatCurrency(0)}</span>
                     </div>
                     <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-200 pt-2">
-                      <span>Total</span>
+                      <span>{t('total')}</span>
                       <span>{formatCurrency(calculateTotal())}</span>
                     </div>
                   </div>
@@ -2354,13 +2471,24 @@ export default function App() {
                   {/* Order Type Toggle */}
                   <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
                     <button
-                      onClick={() => setOrderType('Walk-in')}
+                      onClick={() => {
+                        setOrderType('Walk-in');
+                        // Set default if empty or matches previous default
+                        if (!newSaleForm.customer || newSaleForm.customer === t('takeawayCustomer')) {
+                          setNewSaleForm(prev => ({ ...prev, customer: t('walkInCustomer') }));
+                        }
+                      }}
                       className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                       {t('walkIn')}
                     </button>
                     <button
-                      onClick={() => setOrderType('Takeaway')}
+                      onClick={() => {
+                        setOrderType('Takeaway');
+                        if (!newSaleForm.customer || newSaleForm.customer === t('walkInCustomer')) {
+                          setNewSaleForm(prev => ({ ...prev, customer: t('takeawayCustomer') }));
+                        }
+                      }}
                       className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                       {t('takeaway')}
@@ -2369,7 +2497,7 @@ export default function App() {
 
                   <input
                     className="w-full mb-3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                    placeholder="Customer Name (Optional)"
+                    placeholder={t('customerNameOptional')}
                     value={newSaleForm.customer}
                     onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                   />
@@ -2379,7 +2507,7 @@ export default function App() {
                     disabled={cart.length === 0}
                     className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
                   >
-                    <CheckCircle size={20} /> Checkout
+                    <CheckCircle size={20} /> {t('checkout')}
                   </button>
                 </div>
               </div>
@@ -2391,11 +2519,19 @@ export default function App() {
               <div className="flex justify-between items-center">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">{t('menuWarehouses')}</h2>
-                  <p className="text-gray-500">Inventory levels and stock movements.</p>
+                  <p className="text-gray-500">{t('inventorySubtitle')}</p>
                 </div>
-                <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                  <Plus size={20} /> Add Item
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => showSensitiveData ? setShowSensitiveData(false) : setIsPinModalOpen(true)}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                  >
+                    {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
+                  </button>
+                  <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                    <Plus size={20} /> {t('addItem')}
+                  </button>
+                </div>
               </div>
 
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -2404,7 +2540,7 @@ export default function App() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                     <input
                       type="text"
-                      placeholder="Search inventory by name or SKU..."
+                      placeholder={t('searchInventory')}
                       className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={inventorySearch}
                       onChange={(e) => setInventorySearch(e.target.value)}
@@ -2414,17 +2550,17 @@ export default function App() {
                 <table className="w-full text-left">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Item Name</th>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Location</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Buy Price</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Sell Price</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Quantity</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Refinement</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">{t('itemName')}</th>
+                      <th className="px-6 py-4 font-semibold text-gray-900">{t('location')}</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('buyPrice')}</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('sellPrice')}</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('quantity')}</th>
+                      <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('refinement')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {inventory.length === 0 ? (
-                      <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">No inventory items found.</td></tr>
+                      <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">{t('noInventory')}</td></tr>
                     ) : (
                       inventory
                         .filter(item =>
@@ -2435,12 +2571,14 @@ export default function App() {
                           <tr key={item.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
                             <td className="px-6 py-4 text-gray-500">{item.location}</td>
-                            <td className="px-6 py-4 text-right font-mono text-gray-500">{formatCurrency(item.buyPrice || 0)}</td>
+                            <td className="px-6 py-4 text-right font-mono text-gray-500">
+                              {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
+                            </td>
                             <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
                             <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.quantity}</td>
                             <td className="px-6 py-4 text-right">
                               <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium text-sm">
-                                Edit
+                                {t('edit') || 'Edit'}
                               </button>
                             </td>
                           </tr>
@@ -2685,6 +2823,10 @@ export default function App() {
                         <div className="flex justify-between text-sm">
                           <span className="text-blue-700">{t('overtime')}</span>
                           <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.overtime} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'overtime', Number(e.target.value))} />
+                        </div>
+                        <div className="flex justify-between text-sm pt-2 border-t border-blue-200 font-bold">
+                          <span className="text-blue-900">{t('totalComp')}</span>
+                          <span className="text-blue-900">{formatCurrency((selectedEmployee.salary || 0) + (selectedEmployee.bonus || 0) + (selectedEmployee.overtime || 0))}</span>
                         </div>
 
 
@@ -3249,6 +3391,116 @@ export default function App() {
                   <button type="submit" disabled={newInvoiceForm.items.length === 0} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed">Generate Invoice</button>
                 </div>
               </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* PIN Verification Modal */}
+      {
+        isPinModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">{t('securityCheck') || 'Security Check'}</h3>
+                <button onClick={() => { setIsPinModalOpen(false); setPinInput(''); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <div className="p-6">
+                <div className="flex justify-center mb-6">
+                  <div className="p-4 bg-blue-50 rounded-full text-blue-600">
+                    <Shield size={48} />
+                  </div>
+                </div>
+                <p className="text-center text-gray-500 mb-4 text-sm">Enter your 4-digit security PIN to view sensitive information.</p>
+
+                <div className="flex justify-center mb-6">
+                  <input
+                    type="password"
+                    autoFocus
+                    className="w-32 text-center text-2xl font-bold tracking-[0.5em] border-b-2 border-gray-300 focus:border-blue-600 outline-none py-2"
+                    maxLength={4}
+                    value={pinInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^\d*$/.test(val)) setPinInput(val);
+                      if (val === securityPin) {
+                        setShowSensitiveData(true);
+                        setIsPinModalOpen(false);
+                        setPinInput('');
+                        // Optional success feedback
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Settings Modal */}
+      {
+        showSettings && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">{t('settings')}</h3>
+                <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <div className="p-6 space-y-6">
+                {/* Language Settings */}
+                <div>
+                  <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
+                    <Globe size={16} /> {t('language')}
+                  </h4>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="input-field"
+                  >
+                    <option value="en">English</option>
+                    <option value="hi">हिंदी</option>
+                    <option value="ar">العربية</option>
+                    <option value="zh">中文</option>
+                  </select>
+                </div>
+
+                {/* Security Settings */}
+                <div>
+                  <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
+                    <Shield size={16} /> {t('securityPin') || 'Security PIN'}
+                  </h4>
+                  <p className="text-xs text-gray-500 mb-2">PIN required to view sensitive warehouse data.</p>
+                  <input
+                    type="password"
+                    className="input-field"
+                    placeholder="Enter new 4-digit PIN"
+                    maxLength={4}
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      onClick={() => {
+                        if (pinInput.length === 4) {
+                          setSecurityPin(pinInput);
+                          setPinInput('');
+                          alert('PIN Updated Successfully');
+                        } else {
+                          alert('PIN must be 4 digits');
+                        }
+                      }}
+                      className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 font-medium"
+                    >
+                      Update PIN
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button type="button" onClick={() => setShowSettings(false)} className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('close')}</button>
+                </div>
+              </div>
             </div>
           </div>
         )
