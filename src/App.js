@@ -118,7 +118,14 @@ function StatusBadge({ status, lateHours, t }) {
 }
 
 export default function App() {
-  const formatCurrency = (val) => 'EGP ' + (Number(val) || 0).toLocaleString();
+  const [currency, setCurrency] = useState('EGP');
+  const formatCurrency = (val) => {
+    try {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(Number(val) || 0);
+    } catch (e) {
+      return currency + ' ' + (Number(val) || 0).toLocaleString();
+    }
+  };
   // --- Translations Configuration ---
   const translations = {
     en: {
@@ -540,20 +547,149 @@ export default function App() {
       theme: 'المظهر',
       light: 'فاتح',
       dark: 'داكن'
+    },
+    zh: {
+      appName: 'Finn ERP',
+      appSubtitle: '企业资源规划',
+      menuDashboard: '仪表板',
+      menuEmployees: '员工',
+      menuSites: '地点/站点',
+      menuAttendance: '考勤',
+      menuPayroll: '工资单',
+      menuReports: '报表',
+      settings: '设置',
+      search: '搜索...',
+      allEmployees: '所有员工',
+      manageStaff: '管理员工和班次。',
+      addEmployee: '添加员工',
+      name: '姓名',
+      role: '职位',
+      dept: '部门',
+      salary: '基本工资',
+      bonus: '奖金',
+      overtime: '加班费',
+      deductions: '扣款',
+      total: '总计',
+      netPay: '实发工资',
+      actions: '操作',
+      login: '登录',
+      signup: '注册',
+      email: '电子邮件',
+      password: '密码',
+      welcome: '欢迎回来',
+      signInToAccess: '登录以访问您的仪表板',
+      createAccount: '创建账户',
+      haveAccount: '已有账户？',
+      noAccount: '没有账户？',
+      logout: '登出',
+      location: '地点',
+      shift: '班次',
+      totalComp: '总薪酬',
+      dailyAttendance: '每日考勤记录',
+      trackAttendance: '跟踪员工签到和班次。',
+      checkIn: '签到',
+      checkOut: '签退',
+      status: '状态',
+      import: '导入',
+      export: '导出',
+      payrollMgmt: '工资管理',
+      costAnalysis: '实时成本分析。',
+      aiInsights: 'AI 洞察',
+      siteStats: '站点统计',
+      assignedGuards: '已分配员工',
+      deleteLocation: '删除地点',
+      terminateGuard: '终止/删除员工',
+      aiAssistant: 'AI 助手',
+      genReview: '生成绩效评估',
+      generating: '生成中...',
+      downloadReport: '下载报表',
+      editLocation: '编辑地点',
+      manageDetails: '管理详情',
+      siteName: '站点名称',
+      city: '城市/区域',
+      manager: '经理',
+      operationalStatus: '运营状态',
+
+      // New Modules
+      menuAccounts: '帐户',
+      menuSalesPurchases: '销售',
+      menuWarehouses: '仓库',
+      menuInvoices: '历史',
+      weeklySales: '每周销售报告',
+      weeklyBuy: '每周采购/库存报告',
+      walkIn: '直接客户',
+      takeaway: '外卖',
+
+      photoUrl: '员工照片',
+      uploadPhoto: '上传照片',
+      unassigned: '未分配',
+      securityTeam: '团队',
+      guards: '员工',
+      addLocation: '添加新地点',
+      createLocation: '创建地点',
+      cancel: '取消',
+      filterAll: '所有地点',
+      morningShift: '早班',
+      nightShift: '晚班',
+      operational: '运营中',
+      renovating: '装修中',
+      active: '活跃',
+      closed: '已关闭',
+      onTime: '准时',
+      late: '迟到',
+      absent: '缺席',
+      design: '设计',
+      engineering: '工程',
+      hr: '人力资源',
+      marketing: '市场',
+      operations: '运营',
+      security: '安保',
+      it: 'IT',
+      headquarters: '总部',
+      addAttendance: '添加考勤',
+      editAttendance: '编辑考勤',
+      deleteAttendance: '删除考勤',
+      selectEmployee: '选择员工',
+      selectDate: '选择日期',
+      selectStatus: '选择状态',
+      save: '保存',
+      actions: '操作',
+      replacementFor: '替班',
+      coveringFor: '顶班',
+      lateDeductions: '迟到扣款',
+      absentDeductions: '缺席扣款',
+      manualDeduction: '手动扣款',
+      cost: '成本',
+      none: '无',
+      dashboardTotal: '总计',
+      activeGuards: '活跃员工',
+      operationalSites: '运营站点',
+      checkedInToday: '今日签到',
+      issuesToday: '今日问题',
+      quickActions: '快速操作',
+      addStaff: '添加员工',
+      addSite: '添加站点',
+      systemStatus: '系统状态',
+      systemOperational: '所有系统运行正常。数据库已同步。',
+      online: '在线',
+      attendanceReport: '考勤报表',
+      payrollReport: '工资报表',
+      staffReport: '员工报表',
+      taxReport: '税务报表',
+      today: '今天',
+      lateAbsent: '迟到/缺席',
+      lateHours: '迟到小时数',
+      attendanceExists: '该员工在此日期已有考勤记录。',
+      theme: '主题',
+      light: '浅色',
+      dark: '深色'
     }
   };
 
   const [language, setLanguage] = useState('en');
   const t = (key) => translations[language][key] || key;
 
-  // Toggle Language Handler
-  const toggleLanguage = () => {
-    setLanguage(prev => {
-      if (prev === 'en') return 'hi';
-      if (prev === 'hi') return 'ar';
-      return 'en';
-    });
-  };
+
 
 
 
@@ -1605,10 +1741,33 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button onClick={toggleLanguage} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
-              <Globe size={16} />
-              {language.toUpperCase()}
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Currency Selector */}
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="bg-gray-100 border-none text-sm font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
+              >
+                <option value="EGP">EGP</option>
+                <option value="USD">USD</option>
+                <option value="CNY">CNY</option>
+                <option value="EUR">EUR</option>
+                <option value="INR">INR</option>
+              </select>
+
+              {/* Language Selector */}
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="bg-gray-100 border-none text-sm font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
+              >
+                <option value="en">English</option>
+                <option value="hi">हिंदी</option>
+                <option value="ar">العربية</option>
+                <option value="zh">中文</option>
+              </select>
+            </div>
+
             <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold border border-blue-200">
               AD
             </div>
@@ -2364,294 +2523,299 @@ export default function App() {
       {/* --- Modals --- */}
 
       {/* Employee Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-900">{t('addEmployee')}</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleAddEmployee} className="p-6 space-y-4">
-              <div className="flex justify-center mb-4">
-                <label className="relative cursor-pointer group">
-                  <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors">
-                    {newEmployeeForm.photo ? <img src={newEmployeeForm.photo} alt="Preview" className="w-full h-full object-cover" /> : <Camera className="text-gray-400 group-hover:text-blue-500" size={32} />}
-                  </div>
-                  <input type="file" accept="image/*" onChange={handleNewEmployeeImage} className="hidden" />
-                </label>
+      {
+        isAddModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">{t('addEmployee')}</h3>
+                <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <input className="input-field" placeholder={t('name')} value={newEmployeeForm.name} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, name: e.target.value })} required />
-                <input className="input-field" placeholder={t('role')} value={newEmployeeForm.role} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, role: e.target.value })} required />
-              </div>
-
-              <select className="input-field" value={newEmployeeForm.dept} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, dept: e.target.value })}>
-                {['Security', 'Operations', 'HR', 'IT'].map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-
-              <select className="input-field" value={newEmployeeForm.location} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, location: e.target.value })}>
-                {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-              </select>
-
-              <select className="input-field" value={newEmployeeForm.shift} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, shift: e.target.value })}>
-                {shifts.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-
-              <input type="number" className="input-field" placeholder={t('salary')} value={newEmployeeForm.salary} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salary: Number(e.target.value) })} required />
-
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{t('addEmployee')}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Site Modal */}
-      {isAddSiteModalOpen && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-900">{t('createLocation')}</h3>
-              <button onClick={() => setIsAddSiteModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleAddSite} className="p-6 space-y-4">
-              <input className="input-field" placeholder={t('siteName')} value={newSiteForm.name} onChange={e => setNewSiteForm({ ...newSiteForm, name: e.target.value })} required />
-              <input className="input-field" placeholder={t('city')} value={newSiteForm.city} onChange={e => setNewSiteForm({ ...newSiteForm, city: e.target.value })} required />
-              <input className="input-field" placeholder={t('manager')} value={newSiteForm.manager} onChange={e => setNewSiteForm({ ...newSiteForm, manager: e.target.value })} />
-
-              <select className="input-field" value={newSiteForm.status} onChange={e => setNewSiteForm({ ...newSiteForm, status: e.target.value })}>
-                <option value="Operational">Operational</option>
-                <option value="Renovating">Renovating</option>
-                <option value="Active">Active</option>
-                <option value="Closed">Closed</option>
-              </select>
-
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => setIsAddSiteModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-lg shadow-emerald-600/20">{t('createLocation')}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Detail Sidebar (Employee/Site) */}
-      {(selectedEmployee || selectedSite) && (
-        <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-40 transform transition-transform duration-300 ease-in-out border-l border-gray-100 overflow-y-auto">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-xl text-gray-900">{selectedEmployee ? t('details') : t('manageDetails')}</h3>
-              <button onClick={() => { setSelectedEmployee(null); setSelectedSite(null); }} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
-            </div>
-
-            {selectedEmployee && (
-              <div className="space-y-6">
-                <div className="flex flex-col items-center">
-                  <div className="relative group cursor-pointer" >
-                    <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden border-4 border-white shadow-md mb-3">
-                      {selectedEmployee.photo ? <img src={selectedEmployee.photo} alt={selectedEmployee.name} className="w-full h-full object-cover" /> : <User size={40} className="text-gray-300 m-auto mt-6" />}
+              <form onSubmit={handleAddEmployee} className="p-6 space-y-4">
+                <div className="flex justify-center mb-4">
+                  <label className="relative cursor-pointer group">
+                    <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors">
+                      {newEmployeeForm.photo ? <img src={newEmployeeForm.photo} alt="Preview" className="w-full h-full object-cover" /> : <Camera className="text-gray-400 group-hover:text-blue-500" size={32} />}
                     </div>
-                    <label className="absolute bottom-3 right-0 bg-blue-600 p-1.5 rounded-full text-white shadow-sm cursor-pointer hover:bg-blue-700 transition-colors">
-                      <Camera size={14} />
-                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpdateEmployeeImage(selectedEmployee.id, e)} />
-                    </label>
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900">{selectedEmployee.name}</h2>
-                  <span className="text-sm font-medium text-slate-500">{selectedEmployee.role}</span>
+                    <input type="file" accept="image/*" onChange={handleNewEmployeeImage} className="hidden" />
+                  </label>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                    <InfoRow label={t('dept')} value={selectedEmployee.dept} />
-                    {/* Location Select for Update */}
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                      <span className="text-sm text-gray-500">{t('location')}</span>
-                      <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.location} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'location', e.target.value)}>
-                        {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                      </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <input className="input-field" placeholder={t('name')} value={newEmployeeForm.name} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, name: e.target.value })} required />
+                  <input className="input-field" placeholder={t('role')} value={newEmployeeForm.role} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, role: e.target.value })} required />
+                </div>
+
+                <select className="input-field" value={newEmployeeForm.dept} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, dept: e.target.value })}>
+                  {['Security', 'Operations', 'HR', 'IT'].map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+
+                <select className="input-field" value={newEmployeeForm.location} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, location: e.target.value })}>
+                  {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                </select>
+
+                <select className="input-field" value={newEmployeeForm.shift} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, shift: e.target.value })}>
+                  {shifts.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+
+                <input type="number" className="input-field" placeholder={t('salary')} value={newEmployeeForm.salary} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salary: Number(e.target.value) })} required />
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{t('addEmployee')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Site Modal */}
+      {
+        isAddSiteModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">{t('createLocation')}</h3>
+                <button onClick={() => setIsAddSiteModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleAddSite} className="p-6 space-y-4">
+                <input className="input-field" placeholder={t('siteName')} value={newSiteForm.name} onChange={e => setNewSiteForm({ ...newSiteForm, name: e.target.value })} required />
+                <input className="input-field" placeholder={t('city')} value={newSiteForm.city} onChange={e => setNewSiteForm({ ...newSiteForm, city: e.target.value })} required />
+                <input className="input-field" placeholder={t('manager')} value={newSiteForm.manager} onChange={e => setNewSiteForm({ ...newSiteForm, manager: e.target.value })} />
+
+                <select className="input-field" value={newSiteForm.status} onChange={e => setNewSiteForm({ ...newSiteForm, status: e.target.value })}>
+                  <option value="Operational">Operational</option>
+                  <option value="Renovating">Renovating</option>
+                  <option value="Active">Active</option>
+                  <option value="Closed">Closed</option>
+                </select>
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddSiteModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-lg shadow-emerald-600/20">{t('createLocation')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Detail Sidebar (Employee/Site) */}
+      {
+        (selectedEmployee || selectedSite) && (
+          <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-40 transform transition-transform duration-300 ease-in-out border-l border-gray-100 overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-xl text-gray-900">{selectedEmployee ? t('details') : t('manageDetails')}</h3>
+                <button onClick={() => { setSelectedEmployee(null); setSelectedSite(null); }} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
+              </div>
+
+              {selectedEmployee && (
+                <div className="space-y-6">
+                  <div className="flex flex-col items-center">
+                    <div className="relative group cursor-pointer" >
+                      <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden border-4 border-white shadow-md mb-3">
+                        {selectedEmployee.photo ? <img src={selectedEmployee.photo} alt={selectedEmployee.name} className="w-full h-full object-cover" /> : <User size={40} className="text-gray-300 m-auto mt-6" />}
+                      </div>
+                      <label className="absolute bottom-3 right-0 bg-blue-600 p-1.5 rounded-full text-white shadow-sm cursor-pointer hover:bg-blue-700 transition-colors">
+                        <Camera size={14} />
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpdateEmployeeImage(selectedEmployee.id, e)} />
+                      </label>
                     </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                      <span className="text-sm text-gray-500">{t('shift')}</span>
-                      <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.shift} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'shift', e.target.value)}>
-                        {shifts.map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                    <h2 className="text-xl font-bold text-gray-900">{selectedEmployee.name}</h2>
+                    <span className="text-sm font-medium text-slate-500">{selectedEmployee.role}</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                      <InfoRow label={t('dept')} value={selectedEmployee.dept} />
+                      {/* Location Select for Update */}
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                        <span className="text-sm text-gray-500">{t('location')}</span>
+                        <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.location} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'location', e.target.value)}>
+                          {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                        <span className="text-sm text-gray-500">{t('shift')}</span>
+                        <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.shift} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'shift', e.target.value)}>
+                          {shifts.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                      {/* Replacement Field (Dropdown) */}
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                        <span className="text-sm text-gray-500">{t('replacementFor')}</span>
+                        <select
+                          className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600 max-w-[150px]"
+                          value={selectedEmployee.replacementFor || ''}
+                          onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'replacementFor', e.target.value)}
+                        >
+                          <option value="">{t('none')}</option>
+                          {employees.filter(e => e.id !== selectedEmployee.id && e.location === selectedEmployee.location).map(emp => (
+                            <option key={emp.id} value={emp.name}>{emp.name}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                    {/* Replacement Field (Dropdown) */}
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                      <span className="text-sm text-gray-500">{t('replacementFor')}</span>
-                      <select
-                        className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600 max-w-[150px]"
-                        value={selectedEmployee.replacementFor || ''}
-                        onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'replacementFor', e.target.value)}
-                      >
-                        <option value="">{t('none')}</option>
-                        {employees.filter(e => e.id !== selectedEmployee.id && e.location === selectedEmployee.location).map(emp => (
-                          <option key={emp.id} value={emp.name}>{emp.name}</option>
+
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                      <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2"><DollarSign size={16} /> Compensation</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-blue-700">{t('salary')}</span>
+                          <input
+                            type="number"
+                            className="w-24 text-right bg-white rounded px-1 text-sm border-blue-200"
+                            value={selectedEmployee.salary}
+                            onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salary', Number(e.target.value))}
+                          />
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-blue-700">{t('bonus')}</span>
+                          <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.bonus} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'bonus', Number(e.target.value))} />
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-blue-700">{t('overtime')}</span>
+                          <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.overtime} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'overtime', Number(e.target.value))} />
+                        </div>
+
+
+
+                        {/* Deductions in Sidebar */}
+                        {(() => {
+                          const baseSalary = Number(selectedEmployee.salary) || 0;
+                          let deductionAmount = 0;
+                          let lateDeduction = 0;
+                          let absentDeduction = 0;
+                          const empAttendance = attendance.filter(a => a.name === selectedEmployee.name);
+
+                          empAttendance.forEach(record => {
+                            if (record.status === 'Late') {
+                              lateDeduction += 50;
+                              deductionAmount += 50;
+                            }
+                            if (record.status === 'Absent') {
+                              const absCost = baseSalary / 30;
+                              absentDeduction += absCost;
+                              deductionAmount += absCost;
+                            }
+                          });
+
+                          // Manual Deduction Calc
+                          const hourlyRate = baseSalary / 360;
+                          const manualHours = Number(selectedEmployee.deductionHours) || 0;
+                          const manualDeductionCost = manualHours * hourlyRate;
+                          deductionAmount += manualDeductionCost;
+
+                          const netPay = baseSalary + (Number(selectedEmployee.bonus) || 0) + (Number(selectedEmployee.overtime) || 0) - deductionAmount;
+
+                          return (
+                            <>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-red-500">{t('manualDeduction')} (Hours)</span>
+                                <input
+                                  type="number"
+                                  className="w-20 text-right bg-white rounded px-1 text-sm border-red-200 text-red-600"
+                                  value={manualHours}
+                                  onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'deductionHours', Number(e.target.value))}
+                                />
+                              </div>
+                              {manualHours > 0 && (
+                                <div className="flex justify-between text-xs text-red-400 italic">
+                                  <span>{t('cost')} ({manualHours} hrs)</span>
+                                  <span>-EGP {Math.round(manualDeductionCost).toLocaleString()}</span>
+                                </div>
+                              )}
+
+                              {/* Detailed Deductions */}
+                              {lateDeduction > 0 && (
+                                <div className="flex justify-between text-sm text-amber-600">
+                                  <span>{t('lateDeductions')}</span>
+                                  <span>-EGP {Math.round(lateDeduction).toLocaleString()}</span>
+                                </div>
+                              )}
+                              {absentDeduction > 0 && (
+                                <div className="flex justify-between text-sm text-red-600">
+                                  <span>{t('absentDeductions')}</span>
+                                  <span>-EGP {Math.round(absentDeduction).toLocaleString()}</span>
+                                </div>
+                              )}
+
+                              <div className="flex justify-between text-sm text-red-600 pt-2 border-t border-dashed border-red-100 mt-1">
+                                <span>Total {t('deductions')}</span>
+                                <span>-EGP {Math.round(deductionAmount).toLocaleString()}</span>
+                              </div>
+                              <div className="pt-2 border-t border-blue-200 flex justify-between font-bold text-blue-900">
+                                <span>{t('netPay')}</span>
+                                <span>EGP {Math.round(netPay).toLocaleString()}</span>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100">
+
+
+                      <button onClick={() => handleDeleteEmployee(selectedEmployee.id)} className="w-full mt-4 text-red-600 hover:bg-red-50 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                        <Trash2 size={18} /> {t('terminateGuard')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedSite && (
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold uppercase text-gray-400">{t('siteName')}</label>
+                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.name} onChange={(e) => handleUpdateSite(selectedSite.id, 'name', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold uppercase text-gray-400">{t('city')}</label>
+                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.city} onChange={(e) => handleUpdateSite(selectedSite.id, 'city', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold uppercase text-gray-400">{t('manager')}</label>
+                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.manager} onChange={(e) => handleUpdateSite(selectedSite.id, 'manager', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold uppercase text-gray-400">{t('operationalStatus')}</label>
+                        <select className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.status} onChange={(e) => handleUpdateSite(selectedSite.id, 'status', e.target.value)}>
+                          <option value="Operational">{t('operational')}</option>
+                          <option value="Renovating">{t('renovating')}</option>
+                          <option value="Active">{t('active')}</option>
+                          <option value="Closed">{t('closed')}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                      <h4 className="font-bold text-emerald-900 mb-2 flex items-center gap-2"><Users size={16} /> {t('assignedGuards')}</h4>
+                      <div className="space-y-2">
+                        {employees.filter(e => e.location === selectedSite.name).map(e => (
+                          <div key={e.id} className="flex items-center gap-2 text-sm text-emerald-800 bg-white/50 p-2 rounded">
+                            <div className="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center text-xs font-bold text-emerald-700">{e.name[0]}</div>
+                            <span>{e.name}</span>
+                          </div>
                         ))}
-                      </select>
+                        {employees.filter(e => e.location === selectedSite.name).length === 0 && <p className="text-sm text-emerald-600 italic">No guards assigned.</p>}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                    <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2"><DollarSign size={16} /> Compensation</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-blue-700">{t('salary')}</span>
-                        <input
-                          type="number"
-                          className="w-24 text-right bg-white rounded px-1 text-sm border-blue-200"
-                          value={selectedEmployee.salary}
-                          onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salary', Number(e.target.value))}
-                        />
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-blue-700">{t('bonus')}</span>
-                        <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.bonus} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'bonus', Number(e.target.value))} />
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-blue-700">{t('overtime')}</span>
-                        <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.overtime} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'overtime', Number(e.target.value))} />
-                      </div>
-
-
-
-                      {/* Deductions in Sidebar */}
-                      {(() => {
-                        const baseSalary = Number(selectedEmployee.salary) || 0;
-                        let deductionAmount = 0;
-                        let lateDeduction = 0;
-                        let absentDeduction = 0;
-                        const empAttendance = attendance.filter(a => a.name === selectedEmployee.name);
-
-                        empAttendance.forEach(record => {
-                          if (record.status === 'Late') {
-                            lateDeduction += 50;
-                            deductionAmount += 50;
-                          }
-                          if (record.status === 'Absent') {
-                            const absCost = baseSalary / 30;
-                            absentDeduction += absCost;
-                            deductionAmount += absCost;
-                          }
-                        });
-
-                        // Manual Deduction Calc
-                        const hourlyRate = baseSalary / 360;
-                        const manualHours = Number(selectedEmployee.deductionHours) || 0;
-                        const manualDeductionCost = manualHours * hourlyRate;
-                        deductionAmount += manualDeductionCost;
-
-                        const netPay = baseSalary + (Number(selectedEmployee.bonus) || 0) + (Number(selectedEmployee.overtime) || 0) - deductionAmount;
-
-                        return (
-                          <>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-red-500">{t('manualDeduction')} (Hours)</span>
-                              <input
-                                type="number"
-                                className="w-20 text-right bg-white rounded px-1 text-sm border-red-200 text-red-600"
-                                value={manualHours}
-                                onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'deductionHours', Number(e.target.value))}
-                              />
-                            </div>
-                            {manualHours > 0 && (
-                              <div className="flex justify-between text-xs text-red-400 italic">
-                                <span>{t('cost')} ({manualHours} hrs)</span>
-                                <span>-EGP {Math.round(manualDeductionCost).toLocaleString()}</span>
-                              </div>
-                            )}
-
-                            {/* Detailed Deductions */}
-                            {lateDeduction > 0 && (
-                              <div className="flex justify-between text-sm text-amber-600">
-                                <span>{t('lateDeductions')}</span>
-                                <span>-EGP {Math.round(lateDeduction).toLocaleString()}</span>
-                              </div>
-                            )}
-                            {absentDeduction > 0 && (
-                              <div className="flex justify-between text-sm text-red-600">
-                                <span>{t('absentDeductions')}</span>
-                                <span>-EGP {Math.round(absentDeduction).toLocaleString()}</span>
-                              </div>
-                            )}
-
-                            <div className="flex justify-between text-sm text-red-600 pt-2 border-t border-dashed border-red-100 mt-1">
-                              <span>Total {t('deductions')}</span>
-                              <span>-EGP {Math.round(deductionAmount).toLocaleString()}</span>
-                            </div>
-                            <div className="pt-2 border-t border-blue-200 flex justify-between font-bold text-blue-900">
-                              <span>{t('netPay')}</span>
-                              <span>EGP {Math.round(netPay).toLocaleString()}</span>
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-100">
-
-
-                    <button onClick={() => handleDeleteEmployee(selectedEmployee.id)} className="w-full mt-4 text-red-600 hover:bg-red-50 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
-                      <Trash2 size={18} /> {t('terminateGuard')}
+                    <button onClick={() => handleDeleteSite(selectedSite.id, selectedSite.name)} className="w-full text-red-600 hover:bg-red-50 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors mt-auto">
+                      <Trash2 size={18} /> {t('deleteLocation')}
                     </button>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {selectedSite && (
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold uppercase text-gray-400">{t('siteName')}</label>
-                      <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.name} onChange={(e) => handleUpdateSite(selectedSite.id, 'name', e.target.value)} />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold uppercase text-gray-400">{t('city')}</label>
-                      <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.city} onChange={(e) => handleUpdateSite(selectedSite.id, 'city', e.target.value)} />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold uppercase text-gray-400">{t('manager')}</label>
-                      <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.manager} onChange={(e) => handleUpdateSite(selectedSite.id, 'manager', e.target.value)} />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold uppercase text-gray-400">{t('operationalStatus')}</label>
-                      <select className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.status} onChange={(e) => handleUpdateSite(selectedSite.id, 'status', e.target.value)}>
-                        <option value="Operational">{t('operational')}</option>
-                        <option value="Renovating">{t('renovating')}</option>
-                        <option value="Active">{t('active')}</option>
-                        <option value="Closed">{t('closed')}</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                    <h4 className="font-bold text-emerald-900 mb-2 flex items-center gap-2"><Users size={16} /> {t('assignedGuards')}</h4>
-                    <div className="space-y-2">
-                      {employees.filter(e => e.location === selectedSite.name).map(e => (
-                        <div key={e.id} className="flex items-center gap-2 text-sm text-emerald-800 bg-white/50 p-2 rounded">
-                          <div className="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center text-xs font-bold text-emerald-700">{e.name[0]}</div>
-                          <span>{e.name}</span>
-                        </div>
-                      ))}
-                      {employees.filter(e => e.location === selectedSite.name).length === 0 && <p className="text-sm text-emerald-600 italic">No guards assigned.</p>}
-                    </div>
-                  </div>
-
-                  <button onClick={() => handleDeleteSite(selectedSite.id, selectedSite.name)} className="w-full text-red-600 hover:bg-red-50 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors mt-auto">
-                    <Trash2 size={18} /> {t('deleteLocation')}
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )
+        )
       }
 
       {/* Settings Modal */}
@@ -2866,214 +3030,224 @@ export default function App() {
       }
 
       {/* Add Account Modal */}
-      {isAddAccountModalOpen && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-900">Add Account</h3>
-              <button onClick={() => setIsAddAccountModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleAddAccount} className="p-6 space-y-4">
-              <input className="input-field" placeholder="Account Name" value={newAccountForm.name} onChange={e => setNewAccountForm({ ...newAccountForm, name: e.target.value })} required />
-
-              <select className="input-field" value={newAccountForm.type} onChange={e => setNewAccountForm({ ...newAccountForm, type: e.target.value })}>
-                <option value="Asset">Asset</option>
-                <option value="Liability">Liability</option>
-                <option value="Equity">Equity</option>
-                <option value="Revenue">Revenue</option>
-                <option value="Expense">Expense</option>
-              </select>
-
-              <input type="number" className="input-field" placeholder="Initial Balance" value={newAccountForm.balance} onChange={e => setNewAccountForm({ ...newAccountForm, balance: Number(e.target.value) })} />
-
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => setIsAddAccountModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Account</button>
+      {
+        isAddAccountModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">Add Account</h3>
+                <button onClick={() => setIsAddAccountModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
-            </form>
+              <form onSubmit={handleAddAccount} className="p-6 space-y-4">
+                <input className="input-field" placeholder="Account Name" value={newAccountForm.name} onChange={e => setNewAccountForm({ ...newAccountForm, name: e.target.value })} required />
+
+                <select className="input-field" value={newAccountForm.type} onChange={e => setNewAccountForm({ ...newAccountForm, type: e.target.value })}>
+                  <option value="Asset">Asset</option>
+                  <option value="Liability">Liability</option>
+                  <option value="Equity">Equity</option>
+                  <option value="Revenue">Revenue</option>
+                  <option value="Expense">Expense</option>
+                </select>
+
+                <input type="number" className="input-field" placeholder="Initial Balance" value={newAccountForm.balance} onChange={e => setNewAccountForm({ ...newAccountForm, balance: Number(e.target.value) })} />
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddAccountModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Account</button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
       {/* Add / Edit Item Modal */}
-      {isAddItemModalOpen && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-900">{editingItem ? 'Edit Item' : 'Add Inventory Item'}</h3>
-              <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+      {
+        isAddItemModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">{editingItem ? 'Edit Item' : 'Add Inventory Item'}</h3>
+                <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4">
+                <input className="input-field" placeholder="Item Name" value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
+
+                <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })}>
+                  <option value="">Select Location</option>
+                  {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="number" className="input-field" placeholder="Buy Price" value={editingItem ? editingItem.buyPrice : newItemForm.buyPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, buyPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
+                  <input type="number" className="input-field" placeholder="Sell Price" value={editingItem ? editingItem.sellPrice : newItemForm.sellPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, sellPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
+                </div>
+                <input type="number" className="input-field" placeholder="Quantity" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{editingItem ? 'Update' : 'Add Item'}</button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4">
-              <input className="input-field" placeholder="Item Name" value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
-
-              <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })}>
-                <option value="">Select Location</option>
-                {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-              </select>
-
-              <div className="grid grid-cols-2 gap-4">
-                <input type="number" className="input-field" placeholder="Buy Price" value={editingItem ? editingItem.buyPrice : newItemForm.buyPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, buyPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
-                <input type="number" className="input-field" placeholder="Sell Price" value={editingItem ? editingItem.sellPrice : newItemForm.sellPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, sellPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
-              </div>
-              <input type="number" className="input-field" placeholder="Quantity" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
-
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{editingItem ? 'Update' : 'Add Item'}</button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Add Sale Modal */}
-      {isAddSaleModalOpen && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-900">New Sale</h3>
-              <button onClick={() => setIsAddSaleModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleAddSale} className="p-6 space-y-4">
-              <input className="input-field" placeholder="Customer Name" value={newSaleForm.customer} onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })} required />
-              <input type="number" className="input-field" placeholder="Total Amount" value={newSaleForm.amount} onChange={e => setNewSaleForm({ ...newSaleForm, amount: Number(e.target.value) })} required />
-              <select className="input-field" value={newSaleForm.status} onChange={e => setNewSaleForm({ ...newSaleForm, status: e.target.value })}>
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
-                <option value="Shipped">Shipped</option>
-              </select>
-              <input className="input-field" placeholder="Items (Summary)" value={newSaleForm.items} onChange={e => setNewSaleForm({ ...newSaleForm, items: e.target.value })} />
-
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => setIsAddSaleModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-lg shadow-emerald-600/20">Create Sale</button>
+      {
+        isAddSaleModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">New Sale</h3>
+                <button onClick={() => setIsAddSaleModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
-            </form>
+              <form onSubmit={handleAddSale} className="p-6 space-y-4">
+                <input className="input-field" placeholder="Customer Name" value={newSaleForm.customer} onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })} required />
+                <input type="number" className="input-field" placeholder="Total Amount" value={newSaleForm.amount} onChange={e => setNewSaleForm({ ...newSaleForm, amount: Number(e.target.value) })} required />
+                <select className="input-field" value={newSaleForm.status} onChange={e => setNewSaleForm({ ...newSaleForm, status: e.target.value })}>
+                  <option value="Pending">Pending</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Shipped">Shipped</option>
+                </select>
+                <input className="input-field" placeholder="Items (Summary)" value={newSaleForm.items} onChange={e => setNewSaleForm({ ...newSaleForm, items: e.target.value })} />
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddSaleModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-lg shadow-emerald-600/20">Create Sale</button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Add Purchase Modal */}
-      {isAddPurchaseModalOpen && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-900">New Purchase</h3>
-              <button onClick={() => setIsAddPurchaseModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleAddPurchase} className="p-6 space-y-4">
-              <input className="input-field" placeholder="Supplier Name" value={newPurchaseForm.supplier} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, supplier: e.target.value })} required />
-              <input type="number" className="input-field" placeholder="Total Cost" value={newPurchaseForm.amount} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, amount: Number(e.target.value) })} required />
-              <select className="input-field" value={newPurchaseForm.status} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, status: e.target.value })}>
-                <option value="Ordered">Ordered</option>
-                <option value="Received">Received</option>
-                <option value="Paid">Paid</option>
-              </select>
-              <input className="input-field" placeholder="Items (Summary)" value={newPurchaseForm.items} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, items: e.target.value })} />
-
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => setIsAddPurchaseModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Order</button>
+      {
+        isAddPurchaseModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">New Purchase</h3>
+                <button onClick={() => setIsAddPurchaseModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
-            </form>
+              <form onSubmit={handleAddPurchase} className="p-6 space-y-4">
+                <input className="input-field" placeholder="Supplier Name" value={newPurchaseForm.supplier} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, supplier: e.target.value })} required />
+                <input type="number" className="input-field" placeholder="Total Cost" value={newPurchaseForm.amount} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, amount: Number(e.target.value) })} required />
+                <select className="input-field" value={newPurchaseForm.status} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, status: e.target.value })}>
+                  <option value="Ordered">Ordered</option>
+                  <option value="Received">Received</option>
+                  <option value="Paid">Paid</option>
+                </select>
+                <input className="input-field" placeholder="Items (Summary)" value={newPurchaseForm.items} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, items: e.target.value })} />
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddPurchaseModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Order</button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Add Invoice Modal */}
-      {isAddInvoiceModalOpen && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-900">Create Invoice</h3>
-              <button onClick={() => setIsAddInvoiceModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleAddInvoice} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input className="input-field" placeholder="Client / Customer" value={newInvoiceForm.client} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, client: e.target.value })} required />
-                <input type="date" className="input-field" value={newInvoiceForm.date} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, date: e.target.value })} required />
+      {
+        isAddInvoiceModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">Create Invoice</h3>
+                <button onClick={() => setIsAddInvoiceModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
-
-              {/* Line Items Section */}
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h4 className="font-bold text-sm text-gray-700 mb-2">Invoice Items</h4>
-                {newInvoiceForm.items.length > 0 && (
-                  <ul className="mb-3 space-y-2">
-                    {newInvoiceForm.items.map((item, idx) => (
-                      <li key={idx} className="flex justify-between items-center text-sm bg-white p-2 rounded border border-gray-200 shadow-sm">
-                        <span>{item.name} x {item.quantity}</span>
-                        <span className="font-mono font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <div className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Item</label>
-                    <select
-                      className="input-field text-sm"
-                      value={tempInvoiceItem.itemId}
-                      onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, itemId: e.target.value })}
-                    >
-                      <option value="">Select Item...</option>
-                      {inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({formatCurrency(i.sellPrice || 0)})</option>)}
-                    </select>
-                  </div>
-                  <div className="w-20">
-                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Qty</label>
-                    <input
-                      type="number"
-                      className="input-field text-sm"
-                      min="1"
-                      value={tempInvoiceItem.quantity}
-                      onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, quantity: Number(e.target.value) })}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const selectedInvItem = inventory.find(i => i.id === tempInvoiceItem.itemId);
-                      if (selectedInvItem && tempInvoiceItem.quantity > 0) {
-                        setNewInvoiceForm({
-                          ...newInvoiceForm,
-                          items: [...newInvoiceForm.items, {
-                            id: selectedInvItem.id,
-                            name: selectedInvItem.name,
-                            price: selectedInvItem.sellPrice || 0,
-                            quantity: tempInvoiceItem.quantity
-                          }]
-                        });
-                        setTempInvoiceItem({ itemId: '', quantity: 1 });
-                      }
-                    }}
-                    className="bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-800 text-sm h-[42px]"
-                  >Add</button>
+              <form onSubmit={handleAddInvoice} className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <input className="input-field" placeholder="Client / Customer" value={newInvoiceForm.client} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, client: e.target.value })} required />
+                  <input type="date" className="input-field" value={newInvoiceForm.date} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, date: e.target.value })} required />
                 </div>
-              </div>
 
-              <div className="flex justify-between items-center pt-2 px-2">
-                <span className="font-bold text-gray-500">Total Amount:</span>
-                <span className="font-mono text-2xl font-bold text-indigo-600">
-                  {formatCurrency(newInvoiceForm.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
-                </span>
-              </div>
+                {/* Line Items Section */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h4 className="font-bold text-sm text-gray-700 mb-2">Invoice Items</h4>
+                  {newInvoiceForm.items.length > 0 && (
+                    <ul className="mb-3 space-y-2">
+                      {newInvoiceForm.items.map((item, idx) => (
+                        <li key={idx} className="flex justify-between items-center text-sm bg-white p-2 rounded border border-gray-200 shadow-sm">
+                          <span>{item.name} x {item.quantity}</span>
+                          <span className="font-mono font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
-              <select className="input-field" value={newInvoiceForm.status} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, status: e.target.value })}>
-                <option value="Issued">Issued</option>
-                <option value="Paid">Paid</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Item</label>
+                      <select
+                        className="input-field text-sm"
+                        value={tempInvoiceItem.itemId}
+                        onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, itemId: e.target.value })}
+                      >
+                        <option value="">Select Item...</option>
+                        {inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({formatCurrency(i.sellPrice || 0)})</option>)}
+                      </select>
+                    </div>
+                    <div className="w-20">
+                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Qty</label>
+                      <input
+                        type="number"
+                        className="input-field text-sm"
+                        min="1"
+                        value={tempInvoiceItem.quantity}
+                        onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, quantity: Number(e.target.value) })}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const selectedInvItem = inventory.find(i => i.id === tempInvoiceItem.itemId);
+                        if (selectedInvItem && tempInvoiceItem.quantity > 0) {
+                          setNewInvoiceForm({
+                            ...newInvoiceForm,
+                            items: [...newInvoiceForm.items, {
+                              id: selectedInvItem.id,
+                              name: selectedInvItem.name,
+                              price: selectedInvItem.sellPrice || 0,
+                              quantity: tempInvoiceItem.quantity
+                            }]
+                          });
+                          setTempInvoiceItem({ itemId: '', quantity: 1 });
+                        }
+                      }}
+                      className="bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-800 text-sm h-[42px]"
+                    >Add</button>
+                  </div>
+                </div>
 
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => setIsAddInvoiceModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                <button type="submit" disabled={newInvoiceForm.items.length === 0} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed">Generate Invoice</button>
-              </div>
-            </form>
+                <div className="flex justify-between items-center pt-2 px-2">
+                  <span className="font-bold text-gray-500">Total Amount:</span>
+                  <span className="font-mono text-2xl font-bold text-indigo-600">
+                    {formatCurrency(newInvoiceForm.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+                  </span>
+                </div>
+
+                <select className="input-field" value={newInvoiceForm.status} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, status: e.target.value })}>
+                  <option value="Issued">Issued</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddInvoiceModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" disabled={newInvoiceForm.items.length === 0} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed">Generate Invoice</button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-    </div>
+    </div >
   );
 }
 
