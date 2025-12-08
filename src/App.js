@@ -128,6 +128,7 @@ export default function App() {
   const [pinInput, setPinInput] = useState('');
   const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890' });
   const [currency, setCurrency] = useState('EGP');
   const formatCurrency = (val) => {
     try {
@@ -218,6 +219,44 @@ export default function App() {
       thermal: 'Thermal (80mm)',
       a4: 'A4 (Standard)',
       dualPrint: 'Dual Print (Client + Shop)',
+
+      // POS & Warehouse
+      posTerminal: 'POS Terminal',
+      searchProducts: 'Search products...',
+      todaysSales: "Today's Sales",
+      time: 'Time',
+      amount: 'Amount',
+      items: 'Items',
+      receipt: 'Receipt',
+      currentBill: 'Current Bill',
+      cartEmpty: 'Cart is empty',
+      selectItems: 'Select items from grid to add',
+      subtotal: 'Subtotal',
+      tax: 'Tax',
+      checkout: 'Checkout',
+      customerNameOptional: 'Customer Name (Optional)',
+
+      inventorySubtitle: 'Inventory levels and stock movements',
+      searchInventory: 'Search inventory by name or SKU...',
+      itemName: 'Item Name',
+      buyPrice: 'Buy Price',
+      sellPrice: 'Sell Price',
+      quantity: 'Quantity',
+      refinement: 'Refinement',
+      noInventory: 'No inventory items found',
+      hideCosts: 'Hide Costs',
+      showCosts: 'Show Costs',
+      securityCheck: 'Security Check',
+      addItem: 'Add Item',
+      edit: 'Edit',
+
+      // Settings
+      shopSettings: 'Shop Settings',
+      shopName: 'Shop Name',
+      shopAddress: 'Shop Address',
+      shopPhone: 'Shop Phone',
+      updateSettings: 'Update Settings',
+
 
       details: 'Employee Info',
       manageDetails: 'Manage Selection',
@@ -426,7 +465,46 @@ export default function App() {
       weeklySales: 'साप्ताहिक बिक्री रिपोर्ट',
       weeklyBuy: 'साप्ताहिक खरीद/स्टॉक रिपोर्ट',
       walkIn: 'वॉक-इन (Walk-in)',
-      takeaway: 'टेकअवे (Takeaway)'
+      takeaway: 'टेकअवे (Takeaway)',
+      // New additions
+      customerCopy: 'ग्राहक प्रति',
+      shopCopy: 'दुकान प्रति',
+      printSettings: 'प्रिंट सेटिंग्स',
+      thermal: 'थर्मल (80mm)',
+      a4: 'A4 (मानक)',
+      dualPrint: 'दोहरी प्रिंट (ग्राहक + दुकान)',
+      posTerminal: 'POS टर्मिनल',
+      searchProducts: 'उत्पाद खोजें...',
+      todaysSales: 'आज की बिक्री',
+      time: 'समय',
+      amount: 'राशि',
+      items: 'वस्तुएं',
+      receipt: 'रसीद',
+      currentBill: 'वर्तमान बिल',
+      cartEmpty: 'कार्ट खाली है',
+      selectItems: 'जोड़ने के लिए ग्रिड से आइटम चुनें',
+      subtotal: 'उपयोग योग',
+      tax: 'कर',
+      checkout: 'चेकआउट',
+      customerNameOptional: 'ग्राहक का नाम (वैकल्पिक)',
+      inventorySubtitle: 'इन्वेंटरी स्तर और स्टॉक गतिविधियां',
+      searchInventory: 'नाम या SKU द्वारा इन्वेंट्री खोजें...',
+      itemName: 'आइटम का नाम',
+      buyPrice: 'खरीद मूल्य',
+      sellPrice: 'विक्रय मूल्य',
+      quantity: 'मात्रा',
+      refinement: 'शोधन',
+      noInventory: 'कोई इन्वेंट्री आइटम नहीं मिला',
+      hideCosts: 'लागत छिपाएं',
+      showCosts: 'लागत दिखाएं',
+      securityCheck: 'सुरक्षा जाँच',
+      addItem: 'आइटम जोड़ें',
+      edit: 'संपादित करें',
+      shopSettings: 'दुकान सेटिंग्स',
+      shopName: 'दुकान का नाम',
+      shopAddress: 'दुकान का पता',
+      shopPhone: 'दुकान का फोन',
+      updateSettings: 'सेटिंग्स अपडेट करें'
     },
     ar: {
       appName: 'جراند وولف',
@@ -567,7 +645,46 @@ export default function App() {
       attendanceExists: 'تم تسجيل الحضور لهذا الموظف في هذا التاريخ بالفعل.',
       theme: 'المظهر',
       light: 'فاتح',
-      dark: 'داكن'
+      dark: 'داكن',
+      // New additions
+      customerCopy: 'نسخة العميل',
+      shopCopy: 'نسخة المتجر',
+      printSettings: 'إعدادات الطباعة',
+      thermal: 'حراري (80 مم)',
+      a4: 'A4 (قياسي)',
+      dualPrint: 'طباعة مزدوجة',
+      posTerminal: 'محطة نقطة البيع',
+      searchProducts: 'بحث عن المنتجات...',
+      todaysSales: 'مبيعات اليوم',
+      time: 'الوقت',
+      amount: 'المبلغ',
+      items: 'العناصر',
+      receipt: 'إيصال',
+      currentBill: 'الفاتورة الحالية',
+      cartEmpty: 'السلة فارغة',
+      selectItems: 'اختر عناصر لإضافتها',
+      subtotal: 'المجموع الفرعي',
+      tax: 'الضريبة',
+      checkout: 'الدفع',
+      customerNameOptional: 'اسم العميل (اختياري)',
+      inventorySubtitle: 'مستويات المخزون وحركات المخزون',
+      searchInventory: 'بحث في المخزون بالاسم أو SKU...',
+      itemName: 'اسم العنصر',
+      buyPrice: 'سعر الشراء',
+      sellPrice: 'سعر البيع',
+      quantity: 'الكمية',
+      refinement: 'التنقية',
+      noInventory: 'لم يتم العثور على عناصر',
+      hideCosts: 'إخفاء التكاليف',
+      showCosts: 'إظهار التكاليف',
+      securityCheck: 'فحص أمني',
+      addItem: 'إضافة عنصر',
+      edit: 'تعديل',
+      shopSettings: 'إعدادات المتجر',
+      shopName: 'اسم المتجر',
+      shopAddress: 'عنوان المتجر',
+      shopPhone: 'هاتف المتجر',
+      updateSettings: 'تحديث الإعدادات'
     },
     zh: {
       appName: 'Finn ERP',
@@ -705,7 +822,46 @@ export default function App() {
       attendanceExists: '该员工在此日期已有考勤记录。',
       theme: '主题',
       light: '浅色',
-      dark: '深色'
+      dark: '深色',
+      // New additions
+      customerCopy: '客户联',
+      shopCopy: '店铺联',
+      printSettings: '打印设置',
+      thermal: '热敏 (80mm)',
+      a4: 'A4 (标准)',
+      dualPrint: '双重打印',
+      posTerminal: 'POS 终端',
+      searchProducts: '搜索产品...',
+      todaysSales: '今日销售',
+      time: '时间',
+      amount: '金额',
+      items: '项目',
+      receipt: '收据',
+      currentBill: '当前账单',
+      cartEmpty: '购物车是空的',
+      selectItems: '从网格中选择项目以添加',
+      subtotal: '小计',
+      tax: '税',
+      checkout: '结账',
+      customerNameOptional: '客户名称 (可选)',
+      inventorySubtitle: '库存水平和库存变动',
+      searchInventory: '按名称或SKU搜索库存...',
+      itemName: '项目名称',
+      buyPrice: '购买价格',
+      sellPrice: '销售价格',
+      quantity: '数量',
+      refinement: '细化',
+      noInventory: '未找到库存项目',
+      hideCosts: '隐藏成本',
+      showCosts: '显示成本',
+      securityCheck: '安全检查',
+      addItem: '添加项目',
+      edit: '编辑',
+      shopSettings: '店铺设置',
+      shopName: '店铺名称',
+      shopAddress: '店铺地址',
+      shopPhone: '店铺电话',
+      updateSettings: '更新设置'
     }
   };
 
@@ -1282,8 +1438,10 @@ export default function App() {
     if (!printWindow) return;
 
     const styles = printFormat === 'Thermal' ? `
+      @page { margin: 0; }
       body { font-family: 'Courier New', monospace; width: 80mm; padding: 5px; margin: 0 auto; color: #000; }
-      .page { margin-bottom: 20px; page-break-after: always; }
+      .page { padding-bottom: 20px; page-break-after: always; display: block; position: relative; }
+      .page:last-child { page-break-after: auto; }
       .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
       .title { font-size: 1.2em; font-weight: bold; }
       .subtitle { font-size: 0.9em; margin-bottom: 5px; }
@@ -1294,10 +1452,12 @@ export default function App() {
       td { padding: 4px 0; vertical-align: top; }
       .amount { text-align: right; font-weight: bold; font-size: 1.2em; border-top: 1px dashed #000; margin-top: 10px; padding-top: 5px; }
       .footer { text-align: center; font-size: 0.7em; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 5px; }
-      .copy-label { text-align: center; font-weight: bold; margin-top: 5px; text-transform: uppercase; font-size: 0.8em; border: 1px solid #000; display: inline-block; padding: 2px 5px; }
+      .copy-label { text-align: center; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8em; border: 1px solid #000; display: inline-block; padding: 2px 5px; }
     ` : `
-      body { font-family: Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 210mm; margin: 0 auto; }
-      .page { margin-bottom: 50px; page-break-after: always; border: 1px solid #eee; padding: 40px; min-height: 250mm; position: relative; }
+      @page { margin: 0; }
+      body { font-family: Helvetica, Arial, sans-serif; padding: 0; color: #333; margin: 0; width: 100%; }
+      .page { padding: 40px; page-break-after: always; min-height: 90vh; position: relative; box-sizing: border-box; }
+      .page:last-child { page-break-after: auto; }
       .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
       .brand h1 { margin: 0; color: #2c3e50; font-size: 24px; }
       .invoice-info { text-align: right; }
@@ -1318,8 +1478,8 @@ export default function App() {
         ${copyMatch ? `<div class="copy-label">${copyMatch}</div>` : ''}
         <div class="header">
           <div class="brand">
-            <div class="title">${t('appName')}</div>
-            <div class="subtitle">${t('appSubtitle') || 'Enterprise Resource Planning'}</div>
+            <div class="title">${shopSettings.name}</div>
+            <div class="subtitle">${shopSettings.address} | ${shopSettings.phone}</div>
           </div>
           ${printFormat === 'A4' ? `
           <div class="invoice-info">
@@ -1372,25 +1532,29 @@ export default function App() {
 
         <div class="footer">
           <p>${t('thankYou') || 'Thank you for your business!'}</p>
-          <p>Generated by FinnERP</p>
         </div>
       </div>
     `;
 
-    const content = `
+    // Explicitly handle dual printing by concatenating copies
+    let finalHtml = getPageContent(printDual ? t('customerCopy') : '');
+    if (printDual) {
+      finalHtml += getPageContent(t('shopCopy'));
+    }
+
+    constcontent = `
       <html>
         <head>
           <title>Print ${type}</title>
           <style>${styles}</style>
         </head>
         <body>
-          ${getPageContent(printDual ? t('customerCopy') : '')}
-          ${printDual ? getPageContent(t('shopCopy')) : ''}
+          ${finalHtml}
         </body>
       </html>
     `;
 
-    printWindow.document.write(content);
+    printWindow.document.write(constcontent);
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {
@@ -2337,7 +2501,7 @@ export default function App() {
               <div className="flex-1 flex flex-col gap-4">
                 <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                   <div className="flex items-center gap-4">
-                    <h2 className="text-xl font-bold text-gray-900">{t('posTerminal')}</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{shopSettings.name || t('posTerminal')}</h2>
                     <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
                       <select
                         value={printFormat}
@@ -2361,6 +2525,8 @@ export default function App() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                       type="text"
+                      name="search-products-custom"
+                      autoComplete="off"
                       placeholder={t('searchProducts')}
                       className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={inventorySearch}
@@ -3448,6 +3614,32 @@ export default function App() {
                 <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
               <div className="p-6 space-y-6">
+                {/* Shop Settings */}
+                <div>
+                  <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
+                    <Building2 size={16} /> {t('shopSettings') || 'Shop Settings'}
+                  </h4>
+                  <div className="space-y-2">
+                    <input
+                      className="input-field"
+                      placeholder={t('shopName')}
+                      value={shopSettings.name}
+                      onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
+                    />
+                    <input
+                      className="input-field"
+                      placeholder={t('shopAddress')}
+                      value={shopSettings.address}
+                      onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
+                    />
+                    <input
+                      className="input-field"
+                      placeholder={t('shopPhone')}
+                      value={shopSettings.phone}
+                      onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
+                    />
+                  </div>
+                </div>
                 {/* Language Settings */}
                 <div>
                   <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
