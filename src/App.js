@@ -537,6 +537,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [authForm, setAuthForm] = useState({ email: '', password: '', apiKey: '' });
   const [loading, setLoading] = useState(false);
+  const [globalError, setGlobalError] = useState(null); // Explicit Error State
 
   // --- Auth Effects ---
   useEffect(() => {
@@ -665,19 +666,28 @@ export default function App() {
     const qEmp = query(collection(db, 'employees'), where('userId', '==', user.uid));
     const unsubEmp = onSnapshot(qEmp, (snapshot) => {
       setEmployees(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (error) => console.error("Employees Listener Error:", error));
+    }, (error) => {
+      console.error("Employees Listener Error:", error);
+      setGlobalError("Access Denied: Employees List. " + error.message);
+    });
 
     // Sites Listener
     const qSites = query(collection(db, 'sites'), where('userId', '==', user.uid));
     const unsubSites = onSnapshot(qSites, (snapshot) => {
       setSites(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (error) => console.error("Sites Listener Error:", error));
+    }, (error) => {
+      console.error("Sites Listener Error:", error);
+      setGlobalError("Access Denied: Sites List. " + error.message);
+    });
 
     // Attendance Listener
     const qAtt = query(collection(db, 'attendance'), where('userId', '==', user.uid));
     const unsubAtt = onSnapshot(qAtt, (snapshot) => {
       setAttendance(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (error) => console.error("Attendance Listener Error:", error));
+    }, (error) => {
+      console.error("Attendance Listener Error:", error);
+      setGlobalError("Access Denied: Attendance List. " + error.message);
+    });
 
     return () => {
       unsubEmp();
@@ -1160,6 +1170,25 @@ export default function App() {
             </div>
           </div>
         </header>
+
+        {/* Global Error Banner */}
+        {globalError && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 m-4 mb-0">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700 font-bold">
+                  Connection Error:
+                </p>
+                <p className="text-sm text-red-700">
+                  {globalError} <button onClick={() => setGlobalError(null)} className="underline ml-2">Dismiss</button>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Views */}
         <div className="flex-1 overflow-auto p-8 bg-gray-50">
