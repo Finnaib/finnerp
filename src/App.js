@@ -1650,9 +1650,16 @@ export default function App() {
             </div>
 
             <div className="mt-4 flex justify-center gap-4">
-              <button onClick={toggleLanguage} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2">
-                <Globe size={14} /> {language.toUpperCase()}
-              </button>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="bg-gray-100 border-none text-xs font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
+              >
+                <option value="en">English</option>
+                <option value="hi">हिंदी</option>
+                <option value="ar">العربية</option>
+                <option value="zh">中文</option>
+              </select>
             </div>
           </div>
         </div >
