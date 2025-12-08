@@ -58,7 +58,8 @@ import {
   onSnapshot,
   writeBatch,
   query,
-  where
+  where,
+  serverTimestamp
 } from 'firebase/firestore';
 
 // --- Subcomponents ---
@@ -663,19 +664,19 @@ export default function App() {
     const qEmp = query(collection(db, 'employees'), where('userId', '==', user.uid));
     const unsubEmp = onSnapshot(qEmp, (snapshot) => {
       setEmployees(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
+    }, (error) => console.error("Employees Listener Error:", error));
 
     // Sites Listener
     const qSites = query(collection(db, 'sites'), where('userId', '==', user.uid));
     const unsubSites = onSnapshot(qSites, (snapshot) => {
       setSites(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
+    }, (error) => console.error("Sites Listener Error:", error));
 
     // Attendance Listener
     const qAtt = query(collection(db, 'attendance'), where('userId', '==', user.uid));
     const unsubAtt = onSnapshot(qAtt, (snapshot) => {
       setAttendance(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
+    }, (error) => console.error("Attendance Listener Error:", error));
 
     return () => {
       unsubEmp();
@@ -863,7 +864,7 @@ export default function App() {
         overtime: Number(newEmployeeForm.overtime) || 0,
         userId: user.uid,
         status: 'Active',
-        createdAt: new Date().toISOString()
+        createdAt: serverTimestamp()
       });
       alert("Employee Saved Successfully!"); // Debug Confirmation
       setIsAddModalOpen(false);
