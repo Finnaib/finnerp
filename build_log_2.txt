@@ -1,0 +1,44 @@
+
+> grand-wolf-security@1.0.0 build
+> react-scripts build
+
+(node:12328) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Creating an optimized production build...
+Failed to compile.
+
+[eslint] 
+src\App.js
+  Line 516:31:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 517:5:   React Hook "useEffect" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+  Line 527:39:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 529:5:   React Hook "useEffect" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+  Line 533:53:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 534:45:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 535:49:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 536:57:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 538:61:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 539:65:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 540:63:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 541:61:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 542:69:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 543:55:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 546:29:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 547:43:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 548:47:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 549:37:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 550:37:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 551:35:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 554:5:   React Hook "useEffect" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+  Line 618:45:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 668:39:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 669:31:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 670:41:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 673:5:   React Hook "useEffect" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+  Line 706:51:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 710:43:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+  Line 716:55:  React Hook "useState" is called in function "toggleLanguage" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"   react-hooks/rules-of-hooks
+
+Search for the keywords to learn more about each error.
+
+
