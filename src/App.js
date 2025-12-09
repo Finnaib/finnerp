@@ -988,6 +988,86 @@ export default function App() {
     }
   };
 
+  const handleExportBackup = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const collections = ['employees', 'sites', 'attendance', 'inventory', 'sales', 'purchases', 'invoices', 'accounts', 'journal_entries', 'suppliers', 'settings'];
+      const backup = {
+        exportDate: new Date().toISOString(),
+        userId: user.uid,
+        userEmail: user.email,
+        data: {}
+      };
+
+      for (const colName of collections) {
+        const q = query(collection(db, colName), where('userId', '==', user.uid));
+        const snapshot = await getDocs(q);
+        backup.data[colName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+
+      const dataStr = JSON.stringify(backup, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `finnerp-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      alert('Backup exported successfully!');
+    } catch (err) {
+      console.error(err);
+      alert('Export failed: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportBackup = async (event) => {
+    const file = event.target.files[0];
+    if (!file || !user) return;
+
+    if (!window.confirm('WARNING: This will OVERWRITE all existing data. Continue?')) {
+      event.target.value = null;
+      return;
+    }
+
+    setLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const backup = JSON.parse(e.target.result);
+
+        if (!backup.data) {
+          throw new Error('Invalid backup file format');
+        }
+
+        for (const [colName, items] of Object.entries(backup.data)) {
+          if (!Array.isArray(items)) continue;
+
+          for (const item of items) {
+            const { id, ...data } = item;
+            data.userId = user.uid;
+            await setDoc(doc(db, colName, id), data);
+          }
+        }
+
+        alert('Backup imported successfully! Reloading...');
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert('Import failed: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = null;
+  };
+
   const handleLinkGoogle = async () => {
     if (!auth.currentUser) return;
     try {
@@ -2499,544 +2579,557 @@ export default function App() {
                 </table>
               </div>
             </div>
-          )}
+          )
+          }
 
-          {activeTab === 'payroll' && (
-            <div className="space-y-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">{t('payrollMgmt')}</h3>
-                  <p className="text-sm text-slate-500">{t('costAnalysis')}</p>
-                </div>
-                <div className="flex gap-3">
-                  <select
-                    className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                    value={payrollLocationFilter}
-                    onChange={(e) => setPayrollLocationFilter(e.target.value)}
-                  >
-                    <option value="">{t('filterAll')}</option>
-                    {sites.map(site => (
-                      <option key={site.id} value={site.name}>{site.name}</option>
-                    ))}
-                  </select>
-
-                  <label className="flex items-center gap-2 bg-white border border-gray-300 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium">
-                    <Upload size={16} /> {t('import')}
-                    <input type="file" accept=".csv" onChange={handleImportPayroll} className="hidden" />
-                  </label>
-                  <button onClick={handleExportPayroll} className="bg-white border border-gray-300 px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-50">
-                    <Download size={16} /> {t('export')}
-                  </button>
-                </div>
-              </div>
-
-
-
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
-                    <tr>
-                      <th className="px-6 py-3">{t('name')}</th>
-                      <th className="px-6 py-3">{t('location')}</th>
-                      <th className="px-6 py-3">{t('role')}</th>
-                      <th className="px-6 py-3 text-right">{t('salary')}</th>
-                      <th className="px-6 py-3 text-right">{t('bonus')}</th>
-                      <th className="px-6 py-3 text-right">{t('overtime')}</th>
-                      <th className="px-6 py-3 text-right text-amber-600">{t('late')}</th>
-                      <th className="px-6 py-3 text-right text-red-600">{t('absent')}</th>
-                      <th className="px-6 py-3 text-right text-red-800">{t('deductions')}</th>
-                      <th className="px-6 py-3 text-right">{t('netPay')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {employees
-                      .filter(emp => !payrollLocationFilter || emp.location === payrollLocationFilter)
-                      .map(emp => {
-                        const baseSalary = Number(emp.salary) || 0;
-                        const bonus = Number(emp.bonus) || 0;
-                        const overtime = Number(emp.overtime) || 0;
-                        let deductionAmount = 0;
-                        let lateDeduction = 0;
-                        let absentDeduction = 0;
-                        const empAttendance = attendance.filter(a => a.name === emp.name); // Simple match by name
-
-                        empAttendance.forEach(record => {
-                          if (record.status === 'Late') {
-                            // Hourly Rate = Salary / 360
-                            const hourlyRate = baseSalary / 360;
-                            const lateCost = (Number(record.lateHours) || 0) * hourlyRate;
-                            if (lateCost > 0) {
-                              lateDeduction += lateCost;
-                              deductionAmount += lateCost;
-                            } else {
-                              // Fallback if no hours set but late? Maybe 0 or assume 1 hour? 
-                              // Let's assume 0 for now as user explicitely asked for "chosen" hours.
-                            }
-                          }
-                          if (record.status === 'Absent') {
-                            const cost = baseSalary / 30;
-                            absentDeduction += cost;
-                            deductionAmount += cost;
-                          }
-                        });
-
-                        // Add Manual Hourly Deductions
-                        // Hourly Rate = Salary / 30 / 12 (assuming 12 hour shift, 30 days) => Salary / 360
-                        const hourlyRate = baseSalary / 360;
-                        const manualDeduction = (Number(emp.deductionHours) || 0) * hourlyRate;
-                        deductionAmount += manualDeduction;
-
-                        const netPay = baseSalary + bonus + overtime - deductionAmount;
-
-                        return (
-                          <tr key={emp.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 font-medium text-gray-900">
-                              <div>{emp.name}</div>
-                              <div className="text-xs text-gray-500">{emp.dept}</div>
-                            </td>
-                            <td className="px-6 py-4 text-gray-500">{emp.location}</td>
-                            <td className="px-6 py-4 text-gray-500">{emp.role}</td>
-                            <td className="px-6 py-4 text-right font-mono">{formatCurrency(baseSalary)}</td>
-                            <td className="px-6 py-4 text-right font-mono text-green-600">+{formatCurrency(bonus)}</td>
-                            <td className="px-6 py-4 text-right font-mono text-orange-600">+{formatCurrency(overtime)}</td>
-
-                            {/* Detailed Deductions Columns */}
-                            <td className="px-6 py-4 text-right font-mono text-amber-600">
-                              {lateDeduction > 0 ? `-${formatCurrency(lateDeduction)}` : '-'}
-                            </td>
-                            <td className="px-6 py-4 text-right font-mono text-red-600">
-                              {absentDeduction > 0 ? `-${formatCurrency(absentDeduction)}` : '-'}
-                            </td>
-                            <td className="px-6 py-4 text-right font-mono text-red-800 font-bold">-{formatCurrency(deductionAmount)}</td>
-                            <td className="px-6 py-4 text-right font-bold text-gray-900">{formatCurrency(netPay)}</td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'reports' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { id: 'attendance', label: t('attendanceReport'), icon: <Clock />, color: 'text-orange-600', bg: 'bg-orange-50' },
-                { id: 'payroll', label: t('payrollReport'), icon: <DollarSign />, color: 'text-purple-600', bg: 'bg-purple-50' },
-                { id: 'turnover', label: t('staffReport'), icon: <Users />, color: 'text-blue-600', bg: 'bg-blue-50' },
-                { id: 'tax', label: t('taxReport'), icon: <FileText />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                { id: 'weekly_sales', label: t('weeklySales'), icon: <ShoppingCart />, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                { id: 'weekly_buy', label: t('weeklyBuy'), icon: <Package />, color: 'text-teal-600', bg: 'bg-teal-50' },
-              ].map(report => (
-                <button key={report.id} onClick={() => downloadReport(report.id)} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all text-left group">
-                  <div className={`w-12 h-12 ${report.bg} ${report.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    {React.cloneElement(report.icon, { size: 24 })}
+          {
+            activeTab === 'payroll' && (
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">{t('payrollMgmt')}</h3>
+                    <p className="text-sm text-slate-500">{t('costAnalysis')}</p>
                   </div>
-                  <h4 className="font-bold text-gray-900 mb-1">{report.label}</h4>
-                  <div className="flex items-center text-sm text-gray-500 gap-1 group-hover:text-blue-600">
-                    {t('downloadReport')} <Download size={14} />
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* --- New Modules Views --- */}
-
-          {activeTab === 'accounts' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{t('menuAccounts')}</h2>
-                  <p className="text-gray-500">Track assets, liabilities, and expenses.</p>
-                </div>
-                <button onClick={() => setIsAddAccountModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                  <Plus size={20} /> Add Account
-                </button>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full text-left">
-                  <thead className="bg-gray-50 border-b border-gray-100">
-                    <tr>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Account Name</th>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Type</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {accounts.length === 0 ? (
-                      <tr><td colSpan="3" className="px-6 py-8 text-center text-gray-500">No accounts found. Add one to get started.</td></tr>
-                    ) : (
-                      accounts.map(acc => (
-                        <tr key={acc.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 font-medium text-gray-900">{acc.name}</td>
-                          <td className="px-6 py-4 text-gray-500"><span className={`px-2 py-1 rounded text-xs font-bold ${acc.type === 'Asset' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{acc.type}</span></td>
-                          <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(acc.balance)}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'sales_purchases' && (
-            <div className="flex h-[calc(100vh-140px)] gap-6 animate-in fade-in duration-500">
-              {/* Left: Product Grid */}
-              <div className="flex-1 flex flex-col gap-4">
-                <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <div className="flex items-center gap-4">
-                    <h2 className="text-xl font-bold text-gray-900">{shopSettings.name || t('posTerminal')}</h2>
-                    <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
-                      <select
-                        value={printFormat}
-                        onChange={(e) => setPrintFormat(e.target.value)}
-                        className="bg-transparent text-sm font-medium text-gray-700 outline-none px-2 py-1 cursor-pointer hover:text-blue-600"
-                        title={t('printSettings')}
-                      >
-                        <option value="Thermal">{t('thermal')}</option>
-                        <option value="A4">{t('a4')}</option>
-                      </select>
-                      <button
-                        onClick={() => setPrintDual(!printDual)}
-                        className={`text-xs font-bold px-2 py-1 rounded transition-colors ${printDual ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}
-                        title={t('dualPrint')}
-                      >
-                        2x
-                      </button>
-                    </div>
-                  </div>
-                  <div className="relative w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      name="search-products-custom"
-                      autoComplete="off"
-                      placeholder={t('searchProducts')}
-                      className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={inventorySearch}
-                      onChange={(e) => setInventorySearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {inventory
-                      .filter(item => (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
-                      .map(item => (
-                        <button
-                          key={item.id}
-                          onClick={() => addToCart(item)}
-                          className="flex flex-col items-start p-4 bg-gray-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 rounded-xl transition-all group text-left"
-                        >
-                          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                            <Package size={20} className="text-gray-500 group-hover:text-blue-600" />
-                          </div>
-                          <h4 className="font-bold text-gray-900 line-clamp-1">{item.name}</h4>
-                          <span className="text-xs text-gray-500 mb-2">{item.location}</span>
-                          <div className="mt-auto w-full flex justify-between items-center">
-                            <span className="font-mono font-bold text-blue-600">{formatCurrency(item.sellPrice || 0)}</span>
-                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-200 text-gray-600">{item.quantity} left</span>
-                          </div>
-                        </button>
+                  <div className="flex gap-3">
+                    <select
+                      className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                      value={payrollLocationFilter}
+                      onChange={(e) => setPayrollLocationFilter(e.target.value)}
+                    >
+                      <option value="">{t('filterAll')}</option>
+                      {sites.map(site => (
+                        <option key={site.id} value={site.name}>{site.name}</option>
                       ))}
+                    </select>
+
+                    <label className="flex items-center gap-2 bg-white border border-gray-300 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium">
+                      <Upload size={16} /> {t('import')}
+                      <input type="file" accept=".csv" onChange={handleImportPayroll} className="hidden" />
+                    </label>
+                    <button onClick={handleExportPayroll} className="bg-white border border-gray-300 px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-50">
+                      <Download size={16} /> {t('export')}
+                    </button>
                   </div>
                 </div>
 
-                {/* Daily History Toggle / View */}
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto">
-                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> {t('todaysSales')}</h3>
+
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
+                    <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-3">{t('name')}</th>
+                        <th className="px-6 py-3">{t('location')}</th>
+                        <th className="px-6 py-3">{t('role')}</th>
+                        <th className="px-6 py-3 text-right">{t('salary')}</th>
+                        <th className="px-6 py-3 text-right">{t('bonus')}</th>
+                        <th className="px-6 py-3 text-right">{t('overtime')}</th>
+                        <th className="px-6 py-3 text-right text-amber-600">{t('late')}</th>
+                        <th className="px-6 py-3 text-right text-red-600">{t('absent')}</th>
+                        <th className="px-6 py-3 text-right text-red-800">{t('deductions')}</th>
+                        <th className="px-6 py-3 text-right">{t('netPay')}</th>
+                      </tr>
+                    </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {sales
-                        .filter(s => s.date === new Date().toISOString().split('T')[0])
-                        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                        .map(s => (
-                          <tr key={s.id}>
-                            <td className="p-2 text-gray-500">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
-                            <td className="p-2 font-mono font-bold text-gray-900">{formatCurrency(s.amount)}</td>
-                            <td className="p-2 text-xs truncate max-w-[150px]">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</td>
-                            <td className="p-2">
-                              <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="text-gray-400 hover:text-gray-600"><Printer size={16} /></button>
-                            </td>
-                          </tr>
-                        ))}
+                      {employees
+                        .filter(emp => !payrollLocationFilter || emp.location === payrollLocationFilter)
+                        .map(emp => {
+                          const baseSalary = Number(emp.salary) || 0;
+                          const bonus = Number(emp.bonus) || 0;
+                          const overtime = Number(emp.overtime) || 0;
+                          let deductionAmount = 0;
+                          let lateDeduction = 0;
+                          let absentDeduction = 0;
+                          const empAttendance = attendance.filter(a => a.name === emp.name); // Simple match by name
+
+                          empAttendance.forEach(record => {
+                            if (record.status === 'Late') {
+                              // Hourly Rate = Salary / 360
+                              const hourlyRate = baseSalary / 360;
+                              const lateCost = (Number(record.lateHours) || 0) * hourlyRate;
+                              if (lateCost > 0) {
+                                lateDeduction += lateCost;
+                                deductionAmount += lateCost;
+                              } else {
+                                // Fallback if no hours set but late? Maybe 0 or assume 1 hour? 
+                                // Let's assume 0 for now as user explicitely asked for "chosen" hours.
+                              }
+                            }
+                            if (record.status === 'Absent') {
+                              const cost = baseSalary / 30;
+                              absentDeduction += cost;
+                              deductionAmount += cost;
+                            }
+                          });
+
+                          // Add Manual Hourly Deductions
+                          // Hourly Rate = Salary / 30 / 12 (assuming 12 hour shift, 30 days) => Salary / 360
+                          const hourlyRate = baseSalary / 360;
+                          const manualDeduction = (Number(emp.deductionHours) || 0) * hourlyRate;
+                          deductionAmount += manualDeduction;
+
+                          const netPay = baseSalary + bonus + overtime - deductionAmount;
+
+                          return (
+                            <tr key={emp.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 font-medium text-gray-900">
+                                <div>{emp.name}</div>
+                                <div className="text-xs text-gray-500">{emp.dept}</div>
+                              </td>
+                              <td className="px-6 py-4 text-gray-500">{emp.location}</td>
+                              <td className="px-6 py-4 text-gray-500">{emp.role}</td>
+                              <td className="px-6 py-4 text-right font-mono">{formatCurrency(baseSalary)}</td>
+                              <td className="px-6 py-4 text-right font-mono text-green-600">+{formatCurrency(bonus)}</td>
+                              <td className="px-6 py-4 text-right font-mono text-orange-600">+{formatCurrency(overtime)}</td>
+
+                              {/* Detailed Deductions Columns */}
+                              <td className="px-6 py-4 text-right font-mono text-amber-600">
+                                {lateDeduction > 0 ? `-${formatCurrency(lateDeduction)}` : '-'}
+                              </td>
+                              <td className="px-6 py-4 text-right font-mono text-red-600">
+                                {absentDeduction > 0 ? `-${formatCurrency(absentDeduction)}` : '-'}
+                              </td>
+                              <td className="px-6 py-4 text-right font-mono text-red-800 font-bold">-{formatCurrency(deductionAmount)}</td>
+                              <td className="px-6 py-4 text-right font-bold text-gray-900">{formatCurrency(netPay)}</td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
               </div>
+            )
+          }
 
-              {/* Right: Cart */}
-              <div className="w-96 bg-white flex flex-col rounded-xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                  <h3 className="font-bold text-lg flex items-center gap-2"><ShoppingCart size={20} /> {t('currentBill')}</h3>
-                  <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
+          {
+            activeTab === 'reports' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { id: 'attendance', label: t('attendanceReport'), icon: <Clock />, color: 'text-orange-600', bg: 'bg-orange-50' },
+                  { id: 'payroll', label: t('payrollReport'), icon: <DollarSign />, color: 'text-purple-600', bg: 'bg-purple-50' },
+                  { id: 'turnover', label: t('staffReport'), icon: <Users />, color: 'text-blue-600', bg: 'bg-blue-50' },
+                  { id: 'tax', label: t('taxReport'), icon: <FileText />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                  { id: 'weekly_sales', label: t('weeklySales'), icon: <ShoppingCart />, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                  { id: 'weekly_buy', label: t('weeklyBuy'), icon: <Package />, color: 'text-teal-600', bg: 'bg-teal-50' },
+                ].map(report => (
+                  <button key={report.id} onClick={() => downloadReport(report.id)} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all text-left group">
+                    <div className={`w-12 h-12 ${report.bg} ${report.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                      {React.cloneElement(report.icon, { size: 24 })}
+                    </div>
+                    <h4 className="font-bold text-gray-900 mb-1">{report.label}</h4>
+                    <div className="flex items-center text-sm text-gray-500 gap-1 group-hover:text-blue-600">
+                      {t('downloadReport')} <Download size={14} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )
+          }
+
+          {/* --- New Modules Views --- */}
+
+          {
+            activeTab === 'accounts' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">{t('menuAccounts')}</h2>
+                    <p className="text-gray-500">Track assets, liabilities, and expenses.</p>
+                  </div>
+                  <button onClick={() => setIsAddAccountModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                    <Plus size={20} /> Add Account
+                  </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {cart.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                      <ShoppingCart size={48} className="mb-4 opacity-20" />
-                      <p>{t('cartEmpty')}</p>
-                      <p className="text-sm">{t('selectItems')}</p>
-                    </div>
-                  ) : (
-                    cart.map(item => (
-                      <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100 group">
-                        <div className="flex-1">
-                          <div className="font-bold text-gray-900">{item.name}</div>
-                          <div className="text-xs text-gray-500 font-mono">{formatCurrency(item.price)} x {item.quantity}</div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center bg-white border border-gray-200 rounded-lg">
-                            <button onClick={() => updateCartQuantity(item.id, -1)} className="px-2 py-1 hover:bg-gray-100 text-gray-600 rounded-l-lg">-</button>
-                            <span className="font-mono text-sm px-2">{item.quantity}</span>
-                            <button onClick={() => updateCartQuantity(item.id, 1)} className="px-2 py-1 hover:bg-gray-100 text-gray-600 rounded-r-lg">+</button>
-                          </div>
-                          <span className="font-mono font-bold text-gray-900 w-16 text-right">{formatCurrency(item.price * item.quantity)}</span>
-                          <button onClick={() => removeFromCart(item.id)} className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
-                        </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 font-semibold text-gray-900">Account Name</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">Type</th>
+                        <th className="px-6 py-4 font-semibold text-right text-gray-900">Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {accounts.length === 0 ? (
+                        <tr><td colSpan="3" className="px-6 py-8 text-center text-gray-500">No accounts found. Add one to get started.</td></tr>
+                      ) : (
+                        accounts.map(acc => (
+                          <tr key={acc.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 font-medium text-gray-900">{acc.name}</td>
+                            <td className="px-6 py-4 text-gray-500"><span className={`px-2 py-1 rounded text-xs font-bold ${acc.type === 'Asset' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{acc.type}</span></td>
+                            <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(acc.balance)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
+          }
+
+          {
+            activeTab === 'sales_purchases' && (
+              <div className="flex h-[calc(100vh-140px)] gap-6 animate-in fade-in duration-500">
+                {/* Left: Product Grid */}
+                <div className="flex-1 flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-4">
+                      <h2 className="text-xl font-bold text-gray-900">{shopSettings.name || t('posTerminal')}</h2>
+                      <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                        <select
+                          value={printFormat}
+                          onChange={(e) => setPrintFormat(e.target.value)}
+                          className="bg-transparent text-sm font-medium text-gray-700 outline-none px-2 py-1 cursor-pointer hover:text-blue-600"
+                          title={t('printSettings')}
+                        >
+                          <option value="Thermal">{t('thermal')}</option>
+                          <option value="A4">{t('a4')}</option>
+                        </select>
+                        <button
+                          onClick={() => setPrintDual(!printDual)}
+                          className={`text-xs font-bold px-2 py-1 rounded transition-colors ${printDual ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}
+                          title={t('dualPrint')}
+                        >
+                          2x
+                        </button>
                       </div>
-                    ))
-                  )}
-                </div>
-
-                <div className="p-4 bg-gray-50 border-t border-gray-200">
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>{t('subtotal')}</span>
-                      <span>{formatCurrency(calculateTotal())}</span>
                     </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>{t('tax')} (0%)</span>
-                      <span>{formatCurrency(0)}</span>
-                    </div>
-                    <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-200 pt-2">
-                      <span>{t('total')}</span>
-                      <span>{formatCurrency(calculateTotal())}</span>
+                    <div className="relative w-64">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <input
+                        type="text"
+                        name="search-products-custom"
+                        autoComplete="off"
+                        placeholder={t('searchProducts')}
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={inventorySearch}
+                        onChange={(e) => setInventorySearch(e.target.value)}
+                      />
                     </div>
                   </div>
 
-                  {/* Order Type Toggle */}
-                  <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
-                    <button
-                      onClick={() => {
-                        setOrderType('Walk-in');
-                        // Set default if empty or matches previous default
-                        if (!newSaleForm.customer || newSaleForm.customer === t('takeawayCustomer')) {
-                          setNewSaleForm(prev => ({ ...prev, customer: t('walkInCustomer') }));
-                        }
-                      }}
-                      className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                      {t('walkIn')}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setOrderType('Takeaway');
-                        if (!newSaleForm.customer || newSaleForm.customer === t('walkInCustomer')) {
-                          setNewSaleForm(prev => ({ ...prev, customer: t('takeawayCustomer') }));
-                        }
-                      }}
-                      className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                      {t('takeaway')}
-                    </button>
+                  <div className="flex-1 overflow-y-auto bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {inventory
+                        .filter(item => (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                        .map(item => (
+                          <button
+                            key={item.id}
+                            onClick={() => addToCart(item)}
+                            className="flex flex-col items-start p-4 bg-gray-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 rounded-xl transition-all group text-left"
+                          >
+                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                              <Package size={20} className="text-gray-500 group-hover:text-blue-600" />
+                            </div>
+                            <h4 className="font-bold text-gray-900 line-clamp-1">{item.name}</h4>
+                            <span className="text-xs text-gray-500 mb-2">{item.location}</span>
+                            <div className="mt-auto w-full flex justify-between items-center">
+                              <span className="font-mono font-bold text-blue-600">{formatCurrency(item.sellPrice || 0)}</span>
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-200 text-gray-600">{item.quantity} left</span>
+                            </div>
+                          </button>
+                        ))}
+                    </div>
                   </div>
 
-                  <input
-                    className="w-full mb-3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                    placeholder={t('customerNameOptional')}
-                    value={newSaleForm.customer}
-                    autoComplete="off"
-                    onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
-                  />
-
-                  <button
-                    onClick={handleCheckout}
-                    disabled={cart.length === 0}
-                    className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
-                  >
-                    <CheckCircle size={20} /> {t('checkout')}
-                  </button>
+                  {/* Daily History Toggle / View */}
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> {t('todaysSales')}</h3>
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {sales
+                          .filter(s => s.date === new Date().toISOString().split('T')[0])
+                          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+                          .map(s => (
+                            <tr key={s.id}>
+                              <td className="p-2 text-gray-500">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
+                              <td className="p-2 font-mono font-bold text-gray-900">{formatCurrency(s.amount)}</td>
+                              <td className="p-2 text-xs truncate max-w-[150px]">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</td>
+                              <td className="p-2">
+                                <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="text-gray-400 hover:text-gray-600"><Printer size={16} /></button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
 
-          {activeTab === 'warehouses' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{t('menuWarehouses')}</h2>
-                  <p className="text-gray-500">{t('inventorySubtitle')}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => showSensitiveData ? setShowSensitiveData(false) : setIsPinModalOpen(true)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                  >
-                    {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
-                  </button>
-                  <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                    <Plus size={20} /> {t('addItem')}
-                  </button>
-                </div>
-              </div>
+                {/* Right: Cart */}
+                <div className="w-96 bg-white flex flex-col rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <h3 className="font-bold text-lg flex items-center gap-2"><ShoppingCart size={20} /> {t('currentBill')}</h3>
+                    <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
+                  </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 border-b border-gray-100">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {cart.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                        <ShoppingCart size={48} className="mb-4 opacity-20" />
+                        <p>{t('cartEmpty')}</p>
+                        <p className="text-sm">{t('selectItems')}</p>
+                      </div>
+                    ) : (
+                      cart.map(item => (
+                        <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100 group">
+                          <div className="flex-1">
+                            <div className="font-bold text-gray-900">{item.name}</div>
+                            <div className="text-xs text-gray-500 font-mono">{formatCurrency(item.price)} x {item.quantity}</div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center bg-white border border-gray-200 rounded-lg">
+                              <button onClick={() => updateCartQuantity(item.id, -1)} className="px-2 py-1 hover:bg-gray-100 text-gray-600 rounded-l-lg">-</button>
+                              <span className="font-mono text-sm px-2">{item.quantity}</span>
+                              <button onClick={() => updateCartQuantity(item.id, 1)} className="px-2 py-1 hover:bg-gray-100 text-gray-600 rounded-r-lg">+</button>
+                            </div>
+                            <span className="font-mono font-bold text-gray-900 w-16 text-right">{formatCurrency(item.price * item.quantity)}</span>
+                            <button onClick={() => removeFromCart(item.id)} className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-gray-50 border-t border-gray-200">
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>{t('subtotal')}</span>
+                        <span>{formatCurrency(calculateTotal())}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>{t('tax')} (0%)</span>
+                        <span>{formatCurrency(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-200 pt-2">
+                        <span>{t('total')}</span>
+                        <span>{formatCurrency(calculateTotal())}</span>
+                      </div>
+                    </div>
+
+                    {/* Order Type Toggle */}
+                    <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
+                      <button
+                        onClick={() => {
+                          setOrderType('Walk-in');
+                          // Set default if empty or matches previous default
+                          if (!newSaleForm.customer || newSaleForm.customer === t('takeawayCustomer')) {
+                            setNewSaleForm(prev => ({ ...prev, customer: t('walkInCustomer') }));
+                          }
+                        }}
+                        className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                      >
+                        {t('walkIn')}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setOrderType('Takeaway');
+                          if (!newSaleForm.customer || newSaleForm.customer === t('walkInCustomer')) {
+                            setNewSaleForm(prev => ({ ...prev, customer: t('takeawayCustomer') }));
+                          }
+                        }}
+                        className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                      >
+                        {t('takeaway')}
+                      </button>
+                    </div>
+
                     <input
-                      type="text"
-                      placeholder={t('searchInventory')}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={inventorySearch}
-                      onChange={(e) => setInventorySearch(e.target.value)}
-                      autoComplete="new-password"
-                      name="search-inventory-xyz-unique"
-                      data-form-type="other"
-                      readOnly
-                      onFocus={(e) => e.target.removeAttribute('readonly')}
+                      className="w-full mb-3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                      placeholder={t('customerNameOptional')}
+                      value={newSaleForm.customer}
+                      autoComplete="off"
+                      onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
+                    />
+
+                    <button
+                      onClick={handleCheckout}
+                      disabled={cart.length === 0}
+                      className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle size={20} /> {t('checkout')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+
+          {
+            activeTab === 'warehouses' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">{t('menuWarehouses')}</h2>
+                    <p className="text-gray-500">{t('inventorySubtitle')}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => showSensitiveData ? setShowSensitiveData(false) : setIsPinModalOpen(true)}
+                      className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                    >
+                      {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
+                    </button>
+                    <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                      <Plus size={20} /> {t('addItem')}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                      <input
+                        type="text"
+                        placeholder={t('searchInventory')}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={inventorySearch}
+                        onChange={(e) => setInventorySearch(e.target.value)}
+                        autoComplete="new-password"
+                        name="search-inventory-xyz-unique"
+                        data-form-type="other"
+                        readOnly
+                        onFocus={(e) => e.target.removeAttribute('readonly')}
+                      />
+                    </div>
+                  </div>
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('itemName')}</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('location')}</th>
+                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('buyPrice')}</th>
+                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('sellPrice')}</th>
+                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('quantity')}</th>
+                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('refinement')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {inventory.length === 0 ? (
+                        <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">{t('noInventory')}</td></tr>
+                      ) : (
+                        inventory
+                          .filter(item =>
+                            (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                            (item.sku?.toLowerCase() || '').includes(inventorySearch.toLowerCase())
+                          )
+                          .map(item => (
+                            <tr key={item.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
+                              <td className="px-6 py-4 text-gray-500">{item.location}</td>
+                              <td className="px-6 py-4 text-right font-mono text-gray-500">
+                                {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
+                              </td>
+                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
+                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.quantity}</td>
+                              <td className="px-6 py-4 text-right">
+                                <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium text-sm">
+                                  {t('edit') || 'Edit'}
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
+          }
+
+          {
+            activeTab === 'history' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">History Log</h2>
+                    <p className="text-gray-500">Comprehensive log of sales and warehouse activities.</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <select
+                      value={historyFilter}
+                      onChange={(e) => setHistoryFilter(e.target.value)}
+                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="All">All Types</option>
+                      <option value="Sale">Sales</option>
+                      <option value="Stock Update">Stock Updates</option>
+                    </select>
+                    <input
+                      type="date"
+                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                      value={historyDateFilter}
+                      onChange={(e) => setHistoryDateFilter(e.target.value)}
                     />
                   </div>
                 </div>
-                <table className="w-full text-left">
-                  <thead className="bg-gray-50 border-b border-gray-100">
-                    <tr>
-                      <th className="px-6 py-4 font-semibold text-gray-900">{t('itemName')}</th>
-                      <th className="px-6 py-4 font-semibold text-gray-900">{t('location')}</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('buyPrice')}</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('sellPrice')}</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('quantity')}</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('refinement')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {inventory.length === 0 ? (
-                      <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">{t('noInventory')}</td></tr>
-                    ) : (
-                      inventory
-                        .filter(item =>
-                          (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
-                          (item.sku?.toLowerCase() || '').includes(inventorySearch.toLowerCase())
-                        )
-                        .map(item => (
-                          <tr key={item.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
-                            <td className="px-6 py-4 text-gray-500">{item.location}</td>
-                            <td className="px-6 py-4 text-right font-mono text-gray-500">
-                              {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
-                            </td>
-                            <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
-                            <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.quantity}</td>
-                            <td className="px-6 py-4 text-right">
-                              <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium text-sm">
-                                {t('edit') || 'Edit'}
-                              </button>
-                            </td>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 font-semibold text-gray-900">Time</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">Type</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">Description</th>
+                        <th className="px-6 py-4 font-semibold text-right text-gray-900">Value / Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {(() => {
+                        // Merge Sales and Relevant Inventory Updates
+                        const logs = [
+                          ...sales.map(s => ({
+                            id: 'sale-' + s.id,
+                            type: 'Sale',
+                            date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
+                            desc: `Sold ${Array.isArray(s.items) ? s.items.length : 1} items to ${s.customer || 'Walk-in'}`,
+                            val: s.amount,
+                            isCurrency: true
+                          })),
+                          ...inventory.map(i => ({
+                            id: 'inv-' + i.id,
+                            type: 'Stock Update',
+                            date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
+                            desc: `Stock Check: ${i.name} at ${i.location}`,
+                            val: `${i.quantity} Units`,
+                            isCurrency: false
+                          }))
+                        ].sort((a, b) => b.date - a.date);
+
+                        // Apply Filters
+                        let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.type === historyFilter);
+
+                        // Apply Date Filter
+                        if (historyDateFilter) {
+                          filteredLogs = filteredLogs.filter(l => {
+                            const logDate = new Date(l.date).toISOString().split('T')[0];
+                            return logDate === historyDateFilter;
+                          });
+                        }
+
+                        if (filteredLogs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No history records found.</td></tr>;
+
+                        return filteredLogs.map(log => (
+                          <tr key={log.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-gray-500 font-mono text-sm">{log.date.toLocaleString()}</td>
+                            <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${log.type === 'Sale' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{log.type}</span></td>
+                            <td className="px-6 py-4 text-gray-900">{log.desc}</td>
+                            <td className="px-6 py-4 text-right font-bold text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
                           </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'history' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">History Log</h2>
-                  <p className="text-gray-500">Comprehensive log of sales and warehouse activities.</p>
-                </div>
-                <div className="flex gap-3">
-                  <select
-                    value={historyFilter}
-                    onChange={(e) => setHistoryFilter(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="All">All Types</option>
-                    <option value="Sale">Sales</option>
-                    <option value="Stock Update">Stock Updates</option>
-                  </select>
-                  <input
-                    type="date"
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
-                    value={historyDateFilter}
-                    onChange={(e) => setHistoryDateFilter(e.target.value)}
-                  />
+                        ));
+                      })()}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full text-left">
-                  <thead className="bg-gray-50 border-b border-gray-100">
-                    <tr>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Time</th>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Type</th>
-                      <th className="px-6 py-4 font-semibold text-gray-900">Description</th>
-                      <th className="px-6 py-4 font-semibold text-right text-gray-900">Value / Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {(() => {
-                      // Merge Sales and Relevant Inventory Updates
-                      const logs = [
-                        ...sales.map(s => ({
-                          id: 'sale-' + s.id,
-                          type: 'Sale',
-                          date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
-                          desc: `Sold ${Array.isArray(s.items) ? s.items.length : 1} items to ${s.customer || 'Walk-in'}`,
-                          val: s.amount,
-                          isCurrency: true
-                        })),
-                        ...inventory.map(i => ({
-                          id: 'inv-' + i.id,
-                          type: 'Stock Update',
-                          date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
-                          desc: `Stock Check: ${i.name} at ${i.location}`,
-                          val: `${i.quantity} Units`,
-                          isCurrency: false
-                        }))
-                      ].sort((a, b) => b.date - a.date);
-
-                      // Apply Filters
-                      let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.type === historyFilter);
-
-                      // Apply Date Filter
-                      if (historyDateFilter) {
-                        filteredLogs = filteredLogs.filter(l => {
-                          const logDate = new Date(l.date).toISOString().split('T')[0];
-                          return logDate === historyDateFilter;
-                        });
-                      }
-
-                      if (filteredLogs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No history records found.</td></tr>;
-
-                      return filteredLogs.map(log => (
-                        <tr key={log.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-gray-500 font-mono text-sm">{log.date.toLocaleString()}</td>
-                          <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${log.type === 'Sale' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{log.type}</span></td>
-                          <td className="px-6 py-4 text-gray-900">{log.desc}</td>
-                          <td className="px-6 py-4 text-right font-bold text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
-                        </tr>
-                      ));
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
+            )
+          }
+        </div >
+      </main >
 
       {/* --- Modals --- */}
 
@@ -3820,7 +3913,7 @@ export default function App() {
                 <h3 className="font-bold text-lg text-gray-900">{t('settings')}</h3>
                 <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                 {/* My Profile */}
                 <div>
                   <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
