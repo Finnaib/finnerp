@@ -2868,18 +2868,18 @@ export default function App() {
           {
             activeTab === 'accounts' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{t('menuAccounts')}</h2>
-                    <p className="text-gray-500">Track assets, liabilities, and expenses.</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('menuAccounts')}</h2>
+                    <p className="text-sm text-gray-500">Track assets, liabilities, and expenses.</p>
                   </div>
-                  <button onClick={() => setIsAddAccountModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                  <button onClick={() => setIsAddAccountModalOpen(true)} className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 w-full sm:w-auto">
                     <Plus size={20} /> Add Account
                   </button>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                  <table className="w-full text-left">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                  <table className="w-full text-left min-w-[500px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
                         <th className="px-6 py-4 font-semibold text-gray-900">Account Name</th>
@@ -3097,26 +3097,26 @@ export default function App() {
           {
             activeTab === 'warehouses' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{t('menuWarehouses')}</h2>
-                    <p className="text-gray-500">{t('inventorySubtitle')}</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('menuWarehouses')}</h2>
+                    <p className="text-sm text-gray-500">{t('inventorySubtitle')}</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => showSensitiveData ? setShowSensitiveData(false) : setIsPinModalOpen(true)}
-                      className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                      className={`px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all w-full sm:w-auto ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                     >
                       {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
                     </button>
-                    <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                    <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 w-full sm:w-auto">
                       <Plus size={20} /> {t('addItem')}
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
                   <div className="p-4 border-b border-gray-100">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -3134,7 +3134,7 @@ export default function App() {
                       />
                     </div>
                   </div>
-                  <table className="w-full text-left">
+                  <table className="w-full text-left min-w-[640px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('itemName')}</th>
@@ -3181,16 +3181,16 @@ export default function App() {
           {
             activeTab === 'history' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">History Log</h2>
-                    <p className="text-gray-500">Comprehensive log of sales and warehouse activities.</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">History Log</h2>
+                    <p className="text-sm text-gray-500">Comprehensive log of sales and warehouse activities.</p>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <select
                       value={historyFilter}
                       onChange={(e) => setHistoryFilter(e.target.value)}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
                     >
                       <option value="All">All Types</option>
                       <option value="Sale">Sales</option>
@@ -3198,15 +3198,15 @@ export default function App() {
                     </select>
                     <input
                       type="date"
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                      className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm w-full sm:w-auto"
                       value={historyDateFilter}
                       onChange={(e) => setHistoryDateFilter(e.target.value)}
                     />
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                  <table className="w-full text-left">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                  <table className="w-full text-left min-w-[640px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
                         <th className="px-6 py-4 font-semibold text-gray-900">Time</th>
