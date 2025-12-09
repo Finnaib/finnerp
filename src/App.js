@@ -130,6 +130,8 @@ export default function App() {
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890' });
   const [currency, setCurrency] = useState('EGP');
+  const [historyFilter, setHistoryFilter] = useState('All');
+  const [historyDateFilter, setHistoryDateFilter] = useState('');
   const formatCurrency = (val) => {
     try {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(Number(val) || 0);
@@ -2225,10 +2227,6 @@ export default function App() {
                 <option value="zh">中文</option>
               </select>
             </div>
-
-            <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold border border-blue-200">
-              AD
-            </div>
           </div>
         </header>
 
@@ -2970,7 +2968,12 @@ export default function App() {
                     <option value="Sale">Sales</option>
                     <option value="Stock Update">Stock Updates</option>
                   </select>
-                  <input type="date" className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                  <input
+                    type="date"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                    value={historyDateFilter}
+                    onChange={(e) => setHistoryDateFilter(e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -3006,8 +3009,16 @@ export default function App() {
                         }))
                       ].sort((a, b) => b.date - a.date);
 
-                      // Apply Filter
-                      const filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.type === historyFilter);
+                      // Apply Filters
+                      let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.type === historyFilter);
+
+                      // Apply Date Filter
+                      if (historyDateFilter) {
+                        filteredLogs = filteredLogs.filter(l => {
+                          const logDate = new Date(l.date).toISOString().split('T')[0];
+                          return logDate === historyDateFilter;
+                        });
+                      }
 
                       if (filteredLogs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No history records found.</td></tr>;
 
