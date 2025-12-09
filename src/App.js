@@ -2336,7 +2336,7 @@ export default function App() {
     );
   }
   return (
-    <div className="flex h-screen bg-gray-50 font-sans text-gray-900">
+    <div className="flex h-screen bg-gray-50 font-sans text-gray-900 overflow-hidden">
       <SpeedInsights />
       <Analytics />
       {/* Sidebar */}
@@ -2390,7 +2390,7 @@ export default function App() {
         <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm z-10">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(true)} className="md:hidden text-gray-600 hover:text-gray-900"><Menu size={24} /></button>
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
               {activeTab === 'dashboard' && <LayoutDashboard className="text-sky-600" />}
               {activeTab === 'employees' && <Users className="text-blue-600" />}
               {activeTab === 'sites' && <MapPin className="text-emerald-600" />}
@@ -2416,7 +2416,7 @@ export default function App() {
             </h2>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-4">
             <div className="flex items-center gap-2">
               {/* Currency Selector */}
               <select
@@ -2466,7 +2466,7 @@ export default function App() {
         )}
 
         {/* Views */}
-        <div className="flex-1 overflow-auto p-8 bg-gray-50">
+        <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 bg-gray-50">
 
           {activeTab === 'dashboard' && (
             <div className="space-y-6 animate-in fade-in duration-500">
@@ -2541,21 +2541,21 @@ export default function App() {
           )}
           {activeTab === 'employees' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{t('allEmployees')}</h3>
                   <p className="text-sm text-gray-500">{t('manageStaff')}</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <select
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
                     value={employeeLocationFilter}
                     onChange={e => setEmployeeLocationFilter(e.target.value)}
                   >
                     <option value="">{t('filterAll')}</option>
                     {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                   </select>
-                  <button onClick={() => setIsAddModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all">
+                  <button onClick={() => setIsAddModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all w-full sm:w-auto">
                     <Plus size={18} /> {t('addEmployee')}
                   </button>
                 </div>
@@ -2592,12 +2592,12 @@ export default function App() {
 
           {activeTab === 'sites' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{t('filterAll')}</h3>
                   <p className="text-sm text-gray-500">{t('manageDetails')}</p>
                 </div>
-                <button onClick={() => setIsAddSiteModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
+                <button onClick={() => setIsAddSiteModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all w-full sm:w-auto">
                   <Plus size={18} /> {t('addLocation')}
                 </button>
               </div>
@@ -2638,9 +2638,9 @@ export default function App() {
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                   <select
-                    className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                    className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-full sm:w-auto"
                     value={attendanceSiteFilter}
                     onChange={(e) => setAttendanceSiteFilter(e.target.value)}
                   >
@@ -2652,30 +2652,30 @@ export default function App() {
 
                   <input
                     type="date"
-                    className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                    className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-full sm:w-auto"
                     value={attendanceDateFilter}
                     onChange={(e) => setAttendanceDateFilter(e.target.value)}
                   />
 
-                  <button onClick={() => setIsAddAttendanceModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                  <button onClick={() => setIsAddAttendanceModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
                     <Plus size={16} /> {t('addAttendance')}
                   </button>
 
-                  <div className="h-6 w-px bg-gray-200 mx-1"></div>
+                  <div className="hidden md:block h-6 w-px bg-gray-200 mx-1"></div>
 
-                  <label className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg cursor-pointer border hover:bg-gray-100 transition-colors">
+                  <label className="flex items-center gap-2 bg-gray-50 px-3 py-2.5 rounded-lg cursor-pointer border hover:bg-gray-100 transition-colors w-full sm:w-auto justify-center">
                     <Upload size={16} className="text-gray-500" />
                     <span className="text-sm font-medium text-gray-700">{t('import')} CSV</span>
                     <input type="file" accept=".csv" onChange={handleImportAttendance} className="hidden" />
                   </label>
-                  <button onClick={handleExportAttendance} className="flex items-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition-colors">
+                  <button onClick={handleExportAttendance} className="flex items-center justify-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2.5 rounded-lg transition-colors w-full sm:w-auto">
                     <Download size={16} /> {t('export')}
                   </button>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full text-sm text-left">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                <table className="w-full text-sm text-left min-w-[640px]">
                   <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
                     <tr>
                       <th className="px-6 py-3 font-medium">{t('name')}</th>
@@ -2727,9 +2727,9 @@ export default function App() {
                     <h3 className="text-lg font-bold text-gray-900">{t('payrollMgmt')}</h3>
                     <p className="text-sm text-slate-500">{t('costAnalysis')}</p>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3 w-full md:w-auto">
                     <select
-                      className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                      className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-full sm:w-auto"
                       value={payrollLocationFilter}
                       onChange={(e) => setPayrollLocationFilter(e.target.value)}
                     >
@@ -2739,11 +2739,11 @@ export default function App() {
                       ))}
                     </select>
 
-                    <label className="flex items-center gap-2 bg-white border border-gray-300 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium">
+                    <label className="flex items-center justify-center gap-2 bg-white border border-gray-300 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium w-full sm:w-auto">
                       <Upload size={16} /> {t('import')}
                       <input type="file" accept=".csv" onChange={handleImportPayroll} className="hidden" />
                     </label>
-                    <button onClick={handleExportPayroll} className="bg-white border border-gray-300 px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-50">
+                    <button onClick={handleExportPayroll} className="bg-white border border-gray-300 px-3 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium hover:bg-gray-50 w-full sm:w-auto">
                       <Download size={16} /> {t('export')}
                     </button>
                   </div>
@@ -2752,7 +2752,7 @@ export default function App() {
 
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-                  <table className="w-full text-sm text-left">
+                  <table className="w-full text-sm text-left min-w-[900px]">
                     <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
                       <tr>
                         <th className="px-6 py-3">{t('name')}</th>
@@ -2908,12 +2908,12 @@ export default function App() {
 
           {
             activeTab === 'sales_purchases' && (
-              <div className="flex h-[calc(100vh-140px)] gap-6 animate-in fade-in duration-500">
+              <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-140px)] gap-4 lg:gap-6 animate-in fade-in duration-500">
                 {/* Left: Product Grid */}
                 <div className="flex-1 flex flex-col gap-4">
-                  <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-4">
-                      <h2 className="text-xl font-bold text-gray-900">{shopSettings.name || t('posTerminal')}</h2>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900">{shopSettings.name || t('posTerminal')}</h2>
                       <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
                         <select
                           value={printFormat}
@@ -2933,7 +2933,7 @@ export default function App() {
                         </button>
                       </div>
                     </div>
-                    <div className="relative w-64">
+                    <div className="relative w-full sm:w-64">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                       <input
                         type="text"
@@ -2947,8 +2947,8 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="flex-1 overflow-y-auto bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-[400px] lg:max-h-none">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                       {inventory
                         .filter(item => (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
                         .map(item => (
@@ -2996,7 +2996,7 @@ export default function App() {
                 </div>
 
                 {/* Right: Cart */}
-                <div className="w-96 bg-white flex flex-col rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="w-full lg:w-96 bg-white flex flex-col rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-[500px] lg:max-h-none">
                   <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                     <h3 className="font-bold text-lg flex items-center gap-2"><ShoppingCart size={20} /> {t('currentBill')}</h3>
                     <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
