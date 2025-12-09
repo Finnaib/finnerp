@@ -259,6 +259,36 @@ export default function App() {
       shopAddress: 'Shop Address',
       shopPhone: 'Shop Phone',
       updateSettings: 'Update Settings',
+      securityPin: 'Security PIN',
+      language: 'Language',
+      close: 'Close',
+
+      // Invoice Print
+      retailInvoice: 'Retail Invoice',
+      invoice: 'INVOICE',
+      customerCopy: 'Customer Copy',
+      shopCopy: 'Shop Copy',
+      date: 'Date',
+      billNo: 'Bill No',
+      paymentMode: 'Payment Mode',
+      cash: 'Cash',
+      item: 'Item',
+      qty: 'Qty',
+      amt: 'Amt',
+      price: 'Price',
+      amount: 'Amount',
+      subtotal: 'Subtotal',
+      taxVAT: 'Tax/VAT',
+      taxRate: 'Tax rate',
+      total: 'TOTAL',
+      makeChecksPayable: 'Make all checks payable to',
+      thankYou: 'Thank you for your business!',
+      billTo: 'BILL TO',
+      description: 'DESCRIPTION',
+      unitPrice: 'UNIT PRICE',
+      lineTotal: 'LINE TOTAL',
+      comments: 'COMMENTS',
+      termsConditions: 'Terms & Conditions',
 
 
       details: 'Employee Info',
@@ -510,7 +540,34 @@ export default function App() {
       updateSettings: 'सेटिंग्स अपडेट करें',
       securityPin: 'सुरक्षा पिन',
       language: 'भाषा',
-      close: 'बंद करें'
+      close: 'बंद करें',
+
+      // Invoice Print
+      retailInvoice: 'खुदरा चालान',
+      invoice: 'चालान',
+      customerCopy: 'ग्राहक प्रति',
+      shopCopy: 'दुकान प्रति',
+      date: 'तारीख',
+      billNo: 'बिल नंबर',
+      paymentMode: 'भुगतान मोड',
+      cash: 'नकद',
+      item: 'वस्तु',
+      qty: 'मात्रा',
+      amt: 'राशि',
+      price: 'मूल्य',
+      amount: 'राशि',
+      subtotal: 'उप-योग',
+      taxVAT: 'कर/वैट',
+      taxRate: 'कर दर',
+      total: 'कुल',
+      makeChecksPayable: 'सभी चेक देय बनाएं',
+      thankYou: 'आपके व्यवसाय के लिए धन्यवाद!',
+      billTo: 'बिल प्राप्तकर्ता',
+      description: 'विवरण',
+      unitPrice: 'इकाई मूल्य',
+      lineTotal: 'पंक्ति कुल',
+      comments: 'टिप्पणियाँ',
+      termsConditions: 'नियम और शर्तें'
     },
     ar: {
       appName: 'جراند وولف',
@@ -693,7 +750,34 @@ export default function App() {
       updateSettings: 'تحديث الإعدادات',
       securityPin: 'رمز الأمان',
       language: 'اللغة',
-      close: 'إغلاق'
+      close: 'إغلاق',
+
+      // Invoice Print
+      retailInvoice: 'فاتورة التجزئة',
+      invoice: 'فاتورة',
+      customerCopy: 'نسخة العميل',
+      shopCopy: 'نسخة المتجر',
+      date: 'التاريخ',
+      billNo: 'رقم الفاتورة',
+      paymentMode: 'طريقة الدفع',
+      cash: 'نقدي',
+      item: 'الصنف',
+      qty: 'الكمية',
+      amt: 'المبلغ',
+      price: 'السعر',
+      amount: 'المبلغ',
+      subtotal: 'المجموع الفرعي',
+      taxVAT: 'الضريبة/القيمة المضافة',
+      taxRate: 'معدل الضريبة',
+      total: 'الإجمالي',
+      makeChecksPayable: 'اجعل جميع الشيكات مستحقة الدفع إلى',
+      thankYou: 'شكراً لتعاملكم معنا!',
+      billTo: 'الفاتورة إلى',
+      description: 'الوصف',
+      unitPrice: 'سعر الوحدة',
+      lineTotal: 'إجمالي السطر',
+      comments: 'ملاحظات',
+      termsConditions: 'الشروط والأحكام'
     },
     zh: {
       appName: 'Finn ERP',
@@ -873,7 +957,34 @@ export default function App() {
       updateSettings: '更新设置',
       securityPin: '安全密码',
       language: '语言',
-      close: '关闭'
+      close: '关闭',
+
+      // Invoice Print
+      retailInvoice: '零售发票',
+      invoice: '发票',
+      customerCopy: '客户联',
+      shopCopy: '店铺联',
+      date: '日期',
+      billNo: '账单号',
+      paymentMode: '付款方式',
+      cash: '现金',
+      item: '项目',
+      qty: '数量',
+      amt: '金额',
+      price: '价格',
+      amount: '金额',
+      subtotal: '小计',
+      taxVAT: '税/增值税',
+      taxRate: '税率',
+      total: '总计',
+      makeChecksPayable: '所有支票抬头请写',
+      thankYou: '感谢您的惠顾！',
+      billTo: '账单收件人',
+      description: '描述',
+      unitPrice: '单价',
+      lineTotal: '行总计',
+      comments: '备注',
+      termsConditions: '条款和条件'
     }
   };
 
@@ -1680,22 +1791,22 @@ export default function App() {
           <div class="title">${shopSettings.name}</div>
           <div class="subtitle">${shopSettings.address}</div>
           <div class="subtitle">${shopSettings.phone}</div>
-          <div class="invoice-title">Retail Invoice</div>
+          <div class="invoice-title">${t('retailInvoice')}</div>
         </div>
 
         <div class="details">
-          <p><strong>Date:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
-          <p><strong>${invoiceData.client || invoiceData.customer || 'Customer'}</strong></p>
-          <p><strong>Bill No:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
-          <p><strong>Payment Mode:</strong> Cash</p>
+          <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
+          <p><strong>${invoiceData.client || invoiceData.customer || t('customer')}</strong></p>
+          <p><strong>${t('billNo')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
+          <p><strong>${t('paymentMode')}:</strong> ${t('cash')}</p>
         </div>
 
         <table>
           <thead>
             <tr>
-              <th>Item</th>
-              <th class="right">Qty</th>
-              <th class="right">Amt</th>
+              <th>${t('item')}</th>
+              <th class="right">${t('qty')}</th>
+              <th class="right">${t('amt')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1711,17 +1822,17 @@ export default function App() {
 
         <div class="totals">
           <div class="totals-row subtotal">
-            <span>Sub Total</span>
+            <span>${t('subtotal')}</span>
             <span>${formatCurrency(subtotal)}</span>
           </div>
           <div class="totals-row total">
-            <span>TOTAL</span>
+            <span>${t('total')}</span>
             <span>${formatCurrency(total)}</span>
           </div>
         </div>
 
         <div class="footer">
-          <p>Thank You For Your Business!</p>
+          <p>${t('thankYou')}</p>
         </div>
       </div>
         `;
@@ -1735,20 +1846,20 @@ export default function App() {
           <div class="brand">
             <div class="title">${shopSettings.name}</div>
             <div class="subtitle">${shopSettings.address}</div>
-            <div class="subtitle">Phone: ${shopSettings.phone}</div>
+            <div class="subtitle">${t('phone')}: ${shopSettings.phone}</div>
             <div class="subtitle">Website: ${shopSettings.website || 'somedomain.com'}</div>
           </div>
           <div class="invoice-info">
-            <h2>INVOICE</h2>
+            <h2>${t('invoice')}</h2>
             <table>
-              <tr><td>DATE</td><td>${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
-              <tr><td>INVOICE #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
+              <tr><td>${t('date').toUpperCase()}</td><td>${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
+              <tr><td>${t('invoice').toUpperCase()} #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
               <tr><td>CUSTOMER ID</td><td>${invoiceData.customerId || '123'}</td></tr>
             </table>
           </div>
         </div>
 
-        <div class="bill-to">BILL TO</div>
+        <div class="bill-to">${t('billTo')}</div>
         <div class="bill-to-content">
           <strong>${invoiceData.client || invoiceData.customer || 'Customer Name'}</strong><br>
           ${invoiceData.customerAddress || '[Company Name]'}<br>
@@ -1759,9 +1870,9 @@ export default function App() {
         <table class="items">
           <thead>
             <tr>
-              <th>DESCRIPTION</th>
+              <th>${t('description')}</th>
               <th class="center">TAXED</th>
-              <th class="right">AMOUNT</th>
+              <th class="right">${t('amount')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1777,7 +1888,7 @@ export default function App() {
 
         <div class="totals-section">
           <div class="comments">
-            <div class="comments-title">OTHER COMMENTS</div>
+            <div class="comments-title">${t('comments')}</div>
             <div class="comments-content">
               1. Total payment due in 30 days<br>
               2. Please include the invoice number on your check
@@ -1785,29 +1896,29 @@ export default function App() {
           </div>
           <div class="totals">
             <div class="totals-row">
-              <span>Subtotal</span>
+              <span>${t('subtotal')}</span>
               <span>${formatCurrency(subtotal)}</span>
             </div>
             <div class="totals-row">
-              <span>Tax/VAT</span>
+              <span>${t('taxVAT')}</span>
               <span>${formatCurrency(tax)}</span>
             </div>
             <div class="totals-row">
-              <span>Tax rate</span>
+              <span>${t('taxRate')}</span>
               <span>6.250%</span>
             </div>
             <div class="totals-row total">
-              <span>TOTAL</span>
+              <span>${t('total')}</span>
               <span>$ ${formatCurrency(total)}</span>
             </div>
           </div>
         </div>
 
         <div class="footer">
-          <p>Make all checks payable to <strong>${shopSettings.name}</strong></p>
+          <p>${t('makeChecksPayable')} <strong>${shopSettings.name}</strong></p>
           <p>If you have any questions about this invoice, please contact</p>
           <p>[Name, Phone #, E-mail]</p>
-          <p class="thank-you">Thank You For Your Business!</p>
+          <p class="thank-you">${t('thankYou')}</p>
         </div>
       </div>
         `;
