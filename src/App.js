@@ -366,7 +366,27 @@ export default function App() {
       attendanceExists: 'Attendance already exists for this employee on this date.',
       theme: 'Theme',
       light: 'Light',
-      dark: 'Dark'
+      dark: 'Dark',
+      // Payroll Slip
+      payrollSlip: 'PAYROLL SLIP',
+      payrollFor: 'Payroll for',
+      employeeName: 'Employee Name',
+      employeeId: 'Employee ID',
+      department: 'Department',
+      payPeriod: 'Pay Period',
+      basicSalary: 'Basic Salary',
+      grossPay: 'Gross Pay',
+      totalDeductions: 'Total Deductions',
+      otherDeductions: 'Other Deductions',
+      employeeSignature: 'Employee Signature',
+      authorizedSignature: 'Authorized Signature',
+      computerGenerated: 'This is a computer-generated payroll slip. No signature required.',
+      generatedOn: 'Generated on',
+      at: 'at',
+      companyName: 'Company Name',
+      companyAddress: 'Company Address',
+      selectLocation: 'Select Location',
+      noLocations: 'No locations available - Please create a location first'
     },
     hi: {
       appName: 'ग्रैंड वोल्फ',
@@ -719,6 +739,26 @@ export default function App() {
       theme: 'المظهر',
       light: 'فاتح',
       dark: 'داكن',
+      // Payroll Slip
+      payrollSlip: 'قسيمة الراتب',
+      payrollFor: 'الراتب لشهر',
+      employeeName: 'اسم الموظف',
+      employeeId: 'رقم الموظف',
+      department: 'القسم',
+      payPeriod: 'فترة الدفع',
+      basicSalary: 'الراتب الأساسي',
+      grossPay: 'إجمالي الراتب',
+      totalDeductions: 'إجمالي الخصومات',
+      otherDeductions: 'خصومات أخرى',
+      employeeSignature: 'توقيع الموظف',
+      authorizedSignature: 'التوقيع المعتمد',
+      computerGenerated: 'هذه قسيمة راتب إلكترونية. لا يلزم التوقيع.',
+      generatedOn: 'تم الإنشاء في',
+      at: 'في',
+      companyName: 'اسم الشركة',
+      companyAddress: 'عنوان الشركة',
+      selectLocation: 'اختر الموقع',
+      noLocations: 'لا توجد مواقع متاحة - يرجى إنشاء موقع أولاً',
       // New additions
       customerCopy: 'نسخة العميل',
       shopCopy: 'نسخة المتجر',
@@ -1976,7 +2016,11 @@ export default function App() {
       return;
     }
 
-    const monthName = new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    // Get translated month name based on current language
+    const locale = lang === 'ar' ? 'ar-EG' : lang === 'hi' ? 'hi-IN' : 'en-US';
+    const monthName = new Date(month + '-01').toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+    const currentDate = new Date().toLocaleDateString(locale);
+    const currentTime = new Date().toLocaleTimeString(locale);
 
     const styles = `
       <style>
@@ -2018,38 +2062,38 @@ export default function App() {
     const content = `
       <html>
         <head>
-          <title>Payroll Slip - ${employee.name}</title>
+          <title>${t('payrollSlip')} - ${employee.name}</title>
           ${styles}
         </head>
         <body>
           <div class="slip">
             <div class="header">
-              <h1>${shopSettings.name || 'Company Name'}</h1>
-              <p>${shopSettings.address || 'Company Address'}</p>
-              <p>Phone: ${shopSettings.phone || 'N/A'}</p>
+              <h1>${shopSettings.name || t('companyName')}</h1>
+              <p>${shopSettings.address || t('companyAddress')}</p>
+              <p>${t('phone')}: ${shopSettings.phone || 'N/A'}</p>
             </div>
 
-            <div class="title">PAYROLL SLIP</div>
+            <div class="title">${t('payrollSlip')}</div>
 
             <div class="info-section">
               <div class="info-box">
-                <label>Employee Name</label>
+                <label>${t('employeeName')}</label>
                 <value>${employee.name}</value>
               </div>
               <div class="info-box">
-                <label>Department</label>
+                <label>${t('department')}</label>
                 <value>${employee.dept}</value>
               </div>
               <div class="info-box">
-                <label>Role</label>
+                <label>${t('role')}</label>
                 <value>${employee.role}</value>
               </div>
               <div class="info-box">
-                <label>Location</label>
+                <label>${t('location')}</label>
                 <value>${employee.location}</value>
               </div>
               <div class="info-box">
-                <label>Pay Period</label>
+                <label>${t('payPeriod')}</label>
                 <value>${monthName}</value>
               </div>
             </div>
@@ -2057,46 +2101,46 @@ export default function App() {
             <table class="salary-table">
               <thead>
                 <tr>
-                  <th>Description</th>
-                  <th class="amount">Amount</th>
+                  <th>${t('description')}</th>
+                  <th class="amount">${t('amount')}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>Basic Salary</strong></td>
+                  <td><strong>${t('basicSalary')}</strong></td>
                   <td class="amount">${formatCurrency(payrollData.baseSalary)}</td>
                 </tr>
                 <tr>
-                  <td>Bonus</td>
+                  <td>${t('bonus')}</td>
                   <td class="amount positive">+ ${formatCurrency(payrollData.bonus)}</td>
                 </tr>
                 <tr>
-                  <td>Overtime</td>
+                  <td>${t('overtime')}</td>
                   <td class="amount positive">+ ${formatCurrency(payrollData.overtime)}</td>
                 </tr>
                 <tr>
-                  <td><strong>Gross Pay</strong></td>
+                  <td><strong>${t('grossPay')}</strong></td>
                   <td class="amount"><strong>${formatCurrency(payrollData.baseSalary + payrollData.bonus + payrollData.overtime)}</strong></td>
                 </tr>
                 <tr style="height: 8px;"><td colspan="2"></td></tr>
                 <tr>
-                  <td>Late Deductions</td>
+                  <td>${t('lateDeductions')}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.lateDeduction)}</td>
                 </tr>
                 <tr>
-                  <td>Absent Deductions</td>
+                  <td>${t('absentDeductions')}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.absentDeduction)}</td>
                 </tr>
                 <tr>
-                  <td>Other Deductions</td>
+                  <td>${t('otherDeductions')}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.manualDeduction)}</td>
                 </tr>
                 <tr>
-                  <td><strong>Total Deductions</strong></td>
+                  <td><strong>${t('totalDeductions')}</strong></td>
                   <td class="amount negative"><strong>- ${formatCurrency(payrollData.deductionAmount)}</strong></td>
                 </tr>
                 <tr class="total-row">
-                  <td>NET PAY</td>
+                  <td>${t('netPay')}</td>
                   <td class="amount">${formatCurrency(payrollData.netPay)}</td>
                 </tr>
               </tbody>
@@ -2104,16 +2148,16 @@ export default function App() {
 
             <div class="signature-section">
               <div class="signature-box">
-                <div class="signature-line">Employee Signature</div>
+                <div class="signature-line">${t('employeeSignature')}</div>
               </div>
               <div class="signature-box">
-                <div class="signature-line">Authorized Signature</div>
+                <div class="signature-line">${t('authorizedSignature')}</div>
               </div>
             </div>
 
             <div class="footer">
-              <p>This is a computer-generated payroll slip. No signature required.</p>
-              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+              <p>${t('computerGenerated')}</p>
+              <p>${t('generatedOn')} ${currentDate} ${t('at')} ${currentTime}</p>
             </div>
           </div>
         </body>
@@ -2918,13 +2962,17 @@ export default function App() {
                 </div>
 
                 {/* Month Period Indicator */}
-                <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-3 flex items-center gap-3">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-blue-700">{t('payrollFor') || 'Payroll for'}:</span>
-                    <span className="text-sm font-bold text-blue-900">{new Date(payrollMonthFilter + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+                  <div className="bg-blue-600 p-2 rounded-lg">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs text-blue-600 font-semibold uppercase tracking-wide">{t('payPeriod')}</div>
+                    <div className="text-base font-bold text-gray-900 mt-0.5">
+                      {new Date(payrollMonthFilter + '-01').toLocaleDateString(lang === 'ar' ? 'ar-EG' : lang === 'hi' ? 'hi-IN' : 'en-US', { month: 'long', year: 'numeric' })}
+                    </div>
                   </div>
                 </div>
 
