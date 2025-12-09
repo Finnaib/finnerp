@@ -1030,6 +1030,7 @@ export default function App() {
   const [attendanceSiteFilter, setAttendanceSiteFilter] = useState('All');
   const [employeeLocationFilter, setEmployeeLocationFilter] = useState('');
   const [payrollLocationFilter, setPayrollLocationFilter] = useState('');
+  const [payrollMonthFilter, setPayrollMonthFilter] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
   const [attendanceDateFilter, setAttendanceDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const [isAddAttendanceModalOpen, setIsAddAttendanceModalOpen] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState(null); // For edit modal
@@ -1967,6 +1968,165 @@ export default function App() {
     }, 250);
   };
 
+  // Print Payroll Slip
+  const handlePrintPayrollSlip = (employee, payrollData, month) => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) {
+      alert('Please allow popups to print payroll slip');
+      return;
+    }
+
+    const monthName = new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    const styles = `
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; padding: 40px; background: #f5f5f5; }
+        .slip { background: white; max-width: 800px; margin: 0 auto; padding: 40px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #1e40af; font-size: 28px; margin-bottom: 5px; }
+        .header p { color: #64748b; font-size: 14px; }
+        .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .info-box { background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; }
+        .info-box label { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 5px; }
+        .info-box value { font-size: 16px; color: #1e293b; font-weight: 600; }
+        .salary-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .salary-table th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 13px; color: #475569; border-bottom: 2px solid #e2e8f0; }
+        .salary-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        .salary-table tr:last-child td { border-bottom: none; }
+        .amount { text-align: right; font-family: 'Courier New', monospace; font-weight: 600; }
+        .positive { color: #16a34a; }
+        .negative { color: #dc2626; }
+        .total-row { background: #eff6ff; font-weight: 700; font-size: 16px; }
+        .total-row td { padding: 15px 12px; border-top: 2px solid #3b82f6; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px; }
+        .signature-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; }
+        .signature-box { text-align: center; }
+        .signature-line { border-top: 2px solid #1e293b; padding-top: 10px; margin-top: 50px; font-weight: 600; color: #475569; }
+        @media print {
+          body { padding: 0; background: white; }
+          .slip { box-shadow: none; }
+        }
+      </style>
+    `;
+
+    const content = `
+      <html>
+        <head>
+          <title>Payroll Slip - ${employee.name}</title>
+          ${styles}
+        </head>
+        <body>
+          <div class="slip">
+            <div class="header">
+              <h1>${shopSettings.name || 'Company Name'}</h1>
+              <p>${shopSettings.address || 'Company Address'}</p>
+              <p>Phone: ${shopSettings.phone || 'N/A'}</p>
+            </div>
+
+            <h2 style="text-align: center; color: #1e40af; margin-bottom: 30px;">PAYROLL SLIP</h2>
+
+            <div class="info-section">
+              <div class="info-box">
+                <label>Employee Name</label>
+                <value>${employee.name}</value>
+              </div>
+              <div class="info-box">
+                <label>Employee ID</label>
+                <value>${employee.id.substring(0, 8).toUpperCase()}</value>
+              </div>
+              <div class="info-box">
+                <label>Department</label>
+                <value>${employee.dept}</value>
+              </div>
+              <div class="info-box">
+                <label>Role</label>
+                <value>${employee.role}</value>
+              </div>
+              <div class="info-box">
+                <label>Location</label>
+                <value>${employee.location}</value>
+              </div>
+              <div class="info-box">
+                <label>Pay Period</label>
+                <value>${monthName}</value>
+              </div>
+            </div>
+
+            <table class="salary-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th class="amount">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Basic Salary</strong></td>
+                  <td class="amount">${formatCurrency(payrollData.baseSalary)}</td>
+                </tr>
+                <tr>
+                  <td>Bonus</td>
+                  <td class="amount positive">+ ${formatCurrency(payrollData.bonus)}</td>
+                </tr>
+                <tr>
+                  <td>Overtime</td>
+                  <td class="amount positive">+ ${formatCurrency(payrollData.overtime)}</td>
+                </tr>
+                <tr>
+                  <td><strong>Gross Pay</strong></td>
+                  <td class="amount"><strong>${formatCurrency(payrollData.baseSalary + payrollData.bonus + payrollData.overtime)}</strong></td>
+                </tr>
+                <tr style="height: 10px;"><td colspan="2"></td></tr>
+                <tr>
+                  <td>Late Deductions</td>
+                  <td class="amount negative">- ${formatCurrency(payrollData.lateDeduction)}</td>
+                </tr>
+                <tr>
+                  <td>Absent Deductions</td>
+                  <td class="amount negative">- ${formatCurrency(payrollData.absentDeduction)}</td>
+                </tr>
+                <tr>
+                  <td>Other Deductions</td>
+                  <td class="amount negative">- ${formatCurrency(payrollData.manualDeduction)}</td>
+                </tr>
+                <tr>
+                  <td><strong>Total Deductions</strong></td>
+                  <td class="amount negative"><strong>- ${formatCurrency(payrollData.deductionAmount)}</strong></td>
+                </tr>
+                <tr class="total-row">
+                  <td>NET PAY</td>
+                  <td class="amount">${formatCurrency(payrollData.netPay)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="signature-section">
+              <div class="signature-box">
+                <div class="signature-line">Employee Signature</div>
+              </div>
+              <div class="signature-box">
+                <div class="signature-line">Authorized Signature</div>
+              </div>
+            </div>
+
+            <div class="footer">
+              <p>This is a computer-generated payroll slip. No signature required.</p>
+              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(content);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
   const handleImportPayroll = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -2739,6 +2899,13 @@ export default function App() {
                       ))}
                     </select>
 
+                    <input
+                      type="month"
+                      className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-full sm:w-auto"
+                      value={payrollMonthFilter}
+                      onChange={(e) => setPayrollMonthFilter(e.target.value)}
+                    />
+
                     <label className="flex items-center justify-center gap-2 bg-white border border-gray-300 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium w-full sm:w-auto">
                       <Upload size={16} /> {t('import')}
                       <input type="file" accept=".csv" onChange={handleImportPayroll} className="hidden" />
@@ -2765,6 +2932,7 @@ export default function App() {
                         <th className="px-6 py-3 text-right text-red-600">{t('absent')}</th>
                         <th className="px-6 py-3 text-right text-red-800">{t('deductions')}</th>
                         <th className="px-6 py-3 text-right">{t('netPay')}</th>
+                        <th className="px-6 py-3 text-center">{t('actions')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -2777,7 +2945,14 @@ export default function App() {
                           let deductionAmount = 0;
                           let lateDeduction = 0;
                           let absentDeduction = 0;
-                          const empAttendance = attendance.filter(a => a.name === emp.name); // Simple match by name
+
+                          // Filter attendance by selected month
+                          const empAttendance = attendance.filter(a => {
+                            if (a.name !== emp.name) return false;
+                            // Check if attendance date is in selected month
+                            const attendanceMonth = a.date.substring(0, 7); // YYYY-MM
+                            return attendanceMonth === payrollMonthFilter;
+                          });
 
                           empAttendance.forEach(record => {
                             if (record.status === 'Late') {
@@ -2828,6 +3003,24 @@ export default function App() {
                               </td>
                               <td className="px-6 py-4 text-right font-mono text-red-800 font-bold">-{formatCurrency(deductionAmount)}</td>
                               <td className="px-6 py-4 text-right font-bold text-gray-900">{formatCurrency(netPay)}</td>
+                              <td className="px-6 py-4 text-center">
+                                <button
+                                  onClick={() => handlePrintPayrollSlip(emp, {
+                                    baseSalary,
+                                    bonus,
+                                    overtime,
+                                    lateDeduction,
+                                    absentDeduction,
+                                    manualDeduction,
+                                    deductionAmount,
+                                    netPay
+                                  }, payrollMonthFilter)}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium"
+                                  title="Print Payroll Slip"
+                                >
+                                  <Printer size={16} /> Print
+                                </button>
+                              </td>
                             </tr>
                           );
                         })}
