@@ -1327,7 +1327,6 @@ export default function App() {
   const [isAddSaleModalOpen, setIsAddSaleModalOpen] = useState(false);
   const [newSaleForm, setNewSaleForm] = useState({ customer: 'Walk-in Customer', amount: 0, status: 'Completed', items: '' });
   const [orderType, setOrderType] = useState('Walk-in'); // 'Walk-in' or 'Takeaway'
-  const [historyFilter, setHistoryFilter] = useState('All'); // 'All', 'Sale', 'Stock Update'
   const [cart, setCart] = useState([]);
 
   const addToCart = (item) => {
