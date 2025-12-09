@@ -506,7 +506,10 @@ export default function App() {
       shopName: 'दुकान का नाम',
       shopAddress: 'दुकान का पता',
       shopPhone: 'दुकान का फोन',
-      updateSettings: 'सेटिंग्स अपडेट करें'
+      updateSettings: 'सेटिंग्स अपडेट करें',
+      securityPin: 'सुरक्षा पिन',
+      language: 'भाषा',
+      close: 'बंद करें'
     },
     ar: {
       appName: 'جراند وولف',
@@ -686,7 +689,10 @@ export default function App() {
       shopName: 'اسم المتجر',
       shopAddress: 'عنوان المتجر',
       shopPhone: 'هاتف المتجر',
-      updateSettings: 'تحديث الإعدادات'
+      updateSettings: 'تحديث الإعدادات',
+      securityPin: 'رمز الأمان',
+      language: 'اللغة',
+      close: 'إغلاق'
     },
     zh: {
       appName: 'Finn ERP',
@@ -863,7 +869,10 @@ export default function App() {
       shopName: '店铺名称',
       shopAddress: '店铺地址',
       shopPhone: '店铺电话',
-      updateSettings: '更新设置'
+      updateSettings: '更新设置',
+      securityPin: '安全密码',
+      language: '语言',
+      close: '关闭'
     }
   };
 
