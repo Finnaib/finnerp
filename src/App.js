@@ -3492,8 +3492,15 @@ export default function App() {
                   {['Security', 'Operations', 'HR', 'IT'].map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
 
-                <select className="input-field" value={newEmployeeForm.location} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, location: e.target.value })}>
-                  {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                <select className="input-field" value={newEmployeeForm.location} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, location: e.target.value })} required>
+                  {sites.length === 0 ? (
+                    <option value="">{t('noLocations') || 'No locations available - Please create a location first'}</option>
+                  ) : (
+                    <>
+                      <option value="">{t('selectLocation') || 'Select Location'}</option>
+                      {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    </>
+                  )}
                 </select>
 
                 <select className="input-field" value={newEmployeeForm.shift} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, shift: e.target.value })}>
@@ -3575,7 +3582,8 @@ export default function App() {
                       {/* Location Select for Update */}
                       <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                         <span className="text-sm text-gray-500">{t('location')}</span>
-                        <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.location} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'location', e.target.value)}>
+                        <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.location || ''} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'location', e.target.value)}>
+                          <option value="">{t('selectLocation') || 'Select Location'}</option>
                           {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                         </select>
                       </div>
