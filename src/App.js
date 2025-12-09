@@ -1489,7 +1489,7 @@ export default function App() {
     const styles = printFormat === 'Thermal' ? `
       @page { margin: 0; }
       body { font-family: 'Courier New', monospace; width: 80mm; padding: 5px; margin: 0 auto; color: #000; }
-      .page { padding-bottom: 20px; display: block; position: relative; }
+      .page { padding-bottom: 20px; display: block; position: relative; page-break-after: always; }
       .page:last-child { page-break-after: avoid; }
       .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
       .title { font-size: 1.2em; font-weight: bold; }
@@ -1505,7 +1505,7 @@ export default function App() {
     ` : `
       @page { margin: 0; }
       body { font-family: Helvetica, Arial, sans-serif; padding: 0; color: #333; margin: 0; width: 100%; }
-      .page { padding: 40px; min-height: 90vh; position: relative; box-sizing: border-box; }
+      .page { padding: 40px; min-height: 90vh; position: relative; box-sizing: border-box; page-break-after: always; }
       .page:last-child { page-break-after: avoid; }
       .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
       .brand h1 { margin: 0; color: #2c3e50; font-size: 24px; }
@@ -2764,8 +2764,11 @@ export default function App() {
                       className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={inventorySearch}
                       onChange={(e) => setInventorySearch(e.target.value)}
-                      autoComplete="off"
-                      name="inventory-search-field-unique"
+                      autoComplete="new-password"
+                      name="search-inventory-xyz-unique"
+                      data-form-type="other"
+                      readOnly
+                      onFocus={(e) => e.target.removeAttribute('readonly')}
                     />
                   </div>
                 </div>
