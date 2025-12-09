@@ -289,6 +289,10 @@ export default function App() {
       lineTotal: 'LINE TOTAL',
       comments: 'COMMENTS',
       termsConditions: 'Terms & Conditions',
+      paymentTerms: '1. Total payment due in 30 days',
+      includeInvoiceNumber: '2. Please include the invoice number on your check',
+      phone: 'Phone',
+      customer: 'Customer',
 
 
       details: 'Employee Info',
@@ -567,7 +571,11 @@ export default function App() {
       unitPrice: 'इकाई मूल्य',
       lineTotal: 'पंक्ति कुल',
       comments: 'टिप्पणियाँ',
-      termsConditions: 'नियम और शर्तें'
+      termsConditions: 'नियम और शर्तें',
+      paymentTerms: '1. 30 दिनों में कुल भुगतान देय',
+      includeInvoiceNumber: '2. कृपया अपने चेक पर चालान संख्या शामिल करें',
+      phone: 'फोन',
+      customer: 'ग्राहक'
     },
     ar: {
       appName: 'جراند وولف',
@@ -777,7 +785,11 @@ export default function App() {
       unitPrice: 'سعر الوحدة',
       lineTotal: 'إجمالي السطر',
       comments: 'ملاحظات',
-      termsConditions: 'الشروط والأحكام'
+      termsConditions: 'الشروط والأحكام',
+      paymentTerms: '1. إجمالي الدفع مستحق خلال 30 يومًا',
+      includeInvoiceNumber: '2. يرجى تضمين رقم الفاتورة على الشيك الخاص بك',
+      phone: 'هاتف',
+      customer: 'عميل'
     },
     zh: {
       appName: 'Finn ERP',
@@ -984,7 +996,11 @@ export default function App() {
       unitPrice: '单价',
       lineTotal: '行总计',
       comments: '备注',
-      termsConditions: '条款和条件'
+      termsConditions: '条款和条件',
+      paymentTerms: '1. 总付款应在30天内支付',
+      includeInvoiceNumber: '2. 请在支票上注明发票号码',
+      phone: '电话',
+      customer: '客户'
     }
   };
 
@@ -1847,7 +1863,6 @@ export default function App() {
             <div class="title">${shopSettings.name}</div>
             <div class="subtitle">${shopSettings.address}</div>
             <div class="subtitle">${t('phone')}: ${shopSettings.phone}</div>
-            <div class="subtitle">Website: ${shopSettings.website || 'somedomain.com'}</div>
           </div>
           <div class="invoice-info">
             <h2>${t('invoice')}</h2>
@@ -1861,10 +1876,7 @@ export default function App() {
 
         <div class="bill-to">${t('billTo')}</div>
         <div class="bill-to-content">
-          <strong>${invoiceData.client || invoiceData.customer || 'Customer Name'}</strong><br>
-          ${invoiceData.customerAddress || '[Company Name]'}<br>
-          ${invoiceData.customerCity || '[City, ST ZIP]'}<br>
-          ${invoiceData.customerPhone || '[Phone]'}
+          <strong>${invoiceData.client || invoiceData.customer || 'Customer Name'}</strong>
         </div>
 
         <table class="items">
@@ -1890,8 +1902,8 @@ export default function App() {
           <div class="comments">
             <div class="comments-title">${t('comments')}</div>
             <div class="comments-content">
-              1. Total payment due in 30 days<br>
-              2. Please include the invoice number on your check
+              ${t('paymentTerms') || '1. Total payment due in 30 days'}<br>
+              ${t('includeInvoiceNumber') || '2. Please include the invoice number on your check'}
             </div>
           </div>
           <div class="totals">
@@ -1917,7 +1929,7 @@ export default function App() {
         <div class="footer">
           <p>${t('makeChecksPayable')} <strong>${shopSettings.name}</strong></p>
           <p>If you have any questions about this invoice, please contact</p>
-          <p>[Name, Phone #, E-mail]</p>
+          <p>${shopSettings.name}, ${t('phone')}: ${shopSettings.phone}</p>
           <p class="thank-you">${t('thankYou')}</p>
         </div>
       </div>
