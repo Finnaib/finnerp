@@ -3822,6 +3822,27 @@ export default function App() {
                 <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
               <div className="p-6 space-y-6">
+                {/* My Profile */}
+                <div>
+                  <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                    <User size={16} /> My Profile
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold">Email:</p>
+                      <p className="text-sm text-gray-900">{user?.email || 'Not available'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold">User ID:</p>
+                      <p className="text-sm text-gray-900 font-mono">{user?.uid || 'Not available'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold">Account Type:</p>
+                      <p className="text-sm text-gray-900">Admin</p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Shop Settings */}
                 <div>
                   <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
