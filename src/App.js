@@ -1489,8 +1489,8 @@ export default function App() {
     const styles = printFormat === 'Thermal' ? `
       @page { margin: 0; }
       body { font-family: 'Courier New', monospace; width: 80mm; padding: 5px; margin: 0 auto; color: #000; }
-      .page { padding-bottom: 20px; page-break-after: always; display: block; position: relative; }
-      .page:last-child { page-break-after: auto; }
+      .page { padding-bottom: 20px; display: block; position: relative; }
+      .page:last-child { page-break-after: avoid; }
       .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
       .title { font-size: 1.2em; font-weight: bold; }
       .subtitle { font-size: 0.9em; margin-bottom: 5px; }
@@ -1505,8 +1505,8 @@ export default function App() {
     ` : `
       @page { margin: 0; }
       body { font-family: Helvetica, Arial, sans-serif; padding: 0; color: #333; margin: 0; width: 100%; }
-      .page { padding: 40px; page-break-after: always; min-height: 90vh; position: relative; box-sizing: border-box; }
-      .page:last-child { page-break-after: auto; }
+      .page { padding: 40px; min-height: 90vh; position: relative; box-sizing: border-box; }
+      .page:last-child { page-break-after: avoid; }
       .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
       .brand h1 { margin: 0; color: #2c3e50; font-size: 24px; }
       .invoice-info { text-align: right; }
@@ -2742,6 +2742,7 @@ export default function App() {
                 </div>
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => showSensitiveData ? setShowSensitiveData(false) : setIsPinModalOpen(true)}
                     className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                   >
@@ -2764,6 +2765,7 @@ export default function App() {
                       value={inventorySearch}
                       onChange={(e) => setInventorySearch(e.target.value)}
                       autoComplete="off"
+                      name="inventory-search-field-unique"
                     />
                   </div>
                 </div>
