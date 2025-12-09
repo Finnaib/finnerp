@@ -4031,6 +4031,33 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Backup & Restore */}
+                <div>
+                  <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
+                    <Database size={16} /> Backup & Restore
+                  </h4>
+                  <div className="space-y-2">
+                    <button
+                      onClick={handleExportBackup}
+                      disabled={loading}
+                      className="w-full bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Download size={16} /> Export Backup
+                    </button>
+                    <label className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                      <Upload size={16} /> Import Backup
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={handleImportBackup}
+                        disabled={loading}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-xs text-gray-500 mt-2">Export your data as JSON or restore from a previous backup.</p>
+                  </div>
+                </div>
+
                 <div>
                   <h4 className="font-bold text-sm text-red-600 mb-2 flex items-center gap-2">
                     <AlertCircle size={16} /> Danger Zone
