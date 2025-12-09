@@ -891,6 +891,7 @@ export default function App() {
   const [isAddAttendanceModalOpen, setIsAddAttendanceModalOpen] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState(null); // For edit modal
 
+
   // --- Auth & UI State ---
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -942,6 +943,46 @@ export default function App() {
       await signOut(auth);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleFactoryReset = async () => {
+    if (!user) return;
+    if (!window.confirm("CRITICAL WARNING: This will DELETE ALL DATA (Employees, Sales, Inventory, etc.) PERMANENTLY. Are you sure?")) return;
+
+    const confirmPin = prompt("Enter Security PIN to confirm Factory Reset:");
+    if (confirmPin !== securityPin) {
+      alert("Incorrect PIN. Reset Aborted.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const collections = ['employees', 'sites', 'attendance', 'payroll', 'inventory', 'sales', 'purchases', 'invoices', 'accounts', 'journal_entries', 'suppliers', 'settings'];
+
+      for (const colName of collections) {
+        // We need to fetch all docs to delete them. 
+        // Note: Client-side deletion of entire collections is slow for large datasets.
+        const q = query(collection(db, colName), where('userId', '==', user.uid));
+        const snapshot = await getDocs(q);
+        const batch = writeBatch(db);
+        let count = 0;
+
+        snapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+          count++;
+        });
+
+        if (count > 0) await batch.commit();
+      }
+
+      alert("Factory Reset Complete. All data has been wiped.");
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Factory Reset Failed: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1103,6 +1144,13 @@ export default function App() {
       setInvoices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
+    // Mobile/Shop Settings Listener
+    const unsubSettings = onSnapshot(doc(db, 'settings', 'shop_' + user.uid), (doc) => {
+      if (doc.exists()) {
+        setShopSettings(doc.data());
+      }
+    });
+
     return () => {
       unsubAccounts();
       unsubJournal();
@@ -1111,6 +1159,7 @@ export default function App() {
       unsubSuppliers();
       unsubInventory();
       unsubInvoices();
+      unsubSettings();
     };
   }, [user]);
 
@@ -1842,15 +1891,15 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20">
           <div className="p-8">
-            <div className="text-center mb-6">
-              <div className="inline-flex p-3 bg-blue-100 text-blue-600 rounded-xl mb-4">
-                <Shield size={40} />
+            <div className="text-center mb-8">
+              <div className="inline-flex p-4 bg-blue-50 text-blue-600 rounded-2xl mb-4 shadow-inner">
+                <Shield size={48} />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">{authMode === 'login' ? t('welcome') : t('createAccount')}</h1>
-              <p className="text-gray-500 mt-2">{t('signInToAccess')}</p>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{authMode === 'login' ? t('welcome') : t('createAccount')}</h1>
+              <p className="text-gray-500 mt-2 text-sm">{t('signInToAccess')}</p>
             </div>
 
             <form onSubmit={handleAuth} className="space-y-4">
@@ -1865,6 +1914,8 @@ export default function App() {
                     value={authForm.email}
                     onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
                     required
+                    autoComplete="off"
+                    name="new-password-field-hack-email"
                   />
                 </div>
               </div>
@@ -1879,6 +1930,7 @@ export default function App() {
                     value={authForm.password}
                     onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
                     required
+                    autoComplete="new-password"
                   />
                 </div>
               </div>
@@ -2665,6 +2717,7 @@ export default function App() {
                     className="w-full mb-3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
                     placeholder={t('customerNameOptional')}
                     value={newSaleForm.customer}
+                    autoComplete="off"
                     onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                   />
 
@@ -2710,6 +2763,7 @@ export default function App() {
                       className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={inventorySearch}
                       onChange={(e) => setInventorySearch(e.target.value)}
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -3624,20 +3678,41 @@ export default function App() {
                       className="input-field"
                       placeholder={t('shopName')}
                       value={shopSettings.name}
+                      autoComplete="off"
+                      name="shop_name_field_no_autofill"
                       onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
                     />
                     <input
                       className="input-field"
                       placeholder={t('shopAddress')}
                       value={shopSettings.address}
+                      autoComplete="off"
+                      name="shop_address_field_no_autofill"
                       onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
                     />
                     <input
                       className="input-field"
                       placeholder={t('shopPhone')}
                       value={shopSettings.phone}
+                      autoComplete="off"
+                      name="shop_phone_field_no_autofill"
                       onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
                     />
+                    <button
+                      onClick={async () => {
+                        if (!user) return;
+                        try {
+                          await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
+                          alert("Shop Settings Saved to Cloud");
+                        } catch (e) {
+                          console.error(e);
+                          alert("Error saving settings");
+                        }
+                      }}
+                      className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors mt-2"
+                    >
+                      {t('updateSettings') || 'Update Settings'}
+                    </button>
                   </div>
                 </div>
                 {/* Language Settings */}
@@ -3689,12 +3764,27 @@ export default function App() {
                   </div>
                 </div>
 
+                <div>
+                  <h4 className="font-bold text-sm text-red-600 mb-2 flex items-center gap-2">
+                    <AlertCircle size={16} /> Danger Zone
+                  </h4>
+                  <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+                    <p className="text-xs text-red-700 mb-3">Irreversible action. Deletes all data.</p>
+                    <button
+                      onClick={handleFactoryReset}
+                      className="w-full bg-red-600 text-white font-bold py-2 rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
+                    >
+                      Factory Reset System
+                    </button>
+                  </div>
+                </div>
+
                 <div className="pt-2">
                   <button type="button" onClick={() => setShowSettings(false)} className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('close')}</button>
                 </div>
               </div>
             </div>
-          </div>
+          </div >
         )
       }
 
