@@ -1488,102 +1488,240 @@ export default function App() {
 
     const styles = printFormat === 'Thermal' ? `
       @page { margin: 0; }
-      body { font-family: 'Courier New', monospace; width: 80mm; padding: 5px; margin: 0 auto; color: #000; }
+      body { font-family: 'Courier New', monospace; width: 80mm; padding: 10px; margin: 0 auto; color: #000; background: #fff; }
       .page { padding-bottom: 20px; display: block; position: relative; }
       .page-break { page-break-after: always; }
-      .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-      .title { font-size: 1.2em; font-weight: bold; }
-      .subtitle { font-size: 0.9em; margin-bottom: 5px; }
-      .details { font-size: 0.8em; margin-bottom: 10px; }
-      .details p { margin: 2px 0; }
-      table { width: 100%; font-size: 0.8em; border-collapse: collapse; }
-      th { text-align: left; border-bottom: 1px solid #000; }
-      td { padding: 4px 0; vertical-align: top; }
-      .amount { text-align: right; font-weight: bold; font-size: 1.2em; border-top: 1px dashed #000; margin-top: 10px; padding-top: 5px; }
-      .footer { text-align: center; font-size: 0.7em; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 5px; }
-      .copy-label { text-align: center; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8em; border: 1px solid #000; display: inline-block; padding: 2px 5px; }
+      
+      /* Header */
+      .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px; }
+      .title { font-size: 1.1em; font-weight: bold; text-transform: uppercase; margin-bottom: 3px; }
+      .subtitle { font-size: 0.75em; line-height: 1.3; margin: 2px 0; }
+      .invoice-title { font-size: 1em; font-weight: bold; margin: 8px 0; text-decoration: underline; }
+      
+      /* Details */
+      .details { font-size: 0.8em; margin: 10px 0; line-height: 1.4; }
+      .details p { margin: 3px 0; }
+      .details strong { font-weight: bold; }
+      
+      /* Table */
+      table { width: 100%; font-size: 0.75em; border-collapse: collapse; margin: 10px 0; }
+      thead { border-bottom: 1px dashed #000; }
+      th { text-align: left; padding: 5px 2px; font-weight: bold; }
+      th.right { text-align: right; }
+      td { padding: 5px 2px; border-bottom: 1px dotted #ccc; }
+      td.right { text-align: right; }
+      tbody tr:last-child td { border-bottom: none; }
+      
+      /* Totals */
+      .totals { margin-top: 10px; border-top: 1px dashed #000; padding-top: 8px; }
+      .totals-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.8em; }
+      .totals-row.subtotal { font-weight: normal; }
+      .totals-row.total { font-weight: bold; font-size: 1em; border-top: 1px solid #000; margin-top: 5px; padding-top: 5px; }
+      
+      /* Footer */
+      .footer { text-align: center; font-size: 0.7em; margin-top: 15px; border-top: 1px dashed #000; padding-top: 8px; font-style: italic; }
+      .copy-label { text-align: center; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.75em; border: 1px solid #000; display: inline-block; padding: 3px 8px; }
     ` : `
-      @page { margin: 0; }
-      body { font-family: Helvetica, Arial, sans-serif; padding: 0; color: #333; margin: 0; width: 100%; }
-      .page { padding: 40px; min-height: 90vh; position: relative; box-sizing: border-box; }
+      @page { margin: 0; size: A4; }
+      body { font-family: Arial, Helvetica, sans-serif; padding: 0; color: #333; margin: 0; background: #fff; }
+      .page { padding: 50px; min-height: 90vh; position: relative; box-sizing: border-box; }
       .page-break { page-break-after: always; }
-      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-      .brand h1 { margin: 0; color: #2c3e50; font-size: 24px; }
+      
+      /* Header */
+      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #4a5f8f; }
+      .brand { flex: 1; }
+      .brand .title { font-size: 24px; font-weight: bold; color: #333; margin: 0 0 5px 0; }
+      .brand .subtitle { font-size: 11px; color: #666; line-height: 1.5; margin: 2px 0; }
+      
       .invoice-info { text-align: right; }
-      .invoice-info h2 { margin: 0 0 10px; color: #2c3e50; }
-      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-      table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-      th { text-align: left; padding: 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #eee; }
-      td { padding: 12px; border-bottom: 1px solid #eee; color: #555; }
-      .totals { margin-left: auto; width: 300px; }
-      .row { display: flex; justify-content: space-between; padding: 8px 0; }
-      .row.final { font-weight: bold; font-size: 1.2em; color: #2c3e50; border-top: 2px solid #eee; margin-top: 10px; padding-top: 10px; }
-      .footer { margin-top: 50px; text-align: center; font-size: 0.8em; color: #999; }
-      .copy-label { position: absolute; top: 20px; right: 20px; font-size: 10px; font-weight: bold; color: #ccc; text-transform: uppercase; border: 1px solid #ccc; padding: 4px 8px; border-radius: 4px; }
+      .invoice-info h2 { font-size: 36px; font-weight: bold; color: #7891c7; margin: 0 0 15px 0; text-transform: uppercase; }
+      .invoice-info table { margin: 0; }
+      .invoice-info td { padding: 4px 8px; font-size: 11px; }
+      .invoice-info td:first-child { text-align: right; font-weight: bold; background: #f5f5f5; }
+      .invoice-info td:last-child { text-align: left; border: 1px solid #ddd; background: #fff; }
+      
+      /* Bill To */
+      .bill-to { background: #4a5f8f; color: #fff; padding: 8px 12px; font-weight: bold; font-size: 12px; margin: 20px 0 10px 0; }
+      .bill-to-content { padding: 10px 12px; font-size: 11px; line-height: 1.6; color: #333; margin-bottom: 20px; }
+      
+      /* Table */
+      table.items { width: 100%; border-collapse: collapse; margin: 20px 0; }
+      table.items thead { background: #4a5f8f; color: #fff; }
+      table.items th { padding: 12px; text-align: left; font-size: 12px; font-weight: bold; }
+      table.items th.center { text-align: center; }
+      table.items th.right { text-align: right; }
+      table.items td { padding: 10px 12px; border-bottom: 1px solid #e0e0e0; font-size: 11px; color: #555; }
+      table.items td.center { text-align: center; }
+      table.items td.right { text-align: right; font-weight: bold; }
+      table.items tbody tr:hover { background: #f9f9f9; }
+      
+      /* Totals */
+      .totals-section { display: flex; justify-content: space-between; margin-top: 30px; }
+      .comments { flex: 1; max-width: 50%; }
+      .comments-title { background: #4a5f8f; color: #fff; padding: 8px 12px; font-weight: bold; font-size: 12px; margin-bottom: 10px; }
+      .comments-content { padding: 10px 12px; font-size: 11px; line-height: 1.8; color: #555; border: 1px solid #e0e0e0; }
+      
+      .totals { width: 300px; }
+      .totals-row { display: flex; justify-content: space-between; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid #e0e0e0; }
+      .totals-row strong { font-weight: bold; }
+      .totals-row.total { background: #f5f5f5; font-weight: bold; font-size: 14px; border-top: 2px solid #4a5f8f; border-bottom: 2px solid #4a5f8f; margin-top: 5px; }
+      
+      /* Footer */
+      .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #666; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+      .footer p { margin: 5px 0; }
+      .footer .thank-you { font-style: italic; font-weight: bold; color: #333; margin-top: 10px; }
+      .copy-label { position: absolute; top: 30px; right: 30px; font-size: 9px; font-weight: bold; color: #999; text-transform: uppercase; border: 1px solid #ddd; padding: 4px 8px; border-radius: 3px; background: #f9f9f9; }
     `;
 
-    const getPageContent = (copyLabel, isFirstPage) => `
+    const getPageContent = (copyLabel, isFirstPage) => {
+      const subtotal = Array.isArray(invoiceData.items)
+        ? invoiceData.items.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || item.quantity || 0)), 0)
+        : invoiceData.amount || 0;
+      const tax = subtotal * 0.0625; // 6.25% tax
+      const total = invoiceData.amount || subtotal;
+
+      if (printFormat === 'Thermal') {
+        return `
       <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
         ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
+        
         <div class="header">
-          <div class="brand">
-            <div class="title">${shopSettings.name}</div>
-            <div class="subtitle">${shopSettings.address} | ${shopSettings.phone}</div>
-          </div>
-          ${printFormat === 'A4' ? `
-          <div class="invoice-info">
-            <h2>${type.toUpperCase()}</h2>
-            <p>#${invoiceData.invoiceId || 'N/A'}</p>
-            <p>${invoiceData.date || new Date().toLocaleDateString()}</p>
-          </div>` : ''}
+          <div class="title">${shopSettings.name}</div>
+          <div class="subtitle">${shopSettings.address}</div>
+          <div class="subtitle">${shopSettings.phone}</div>
+          <div class="invoice-title">Retail Invoice</div>
         </div>
 
-        <div class="${printFormat === 'A4' ? 'grid' : 'details'}">
-          <div>
-            <strong>${t('billTo')}:</strong>
-            <p>${invoiceData.client || invoiceData.customer || 'Customer'}</p>
-            <p>${invoiceData.orderType || ''}</p>
-          </div>
-          ${printFormat === 'Thermal' ? `
-          <div style="margin-top:5px;">
-            <p><strong>${t('id')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
-            <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
-          </div>` : ''}
+        <div class="details">
+          <p><strong>Date:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
+          <p><strong>${invoiceData.client || invoiceData.customer || 'Customer'}</strong></p>
+          <p><strong>Bill No:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
+          <p><strong>Payment Mode:</strong> Cash</p>
         </div>
 
         <table>
           <thead>
             <tr>
-              <th width="50%">${t('item')}</th>
-              <th width="15%" style="text-align:center">${t('qty')}</th>
-              <th width="15%" style="text-align:right">${t('price')}</th>
-              <th width="20%" style="text-align:right">${t('total')}</th>
+              <th>Item</th>
+              <th class="right">Qty</th>
+              <th class="right">Amt</th>
             </tr>
           </thead>
           <tbody>
             ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
-              <tr>
-                <td>${item.name}</td>
-                <td style="text-align:center">${item.qty || item.quantity}</td>
-                <td style="text-align:right">${formatCurrency(item.price)}</td>
-                <td style="text-align:right">${formatCurrency((item.price) * (item.qty || item.quantity))}</td>
-              </tr>
-            `).join('') : `<tr><td colspan="4">${invoiceData.items}</td></tr>`}
+            <tr>
+              <td>${item.name}</td>
+              <td class="right">${item.qty || item.quantity}</td>
+              <td class="right">${formatCurrency((item.price || 0) * (item.qty || item.quantity || 0))}</td>
+            </tr>
+            `).join('') : `<tr><td colspan="3">${invoiceData.items}</td></tr>`}
           </tbody>
         </table>
 
-        <div class="${printFormat === 'A4' ? 'totals' : ''}">
-          <div class="amount ${printFormat === 'A4' ? 'row final' : ''}">
-            <span>${t('total')}:</span>
-            <span>${formatCurrency(invoiceData.amount)}</span>
+        <div class="totals">
+          <div class="totals-row subtotal">
+            <span>Sub Total</span>
+            <span>${formatCurrency(subtotal)}</span>
+          </div>
+          <div class="totals-row total">
+            <span>TOTAL</span>
+            <span>${formatCurrency(total)}</span>
           </div>
         </div>
 
         <div class="footer">
-          <p>${t('thankYou') || 'Thank you for your business!'}</p>
+          <p>Thank You For Your Business!</p>
         </div>
       </div>
-    `;
+        `;
+      } else {
+        // A4 Format
+        return `
+      <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
+        ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
+        
+        <div class="header">
+          <div class="brand">
+            <div class="title">${shopSettings.name}</div>
+            <div class="subtitle">${shopSettings.address}</div>
+            <div class="subtitle">Phone: ${shopSettings.phone}</div>
+            <div class="subtitle">Website: ${shopSettings.website || 'somedomain.com'}</div>
+          </div>
+          <div class="invoice-info">
+            <h2>INVOICE</h2>
+            <table>
+              <tr><td>DATE</td><td>${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
+              <tr><td>INVOICE #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
+              <tr><td>CUSTOMER ID</td><td>${invoiceData.customerId || '123'}</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="bill-to">BILL TO</div>
+        <div class="bill-to-content">
+          <strong>${invoiceData.client || invoiceData.customer || 'Customer Name'}</strong><br>
+          ${invoiceData.customerAddress || '[Company Name]'}<br>
+          ${invoiceData.customerCity || '[City, ST ZIP]'}<br>
+          ${invoiceData.customerPhone || '[Phone]'}
+        </div>
+
+        <table class="items">
+          <thead>
+            <tr>
+              <th>DESCRIPTION</th>
+              <th class="center">TAXED</th>
+              <th class="right">AMOUNT</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
+            <tr>
+              <td>${item.name}</td>
+              <td class="center">X</td>
+              <td class="right">${formatCurrency((item.price || 0) * (item.qty || item.quantity || 1))}</td>
+            </tr>
+            `).join('') : `<tr><td colspan="3">${invoiceData.items}</td></tr>`}
+          </tbody>
+        </table>
+
+        <div class="totals-section">
+          <div class="comments">
+            <div class="comments-title">OTHER COMMENTS</div>
+            <div class="comments-content">
+              1. Total payment due in 30 days<br>
+              2. Please include the invoice number on your check
+            </div>
+          </div>
+          <div class="totals">
+            <div class="totals-row">
+              <span>Subtotal</span>
+              <span>${formatCurrency(subtotal)}</span>
+            </div>
+            <div class="totals-row">
+              <span>Tax/VAT</span>
+              <span>${formatCurrency(tax)}</span>
+            </div>
+            <div class="totals-row">
+              <span>Tax rate</span>
+              <span>6.250%</span>
+            </div>
+            <div class="totals-row total">
+              <span>TOTAL</span>
+              <span>$ ${formatCurrency(total)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Make all checks payable to <strong>${shopSettings.name}</strong></p>
+          <p>If you have any questions about this invoice, please contact</p>
+          <p>[Name, Phone #, E-mail]</p>
+          <p class="thank-you">Thank You For Your Business!</p>
+        </div>
+      </div>
+        `;
+      }
+    };
 
     // Explicitly handle dual printing by concatenating copies
     let finalHtml = getPageContent(printDual ? t('customerCopy') : '', true);
