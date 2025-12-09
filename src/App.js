@@ -1393,7 +1393,7 @@ export default function App() {
 
   // Form State
   const [newEmployeeForm, setNewEmployeeForm] = useState({
-    name: '', role: '', dept: 'Security', location: 'Headquarters', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: ''
+    name: '', role: '', dept: 'Security', location: '', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: ''
   });
 
   const [newSiteForm, setNewSiteForm] = useState({
@@ -1981,31 +1981,36 @@ export default function App() {
     const styles = `
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Arial', sans-serif; padding: 40px; background: #f5f5f5; }
-        .slip { background: white; max-width: 800px; margin: 0 auto; padding: 40px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
-        .header h1 { color: #1e40af; font-size: 28px; margin-bottom: 5px; }
-        .header p { color: #64748b; font-size: 14px; }
-        .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .info-box { background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; }
-        .info-box label { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 5px; }
-        .info-box value { font-size: 16px; color: #1e293b; font-weight: 600; }
-        .salary-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        .salary-table th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 13px; color: #475569; border-bottom: 2px solid #e2e8f0; }
-        .salary-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        body { font-family: 'Arial', sans-serif; padding: 20px; background: #f5f5f5; }
+        .slip { background: white; max-width: 700px; margin: 0 auto; padding: 25px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px; }
+        .header h1 { color: #1e40af; font-size: 22px; margin-bottom: 3px; }
+        .header p { color: #64748b; font-size: 12px; margin: 2px 0; }
+        .title { text-align: center; color: #1e40af; margin-bottom: 20px; font-size: 18px; font-weight: 700; }
+        .info-section { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .info-box { background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid #3b82f6; }
+        .info-box label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 3px; }
+        .info-box value { font-size: 13px; color: #1e293b; font-weight: 600; }
+        .salary-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .salary-table th { background: #f1f5f9; padding: 8px; text-align: left; font-size: 11px; color: #475569; border-bottom: 2px solid #e2e8f0; }
+        .salary-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
         .salary-table tr:last-child td { border-bottom: none; }
         .amount { text-align: right; font-family: 'Courier New', monospace; font-weight: 600; }
         .positive { color: #16a34a; }
         .negative { color: #dc2626; }
-        .total-row { background: #eff6ff; font-weight: 700; font-size: 16px; }
-        .total-row td { padding: 15px 12px; border-top: 2px solid #3b82f6; }
-        .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px; }
-        .signature-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; }
+        .total-row { background: #eff6ff; font-weight: 700; font-size: 14px; }
+        .total-row td { padding: 10px 8px; border-top: 2px solid #3b82f6; }
+        .footer { margin-top: 25px; padding-top: 12px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 10px; }
+        .signature-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
         .signature-box { text-align: center; }
-        .signature-line { border-top: 2px solid #1e293b; padding-top: 10px; margin-top: 50px; font-weight: 600; color: #475569; }
+        .signature-line { border-top: 1px solid #1e293b; padding-top: 8px; margin-top: 35px; font-weight: 600; color: #475569; font-size: 11px; }
         @media print {
           body { padding: 0; background: white; }
-          .slip { box-shadow: none; }
+          .slip { box-shadow: none; padding: 15px; }
+          .header { padding-bottom: 10px; margin-bottom: 15px; }
+          .info-section { margin-bottom: 15px; gap: 10px; }
+          .salary-table { margin: 10px 0; }
+          .signature-section { margin-top: 20px; }
         }
       </style>
     `;
@@ -2024,16 +2029,12 @@ export default function App() {
               <p>Phone: ${shopSettings.phone || 'N/A'}</p>
             </div>
 
-            <h2 style="text-align: center; color: #1e40af; margin-bottom: 30px;">PAYROLL SLIP</h2>
+            <div class="title">PAYROLL SLIP</div>
 
             <div class="info-section">
               <div class="info-box">
                 <label>Employee Name</label>
                 <value>${employee.name}</value>
-              </div>
-              <div class="info-box">
-                <label>Employee ID</label>
-                <value>${employee.id.substring(0, 8).toUpperCase()}</value>
               </div>
               <div class="info-box">
                 <label>Department</label>
@@ -2077,7 +2078,7 @@ export default function App() {
                   <td><strong>Gross Pay</strong></td>
                   <td class="amount"><strong>${formatCurrency(payrollData.baseSalary + payrollData.bonus + payrollData.overtime)}</strong></td>
                 </tr>
-                <tr style="height: 10px;"><td colspan="2"></td></tr>
+                <tr style="height: 8px;"><td colspan="2"></td></tr>
                 <tr>
                   <td>Late Deductions</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.lateDeduction)}</td>
@@ -2218,7 +2219,7 @@ export default function App() {
       });
       alert("Employee Saved Successfully!"); // Debug Confirmation
       setIsAddModalOpen(false);
-      setNewEmployeeForm({ name: '', role: '', dept: 'Security', location: 'Headquarters', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: '' });
+      setNewEmployeeForm({ name: '', role: '', dept: 'Security', location: '', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: '' });
     } catch (err) {
       console.error(err);
       alert("Error saving: " + err.message);
