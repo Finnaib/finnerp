@@ -33,6 +33,7 @@ import {
   User,
   Upload,
   Globe,
+  Database,
 
   Image as ImageIcon,
   Menu, // Hamburger Menu
