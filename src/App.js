@@ -2918,13 +2918,14 @@ export default function App() {
                 </div>
 
                 {/* Month Period Indicator */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+                <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-3 flex items-center gap-3">
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="text-sm font-medium text-blue-900">
-                    {t('payrollFor') || 'Payroll for'}: <strong>{new Date(payrollMonthFilter + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</strong>
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-blue-700">{t('payrollFor') || 'Payroll for'}:</span>
+                    <span className="text-sm font-bold text-blue-900">{new Date(payrollMonthFilter + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                  </div>
                 </div>
 
 
