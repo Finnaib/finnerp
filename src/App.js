@@ -1542,7 +1542,7 @@ export default function App() {
       finalHtml += getPageContent(t('shopCopy'));
     }
 
-    constcontent = `
+    const content = `
       <html>
         <head>
           <title>Print ${type}</title>
@@ -1554,7 +1554,7 @@ export default function App() {
       </html>
     `;
 
-    printWindow.document.write(constcontent);
+    printWindow.document.write(content);
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {
