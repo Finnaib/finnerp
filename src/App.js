@@ -293,6 +293,7 @@ export default function App() {
       includeInvoiceNumber: '2. Please include the invoice number on your check',
       phone: 'Phone',
       customer: 'Customer',
+      contactQuestions: 'If you have any questions about this invoice, please contact',
 
 
       details: 'Employee Info',
@@ -575,7 +576,8 @@ export default function App() {
       paymentTerms: '1. 30 दिनों में कुल भुगतान देय',
       includeInvoiceNumber: '2. कृपया अपने चेक पर चालान संख्या शामिल करें',
       phone: 'फोन',
-      customer: 'ग्राहक'
+      customer: 'ग्राहक',
+      contactQuestions: 'यदि इस चालान के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें'
     },
     ar: {
       appName: 'جراند وولف',
@@ -789,7 +791,8 @@ export default function App() {
       paymentTerms: '1. إجمالي الدفع مستحق خلال 30 يومًا',
       includeInvoiceNumber: '2. يرجى تضمين رقم الفاتورة على الشيك الخاص بك',
       phone: 'هاتف',
-      customer: 'عميل'
+      customer: 'عميل',
+      contactQuestions: 'إذا كان لديك أي أسئلة حول هذه الفاتورة، يرجى الاتصال'
     },
     zh: {
       appName: 'Finn ERP',
@@ -1000,7 +1003,8 @@ export default function App() {
       paymentTerms: '1. 总付款应在30天内支付',
       includeInvoiceNumber: '2. 请在支票上注明发票号码',
       phone: '电话',
-      customer: '客户'
+      customer: '客户',
+      contactQuestions: '如果您对此发票有任何疑问，请联系'
     }
   };
 
@@ -1928,7 +1932,7 @@ export default function App() {
 
         <div class="footer">
           <p>${t('makeChecksPayable')} <strong>${shopSettings.name}</strong></p>
-          <p>If you have any questions about this invoice, please contact</p>
+          <p>${t('contactQuestions')}</p>
           <p>${shopSettings.name}, ${t('phone')}: ${shopSettings.phone}</p>
           <p class="thank-you">${t('thankYou')}</p>
         </div>
