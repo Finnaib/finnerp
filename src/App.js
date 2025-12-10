@@ -231,6 +231,14 @@ export default function App() {
       a4: 'A4 (Standard)',
       dualPrint: 'Dual Print (Client + Shop)',
 
+      // Report Headers
+      lastUpdated: 'Last Updated',
+      stockValueBuy: 'Stock Value (Buy)',
+      stockValueSell: 'Stock Value (Sell)',
+      itemsSummary: 'Items Summary',
+      invoiceId: 'Invoice ID',
+      type: 'Type',
+
       // POS & Warehouse
       posTerminal: 'POS Terminal',
       searchProducts: 'Search products...',
@@ -539,6 +547,14 @@ export default function App() {
       thermal: 'थर्मल (80mm)',
       a4: 'A4 (मानक)',
       dualPrint: 'दोहरी प्रिंट (ग्राहक + दुकान)',
+
+      // Report Headers
+      lastUpdated: 'अंतिम अपडेट',
+      stockValueBuy: 'स्टॉक मूल्य (खरीद)',
+      stockValueSell: 'स्टॉक मूल्य (बिक्री)',
+      itemsSummary: 'वस्तु सारांश',
+      invoiceId: 'चालान आईडी',
+      type: 'प्रकार',
       posTerminal: 'POS टर्मिनल',
       searchProducts: 'उत्पाद खोजें...',
       todaysSales: 'आज की बिक्री',
@@ -774,6 +790,14 @@ export default function App() {
       thermal: 'حراري (80 مم)',
       a4: 'A4 (قياسي)',
       dualPrint: 'طباعة مزدوجة',
+
+      // Report Headers
+      lastUpdated: 'آخر تحديث',
+      stockValueBuy: 'قيمة المخزون (شراء)',
+      stockValueSell: 'قيمة المخزون (بيع)',
+      itemsSummary: 'ملخص العناصر',
+      invoiceId: 'رقم الفاتورة',
+      type: 'النوع',
       posTerminal: 'محطة نقطة البيع',
       searchProducts: 'بحث عن المنتجات...',
       todaysSales: 'مبيعات اليوم',
@@ -986,6 +1010,14 @@ export default function App() {
       thermal: '热敏 (80mm)',
       a4: 'A4 (标准)',
       dualPrint: '双重打印',
+
+      // Report Headers
+      lastUpdated: '最后更新',
+      stockValueBuy: '库存价值 (买入)',
+      stockValueSell: '库存价值 (卖出)',
+      itemsSummary: '项目摘要',
+      invoiceId: '发票 ID',
+      type: '类型',
       posTerminal: 'POS 终端',
       searchProducts: '搜索产品...',
       todaysSales: '今日销售',
@@ -2427,24 +2459,33 @@ export default function App() {
 
   const downloadReport = (reportType) => {
     let headers = [], data = [], filename = '';
+
+    // Helper to translate status
+    const translateStatus = (s) => {
+      if (s === 'On Time') return t('onTime');
+      if (s === 'Late') return t('late');
+      if (s === 'Absent') return t('absent');
+      return s;
+    };
+
     switch (reportType) {
       case 'attendance':
-        headers = ['Employee', 'Date', 'Location', 'Status'];
-        data = attendance.map(r => [r.name, r.date, getEmployeeLocation(r.name), r.status]);
+        headers = [t('employeeName'), t('date'), t('location'), t('status')];
+        data = attendance.map(r => [r.name, r.date, getEmployeeLocation(r.name), translateStatus(r.status)]);
         filename = 'FinnERP_Attendance.csv';
         break;
       case 'payroll':
-        headers = ['Employee', 'Role', 'Dept', 'Base (EGP)', 'Bonus (EGP)', 'Overtime (EGP)', 'Total (EGP)'];
+        headers = [t('employeeName'), t('role'), t('dept'), `${t('basicSalary')} (${currency})`, `${t('bonus')} (${currency})`, `${t('overtime')} (${currency})`, `${t('total')} (${currency})`];
         data = employees.map(e => [e.name, e.role, e.dept, e.salary, e.bonus, e.overtime, e.salary + e.bonus + e.overtime]);
         filename = 'FinnERP_Payroll.csv';
         break;
       case 'turnover':
-        headers = ['Employee', 'Role', 'Dept', 'Status', 'Location'];
+        headers = [t('employeeName'), t('role'), t('dept'), t('status'), t('location')];
         data = employees.map(e => [e.name, e.role, e.dept, e.status, e.location]);
         filename = 'FinnERP_Staff.csv';
         break;
       case 'tax':
-        headers = ['Employee', 'Total (EGP)', 'Tax (20%)', 'Net Pay'];
+        headers = [t('employeeName'), `${t('total')} (${currency})`, `${t('tax')} (20%)`, t('netPay')];
         data = employees.map(e => {
           const total = e.salary + e.bonus + e.overtime;
           const tax = total * 0.2;
@@ -2453,7 +2494,7 @@ export default function App() {
         filename = 'FinnERP_Tax.csv';
         break;
       case 'weekly_sales':
-        headers = ['Date', 'Invoice ID', 'Type', 'Customer', 'Items Summary', 'Total Amount'];
+        headers = [t('date'), t('invoiceId'), t('type'), t('customer'), t('itemsSummary'), t('total')];
         const sevenDaysAgoSales = new Date();
         sevenDaysAgoSales.setDate(sevenDaysAgoSales.getDate() - 7);
 
@@ -2465,11 +2506,13 @@ export default function App() {
           .map(s => {
             const date = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
             const itemsSummary = Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join('; ') : 'N/A';
+            const typeLabel = s.orderType === 'Walk-in' ? t('walkIn') : (s.orderType === 'Takeaway' ? t('takeaway') : s.orderType);
+
             return [
               date.toLocaleString(),
               s.invoiceId || 'N/A',
-              s.orderType || 'Walk-in',
-              s.customer || 'Walk-in',
+              typeLabel,
+              s.customer || t('walkInCustomer'),
               itemsSummary,
               s.amount
             ];
@@ -2478,7 +2521,7 @@ export default function App() {
         break;
       case 'weekly_buy':
         // For "Buy Report", we look at Inventory items updated recently
-        headers = ['Last Updated', 'Item Name', 'Location', 'Buy Price', 'Sell Price', 'Quantity', 'Stock Value (Buy Price)', 'Stock Value (Sell Price)'];
+        headers = [t('lastUpdated'), t('itemName'), t('location'), t('buyPrice'), t('sellPrice'), t('quantity'), t('stockValueBuy'), t('stockValueSell')];
         const sevenDaysAgoInv = new Date();
         sevenDaysAgoInv.setDate(sevenDaysAgoInv.getDate() - 7);
 
