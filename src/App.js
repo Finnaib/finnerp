@@ -2119,38 +2119,38 @@ export default function App() {
     const content = `
       <html>
         <head>
-          <title>${translations.payrollSlip} - ${employee.name}</title>
+          <title>${translatedStrings.payrollSlip} - ${employee.name}</title>
           ${styles}
         </head>
         <body>
           <div class="slip">
             <div class="header">
-              <h1>${translations.companyName}</h1>
-              <p>${translations.companyAddress}</p>
-              <p>${translations.phone}: ${shopSettings.phone || 'N/A'}</p>
+              <h1>${translatedStrings.companyName}</h1>
+              <p>${translatedStrings.companyAddress}</p>
+              <p>${translatedStrings.phone}: ${shopSettings.phone || 'N/A'}</p>
             </div>
 
-            <div class="title">${translations.payrollSlip}</div>
+            <div class="title">${translatedStrings.payrollSlip}</div>
 
             <div class="info-section">
               <div class="info-box">
-                <label>${translations.employeeName}</label>
+                <label>${translatedStrings.employeeName}</label>
                 <value>${employee.name}</value>
               </div>
               <div class="info-box">
-                <label>${translations.department}</label>
+                <label>${translatedStrings.department}</label>
                 <value>${employee.dept}</value>
               </div>
               <div class="info-box">
-                <label>${translations.role}</label>
+                <label>${translatedStrings.role}</label>
                 <value>${employee.role}</value>
               </div>
               <div class="info-box">
-                <label>${translations.location}</label>
+                <label>${translatedStrings.location}</label>
                 <value>${employee.location}</value>
               </div>
               <div class="info-box">
-                <label>${translations.payPeriod}</label>
+                <label>${translatedStrings.payPeriod}</label>
                 <value>${monthName}</value>
               </div>
             </div>
@@ -2158,46 +2158,46 @@ export default function App() {
             <table class="salary-table">
               <thead>
                 <tr>
-                  <th>${translations.description}</th>
-                  <th class="amount">${translations.amount}</th>
+                  <th>${translatedStrings.description}</th>
+                  <th class="amount">${translatedStrings.amount}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>${translations.basicSalary}</strong></td>
+                  <td><strong>${translatedStrings.basicSalary}</strong></td>
                   <td class="amount">${formatCurrency(payrollData.baseSalary)}</td>
                 </tr>
                 <tr>
-                  <td>${translations.bonus}</td>
+                  <td>${translatedStrings.bonus}</td>
                   <td class="amount positive">+ ${formatCurrency(payrollData.bonus)}</td>
                 </tr>
                 <tr>
-                  <td>${translations.overtime}</td>
+                  <td>${translatedStrings.overtime}</td>
                   <td class="amount positive">+ ${formatCurrency(payrollData.overtime)}</td>
                 </tr>
                 <tr>
-                  <td><strong>${translations.grossPay}</strong></td>
+                  <td><strong>${translatedStrings.grossPay}</strong></td>
                   <td class="amount"><strong>${formatCurrency(payrollData.baseSalary + payrollData.bonus + payrollData.overtime)}</strong></td>
                 </tr>
                 <tr style="height: 8px;"><td colspan="2"></td></tr>
                 <tr>
-                  <td>${translations.lateDeductions}</td>
+                  <td>${translatedStrings.lateDeductions}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.lateDeduction)}</td>
                 </tr>
                 <tr>
-                  <td>${translations.absentDeductions}</td>
+                  <td>${translatedStrings.absentDeductions}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.absentDeduction)}</td>
                 </tr>
                 <tr>
-                  <td>${translations.otherDeductions}</td>
+                  <td>${translatedStrings.otherDeductions}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.manualDeduction)}</td>
                 </tr>
                 <tr>
-                  <td><strong>${translations.totalDeductions}</strong></td>
+                  <td><strong>${translatedStrings.totalDeductions}</strong></td>
                   <td class="amount negative"><strong>- ${formatCurrency(payrollData.deductionAmount)}</strong></td>
                 </tr>
                 <tr class="total-row">
-                  <td>${translations.netPay}</td>
+                  <td>${translatedStrings.netPay}</td>
                   <td class="amount">${formatCurrency(payrollData.netPay)}</td>
                 </tr>
               </tbody>
@@ -2205,16 +2205,16 @@ export default function App() {
 
             <div class="signature-section">
               <div class="signature-box">
-                <div class="signature-line">${translations.employeeSignature}</div>
+                <div class="signature-line">${translatedStrings.employeeSignature}</div>
               </div>
               <div class="signature-box">
-                <div class="signature-line">${translations.authorizedSignature}</div>
+                <div class="signature-line">${translatedStrings.authorizedSignature}</div>
               </div>
             </div>
 
             <div class="footer">
-              <p>${translations.computerGenerated}</p>
-              <p>${translations.generatedOn} ${currentDate} ${translations.at} ${currentTime}</p>
+              <p>${translatedStrings.computerGenerated}</p>
+              <p>${translatedStrings.generatedOn} ${currentDate} ${translatedStrings.at} ${currentTime}</p>
             </div>
           </div>
         </body>
