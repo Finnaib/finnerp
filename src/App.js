@@ -1044,7 +1044,27 @@ export default function App() {
       includeInvoiceNumber: '2. 请在支票上注明发票号码',
       phone: '电话',
       customer: '客户',
-      contactQuestions: '如果您对此发票有任何疑问，请联系'
+      contactQuestions: '如果您对此发票有任何疑问，请联系',
+      // Payroll Slip
+      payrollSlip: '工资单',
+      payrollFor: '工资期间',
+      employeeName: '员工姓名',
+      employeeId: '员工编号',
+      department: '部门',
+      payPeriod: '工资期间',
+      basicSalary: '基本工资',
+      grossPay: '总工资',
+      totalDeductions: '总扣除额',
+      otherDeductions: '其他扣除',
+      employeeSignature: '员工签名',
+      authorizedSignature: '授权签名',
+      computerGenerated: '这是计算机生成的工资单。无需签名。',
+      generatedOn: '生成于',
+      at: '在',
+      companyName: '公司名称',
+      companyAddress: '公司地址',
+      selectLocation: '选择位置',
+      noLocations: '没有可用位置 - 请先创建位置'
     }
   };
 
@@ -2017,7 +2037,7 @@ export default function App() {
     }
 
     // Get translated month name based on current language
-    const locale = lang === 'ar' ? 'ar-EG' : lang === 'hi' ? 'hi-IN' : 'en-US';
+    const locale = language === 'ar' ? 'ar-EG' : language === 'hi' ? 'hi-IN' : language === 'zh' ? 'zh-CN' : 'en-US';
     const monthName = new Date(month + '-01').toLocaleDateString(locale, { month: 'long', year: 'numeric' });
     const currentDate = new Date().toLocaleDateString(locale);
     const currentTime = new Date().toLocaleTimeString(locale);
@@ -2971,7 +2991,7 @@ export default function App() {
                   <div>
                     <div className="text-xs text-blue-600 font-semibold uppercase tracking-wide">{t('payPeriod')}</div>
                     <div className="text-base font-bold text-gray-900 mt-0.5">
-                      {new Date(payrollMonthFilter + '-01').toLocaleDateString(lang === 'ar' ? 'ar-EG' : lang === 'hi' ? 'hi-IN' : 'en-US', { month: 'long', year: 'numeric' })}
+                      {new Date(payrollMonthFilter + '-01').toLocaleDateString(language === 'ar' ? 'ar-EG' : language === 'hi' ? 'hi-IN' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'long', year: 'numeric' })}
                     </div>
                   </div>
                 </div>
