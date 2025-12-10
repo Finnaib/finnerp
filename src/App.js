@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
 import {
@@ -1510,44 +1513,155 @@ export default function App() {
     return emp ? emp.location : 'Unknown';
   };
 
-  const generateCSV = (headers, data, filename, extraMetadata = []) => {
-    const metadata = [
-      `${t('companyName') || 'Company'}: Finn ERP`,
-      `${t('menuReports') || 'Report'}: ${filename.replace('.csv', '').replace(/_/g, ' ')}`,
-      `${t('date')}: ${new Date().toLocaleString()}`,
-      ...extraMetadata,
-      ''
-    ].join('\n');
+  /* --- Excel Import/Export Handling with exceljs --- */
 
-    const csvContent = [
-      headers.join(','),
-      ...data.map(row => row.map(item => `"${item}"`).join(','))
-    ].join('\n');
+  const generateExcel = async (headers, data, filename, extraMetadata = []) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Report');
 
-    const blob = new Blob(['\uFEFF' + metadata + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', filename);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    // 1. Metadata Section (Rows 1-4)
+    worksheet.mergeCells('A1:E1');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = `${t('companyName') || 'Company'}: Finn ERP`;
+    titleCell.font = { name: 'Arial', size: 16, bold: true };
+    titleCell.alignment = { horizontal: 'center' };
+
+    worksheet.mergeCells('A2:E2');
+    worksheet.getCell('A2').value = `${t('menuReports') || 'Report'}: ${filename.replace('.xlsx', '').replace(/_/g, ' ')}`;
+    worksheet.getCell('A2').alignment = { horizontal: 'center' };
+
+    worksheet.mergeCells('A3:E3');
+    worksheet.getCell('A3').value = `${t('date')}: ${new Date().toLocaleString()}`;
+    worksheet.getCell('A3').alignment = { horizontal: 'center' };
+
+    if (extraMetadata.length > 0) {
+      worksheet.mergeCells('A4:E4');
+      worksheet.getCell('A4').value = extraMetadata.join(' | ');
+      worksheet.getCell('A4').alignment = { horizontal: 'center' };
+      worksheet.getCell('A4').font = { italic: true };
     }
+
+    // 2. Header Row (Row 6)
+    const headerRow = worksheet.getRow(6);
+    headerRow.values = headers;
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4F46E5' }, // Indigo-600
+      };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+
+    // 3. Data Rows
+    data.forEach((rowData) => {
+      const row = worksheet.addRow(rowData);
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+    });
+
+    // 4. Determine Columns Width
+    worksheet.columns.forEach((column) => {
+      let maxLength = 0;
+      if (column && column.eachCell) {
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const columnLength = cell.value ? cell.value.toString().length : 10;
+          if (columnLength > maxLength) {
+            maxLength = columnLength;
+          }
+        });
+      }
+      column.width = maxLength < 12 ? 12 : maxLength + 2;
+    });
+
+    // 5. Generate and Save
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, filename);
   };
 
-  // --- Import / Export Handlers ---
   const handleExportAttendance = () => {
     const headers = ['Employee', 'Date', 'Location', 'Status'];
     const data = attendance.map(r => [r.name, r.date, getEmployeeLocation(r.name), r.status]);
-    generateCSV(headers, data, 'Attendance_Export.csv');
+    generateExcel(headers, data, 'Attendance_Export.xlsx');
   };
 
   const handleExportPayroll = () => {
     const headers = ['Employee', 'Role', 'Base Salary', 'Bonus', 'Overtime'];
     const data = employees.map(e => [e.name, e.role, e.salary, e.bonus, e.overtime]);
-    generateCSV(headers, data, 'Payroll_Export.csv');
+    generateExcel(headers, data, 'Payroll_Export.xlsx');
+  };
+
+  const handleImportPayroll = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const buffer = e.target.result;
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.getWorksheet(1); // First sheet
+
+      const batch = writeBatch(db);
+      let updatedCount = 0;
+
+      let headerRowIndex = 1;
+      worksheet.eachRow((row, rowNumber) => {
+        if (row.values.includes('Employee') || row.values.includes('Name')) {
+          headerRowIndex = rowNumber;
+        }
+      });
+
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber <= headerRowIndex) return;
+
+        const rowVal = row.values;
+        // Assume export order: [1]Name, [2]Role, [3]Salary, [4]Bonus, [5]Overtime
+        const name = rowVal[1];
+
+        if (!name) return;
+
+        const salary = parseFloat(rowVal[3]);
+        const bonus = parseFloat(rowVal[4]);
+        const overtime = parseFloat(rowVal[5]);
+
+        const emp = employees.find(e => e.name.toLowerCase() === name.toString().toLowerCase());
+
+        if (emp && !isNaN(salary)) {
+          const empRef = doc(db, 'employees', emp.id);
+          batch.update(empRef, {
+            salary: salary,
+            bonus: isNaN(bonus) ? 0 : bonus,
+            overtime: isNaN(overtime) ? 0 : overtime
+          });
+          updatedCount++;
+        }
+      });
+
+      try {
+        await batch.commit();
+        alert(`Successfully updated payroll for ${updatedCount} employees.`);
+      } catch (err) {
+        console.error(err);
+        alert("Error updating payroll: " + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = null;
   };
 
   const handleImportAttendance = async (event) => {
@@ -1555,21 +1669,34 @@ export default function App() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const text = e.target.result;
-      const rows = text.split('\n').slice(1);
+      const buffer = e.target.result;
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.getWorksheet(1);
 
       const batch = writeBatch(db);
       let count = 0;
 
-      rows.forEach((row, index) => {
-        const cols = row.split(',').map(c => c.replace(/"/g, ''));
-        if (cols.length < 4) return;
+      let headerRowIndex = 1;
+      worksheet.eachRow((row, rowNumber) => {
+        if (row.values.includes('Employee') || row.values.includes('Name')) headerRowIndex = rowNumber;
+      });
+
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber <= headerRowIndex) return;
+
+        const rowVal = row.values;
+        const name = rowVal[1];
+        const date = rowVal[2];
+        const status = rowVal[4]; // [3] is Location usually
+
+        if (!name || !date) return;
 
         const newRef = doc(collection(db, 'attendance'));
         batch.set(newRef, {
-          name: cols[0],
-          date: cols[1],
-          status: cols[3] || 'Pending',
+          name: name,
+          date: new Date(date).toISOString().split('T')[0],
+          status: status || 'Pending',
           userId: user.uid
         });
         count++;
@@ -1577,13 +1704,13 @@ export default function App() {
 
       try {
         await batch.commit();
-        alert(`Successfully imported ${count} records to Cloud.`);
+        alert(`Successfully imported ${count} records.`);
       } catch (err) {
         console.error(err);
         alert("Error importing: " + err.message);
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
     event.target.value = null;
   };
 
@@ -2269,50 +2396,7 @@ export default function App() {
     }, 250);
   };
 
-  const handleImportPayroll = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target.result;
-      const rows = text.split('\n').slice(1);
 
-      const batch = writeBatch(db);
-      let updatedCount = 0;
-
-      rows.forEach(row => {
-        const cols = row.split(',').map(c => c.replace(/"/g, ''));
-        if (cols.length < 4) return;
-        const name = cols[0];
-        const salary = parseFloat(cols[2]);
-        const bonus = parseFloat(cols[3]);
-        const overtime = parseFloat(cols[4]);
-
-        // Find employee by name (Case Insensitive)
-        const emp = employees.find(e => e.name.toLowerCase() === name.toLowerCase());
-
-        if (emp && !isNaN(salary)) {
-          const empRef = doc(db, 'employees', emp.id);
-          batch.update(empRef, {
-            salary: salary,
-            bonus: isNaN(bonus) ? 0 : bonus,
-            overtime: isNaN(overtime) ? 0 : overtime
-          });
-          updatedCount++;
-        }
-      });
-
-      try {
-        await batch.commit();
-        alert(`Successfully updated payroll for ${updatedCount} employees in Cloud.`);
-      } catch (err) {
-        console.error(err);
-        alert("Error updating payroll: " + err.message);
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = null;
-  };
 
   // --- Image Handling Handlers ---
   const handleNewEmployeeImage = (e) => {
@@ -2473,7 +2557,7 @@ export default function App() {
       case 'attendance':
         headers = [t('employeeName'), t('date'), t('location'), t('status')];
         data = attendance.map(r => [r.name, r.date, getEmployeeLocation(r.name), translateStatus(r.status)]);
-        filename = 'FinnERP_Attendance.csv';
+        filename = 'FinnERP_Attendance.xlsx';
         break;
       case 'payroll':
         headers = [t('employeeName'), t('role'), t('dept'), `${t('basicSalary')} (${currency})`, `${t('bonus')} (${currency})`, `${t('overtime')} (${currency})`, `${t('total')} (${currency})`];
@@ -2490,12 +2574,12 @@ export default function App() {
         data.push(['', '', t('dashboardTotal').toUpperCase(), totalSalary, totalBonus, totalOvertime, totalTotal]);
 
         extraMetadata = [`${t('payPeriod')}: ${payrollMonthFilter}`];
-        filename = 'FinnERP_Payroll.csv';
+        filename = 'FinnERP_Payroll.xlsx';
         break;
       case 'turnover':
         headers = [t('employeeName'), t('role'), t('dept'), t('status'), t('location')];
         data = employees.map(e => [e.name, e.role, e.dept, e.status, e.location]);
-        filename = 'FinnERP_Staff.csv';
+        filename = 'FinnERP_Staff.xlsx';
         break;
       case 'tax':
         headers = [t('employeeName'), `${t('total')} (${currency})`, `${t('tax')} (20%)`, t('netPay')];
@@ -2504,7 +2588,7 @@ export default function App() {
           const tax = total * 0.2;
           return [e.name, total, tax, total - tax];
         });
-        filename = 'FinnERP_Tax.csv';
+        filename = 'FinnERP_Tax.xlsx';
         break;
       case 'weekly_sales':
         headers = [t('date'), t('invoiceId'), t('type'), t('customer'), t('itemsSummary'), t('total')];
@@ -2530,7 +2614,7 @@ export default function App() {
               s.amount
             ];
           });
-        filename = 'Weekly_Sales_Report.csv';
+        filename = 'Weekly_Sales_Report.xlsx';
         break;
       case 'weekly_buy':
         // For "Buy Report", we look at Inventory items updated recently
@@ -2558,11 +2642,11 @@ export default function App() {
               (i.sellPrice || 0) * i.quantity
             ];
           });
-        filename = 'Weekly_Inventory_Buy_Report.csv';
+        filename = 'Weekly_Inventory_Buy_Report.xlsx';
         break;
       default: return;
     }
-    generateCSV(headers, data, filename, extraMetadata);
+    generateExcel(headers, data, filename, extraMetadata);
   };
 
 
