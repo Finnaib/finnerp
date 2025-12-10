@@ -1510,11 +1510,12 @@ export default function App() {
     return emp ? emp.location : 'Unknown';
   };
 
-  const generateCSV = (headers, data, filename) => {
+  const generateCSV = (headers, data, filename, extraMetadata = []) => {
     const metadata = [
-      `Company: Finn ERP`,
-      `Report: ${filename.replace('.csv', '').replace(/_/g, ' ')}`,
-      `Date: ${new Date().toLocaleString()}`,
+      `${t('companyName') || 'Company'}: Finn ERP`,
+      `${t('menuReports') || 'Report'}: ${filename.replace('.csv', '').replace(/_/g, ' ')}`,
+      `${t('date')}: ${new Date().toLocaleString()}`,
+      ...extraMetadata,
       ''
     ].join('\n');
 
@@ -2458,7 +2459,7 @@ export default function App() {
 
 
   const downloadReport = (reportType) => {
-    let headers = [], data = [], filename = '';
+    let headers = [], data = [], filename = '', extraMetadata = [];
 
     // Helper to translate status
     const translateStatus = (s) => {
@@ -2477,6 +2478,18 @@ export default function App() {
       case 'payroll':
         headers = [t('employeeName'), t('role'), t('dept'), `${t('basicSalary')} (${currency})`, `${t('bonus')} (${currency})`, `${t('overtime')} (${currency})`, `${t('total')} (${currency})`];
         data = employees.map(e => [e.name, e.role, e.dept, e.salary, e.bonus, e.overtime, e.salary + e.bonus + e.overtime]);
+
+        // Add Totals Row
+        const totalSalary = employees.reduce((sum, e) => sum + (e.salary || 0), 0);
+        const totalBonus = employees.reduce((sum, e) => sum + (e.bonus || 0), 0);
+        const totalOvertime = employees.reduce((sum, e) => sum + (e.overtime || 0), 0);
+        const totalTotal = employees.reduce((sum, e) => sum + (e.salary || 0) + (e.bonus || 0) + (e.overtime || 0), 0);
+
+        // Add empty row then totals
+        data.push([]);
+        data.push(['', '', t('dashboardTotal').toUpperCase(), totalSalary, totalBonus, totalOvertime, totalTotal]);
+
+        extraMetadata = [`${t('payPeriod')}: ${payrollMonthFilter}`];
         filename = 'FinnERP_Payroll.csv';
         break;
       case 'turnover':
@@ -2549,7 +2562,7 @@ export default function App() {
         break;
       default: return;
     }
-    generateCSV(headers, data, filename);
+    generateCSV(headers, data, filename, extraMetadata);
   };
 
 
