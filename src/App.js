@@ -248,7 +248,7 @@ export default function App() {
       customerNameOptional: 'Customer Name (Optional)',
 
       inventorySubtitle: 'Inventory levels and stock movements',
-      searchInventory: 'Search inventory by name or SKU...',
+      searchInventory: 'Search inventory by name ...',
       itemName: 'Item Name',
       buyPrice: 'Buy Price',
       sellPrice: 'Sell Price',
@@ -2051,7 +2051,7 @@ export default function App() {
     const currentTime = new Date().toLocaleTimeString(locale);
 
     // Pre-translate all strings (t() function won't work in print window)
-    const translations = {
+    const translatedStrings = {
       payrollSlip: t('payrollSlip'),
       employeeName: t('employeeName'),
       department: t('department'),
