@@ -397,8 +397,8 @@ export default function App() {
       noLocations: 'No locations available - Please create a location first'
     },
     hi: {
-      appName: 'ग्रैंड वोल्फ',
-      appSubtitle: 'सुरक्षा और गार्डिंग',
+      appName: 'Finn ERP',
+      appSubtitle: 'एंटरप्राइज़ रिसोर्स प्लानिंग',
       menuDashboard: 'डैशबोर्ड',
       menuEmployees: 'कर्मचारी',
       menuSites: 'स्थान / साइट्स',
@@ -608,8 +608,8 @@ export default function App() {
       contactQuestions: 'यदि इस चालान के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें'
     },
     ar: {
-      appName: 'جراند وولف',
-      appSubtitle: 'للأمن والحراسة',
+      appName: 'Finn ERP',
+      appSubtitle: 'تخطيط موارد المؤسسة',
       menuDashboard: 'لوحة التحكم',
       menuEmployees: 'الموظفين',
       menuSites: 'المواقع',
@@ -1479,12 +1479,19 @@ export default function App() {
   };
 
   const generateCSV = (headers, data, filename) => {
+    const metadata = [
+      `Company: Finn ERP`,
+      `Report: ${filename.replace('.csv', '').replace(/_/g, ' ')}`,
+      `Date: ${new Date().toLocaleString()}`,
+      ''
+    ].join('\n');
+
     const csvContent = [
       headers.join(','),
       ...data.map(row => row.map(item => `"${item}"`).join(','))
     ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\uFEFF' + metadata + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
@@ -2424,17 +2431,17 @@ export default function App() {
       case 'attendance':
         headers = ['Employee', 'Date', 'Location', 'Status'];
         data = attendance.map(r => [r.name, r.date, getEmployeeLocation(r.name), r.status]);
-        filename = 'GrandWolf_Attendance.csv';
+        filename = 'FinnERP_Attendance.csv';
         break;
       case 'payroll':
         headers = ['Employee', 'Role', 'Dept', 'Base (EGP)', 'Bonus (EGP)', 'Overtime (EGP)', 'Total (EGP)'];
         data = employees.map(e => [e.name, e.role, e.dept, e.salary, e.bonus, e.overtime, e.salary + e.bonus + e.overtime]);
-        filename = 'GrandWolf_Payroll.csv';
+        filename = 'FinnERP_Payroll.csv';
         break;
       case 'turnover':
         headers = ['Employee', 'Role', 'Dept', 'Status', 'Location'];
         data = employees.map(e => [e.name, e.role, e.dept, e.status, e.location]);
-        filename = 'GrandWolf_Staff.csv';
+        filename = 'FinnERP_Staff.csv';
         break;
       case 'tax':
         headers = ['Employee', 'Total (EGP)', 'Tax (20%)', 'Net Pay'];
@@ -2443,7 +2450,7 @@ export default function App() {
           const tax = total * 0.2;
           return [e.name, total, tax, total - tax];
         });
-        filename = 'GrandWolf_Tax.csv';
+        filename = 'FinnERP_Tax.csv';
         break;
       case 'weekly_sales':
         headers = ['Date', 'Invoice ID', 'Type', 'Customer', 'Items Summary', 'Total Amount'];
