@@ -132,7 +132,15 @@ export default function App() {
   const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890' });
   const [currency, setCurrency] = useState('EGP');
   const [historyFilter, setHistoryFilter] = useState('All');
-  const [historyDateFilter, setHistoryDateFilter] = useState('');
+  // Set default to current week start (Monday)
+  const getWeekStart = () => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    const monday = new Date(today.setDate(diff));
+    return monday.toISOString().split('T')[0];
+  };
+  const [historyDateFilter, setHistoryDateFilter] = useState(getWeekStart());
   const formatCurrency = (val) => {
     try {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(Number(val) || 0);
@@ -2042,6 +2050,35 @@ export default function App() {
     const currentDate = new Date().toLocaleDateString(locale);
     const currentTime = new Date().toLocaleTimeString(locale);
 
+    // Pre-translate all strings (t() function won't work in print window)
+    const translations = {
+      payrollSlip: t('payrollSlip'),
+      employeeName: t('employeeName'),
+      department: t('department'),
+      role: t('role'),
+      location: t('location'),
+      payPeriod: t('payPeriod'),
+      description: t('description'),
+      amount: t('amount'),
+      basicSalary: t('basicSalary'),
+      bonus: t('bonus'),
+      overtime: t('overtime'),
+      grossPay: t('grossPay'),
+      lateDeductions: t('lateDeductions'),
+      absentDeductions: t('absentDeductions'),
+      otherDeductions: t('otherDeductions'),
+      totalDeductions: t('totalDeductions'),
+      netPay: t('netPay'),
+      employeeSignature: t('employeeSignature'),
+      authorizedSignature: t('authorizedSignature'),
+      computerGenerated: t('computerGenerated'),
+      generatedOn: t('generatedOn'),
+      at: t('at'),
+      phone: t('phone'),
+      companyName: shopSettings.name || t('companyName'),
+      companyAddress: shopSettings.address || t('companyAddress')
+    };
+
     const styles = `
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -2082,38 +2119,38 @@ export default function App() {
     const content = `
       <html>
         <head>
-          <title>${t('payrollSlip')} - ${employee.name}</title>
+          <title>${translations.payrollSlip} - ${employee.name}</title>
           ${styles}
         </head>
         <body>
           <div class="slip">
             <div class="header">
-              <h1>${shopSettings.name || t('companyName')}</h1>
-              <p>${shopSettings.address || t('companyAddress')}</p>
-              <p>${t('phone')}: ${shopSettings.phone || 'N/A'}</p>
+              <h1>${translations.companyName}</h1>
+              <p>${translations.companyAddress}</p>
+              <p>${translations.phone}: ${shopSettings.phone || 'N/A'}</p>
             </div>
 
-            <div class="title">${t('payrollSlip')}</div>
+            <div class="title">${translations.payrollSlip}</div>
 
             <div class="info-section">
               <div class="info-box">
-                <label>${t('employeeName')}</label>
+                <label>${translations.employeeName}</label>
                 <value>${employee.name}</value>
               </div>
               <div class="info-box">
-                <label>${t('department')}</label>
+                <label>${translations.department}</label>
                 <value>${employee.dept}</value>
               </div>
               <div class="info-box">
-                <label>${t('role')}</label>
+                <label>${translations.role}</label>
                 <value>${employee.role}</value>
               </div>
               <div class="info-box">
-                <label>${t('location')}</label>
+                <label>${translations.location}</label>
                 <value>${employee.location}</value>
               </div>
               <div class="info-box">
-                <label>${t('payPeriod')}</label>
+                <label>${translations.payPeriod}</label>
                 <value>${monthName}</value>
               </div>
             </div>
@@ -2121,46 +2158,46 @@ export default function App() {
             <table class="salary-table">
               <thead>
                 <tr>
-                  <th>${t('description')}</th>
-                  <th class="amount">${t('amount')}</th>
+                  <th>${translations.description}</th>
+                  <th class="amount">${translations.amount}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>${t('basicSalary')}</strong></td>
+                  <td><strong>${translations.basicSalary}</strong></td>
                   <td class="amount">${formatCurrency(payrollData.baseSalary)}</td>
                 </tr>
                 <tr>
-                  <td>${t('bonus')}</td>
+                  <td>${translations.bonus}</td>
                   <td class="amount positive">+ ${formatCurrency(payrollData.bonus)}</td>
                 </tr>
                 <tr>
-                  <td>${t('overtime')}</td>
+                  <td>${translations.overtime}</td>
                   <td class="amount positive">+ ${formatCurrency(payrollData.overtime)}</td>
                 </tr>
                 <tr>
-                  <td><strong>${t('grossPay')}</strong></td>
+                  <td><strong>${translations.grossPay}</strong></td>
                   <td class="amount"><strong>${formatCurrency(payrollData.baseSalary + payrollData.bonus + payrollData.overtime)}</strong></td>
                 </tr>
                 <tr style="height: 8px;"><td colspan="2"></td></tr>
                 <tr>
-                  <td>${t('lateDeductions')}</td>
+                  <td>${translations.lateDeductions}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.lateDeduction)}</td>
                 </tr>
                 <tr>
-                  <td>${t('absentDeductions')}</td>
+                  <td>${translations.absentDeductions}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.absentDeduction)}</td>
                 </tr>
                 <tr>
-                  <td>${t('otherDeductions')}</td>
+                  <td>${translations.otherDeductions}</td>
                   <td class="amount negative">- ${formatCurrency(payrollData.manualDeduction)}</td>
                 </tr>
                 <tr>
-                  <td><strong>${t('totalDeductions')}</strong></td>
+                  <td><strong>${translations.totalDeductions}</strong></td>
                   <td class="amount negative"><strong>- ${formatCurrency(payrollData.deductionAmount)}</strong></td>
                 </tr>
                 <tr class="total-row">
-                  <td>${t('netPay')}</td>
+                  <td>${translations.netPay}</td>
                   <td class="amount">${formatCurrency(payrollData.netPay)}</td>
                 </tr>
               </tbody>
@@ -2168,16 +2205,16 @@ export default function App() {
 
             <div class="signature-section">
               <div class="signature-box">
-                <div class="signature-line">${t('employeeSignature')}</div>
+                <div class="signature-line">${translations.employeeSignature}</div>
               </div>
               <div class="signature-box">
-                <div class="signature-line">${t('authorizedSignature')}</div>
+                <div class="signature-line">${translations.authorizedSignature}</div>
               </div>
             </div>
 
             <div class="footer">
-              <p>${t('computerGenerated')}</p>
-              <p>${t('generatedOn')} ${currentDate} ${t('at')} ${currentTime}</p>
+              <p>${translations.computerGenerated}</p>
+              <p>${translations.generatedOn} ${currentDate} ${translations.at} ${currentTime}</p>
             </div>
           </div>
         </body>
