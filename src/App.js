@@ -405,7 +405,33 @@ export default function App() {
       companyName: 'Company Name',
       companyAddress: 'Company Address',
       selectLocation: 'Select Location',
-      noLocations: 'No locations available - Please create a location first'
+      noLocations: 'No locations available - Please create a location first',
+      // Alerts
+      authError: 'Auth Error: ',
+      googleSignInError: 'Google Sign In Error: ',
+      factoryResetWarning: 'CRITICAL WARNING: This will DELETE ALL DATA (Employees, Sales, Inventory, etc.) PERMANENTLY. Are you sure?',
+      pinPrompt: 'Enter Security PIN to confirm Factory Reset:',
+      incorrectPin: 'Incorrect PIN. Reset Aborted.',
+      resetComplete: 'Factory Reset Complete. All data has been wiped.',
+      resetFailed: 'Factory Reset Failed: ',
+      backupExported: 'Backup exported successfully!',
+      exportFailed: 'Export failed: ',
+      backupImported: 'Backup imported successfully! Reloading...',
+      importFailed: 'Import failed: ',
+      overwriteWarning: 'WARNING: This will OVERWRITE all existing data. Continue?',
+      linkSuccess: 'Google Account Linked Successfully!',
+      linkError: 'Link Error: ',
+      accountLinked: 'This Google Account is already active. Please Log Out and use "Sign in with Google" directly.',
+      employeeSaved: 'Employee Saved Successfully!',
+      saveError: 'Error saving: ',
+      deleteConfirm: 'Are you sure?',
+      updateError: 'Error updating item: ',
+      addPurchaseError: 'Error adding purchase: ',
+      genInvoiceError: 'Error generating invoice: ',
+      addItemError: 'Error adding item: ',
+      deleteLocationWarning: 'Cannot delete. Employees assigned.',
+      deleteLocationConfirm: 'Delete this location?',
+      errorNoUser: 'Error: No user logged in.'
     },
     hi: {
       appName: 'Finn ERP',
@@ -624,7 +650,33 @@ export default function App() {
       includeInvoiceNumber: '2. कृपया अपने चेक पर चालान संख्या शामिल करें',
       phone: 'फोन',
       customer: 'ग्राहक',
-      contactQuestions: 'यदि इस चालान के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें'
+      contactQuestions: 'यदि इस चालान के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें',
+      // Alerts
+      authError: 'प्रमाणीकरण त्रुटि: ',
+      googleSignInError: 'Google साइन इन त्रुटि: ',
+      factoryResetWarning: 'महत्वपूर्ण चेतावनी: यह सभी डेटा को स्थायी रूप से हटा देगा। क्या आपको यकीन है?',
+      pinPrompt: 'पुष्टि करने के लिए सुरक्षा पिन दर्ज करें:',
+      incorrectPin: 'गलत पिन। रीसेट रद्द।',
+      resetComplete: 'रीसेट पूर्ण। डेटा मिटा दिया गया।',
+      resetFailed: 'रीसेट विफल: ',
+      backupExported: 'बैकअप सफलतापूर्वक निर्यात किया गया!',
+      exportFailed: 'निर्यात विफल: ',
+      backupImported: 'बैकअप आयातित! रीलोड हो रहा है...',
+      importFailed: 'आयात विफल: ',
+      overwriteWarning: 'चेतावनी: यह सभी मौजूदा डेटा को अधिलेखित कर देगा। जारी रखें?',
+      linkSuccess: 'Google खाता सफलतापूर्वक लिंक किया गया!',
+      linkError: 'लिंक त्रुटि: ',
+      accountLinked: 'यह Google खाता पहले से सक्रिय है।',
+      employeeSaved: 'कर्मचारी सफलतापूर्वक सहेजा गया!',
+      saveError: 'सहेजने में त्रुटि: ',
+      deleteConfirm: 'क्या आपको यकीन है?',
+      updateError: 'आद्यतन त्रुटि: ',
+      addPurchaseError: 'खरीद जोड़ने में त्रुटि: ',
+      genInvoiceError: 'चालान त्रुटि: ',
+      addItemError: 'आइटम जोड़ने में त्रुटि: ',
+      deleteLocationWarning: 'हटा नहीं सकते। कर्मचारी नियुक्त हैं।',
+      deleteLocationConfirm: 'इस स्थान को हटाएं?',
+      errorNoUser: 'त्रुटि: कोई उपयोगकर्ता लॉग इन नहीं है।'
     },
     ar: {
       appName: 'Finn ERP',
@@ -867,7 +919,33 @@ export default function App() {
       includeInvoiceNumber: '2. يرجى تضمين رقم الفاتورة على الشيك الخاص بك',
       phone: 'هاتف',
       customer: 'عميل',
-      contactQuestions: 'إذا كان لديك أي أسئلة حول هذه الفاتورة، يرجى الاتصال'
+      contactQuestions: 'إذا كان لديك أي أسئلة حول هذه الفاتورة، يرجى الاتصال',
+      // Alerts
+      authError: 'خطأ في المصادقة: ',
+      googleSignInError: 'خطأ في تسجيل الدخول عبر Google: ',
+      factoryResetWarning: 'تحذير هام: سيؤدي هذا إلى حذف جميع البيانات بشكل دائم. هل أنت متأكد؟',
+      pinPrompt: 'أدخل رمز الأمان للتأكيد:',
+      incorrectPin: 'رمز غير صحيح. تم الإلغاء.',
+      resetComplete: 'تمت إعادة تعيين المصنع.',
+      resetFailed: 'فشل إعادة التعيين: ',
+      backupExported: 'تم تصدير النسخة الاحتياطية بنجاح!',
+      exportFailed: 'فشل التصدير: ',
+      backupImported: 'تم استيراد النسخة الاحتياطية! جاري إعادة التحميل...',
+      importFailed: 'فشل الاستيراد: ',
+      overwriteWarning: 'تحذير: سيتم استبدال جميع البيانات. استمرار؟',
+      linkSuccess: 'تم ربط حساب Google بنجاح!',
+      linkError: 'خطأ في الربط: ',
+      accountLinked: 'حساب Google هذا نشط بالفعل.',
+      employeeSaved: 'تم حفظ الموظف بنجاح!',
+      saveError: 'خطأ في الحفظ: ',
+      deleteConfirm: 'هل أنت متأكد؟',
+      updateError: 'خطأ في التحديث: ',
+      addPurchaseError: 'خطأ في إضافة الشراء: ',
+      genInvoiceError: 'خطأ في إنشاء الفاتورة: ',
+      addItemError: 'خطأ في إضافة العنصر: ',
+      deleteLocationWarning: 'لا يمكن الحذف. يوجد موظفين مرتبطين.',
+      deleteLocationConfirm: 'حذف هذا الموقع؟',
+      errorNoUser: 'خطأ: لا يوجد مستخدم مسجل الدخول.'
     },
     zh: {
       appName: 'Finn ERP',
@@ -1107,7 +1185,33 @@ export default function App() {
       companyName: '公司名称',
       companyAddress: '公司地址',
       selectLocation: '选择位置',
-      noLocations: '没有可用位置 - 请先创建位置'
+      noLocations: '没有可用位置 - 请先创建位置',
+      // Alerts
+      authError: '认证错误: ',
+      googleSignInError: 'Google 登录错误: ',
+      factoryResetWarning: '严重警告：这将永久删除所有数据。你确定吗？',
+      pinPrompt: '输入安全 PIN 以确认：',
+      incorrectPin: 'PIN 错误。重置已中止。',
+      resetComplete: '出厂重置完成。',
+      resetFailed: '重置失败: ',
+      backupExported: '备份导出成功！',
+      exportFailed: '导出失败: ',
+      backupImported: '备份导入成功！正在重新加载...',
+      importFailed: '导入失败: ',
+      overwriteWarning: '警告：这将覆盖所有现有数据。继续吗？',
+      linkSuccess: 'Google 帐户关联成功！',
+      linkError: '关联错误: ',
+      accountLinked: '此 Google 帐户已处于活动状态。',
+      employeeSaved: '员工保存成功！',
+      saveError: '保存错误: ',
+      deleteConfirm: '你确定吗？',
+      updateError: '更新错误: ',
+      addPurchaseError: '添加购买错误: ',
+      genInvoiceError: '生成发票错误: ',
+      addItemError: '添加项目错误: ',
+      deleteLocationWarning: '无法删除。已分配员工。',
+      deleteLocationConfirm: '删除此位置？',
+      errorNoUser: '错误：没有登录用户。'
     }
   };
 
@@ -1169,7 +1273,7 @@ export default function App() {
       }
       setAuthForm({ email: '', password: '' });
     } catch (error) {
-      alert("Auth Error: " + error.message);
+      alert(t('authError') + error.message);
     } finally {
       setLoading(false);
     }
@@ -1181,7 +1285,7 @@ export default function App() {
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error(error);
-      alert("Google Sign In Error: " + error.message);
+      alert(t('googleSignInError') + error.message);
     }
   };
 
@@ -1195,11 +1299,11 @@ export default function App() {
 
   const handleFactoryReset = async () => {
     if (!user) return;
-    if (!window.confirm("CRITICAL WARNING: This will DELETE ALL DATA (Employees, Sales, Inventory, etc.) PERMANENTLY. Are you sure?")) return;
+    if (!window.confirm(t('factoryResetWarning'))) return;
 
-    const confirmPin = prompt("Enter Security PIN to confirm Factory Reset:");
+    const confirmPin = prompt(t('pinPrompt'));
     if (confirmPin !== securityPin) {
-      alert("Incorrect PIN. Reset Aborted.");
+      alert(t('incorrectPin'));
       return;
     }
 
@@ -1223,11 +1327,11 @@ export default function App() {
         if (count > 0) await batch.commit();
       }
 
-      alert("Factory Reset Complete. All data has been wiped.");
+      alert(t('resetComplete'));
       window.location.reload();
     } catch (err) {
       console.error(err);
-      alert("Factory Reset Failed: " + err.message);
+      alert(t('resetFailed') + err.message);
     } finally {
       setLoading(false);
     }
@@ -1262,10 +1366,10 @@ export default function App() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      alert('Backup exported successfully!');
+      alert(t('backupExported'));
     } catch (err) {
       console.error(err);
-      alert('Export failed: ' + err.message);
+      alert(t('exportFailed') + err.message);
     } finally {
       setLoading(false);
     }
@@ -1275,7 +1379,7 @@ export default function App() {
     const file = event.target.files[0];
     if (!file || !user) return;
 
-    if (!window.confirm('WARNING: This will OVERWRITE all existing data. Continue?')) {
+    if (!window.confirm(t('overwriteWarning'))) {
       event.target.value = null;
       return;
     }
@@ -1300,11 +1404,11 @@ export default function App() {
           }
         }
 
-        alert('Backup imported successfully! Reloading...');
+        alert(t('backupImported'));
         window.location.reload();
       } catch (err) {
         console.error(err);
-        alert('Import failed: ' + err.message);
+        alert(t('importFailed') + err.message);
       } finally {
         setLoading(false);
       }
@@ -1318,13 +1422,13 @@ export default function App() {
     try {
       const provider = new GoogleAuthProvider();
       await linkWithPopup(auth.currentUser, provider);
-      alert("Google Account Linked Successfully!");
+      alert(t('linkSuccess'));
     } catch (error) {
       console.error(error);
       if (error.code === 'auth/credential-already-in-use') {
-        alert("This Google Account is already active. Please Log Out and use 'Sign in with Google' directly.");
+        alert(t('accountLinked'));
       } else {
-        alert("Link Error: " + error.message);
+        alert(t('linkError') + error.message);
       }
     }
   };
@@ -1755,7 +1859,7 @@ export default function App() {
       setNewItemForm({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0 });
     } catch (err) {
       console.error(err);
-      alert("Error adding item: " + err.message);
+      alert(t('addItemError') + err.message);
     }
   };
 
@@ -1776,7 +1880,7 @@ export default function App() {
       setIsAddItemModalOpen(false); // Close generic modal if used, or edit modal
     } catch (err) {
       console.error(err);
-      alert("Error updating item: " + err.message);
+      alert(t('updateError') + err.message);
     }
   };
 
@@ -1912,7 +2016,7 @@ export default function App() {
       setNewPurchaseForm({ supplier: '', amount: 0, status: 'Ordered', items: '' });
     } catch (err) {
       console.error(err);
-      alert("Error adding purchase: " + err.message);
+      alert(t('addPurchaseError') + err.message);
     }
   };
 
@@ -1936,7 +2040,7 @@ export default function App() {
       setNewInvoiceForm({ client: '', status: 'Issued', date: new Date().toISOString().split('T')[0], items: [] });
     } catch (err) {
       console.error(err);
-      alert("Error generating invoice: " + err.message);
+      alert(t('genInvoiceError') + err.message);
     }
   };
 
@@ -2425,7 +2529,7 @@ export default function App() {
   const handleAddEmployee = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert("Error: No user logged in.");
+      alert(t('errorNoUser'));
       return;
     }
 
@@ -2442,18 +2546,18 @@ export default function App() {
         status: 'Active',
         createdAt: serverTimestamp()
       });
-      alert("Employee Saved Successfully!"); // Debug Confirmation
+      alert(t('employeeSaved')); // Debug Confirmation
       setIsAddModalOpen(false);
       setNewEmployeeForm({ name: '', role: '', dept: 'Security', location: '', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: '' });
     } catch (err) {
       console.error(err);
-      alert("Error saving: " + err.message);
+      alert(t('saveError') + err.message);
     }
   };
 
   const handleDeleteEmployee = async (id) => {
     if (!user) return;
-    if (window.confirm("Are you sure?")) {
+    if (window.confirm(t('deleteConfirm'))) {
       await deleteDoc(doc(db, 'employees', id));
       setSelectedEmployee(null);
     }
@@ -2484,10 +2588,10 @@ export default function App() {
   const handleDeleteSite = async (id, siteName) => {
     const assignedEmployees = employees.filter(e => e.location === siteName).length;
     if (assignedEmployees > 0) {
-      alert(`Cannot delete. ${assignedEmployees} employees assigned.`);
+      alert(t('deleteLocationWarning'));
       return;
     }
-    if (window.confirm("Delete this location?")) {
+    if (window.confirm(t('deleteLocationConfirm'))) {
       await deleteDoc(doc(db, 'sites', id));
       setSelectedSite(null);
     }
