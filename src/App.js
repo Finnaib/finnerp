@@ -133,7 +133,9 @@ export default function App() {
   const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890' });
-  const [currency, setCurrency] = useState('EGP');
+  const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
+  useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
+
   const [historyFilter, setHistoryFilter] = useState('All');
   // Set default to current week start (Monday)
   const getWeekStart = () => {
@@ -1219,8 +1221,12 @@ export default function App() {
     }
   };
 
-  const [language, setLanguage] = useState('en');
-  const t = (key) => translations[language][key] || key;
+
+
+  const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
+  useEffect(() => { localStorage.setItem('language', language); }, [language]);
+
+  const t = (key) => (translations[language] && translations[language][key]) || key;
 
 
 
@@ -4126,10 +4132,7 @@ export default function App() {
                           <span className="text-red-500">{t('advanceSalary') || 'Advance Salary'}</span>
                           <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-red-200 text-red-600 font-medium" value={selectedEmployee.advanceSalary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'advanceSalary', Number(e.target.value))} />
                         </div>
-                        <div className="flex justify-between text-sm pt-2 border-t border-blue-200 font-bold">
-                          <span className="text-blue-900">{t('totalComp')}</span>
-                          <span className="text-blue-900">{formatCurrency((selectedEmployee.salary || 0) + (selectedEmployee.bonus || 0) + (selectedEmployee.overtime || 0))}</span>
-                        </div>
+
 
 
 
@@ -4161,10 +4164,7 @@ export default function App() {
 
                           return (
                             <>
-                              <div className="flex justify-between text-sm font-bold text-gray-900 pt-3 border-t border-gray-100">
-                                <span>Total Comp</span>
-                                <span>{formatCurrency(baseSalary + (Number(selectedEmployee.bonus) || 0) + (Number(selectedEmployee.overtime) || 0))}</span>
-                              </div>
+
 
                               {advanceSalary > 0 && (
                                 <div className="flex justify-between text-xs text-red-500">
@@ -4889,22 +4889,46 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-                {/* Language Settings */}
+
+                {/* Localization Settings */}
                 <div>
                   <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
-                    <Globe size={16} /> {t('language')}
+                    <Globe size={16} /> Localization
                   </h4>
-                  <select
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="en">English</option>
-                    <option value="hi">हिंदी</option>
-                    <option value="ar">العربية</option>
-                    <option value="zh">中文</option>
-                  </select>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">{t('language') || 'Language'}</label>
+                      <select
+                        className="input-field"
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                      >
+                        <option value="en">English</option>
+                        <option value="ar">Arabic (العربية)</option>
+                        <option value="hi">Hindi (हिंदी)</option>
+                        <option value="zh">Chinese (中文)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">Currency</label>
+                      <select
+                        className="input-field"
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                      >
+                        <option value="EGP">EGP (Egyptian Pound)</option>
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="SAR">SAR (Saudi Riyal)</option>
+                        <option value="AED">AED (UAE Dirham)</option>
+                        <option value="INR">INR (₹)</option>
+                        <option value="CNY">CNY (¥)</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
+
 
                 {/* Security Settings */}
                 <div>
