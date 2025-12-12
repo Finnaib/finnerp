@@ -3035,24 +3035,7 @@ export default function App() {
 
           <div className="hidden sm:flex items-center gap-4">
             <div className="flex items-center gap-2">
-              {/* Currency Selector */}
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="bg-gray-100 border-none text-sm font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
-              >
-                <option value="EGP">EGP</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="SAR">SAR</option>
-                <option value="AED">AED</option>
-                <option value="INR">INR</option>
-                <option value="CNY">CNY</option>
-                <option value="JPY">JPY</option>
-                <option value="CAD">CAD</option>
-                <option value="AUD">AUD</option>
-              </select>
+
 
               {/* Language Selector */}
               <select
@@ -3667,7 +3650,7 @@ export default function App() {
                   <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto">
                     <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> {t('todaysSales')}</h3>
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
+                      <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">Invoice #</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
                       <tbody className="divide-y divide-gray-100">
                         {sales
                           .filter(s => s.date === new Date().toISOString().split('T')[0])
@@ -3675,6 +3658,7 @@ export default function App() {
                           .map(s => (
                             <tr key={s.id}>
                               <td className="p-2 text-gray-500">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
+                              <td className="p-2 font-mono text-xs text-blue-600 font-bold">{s.invoiceId || '-'}</td>
                               <td className="p-2 font-mono font-bold text-gray-900">{formatCurrency(s.amount)}</td>
                               <td className="p-2 text-xs truncate max-w-[150px]">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</td>
                               <td className="p-2">
