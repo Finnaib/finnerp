@@ -4000,7 +4000,11 @@ export default function App() {
                         <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpdateEmployeeImage(selectedEmployee.id, e)} />
                       </label>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900">{selectedEmployee.name}</h2>
+                    <input
+                      className="text-xl font-bold text-gray-900 text-center bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none transition-colors w-full"
+                      value={selectedEmployee.name}
+                      onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'name', e.target.value)}
+                    />
                     <span className="text-sm font-medium text-slate-500">{selectedEmployee.role}</span>
                   </div>
 
@@ -4057,6 +4061,10 @@ export default function App() {
                           <span className="text-blue-700">{t('overtime')}</span>
                           <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.overtime} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'overtime', Number(e.target.value))} />
                         </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-red-500">{t('advanceSalary') || 'Advance Salary'}</span>
+                          <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-red-200 text-red-600 font-medium" value={selectedEmployee.advanceSalary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'advanceSalary', Number(e.target.value))} />
+                        </div>
                         <div className="flex justify-between text-sm pt-2 border-t border-blue-200 font-bold">
                           <span className="text-blue-900">{t('totalComp')}</span>
                           <span className="text-blue-900">{formatCurrency((selectedEmployee.salary || 0) + (selectedEmployee.bonus || 0) + (selectedEmployee.overtime || 0))}</span>
@@ -4084,29 +4092,23 @@ export default function App() {
                             }
                           });
 
-                          // Manual Deduction Calc
-                          const hourlyRate = baseSalary / 360;
-                          const manualHours = Number(selectedEmployee.deductionHours) || 0;
-                          const manualDeductionCost = manualHours * hourlyRate;
-                          deductionAmount += manualDeductionCost;
+                          // Advance Salary
+                          const advanceSalary = Number(selectedEmployee.advanceSalary) || 0;
+                          deductionAmount += advanceSalary;
 
                           const netPay = baseSalary + (Number(selectedEmployee.bonus) || 0) + (Number(selectedEmployee.overtime) || 0) - deductionAmount;
 
                           return (
                             <>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-red-500">{t('manualDeduction')} (Hours)</span>
-                                <input
-                                  type="number"
-                                  className="w-20 text-right bg-white rounded px-1 text-sm border-red-200 text-red-600"
-                                  value={manualHours}
-                                  onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'deductionHours', Number(e.target.value))}
-                                />
+                              <div className="flex justify-between text-sm font-bold text-gray-900 pt-3 border-t border-gray-100">
+                                <span>Total Comp</span>
+                                <span>{formatCurrency(baseSalary + (Number(selectedEmployee.bonus) || 0) + (Number(selectedEmployee.overtime) || 0))}</span>
                               </div>
-                              {manualHours > 0 && (
-                                <div className="flex justify-between text-xs text-red-400 italic">
-                                  <span>{t('cost')} ({manualHours} hrs)</span>
-                                  <span>-{formatCurrency(manualDeductionCost)}</span>
+
+                              {advanceSalary > 0 && (
+                                <div className="flex justify-between text-xs text-red-500">
+                                  <span>{t('advanceSalary') || 'Advance Salary'}</span>
+                                  <span>-{formatCurrency(advanceSalary)}</span>
                                 </div>
                               )}
 
