@@ -1841,10 +1841,24 @@ export default function App() {
 
   // --- Inventory Logic ---
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
-  const [newItemForm, setNewItemForm] = useState({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0 }); // SKU removed
+  const [newItemForm, setNewItemForm] = useState({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0, photo: '' }); // SKU removed
   const [inventorySearch, setInventorySearch] = useState('');
 
   const [editingItem, setEditingItem] = useState(null); // For Edit Flow
+
+  const handleNewItemImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (editingItem) {
+        setEditingItem({ ...editingItem, photo: reader.result });
+      } else {
+        setNewItemForm({ ...newItemForm, photo: reader.result });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleAddItem = async (e) => {
     e.preventDefault();
@@ -1856,7 +1870,7 @@ export default function App() {
         updatedAt: serverTimestamp()
       });
       setIsAddItemModalOpen(false);
-      setNewItemForm({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0 });
+      setNewItemForm({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0, photo: '' });
     } catch (err) {
       console.error(err);
       alert(t('addItemError') + err.message);
@@ -1874,6 +1888,7 @@ export default function App() {
         category: editingItem.category,
         buyPrice: Number(editingItem.buyPrice),
         sellPrice: Number(editingItem.sellPrice),
+        photo: editingItem.photo || '',
         updatedAt: serverTimestamp()
       });
       setEditingItem(null);
@@ -3543,8 +3558,12 @@ export default function App() {
                             onClick={() => addToCart(item)}
                             className="flex flex-col items-start p-4 bg-gray-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 rounded-xl transition-all group text-left"
                           >
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                              <Package size={20} className="text-gray-500 group-hover:text-blue-600" />
+                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform overflow-hidden">
+                              {item.photo ? (
+                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package size={20} className="text-gray-500 group-hover:text-blue-600" />
+                              )}
                             </div>
                             <h4 className="font-bold text-gray-900 line-clamp-1">{item.name}</h4>
                             <span className="text-xs text-gray-500 mb-2">{item.location}</span>
@@ -4073,7 +4092,7 @@ export default function App() {
                               {manualHours > 0 && (
                                 <div className="flex justify-between text-xs text-red-400 italic">
                                   <span>{t('cost')} ({manualHours} hrs)</span>
-                                  <span>-EGP {Math.round(manualDeductionCost).toLocaleString()}</span>
+                                  <span>-{formatCurrency(manualDeductionCost)}</span>
                                 </div>
                               )}
 
@@ -4081,19 +4100,19 @@ export default function App() {
                               {lateDeduction > 0 && (
                                 <div className="flex justify-between text-sm text-amber-600">
                                   <span>{t('lateDeductions')}</span>
-                                  <span>-EGP {Math.round(lateDeduction).toLocaleString()}</span>
+                                  <span>-{formatCurrency(lateDeduction)}</span>
                                 </div>
                               )}
                               {absentDeduction > 0 && (
                                 <div className="flex justify-between text-sm text-red-600">
                                   <span>{t('absentDeductions')}</span>
-                                  <span>-EGP {Math.round(absentDeduction).toLocaleString()}</span>
+                                  <span>-{formatCurrency(absentDeduction)}</span>
                                 </div>
                               )}
 
                               <div className="flex justify-between text-sm text-red-600 pt-2 border-t border-dashed border-red-100 mt-1">
                                 <span>Total {t('deductions')}</span>
-                                <span>-EGP {Math.round(deductionAmount).toLocaleString()}</span>
+                                <span>-{formatCurrency(deductionAmount)}</span>
                               </div>
                               <div className="pt-2 border-t border-blue-200 flex justify-between font-bold text-blue-900">
                                 <span>{t('netPay')}</span>
@@ -4419,18 +4438,48 @@ export default function App() {
                 <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
               <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4">
-                <input className="input-field" placeholder="Item Name" value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
+                {/* Image Upload */}
+                <div className="flex justify-center mb-4">
+                  <label className="relative cursor-pointer group">
+                    <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors">
+                      {(editingItem ? editingItem.photo : newItemForm.photo) ? (
+                        <img src={editingItem ? editingItem.photo : newItemForm.photo} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="text-gray-400 group-hover:text-blue-500" size={32} />
+                      )}
+                    </div>
+                    <input type="file" accept="image/*" onChange={handleNewItemImage} className="hidden" />
+                  </label>
+                </div>
 
-                <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })}>
-                  <option value="">Select Location</option>
-                  {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                </select>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Item Name</label>
+                  <input className="input-field" placeholder="Item Name" value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Location</label>
+                  <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })}>
+                    <option value="">Select Location</option>
+                    {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <input type="number" className="input-field" placeholder="Buy Price" value={editingItem ? editingItem.buyPrice : newItemForm.buyPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, buyPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
-                  <input type="number" className="input-field" placeholder="Sell Price" value={editingItem ? editingItem.sellPrice : newItemForm.sellPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, sellPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">Buy Price</label>
+                    <input type="number" className="input-field" placeholder="0.00" value={editingItem ? editingItem.buyPrice : newItemForm.buyPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, buyPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">Sell Price</label>
+                    <input type="number" className="input-field" placeholder="0.00" value={editingItem ? editingItem.sellPrice : newItemForm.sellPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, sellPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
+                  </div>
                 </div>
-                <input type="number" className="input-field" placeholder="Quantity" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Quantity</label>
+                  <input type="number" className="input-field" placeholder="0" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+                </div>
 
                 <div className="pt-2 flex gap-3">
                   <button type="button" onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
