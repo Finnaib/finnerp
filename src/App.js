@@ -2378,7 +2378,7 @@ export default function App() {
       grossPay: t('grossPay'),
       lateDeductions: t('lateDeductions'),
       absentDeductions: t('absentDeductions'),
-      otherDeductions: t('otherDeductions'),
+      advanceSalary: t('advanceSalary') || 'Advance Salary',
       totalDeductions: t('totalDeductions'),
       netPay: t('netPay'),
       employeeSignature: t('employeeSignature'),
@@ -2501,8 +2501,8 @@ export default function App() {
                   <td class="amount negative">- ${formatCurrency(payrollData.absentDeduction)}</td>
                 </tr>
                 <tr>
-                  <td>${translatedStrings.otherDeductions}</td>
-                  <td class="amount negative">- ${formatCurrency(payrollData.manualDeduction)}</td>
+                  <td>${translatedStrings.advanceSalary}</td>
+                  <td class="amount negative">- ${formatCurrency(payrollData.advanceSalary)}</td>
                 </tr>
                 <tr>
                   <td><strong>${translatedStrings.totalDeductions}</strong></td>
@@ -2606,6 +2606,24 @@ export default function App() {
 
   const handleUpdateEmployee = async (id, field, value) => {
     if (!user) return;
+
+    // Name Propagation
+    if (field === 'name' && selectedEmployee && selectedEmployee.id === id) {
+      const oldName = selectedEmployee.name;
+      const newName = value;
+      try {
+        const batch = writeBatch(db);
+        const q = query(collection(db, 'attendance'), where('name', '==', oldName));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          batch.update(doc.ref, { name: newName });
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error("Error propagating name change:", err);
+      }
+    }
+
     await updateDoc(doc(db, 'employees', id), { [field]: value });
     setSelectedEmployee(prev => ({ ...prev, [field]: value }));
   };
@@ -3335,8 +3353,9 @@ export default function App() {
                         <th className="px-6 py-3">{t('role')}</th>
                         <th className="px-6 py-3 text-right">{t('salary')}</th>
                         <th className="px-6 py-3 text-right">{t('bonus')}</th>
-                        <th className="px-6 py-3 text-right">{t('overtime')}</th>
-                        <th className="px-6 py-3 text-right text-amber-600">{t('late')}</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('overtime')}</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900 text-red-600">{t('advance') || 'Advance'}</th>
+                        <th className="px-6 py-4 font-semibold text-right text-amber-600">{t('late')}</th>
                         <th className="px-6 py-3 text-right text-red-600">{t('absent')}</th>
                         <th className="px-6 py-3 text-right text-red-800">{t('deductions')}</th>
                         <th className="px-6 py-3 text-right">{t('netPay')}</th>
@@ -3415,6 +3434,7 @@ export default function App() {
                               <td className="px-6 py-4 text-right font-mono">{formatCurrency(baseSalary)}</td>
                               <td className="px-6 py-4 text-right font-mono text-green-600">+{formatCurrency(bonus)}</td>
                               <td className="px-6 py-4 text-right font-mono text-orange-600">+{formatCurrency(overtime)}</td>
+                              <td className="px-6 py-4 text-right font-mono text-red-600">-{formatCurrency(emp.advanceSalary || 0)}</td>
 
                               {/* Detailed Deductions Columns */}
                               <td className="px-6 py-4 text-right font-mono text-amber-600">
@@ -3435,6 +3455,7 @@ export default function App() {
                                     absentDeduction,
                                     manualDeduction,
                                     deductionAmount,
+                                    advanceSalary: emp.advanceSalary || 0,
                                     netPay
                                   }, payrollMonthFilter)}
                                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium"
@@ -3756,6 +3777,8 @@ export default function App() {
                   <table className="w-full text-left min-w-[640px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
+
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('image') || 'Image'}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('itemName')}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('location')}</th>
                         <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('buyPrice')}</th>
@@ -3775,6 +3798,15 @@ export default function App() {
                           )
                           .map(item => (
                             <tr key={item.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4">
+                                <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-gray-100 overflow-hidden">
+                                  {item.photo ? (
+                                    <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <Package size={20} className="text-gray-400" />
+                                  )}
+                                </div>
+                              </td>
                               <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
                               <td className="px-6 py-4 text-gray-500">{item.location}</td>
                               <td className="px-6 py-4 text-right font-mono text-gray-500">
