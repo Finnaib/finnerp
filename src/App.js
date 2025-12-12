@@ -2960,6 +2960,33 @@ export default function App() {
         </nav>
 
         <div className="p-4 border-t border-slate-800 space-y-2">
+          <div className="my-2 border-t border-slate-700/50"></div>
+
+          <div className="px-4 py-2">
+            <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-2 border border-slate-700 cursor-pointer hover:bg-slate-750 transition-colors group">
+              <div className="text-slate-400 group-hover:text-blue-400 transition-colors"><Globe size={16} /></div>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="bg-transparent text-xs font-semibold text-slate-300 w-full outline-none cursor-pointer hover:text-white uppercase tracking-wider"
+                title="Change Currency"
+              >
+                <option value="EGP">EGP (Egyptian Pound)</option>
+                <option value="USD">USD (US Dollar)</option>
+                <option value="EUR">EUR (Euro)</option>
+                <option value="GBP">GBP (British Pound)</option>
+                <option value="SAR">SAR (Saudi Riyal)</option>
+                <option value="AED">AED (UAE Dirham)</option>
+                <option value="INR">INR (Indian Rupee)</option>
+                <option value="CNY">CNY (Chinese Yuan)</option>
+                <option value="JPY">JPY (Japanese Yen)</option>
+                <option value="CAD">CAD (Canadian Dollar)</option>
+                <option value="AUD">AUD (Australian Dollar)</option>
+              </select>
+              <div className="text-slate-500"><ChevronDown size={12} /></div>
+            </div>
+          </div>
+
           <button onClick={() => setShowSettings(true)} className="flex items-center w-full px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
             <Settings size={18} className="mr-3" />
             {t('settings')}
@@ -3016,9 +3043,15 @@ export default function App() {
               >
                 <option value="EGP">EGP</option>
                 <option value="USD">USD</option>
-                <option value="CNY">CNY</option>
                 <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="SAR">SAR</option>
+                <option value="AED">AED</option>
                 <option value="INR">INR</option>
+                <option value="CNY">CNY</option>
+                <option value="JPY">JPY</option>
+                <option value="CAD">CAD</option>
+                <option value="AUD">AUD</option>
               </select>
 
               {/* Language Selector */}
@@ -4924,6 +4957,9 @@ export default function App() {
                         <option value="AED">AED (UAE Dirham)</option>
                         <option value="INR">INR (₹)</option>
                         <option value="CNY">CNY (¥)</option>
+                        <option value="JPY">JPY (¥)</option>
+                        <option value="CAD">CAD ($)</option>
+                        <option value="AUD">AUD ($)</option>
                       </select>
                     </div>
                   </div>
