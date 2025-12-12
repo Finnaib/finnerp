@@ -1863,6 +1863,13 @@ export default function App() {
   const handleAddItem = async (e) => {
     e.preventDefault();
     if (!user) return;
+
+    // Check for duplicates
+    if (inventory.some(item => item.name.toLowerCase() === newItemForm.name.trim().toLowerCase())) {
+      alert(t('itemExists') || "Item already exists!");
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'inventory'), {
         ...newItemForm,
@@ -1880,6 +1887,13 @@ export default function App() {
   const handleUpdateItem = async (e) => {
     e.preventDefault();
     if (!user || !editingItem) return;
+
+    // Check for duplicates (excluding current item)
+    if (inventory.some(item => item.id !== editingItem.id && item.name.toLowerCase() === editingItem.name.trim().toLowerCase())) {
+      alert(t('itemExists') || "Item already exists!");
+      return;
+    }
+
     try {
       await updateDoc(doc(db, 'inventory', editingItem.id), {
         name: editingItem.name,
