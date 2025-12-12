@@ -143,6 +143,10 @@ export default function App() {
     const monday = new Date(today.setDate(diff));
     return monday.toISOString().split('T')[0];
   };
+  const [isSelectSalesEmployeeModalOpen, setIsSelectSalesEmployeeModalOpen] = useState(false);
+  const [salesEmployee, setSalesEmployee] = useState(null);
+  const [pinAction, setPinAction] = useState('showCosts'); // 'showCosts' | 'changeSalesEmployee'
+
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const formatCurrency = (val) => {
     try {
@@ -1994,6 +1998,7 @@ export default function App() {
         status: 'Completed',
         items: cart.map(i => ({ id: i.id, name: i.name, qty: i.quantity, price: i.price })),
         userId: user.uid,
+        soldBy: salesEmployee ? salesEmployee.name : (user.email || 'Admin'),
         date: new Date().toISOString().split('T')[0],
         createdAt: serverTimestamp()
       };
@@ -2075,6 +2080,10 @@ export default function App() {
         ...newInvoiceForm,
         amount: totalAmount,
         userId: user.uid,
+        items: cart.map(i => ({ id: i.id, name: i.name, qty: i.quantity, price: i.price })),
+        userId: user.uid,
+        soldBy: salesEmployee ? salesEmployee.name : (user.email || 'Admin'),
+        date: new Date().toISOString().split('T')[0],
         createdAt: serverTimestamp()
       });
       setIsAddInvoiceModalOpen(false);
@@ -2100,6 +2109,7 @@ export default function App() {
       .title { font-size: 1.1em; font-weight: bold; text-transform: uppercase; margin-bottom: 3px; }
       .subtitle { font-size: 0.75em; line-height: 1.3; margin: 2px 0; }
       .invoice-title { font-size: 1em; font-weight: bold; margin: 8px 0; text-decoration: underline; }
+      .seller-info { font-size: 0.75em; border: 1px dashed #000; padding: 4px; margin: 5px 0; text-align: center; }
       
       /* Details */
       .details { font-size: 0.8em; margin: 10px 0; line-height: 1.4; }
@@ -2135,6 +2145,7 @@ export default function App() {
       .brand { flex: 1; }
       .brand .title { font-size: 24px; font-weight: bold; color: #333; margin: 0 0 5px 0; }
       .brand .subtitle { font-size: 11px; color: #666; line-height: 1.5; margin: 2px 0; }
+      .sold-by { font-size: 12px; color: #4a5f8f; font-weight: bold; margin-top: 5px; }
       
       .invoice-info { text-align: right; }
       .invoice-info h2 { font-size: 36px; font-weight: bold; color: #7891c7; margin: 0 0 15px 0; text-transform: uppercase; }
@@ -2190,10 +2201,10 @@ export default function App() {
         
         <div class="header">
           <div class="title">${shopSettings.name}</div>
-          <div class="subtitle">${shopSettings.address}</div>
-          <div class="subtitle">${shopSettings.phone}</div>
-          <div class="invoice-title">${t('retailInvoice')}</div>
+          <div class="subtitle">${shopSettings.address} | ${shopSettings.phone}</div>
         </div>
+        <div class="seller-info">Sold By: ${invoiceData.soldBy || 'Admin'}</div>
+        <div class="invoice-title">${t('retailInvoice')}</div>
 
         <div class="details">
           <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
@@ -2248,6 +2259,7 @@ export default function App() {
             <div class="title">${shopSettings.name}</div>
             <div class="subtitle">${shopSettings.address}</div>
             <div class="subtitle">${t('phone')}: ${shopSettings.phone}</div>
+            <div class="sold-by">Sold By: ${invoiceData.soldBy || 'Admin'}</div>
           </div>
           <div class="invoice-info">
             <h2>${t('invoice')}</h2>
@@ -3420,6 +3432,7 @@ export default function App() {
                           const hourlyRate = baseSalary / 360;
                           const manualDeduction = (Number(emp.deductionHours) || 0) * hourlyRate;
                           deductionAmount += manualDeduction;
+                          deductionAmount += Number(emp.advanceSalary || 0);
 
                           const netPay = baseSalary + bonus + overtime - deductionAmount;
 
@@ -3684,6 +3697,22 @@ export default function App() {
                         <span>{t('total')}</span>
                         <span>{formatCurrency(calculateTotal())}</span>
                       </div>
+                    </div>
+                    {/* Sales Employee Selection */}
+                    <div className="mb-4">
+                      <button
+                        onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
+                        className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <User size={18} className="text-blue-600" />
+                          <div className="text-left">
+                            <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">Sales Employee</div>
+                            <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : 'Admin (Default)'}</div>
+                          </div>
+                        </div>
+                        <ChevronDown size={16} className="text-blue-400" />
+                      </button>
                     </div>
 
                     {/* Order Type Toggle */}
@@ -4693,6 +4722,49 @@ export default function App() {
         )
       }
 
+      {/* Select Sales Employee Modal */}
+      {
+        isSelectSalesEmployeeModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">Select Sales Employee</h3>
+                <button onClick={() => setIsSelectSalesEmployeeModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <div className="p-2 max-h-[60vh] overflow-y-auto">
+                <div className="space-y-1">
+                  <button
+                    onClick={() => { setSalesEmployee(null); setIsSelectSalesEmployeeModalOpen(false); }}
+                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition-colors ${!salesEmployee ? 'bg-blue-50 border border-blue-100' : ''}`}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center"><User size={20} className="text-gray-500" /></div>
+                    <div>
+                      <div className="font-bold text-gray-900">Admin (Default)</div>
+                      <div className="text-xs text-gray-500">System User</div>
+                    </div>
+                  </button>
+                  {employees.map(emp => (
+                    <button
+                      key={emp.id}
+                      onClick={() => { setSalesEmployee(emp); setIsSelectSalesEmployeeModalOpen(false); }}
+                      className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition-colors ${salesEmployee?.id === emp.id ? 'bg-blue-50 border border-blue-100' : ''}`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
+                        {emp.photo ? <img src={emp.photo} alt={emp.name} className="w-full h-full object-cover" /> : <User size={20} className="text-gray-400 m-auto mt-2" />}
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">{emp.name}</div>
+                        <div className="text-xs text-gray-500">{emp.role}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
       {/* PIN Verification Modal */}
       {
         isPinModalOpen && (
@@ -4721,10 +4793,14 @@ export default function App() {
                       const val = e.target.value;
                       if (/^\d*$/.test(val)) setPinInput(val);
                       if (val === securityPin) {
-                        setShowSensitiveData(true);
-                        setIsPinModalOpen(false);
+                        if (pinAction === 'changeSalesEmployee') {
+                          setIsPinModalOpen(false);
+                          setIsSelectSalesEmployeeModalOpen(true);
+                        } else {
+                          setShowSensitiveData(true);
+                          setIsPinModalOpen(false);
+                        }
                         setPinInput('');
-                        // Optional success feedback
                       }
                     }}
                   />
