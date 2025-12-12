@@ -1884,6 +1884,18 @@ export default function App() {
     }
   };
 
+  const handleDeleteWarehouseItem = async (id) => {
+    if (!window.confirm(t('confirmDelete') || "Are you sure you want to delete this item?")) return;
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, 'inventory', id));
+      // optional: alert removed for smoother UX, or keep if consistent with other deletes
+    } catch (err) {
+      console.error(err);
+      alert(t('deleteError') + err.message);
+    }
+  };
+
   // --- Sales & Purchases (POS) Logic ---
   const [isAddSaleModalOpen, setIsAddSaleModalOpen] = useState(false);
   const [newSaleForm, setNewSaleForm] = useState({ customer: 'Walk-in Customer', amount: 0, status: 'Completed', items: '' });
@@ -3741,6 +3753,9 @@ export default function App() {
                                 <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium text-sm">
                                   {t('edit') || 'Edit'}
                                 </button>
+                                <button onClick={() => handleDeleteWarehouseItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm ml-2">
+                                  {t('delete') || 'Delete'}
+                                </button>
                               </td>
                             </tr>
                           ))
@@ -4082,7 +4097,7 @@ export default function App() {
                               </div>
                               <div className="pt-2 border-t border-blue-200 flex justify-between font-bold text-blue-900">
                                 <span>{t('netPay')}</span>
-                                <span>EGP {Math.round(netPay).toLocaleString()}</span>
+                                <span>{formatCurrency(netPay)}</span>
                               </div>
                             </>
                           );
