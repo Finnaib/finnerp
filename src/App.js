@@ -210,9 +210,6 @@ export default function App() {
       assignedGuards: 'Assigned Employees',
       deleteLocation: 'Delete Location',
       terminateGuard: 'Terminate / Delete Employee',
-      costAnalysis: 'Real-time cost analysis.',
-      aiInsights: 'AI Insights',
-      siteStats: 'Site Statistics',
       assignedGuards: 'Assigned Employees',
       deleteLocation: 'Delete Location',
       terminateGuard: 'Terminate / Delete Employee',
@@ -247,6 +244,28 @@ export default function App() {
       itemsSummary: 'Items Summary',
       invoiceId: 'Invoice ID',
       type: 'Type',
+      soldBy: 'Sold By',
+      customerId: 'Customer ID',
+      taxed: 'Taxed',
+      advanceSalary: 'Advance Salary',
+      image: 'Image',
+      salesEmployee: 'Sales Employee',
+      adminDefault: 'Admin (Default)',
+
+      // History
+      historyLog: 'History Log',
+      historySubtitle: 'Comprehensive log of sales and warehouse activities.',
+      allTypes: 'All Types',
+      sales: 'Sales',
+      stockUpdates: 'Stock Updates',
+      valueStatus: 'Value / Status',
+      noHistory: 'No history records found.',
+      sold: 'Sold',
+      to: 'to',
+      units: 'Units',
+      stockCheck: 'Stock Check',
+      items: 'items',
+
 
       // POS & Warehouse
       posTerminal: 'POS Terminal',
@@ -457,9 +476,27 @@ export default function App() {
       role: 'पद',
       dept: 'विभाग',
       salary: 'मूल वेतन',
-      bonus: ' बोनस',
-      overtime: 'ओ ओवरटाइम',
+      bonus: 'बोनस',
+      overtime: 'ओवरटाइम',
       deductions: 'कटौती',
+      image: 'चिवि',
+      salesEmployee: 'बिक्री कर्मचारी',
+      adminDefault: 'एडमिन (डिफ़ॉल्ट)',
+
+      // History
+      historyLog: 'इतिहास लॉग',
+      historySubtitle: 'बिक्री और गोदाम गतिविधियों का व्यापक लॉग।',
+      allTypes: 'सभी प्रकार',
+      sales: 'बिक्री',
+      stockUpdates: 'स्टॉक अपडेट',
+      valueStatus: 'मूल्य / स्थिति',
+      noHistory: 'कोई इतिहास रिकॉर्ड नहीं मिला।',
+      sold: 'बेचा',
+      to: 'को',
+      units: 'इकाइयाँ',
+      stockCheck: 'स्टॉक चेक',
+      items: 'वस्तुएं',
+
       total: 'कुल',
       netPay: 'शुद्ध वेतन',
       actions: 'कार्रवाई',
@@ -564,7 +601,26 @@ export default function App() {
       attendanceExists: 'इस कर्मचारी के लिए इस तारीख को उपस्थिति पहले से मौजूद है।',
       theme: 'थीम',
       light: 'लाइट',
-      dark: 'डार्क',
+      payrollSlip: 'वेतन पर्ची',
+      payrollFor: 'वेतन के लिए',
+      employeeName: 'कर्मचारी का नाम',
+      employeeId: 'कर्मचारी आईडी',
+      department: 'विभाग',
+      payPeriod: 'वेतन अवधि',
+      basicSalary: 'मूल वेतन',
+      grossPay: 'सकल वेतन',
+      totalDeductions: 'कुल कटौती',
+      otherDeductions: 'अन्य कटौती',
+      employeeSignature: 'कर्मचारी के हस्ताक्षर',
+      authorizedSignature: 'अधिकृत हस्ताक्षर',
+      computerGenerated: 'यह कंप्यूटर जनित वेतन पर्ची है। हस्ताक्षर की आवश्यकता नहीं है।',
+      generatedOn: 'उत्पन्न',
+      at: 'पर',
+      companyName: 'कंपनी का नाम',
+      companyAddress: 'कंपनी का पता',
+      selectLocation: 'स्थान चुनें',
+      noLocations: 'कोई स्थान उपलब्ध नहीं है - कृपया पहले एक स्थान बनाएं',
+      // Alerts & Errors (Extensions)
 
       // New Modules
       menuAccounts: 'Accounts',
@@ -599,11 +655,15 @@ export default function App() {
       receipt: 'रसीद',
       currentBill: 'वर्तमान बिल',
       cartEmpty: 'कार्ट खाली है',
-      selectItems: 'जोड़ने के लिए ग्रिड से आइटम चुनें',
-      subtotal: 'उपयोग योग',
-      tax: 'कर',
+      selectItems: 'ग्रिड से आइटम चुनें',
+      subtotal: 'उप-योग (Subtotal)',
+      tax: 'कर (Tax)',
       checkout: 'चेकआउट',
       customerNameOptional: 'ग्राहक का नाम (वैकल्पिक)',
+      soldBy: 'विक्रेता (Sold By)',
+      customerId: 'ग्राहक आईडी',
+      taxed: 'कर',
+      advanceSalary: 'अग्रिम वेतन',
       inventorySubtitle: 'इन्वेंटरी स्तर और स्टॉक गतिविधियां',
       searchInventory: 'नाम या SKU द्वारा इन्वेंट्री खोजें...',
       itemName: 'आइटम का नाम',
@@ -682,7 +742,223 @@ export default function App() {
       addItemError: 'आइटम जोड़ने में त्रुटि: ',
       deleteLocationWarning: 'हटा नहीं सकते। कर्मचारी नियुक्त हैं।',
       deleteLocationConfirm: 'इस स्थान को हटाएं?',
-      errorNoUser: 'त्रुटि: कोई उपयोगकर्ता लॉग इन नहीं है।'
+      errorNoUser: 'त्रुटि: कोई उपयोगकर्ता लॉग इन नहीं है।',
+
+      // Invoice Print (Extensions)
+      retailInvoice: 'खुदरा चालान',
+      invoice: 'चालान',
+      customerCopy: 'ग्राहक प्रति',
+      shopCopy: 'दुकान प्रति',
+      date: 'तारीख',
+      billNo: 'बिल नंबर',
+      paymentMode: 'भुगतान मोड',
+      cash: 'नकद',
+      item: 'वस्तु',
+      qty: 'मात्रा',
+      amt: 'राशि',
+      price: 'मूल्य',
+      amount: 'राशि',
+      subtotal: 'उप-योग',
+      taxVAT: 'कर/वैट',
+      taxRate: 'कर दर',
+      total: 'कुल',
+      makeChecksPayable: 'सभी चेक देय बनाएं',
+      thankYou: 'आपके व्यवसाय के लिए धन्यवाद!',
+      billTo: 'बिल प्राप्तकर्ता',
+      description: 'विवरण',
+      unitPrice: 'इकाई मूल्य',
+      lineTotal: 'पंक्ति कुल',
+      comments: 'टिप्पणियाँ',
+      termsConditions: 'नियम और शर्तें',
+      paymentTerms: '1. 30 दिनों में कुल भुगतान देय',
+      includeInvoiceNumber: '2. कृपया अपने चेक पर चालान संख्या शामिल करें',
+      phone: 'फोन',
+      customer: 'ग्राहक',
+      contactQuestions: 'यदि इस चालान के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें',
+      status: 'स्थिति'
+    },
+    zh: {
+      appName: 'Finn ERP',
+      appSubtitle: '企业资源规划',
+      menuDashboard: '仪表板',
+      menuEmployees: '员工',
+      menuSites: '地点',
+      menuAttendance: '考勤',
+      menuPayroll: '工资单',
+      menuReports: '报告',
+      settings: '设置',
+      search: '搜索...',
+      allEmployees: '所有员工',
+      manageStaff: '管理安全人员、班次和详细信息。',
+      addEmployee: '添加员工',
+      name: '姓名',
+      role: '职位',
+      dept: '部门',
+      salary: '基本工资',
+      bonus: '奖金',
+      overtime: '加班费',
+      deductions: '扣款',
+      total: '总计',
+      netPay: '实发工资',
+      actions: '操作',
+      logout: '登出',
+      location: '地点',
+      shift: '班次',
+      totalComp: '总薪酬',
+      dailyAttendance: '每日考勤记录',
+      checkIn: '签到',
+      checkOut: '签退',
+      status: '状态',
+      import: '导入',
+      export: '导出',
+      payrollMgmt: '工资管理',
+      assignedGuards: '已分配员工',
+      deleteLocation: '删除地点',
+      terminateGuard: '解雇 / 删除员工',
+      editLocation: '编辑地点',
+      siteName: '地点名称',
+      city: '城市',
+      manager: '经理',
+      operationalStatus: '运营状态',
+      photoUrl: '照片',
+      uploadPhoto: '上传照片',
+      unassigned: '未分配',
+      securityTeam: '安全团队',
+      guards: '员工',
+      addLocation: '添加地点',
+      createLocation: '创建地点',
+      cancel: '取消',
+      save: '保存',
+      filterAll: '所有地点',
+      active: '活跃',
+      closed: '关闭',
+      onTime: '准时',
+      late: '迟到',
+      absent: '缺席',
+      addAttendance: '添加考勤',
+      editAttendance: '编辑考勤',
+      deleteAttendance: '删除考勤',
+      selectEmployee: '选择员工',
+      selectDate: '选择日期',
+      selectStatus: '选择状态',
+      replacementFor: '替班',
+      coveringFor: '覆盖',
+      lateDeductions: '迟到扣款',
+      absentDeductions: '缺勤扣款',
+      manualDeduction: '手动扣款',
+      cost: '成本',
+      none: '无',
+      dashboardTotal: '总计',
+      activeGuards: '活跃员工',
+      operationalSites: '运营地点',
+      checkedInToday: '今日签到',
+      issuesToday: '今日问题',
+      quickActions: '快速操作',
+      addStaff: '添加员工',
+      addSite: '添加地点',
+      systemStatus: '系统状态',
+      systemOperational: '系统正常运行。',
+      online: '在线',
+      attendanceReport: '考勤报告',
+      payrollReport: '工资报告',
+      staffReport: '员工报告',
+      taxReport: '税务报告',
+      today: '今天',
+      lateAbsent: '迟到/缺勤',
+      menuAccounts: '账户',
+      menuSalesPurchases: '销售',
+      menuWarehouses: '仓库',
+      menuInvoices: '历史',
+      weeklySales: '周销售报告',
+      weeklyBuy: '周采购报告',
+      walkIn: '散客',
+      takeaway: '外卖',
+      customerCopy: '客户副本',
+      shopCopy: '商店副本',
+      printSettings: '打印设置',
+      thermal: '热敏 (80mm)',
+      a4: 'A4 (标准)',
+      dualPrint: '双重打印',
+      lastUpdated: '最后更新',
+      stockValueBuy: '库存价值 (买)',
+      stockValueSell: '库存价值 (卖)',
+      itemsSummary: '项目摘要',
+      invoiceId: '发票 ID',
+      type: '类型',
+      posTerminal: 'POS 终端',
+      searchProducts: '搜索产品...',
+      todaysSales: '今日销售',
+      time: '时间',
+      amount: '金额',
+      items: '项目',
+      receipt: '收据',
+      currentBill: '当前账单',
+      cartEmpty: '购物车为空',
+      selectItems: '从网格中选择项目',
+      subtotal: '小计',
+      tax: '税',
+      checkout: '结账',
+      customerNameOptional: '客户名称 (可选)',
+      soldBy: '销售员',
+      customerId: '客户 ID',
+      taxed: '税额',
+      advanceSalary: '预支工资',
+      inventorySubtitle: '库存水平和变动',
+      searchInventory: '搜索库存...',
+      itemName: '项目名称',
+      buyPrice: '买入价',
+      sellPrice: '卖出价',
+      quantity: '数量',
+      noInventory: '未找到库存',
+      hideCosts: '隐藏成本',
+      showCosts: '显示成本',
+      addItem: '添加项目',
+      edit: '编辑',
+      shopSettings: '商店设置',
+      shopName: '商店名称',
+      shopAddress: '商店地址',
+      shopPhone: '商店电话',
+      securityPin: '安全 PIN',
+      language: '语言',
+      close: '关闭',
+      historyLog: '历史记录',
+      historySubtitle: '销售和仓库活动日志。',
+      allTypes: '所有类型',
+      sales: '销售',
+      stockUpdates: '库存更新',
+      valueStatus: '价值 / 状态',
+      noHistory: '未找到历史记录。',
+      sold: '已售',
+      to: '至',
+      units: '单位',
+      stockCheck: '库存检查',
+      retailInvoice: '零售发票',
+      invoice: '发票',
+      date: '日期',
+      billNo: '账单号',
+      paymentMode: '支付方式',
+      cash: '现金',
+      item: '项目',
+      qty: '数量',
+      amt: '金额',
+      price: '价格',
+      taxVAT: '税/增值税',
+      taxRate: '税率',
+      makeChecksPayable: '支票抬头',
+      thankYou: '谢谢惠顾!',
+      billTo: '账单至',
+      description: '描述',
+      unitPrice: '单价',
+      lineTotal: '行总计',
+      comments: '评论',
+      termsConditions: '条款和条件',
+      phone: '电话',
+      customer: '客户',
+      deductions: '扣款',
+      image: '照片',
+      salesEmployee: '销售员工',
+      adminDefault: '管理员 (默认)',
+      total: '总计'
     },
     ar: {
       appName: 'Finn ERP',
@@ -705,6 +981,77 @@ export default function App() {
       bonus: 'المكافأة',
       overtime: 'العمل الإضافي',
       deductions: 'الخصومات',
+      image: 'صورة',
+      salesEmployee: 'موظف المبيعات',
+      adminDefault: 'Admin (افتراضي)',
+
+      // Payroll Slip
+      payrollSlip: 'قسيمة الراتب',
+      payrollFor: 'راتب عن',
+      employeeName: 'اسم الموظف',
+      employeeId: 'معرف الموظف',
+      department: 'القسم',
+      payPeriod: 'فترة الدفع',
+      basicSalary: 'الراتب الأساسي',
+      grossPay: 'إجمالي الراتب',
+      totalDeductions: 'إجمالي الخصومات',
+      otherDeductions: 'خصومات أخرى',
+      employeeSignature: 'توقيع الموظف',
+      authorizedSignature: 'توقيع المسؤول',
+      computerGenerated: 'هذه قسيمة راتب تم إنشاؤها بواسطة الكمبيوتر. لا يلزم التوقيع.',
+      generatedOn: 'تم إنشاؤها في',
+      at: 'في',
+      companyName: 'اسم الشركة',
+      companyAddress: 'عنوان الشركة',
+      selectLocation: 'اختر الموقع',
+      noLocations: 'لا توجد مواقع متاحة - يرجى إنشاء موقع أولاً',
+
+      // Invoice Print (Extensions)
+      retailInvoice: 'فاتورة بيع بالتجزئة',
+      invoice: 'فاتورة',
+      customerCopy: 'نسخة العميل',
+      shopCopy: 'نسخة المتجر',
+      date: 'تاريخ',
+      billNo: 'رقم الفاتورة',
+      paymentMode: 'طريقة الدفع',
+      cash: 'نقد',
+      item: 'عنصر',
+      qty: 'كمية',
+      amt: 'مبلغ',
+      price: 'سعر',
+      amount: 'مبلغ',
+      subtotal: 'المجموع الفرعي',
+      taxVAT: 'ضريبة',
+      taxRate: 'معدل الضريبة',
+      total: 'الإجمالي',
+      makeChecksPayable: 'اجعل جميع الشيكات مستحقة الدفع لـ',
+      thankYou: 'شكرا لتعاملكم معنا!',
+      billTo: 'فاتورة إلى',
+      description: 'الوصف',
+      unitPrice: 'سعر الوحدة',
+      lineTotal: 'إجمالي السطر',
+      comments: 'تعليقات',
+      termsConditions: 'الشروط والأحكام',
+      phone: 'هاتف',
+      customer: 'عميل',
+      contactQuestions: 'إذا كان لديك أي أسئلة حول هذه الفاتورة، يرجى الاتصال',
+      status: 'حالة',
+
+
+      // History
+      historyLog: 'سجل التاريخ',
+      historySubtitle: 'سجل شامل للمبيعات وأنشطة المستودعات.',
+      allTypes: 'جميع الأنواع',
+      sales: 'المبيعات',
+      stockUpdates: 'تحديثات المخزون',
+      valueStatus: 'القيمة / الحالة',
+      noHistory: 'لم يتم العثور على سجلات.',
+      sold: 'تم بيع',
+      to: 'إلى',
+      units: 'وحدات',
+      stockCheck: 'فحص المخزون',
+      items: 'عناصر',
+
       total: 'الإجمالي',
       netPay: 'صافي الراتب',
       actions: 'إجراءات',
@@ -2209,7 +2556,7 @@ export default function App() {
           <div class="title">${shopSettings.name}</div>
           <div class="subtitle">${shopSettings.address} | ${shopSettings.phone}</div>
         </div>
-        <div class="seller-info">Sold By: ${invoiceData.soldBy || 'Admin'}</div>
+        <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         <div class="invoice-title">${t('retailInvoice')}</div>
 
         <div class="details">
@@ -2265,14 +2612,14 @@ export default function App() {
             <div class="title">${shopSettings.name}</div>
             <div class="subtitle">${shopSettings.address}</div>
             <div class="subtitle">${t('phone')}: ${shopSettings.phone}</div>
-            <div class="sold-by">Sold By: ${invoiceData.soldBy || 'Admin'}</div>
+            <div class="sold-by">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
           </div>
           <div class="invoice-info">
             <h2>${t('invoice')}</h2>
             <table>
               <tr><td>${t('date').toUpperCase()}</td><td>${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
               <tr><td>${t('invoice').toUpperCase()} #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
-              <tr><td>CUSTOMER ID</td><td>${invoiceData.customerId || '123'}</td></tr>
+              <tr><td>${t('customerId').toUpperCase()}</td><td>${invoiceData.customerId || '123'}</td></tr>
             </table>
           </div>
         </div>
@@ -2286,7 +2633,7 @@ export default function App() {
           <thead>
             <tr>
               <th>${t('description')}</th>
-              <th class="center">TAXED</th>
+              <th class="center">${t('taxed')}</th>
               <th class="right">${t('amount')}</th>
             </tr>
           </thead>
@@ -3645,7 +3992,7 @@ export default function App() {
                   <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto">
                     <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> {t('todaysSales')}</h3>
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">Invoice #</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
+                      <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">{t('invoiceId')} #</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
                       <tbody className="divide-y divide-gray-100">
                         {sales
                           .filter(s => s.date === new Date().toISOString().split('T')[0])
@@ -3725,8 +4072,8 @@ export default function App() {
                         <div className="flex items-center gap-2">
                           <User size={18} className="text-blue-600" />
                           <div className="text-left">
-                            <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">Sales Employee</div>
-                            <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : 'Admin (Default)'}</div>
+                            <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">{t('salesEmployee')}</div>
+                            <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : t('adminDefault')}</div>
                           </div>
                         </div>
                         <ChevronDown size={16} className="text-blue-400" />
@@ -3824,7 +4171,6 @@ export default function App() {
                   <table className="w-full text-left min-w-[640px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
-
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('image') || 'Image'}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('itemName')}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('location')}</th>
@@ -3884,8 +4230,8 @@ export default function App() {
               <div className="space-y-6 animate-in fade-in duration-500">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">History Log</h2>
-                    <p className="text-sm text-gray-500">Comprehensive log of sales and warehouse activities.</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('historyLog')}</h2>
+                    <p className="text-sm text-gray-500">{t('historySubtitle')}</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <select
@@ -3893,9 +4239,9 @@ export default function App() {
                       onChange={(e) => setHistoryFilter(e.target.value)}
                       className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
                     >
-                      <option value="All">All Types</option>
-                      <option value="Sale">Sales</option>
-                      <option value="Stock Update">Stock Updates</option>
+                      <option value="All">{t('allTypes')}</option>
+                      <option value="Sale">{t('sales')}</option>
+                      <option value="Stock Update">{t('stockUpdates')}</option>
                     </select>
                     <input
                       type="date"
@@ -3910,10 +4256,10 @@ export default function App() {
                   <table className="w-full text-left min-w-[640px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
-                        <th className="px-6 py-4 font-semibold text-gray-900">Time</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">Type</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">Description</th>
-                        <th className="px-6 py-4 font-semibold text-right text-gray-900">Value / Status</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('time')}</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('type')}</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('description')}</th>
+                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('valueStatus')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -3922,18 +4268,18 @@ export default function App() {
                         const logs = [
                           ...sales.map(s => ({
                             id: 'sale-' + s.id,
-                            type: 'Sale',
+                            type: t('sales'),
                             date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
-                            desc: `Sold ${Array.isArray(s.items) ? s.items.length : 1} items to ${s.customer || 'Walk-in'}`,
+                            desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
                             val: s.amount,
                             isCurrency: true
                           })),
                           ...inventory.map(i => ({
                             id: 'inv-' + i.id,
-                            type: 'Stock Update',
+                            type: t('stockUpdates'),
                             date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
-                            desc: `Stock Check: ${i.name} at ${i.location}`,
-                            val: `${i.quantity} Units`,
+                            desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
+                            val: `${i.quantity} ${t('units')}`,
                             isCurrency: false
                           }))
                         ].sort((a, b) => b.date - a.date);
@@ -3949,7 +4295,7 @@ export default function App() {
                           });
                         }
 
-                        if (filteredLogs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No history records found.</td></tr>;
+                        if (filteredLogs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">{t('noHistory')}</td></tr>;
 
                         return filteredLogs.map(log => (
                           <tr key={log.id} className="hover:bg-gray-50">
