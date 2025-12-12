@@ -143,7 +143,7 @@ export default function App() {
     const monday = new Date(today.setDate(diff));
     return monday.toISOString().split('T')[0];
   };
-  const [historyDateFilter, setHistoryDateFilter] = useState(getWeekStart());
+  const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const formatCurrency = (val) => {
     try {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(Number(val) || 0);
