@@ -3971,7 +3971,14 @@ export default function App() {
                   <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <button
                       type="button"
-                      onClick={() => showSensitiveData ? setShowSensitiveData(false) : setIsPinModalOpen(true)}
+                      onClick={() => {
+                        if (showSensitiveData) {
+                          setShowSensitiveData(false);
+                        } else {
+                          setPinAction('showCosts');
+                          setIsPinModalOpen(true);
+                        }
+                      }}
                       className={`px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all w-full sm:w-auto ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                     >
                       {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
