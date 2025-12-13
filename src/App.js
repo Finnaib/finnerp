@@ -2121,6 +2121,7 @@ export default function App() {
   const [cart, setCart] = useState([]);
 
   const addToCart = (item) => {
+    if (item.quantity <= 0) return;
     setCart(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
@@ -3800,7 +3801,8 @@ export default function App() {
                           <button
                             key={item.id}
                             onClick={() => addToCart(item)}
-                            className="flex flex-col items-start p-4 bg-gray-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 rounded-xl transition-all group text-left"
+                            disabled={item.quantity <= 0}
+                            className={`flex flex-col items-start p-4 border border-gray-100 rounded-xl transition-all group text-left ${item.quantity <= 0 ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-gray-50 hover:bg-blue-50 hover:border-blue-200'}`}
                           >
                             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform overflow-hidden">
                               {item.photo ? (
@@ -3813,7 +3815,11 @@ export default function App() {
                             <span className="text-xs text-gray-500 mb-2">{item.location}</span>
                             <div className="mt-auto w-full flex justify-between items-center">
                               <span className="font-mono font-bold text-blue-600">{formatCurrency(item.sellPrice || 0)}</span>
-                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-200 text-gray-600">{item.quantity} left</span>
+                              {item.quantity <= 0 ? (
+                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-600">Out of Stock</span>
+                              ) : (
+                                <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-200 text-gray-600">{item.quantity} left</span>
+                              )}
                             </div>
                           </button>
                         ))}
