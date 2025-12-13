@@ -4045,7 +4045,15 @@ export default function App() {
                                 {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
                               </td>
                               <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
-                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.quantity}</td>
+                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">
+                                {item.quantity === 0 ? (
+                                  <span className="flex items-center justify-end gap-1 text-red-600">
+                                    <AlertCircle size={14} /> Out of Stock
+                                  </span>
+                                ) : (
+                                  item.quantity
+                                )}
+                              </td>
                               <td className="px-6 py-4 text-right">
                                 <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium text-sm">
                                   {t('edit') || 'Edit'}
