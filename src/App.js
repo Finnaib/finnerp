@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
+// DEBUG: Global Error Handler to catch white screen cause
+window.onerror = function(message, source, lineno, colno, error) {
+  alert('App Error: ' + message + '\nLine: ' + lineno);
+};
+
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
 import {
