@@ -128,13 +128,50 @@ export default function App() {
   const [printFormat, setPrintFormat] = useState('Thermal'); // 'Thermal' or 'A4'
   const [printDual, setPrintDual] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [securityPin, setSecurityPin] = useState('1234'); // Default PIN
+  const [securityPin, setSecurityPin] = useState('1234'); // Default until loaded
+  const [securityQuestion, setSecurityQuestion] = useState('');
+  const [securityAnswer, setSecurityAnswer] = useState('');
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890' });
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
+
+  // Sync Settings from Firestore
+  useEffect(() => {
+    if (user) {
+      const fetchSettings = async () => {
+        try {
+          const docRef = doc(db, 'settings', 'user_prefs_' + user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.securityPin) setSecurityPin(data.securityPin);
+            if (data.securityQuestion) setSecurityQuestion(data.securityQuestion);
+            if (data.securityAnswer) setSecurityAnswer(data.securityAnswer);
+          }
+          setIsSettingsLoaded(true);
+        } catch (error) {
+          console.error("Error fetching settings:", error);
+        }
+      };
+      fetchSettings();
+    }
+  }, [user]);
+
+  // Helper to save settings
+  const saveUserSettings = async (newSettings) => {
+    if (!user) return;
+    try {
+      const docRef = doc(db, 'settings', 'user_prefs_' + user.uid);
+      await setDoc(docRef, newSettings, { merge: true });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      alert(t('saveError') + ': ' + error.message);
+    }
+  };
 
   const [historyFilter, setHistoryFilter] = useState('All');
   // Set default to current week start (Monday)
@@ -460,7 +497,29 @@ export default function App() {
       errorNoUser: 'Error: No user logged in.',
       totalIncome: 'Total Income',
       visa: 'Visa',
-      onlinePayment: 'Online'
+      onlinePayment: 'Online',
+
+      // PIN & Security
+      forgotPin: 'Forgot PIN?',
+      securityQuestion: 'Security Question',
+      securityAnswer: 'Security Answer',
+      enterSecurityAnswer: 'Enter Security Answer',
+      pinResetSuccess: 'PIN Reset Successfully! Your new PIN is 1234.',
+      incorrectAnswer: 'Incorrect Answer.',
+      setSecurityQuestion: 'Set Security Question',
+      changePin: 'Change Security PIN',
+      newPin: 'New PIN',
+      saveSettings: 'Save Settings',
+      currentPin: 'Current PIN',
+      enterNewPin: 'Enter New PIN',
+      pinChanged: 'PIN Updated Successfully!',
+      pinSetMessage: 'PIN is set. Use "Forgot PIN" to reset.',
+
+      // Security Questions
+      secQ_pet: "What is your first pet's name?",
+      secQ_mother: "What is your mother's maiden name?",
+      secQ_city: "In what city were you born?",
+      secQ_school: "What is the name of your first school?"
     },
     hi: {
       appName: 'Finn ERP',
@@ -782,7 +841,29 @@ export default function App() {
       status: 'स्थिति',
       totalIncome: 'कुल आय',
       visa: 'वीज़ा',
-      onlinePayment: 'ऑनलाइन'
+      onlinePayment: 'ऑनलाइन',
+
+      // PIN & Security
+      forgotPin: 'पिन भूल गए?',
+      securityQuestion: 'सुरक्षा प्रश्न',
+      securityAnswer: 'सुरक्षा उत्तर',
+      enterSecurityAnswer: 'सुरक्षा उत्तर दर्ज करें',
+      pinResetSuccess: 'पिन सफलतापूर्वक रीसेट किया गया! आपका नया पिन 1234 है।',
+      incorrectAnswer: 'गलत उत्तर।',
+      setSecurityQuestion: 'सुरक्षा प्रश्न सेट करें',
+      changePin: 'सुरक्षा पिन बदलें',
+      newPin: 'नया पिन',
+      saveSettings: 'सेटिंग्स सहेजें',
+      currentPin: 'वर्तमान पिन',
+      enterNewPin: 'नया पिन दर्ज करें',
+      pinChanged: 'पिन सफलतापूर्वक अपडेट किया गया!',
+      pinSetMessage: 'पिन सेट है। रीसेट करने के लिए "पिन भूल गए" का उपयोग करें।',
+
+      // Security Questions
+      secQ_pet: "आपके पहले पालतू जानवर का नाम क्या है?",
+      secQ_mother: "आपकी माँ का मायके का नाम क्या है?",
+      secQ_city: "आपका जन्म किस शहर में हुआ था?",
+      secQ_school: "आपके पहले स्कूल का नाम क्या है?"
     },
 
     ar: {
@@ -1126,7 +1207,29 @@ export default function App() {
       errorNoUser: 'خطأ: لا يوجد مستخدم مسجل الدخول.',
       totalIncome: 'إجمالي الدخل',
       visa: 'فيزا',
-      onlinePayment: 'دفع عبر الإنترنت'
+      onlinePayment: 'دفع عبر الإنترنت',
+
+      // PIN & Security
+      forgotPin: 'نسيت رقم التعريف الشخصي؟',
+      securityQuestion: 'سؤال الأمان',
+      securityAnswer: 'إجابة الأمان',
+      enterSecurityAnswer: 'أدخل إجابة الأمان',
+      pinResetSuccess: 'تم إعادة تعيين PIN بنجاح! الرمز الجديد هو 1234.',
+      incorrectAnswer: 'إجابة خاطئة.',
+      setSecurityQuestion: 'تعيين سؤال الأمان',
+      changePin: 'تغيير رمز PIN',
+      newPin: 'PIN جديد',
+      saveSettings: 'حفظ الإعدادات',
+      currentPin: 'PIN الحالي',
+      enterNewPin: 'أدخل PIN الجديد',
+      pinChanged: 'تم تحديث PIN بنجاح!',
+      pinSetMessage: 'تم تعيين الرقم السري. استخدم "نسيت الرقم السري" لإعادة تعيينه.',
+
+      // Security Questions
+      secQ_pet: "ما هو اسم حيوانك الأليف الأول؟",
+      secQ_mother: "ما هو اسم عائلة والدتك؟",
+      secQ_city: "في أي مدينة ولدت؟",
+      secQ_school: "ما هو اسم مدرستك الأولى؟"
     },
     zh: {
       appName: 'Finn ERP',
@@ -1410,7 +1513,29 @@ export default function App() {
       totalIncome: '总收入',
       visa: 'Visa',
       onlinePayment: '在线支付',
-      salesEmployee: '销售员'
+      salesEmployee: '销售员',
+
+      // PIN & Security
+      forgotPin: '忘记 PIN？',
+      securityQuestion: '安全问题',
+      securityAnswer: '安全答案',
+      enterSecurityAnswer: '输入安全答案',
+      pinResetSuccess: 'PIN 重置成功！您的新 PIN 是 1234。',
+      incorrectAnswer: '答案错误。',
+      setSecurityQuestion: '设置安全问题',
+      changePin: '更改安全 PIN',
+      newPin: '新 PIN',
+      saveSettings: '保存设置',
+      currentPin: '当前 PIN',
+      enterNewPin: '输入新 PIN',
+      pinChanged: 'PIN 更新成功！',
+      pinSetMessage: 'PIN 已设置。使用“忘记 PIN”重置。',
+
+      // Security Questions
+      secQ_pet: "你第一只宠物的名字是什么？",
+      secQ_mother: "你母亲的娘家姓是什么？",
+      secQ_city: "你在哪个城市出生？",
+      secQ_school: "你第一所学校的名字是什么？"
     }
   };
 
@@ -4571,13 +4696,78 @@ export default function App() {
                       <p className="text-sm text-gray-600"><strong className="text-gray-900">Account Type:</strong> Admin</p>
                     </div>
 
+
                     <h4 className="font-bold text-gray-800 mb-2 mt-6">Account Handling</h4>
                     <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-2 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2">
                       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
                       Connect Google Account
                     </button>
-                    <p className="text-xs text-gray-500">Link your Google account to login with it instead of password.</p>
+                    <p className="text-xs text-gray-500 mb-4">Link your Google account to login with it instead of password.</p>
+
+                    <div className="border-t border-gray-100 pt-4 mt-4">
+                      <h4 className="font-bold text-gray-800 mb-3">{t('changePin')}</h4>
+                      {securityPin === '1234' ? (
+                        <input
+                          type="password"
+                          placeholder={t('newPin')}
+                          maxLength={4}
+                          className="w-full px-3 py-2 border border-blue-200 rounded-lg mb-2 text-sm bg-blue-50 focus:ring-2 focus:ring-blue-500"
+                          onBlur={(e) => {
+                            if (e.target.value.length === 4) {
+                              if (window.confirm(t('confirmChangePin') || "Set new PIN?")) {
+                                setSecurityPin(e.target.value);
+                                saveUserSettings({ securityPin: e.target.value });
+                                e.target.value = '';
+                                alert(t('pinChanged'));
+                              }
+                            }
+                          }}
+                        />
+                      ) : (
+                        <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg border border-gray-100">
+                          {t('pinSetMessage')}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-4 mt-4">
+                      <h4 className="font-bold text-gray-800 mb-3">{t('setSecurityQuestion')}</h4>
+                      <div className="space-y-2">
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
+                          value={securityQuestion}
+                          onChange={(e) => setSecurityQuestion(e.target.value)}
+                        >
+                          <option value="">{t('securityQuestion')}</option>
+                          <option value="secQ_pet">{t('secQ_pet')}</option>
+                          <option value="secQ_mother">{t('secQ_mother')}</option>
+                          <option value="secQ_city">{t('secQ_city')}</option>
+                          <option value="secQ_school">{t('secQ_school')}</option>
+                        </select>
+                        <input
+                          type="text"
+                          placeholder={t('securityAnswer')}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                          value={securityAnswer}
+                          onChange={(e) => setSecurityAnswer(e.target.value)}
+                        />
+                        <button
+                          onClick={() => {
+                            if (!securityQuestion || !securityAnswer) {
+                              alert("Please select a question and answer!");
+                              return;
+                            }
+                            saveUserSettings({ securityQuestion, securityAnswer });
+                            alert(t('saveSettings') + ' Success!');
+                          }}
+                          className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-blue-700"
+                        >
+                          {t('saveSettings')}
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
 
 
 
@@ -5050,41 +5240,97 @@ export default function App() {
         isPinModalOpen && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">{t('securityCheck') || 'Security Check'}</h3>
-                <button onClick={() => { setIsPinModalOpen(false); setPinInput(''); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-              </div>
-              <div className="p-6">
-                <div className="flex justify-center mb-6">
-                  <div className="p-4 bg-blue-50 rounded-full text-blue-600">
-                    <Shield size={48} />
-                  </div>
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                  <Shield size={32} className="text-blue-600" />
                 </div>
-                <p className="text-center text-gray-500 mb-4 text-sm">Enter your 4-digit security PIN to view sensitive information.</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('securityCheck')}</h3>
+                <p className="text-sm text-gray-500 mb-6">{t('pinPrompt')}</p>
 
-                <div className="flex justify-center mb-6">
-                  <input
-                    type="password"
-                    autoFocus
-                    className="w-32 text-center text-2xl font-bold tracking-[0.5em] border-b-2 border-gray-300 focus:border-blue-600 outline-none py-2"
-                    maxLength={4}
-                    value={pinInput}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (/^\d*$/.test(val)) setPinInput(val);
-                      if (val === securityPin) {
-                        if (pinAction === 'changeSalesEmployee') {
-                          setIsPinModalOpen(false);
-                          setIsSelectSalesEmployeeModalOpen(true);
-                        } else {
-                          setShowSensitiveData(true);
-                          setIsPinModalOpen(false);
+                <div className="flex justify-center gap-3 mb-6">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 ${pinInput.length > i ? 'bg-blue-600 scale-110' : 'bg-gray-200'}`} />
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => {
+                        const newPin = pinInput + num;
+                        if (newPin.length <= 4) {
+                          setPinInput(newPin);
+                          if (newPin.length === 4) {
+                            if (newPin === securityPin) {
+                              setIsPinModalOpen(false);
+                              setPinInput('');
+                              // Execute Action
+                              if (pinAction === 'showCosts') setShowSensitiveData(true);
+                              if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
+                            } else {
+                              setTimeout(() => {
+                                setPinInput('');
+                                alert(t('incorrectPin'));
+                              }, 200);
+                            }
+                          }
                         }
-                        setPinInput('');
+                      }}
+                      className="h-12 rounded-xl bg-gray-50 hover:bg-gray-100 text-lg font-bold text-gray-700 transition-colors flex items-center justify-center active:scale-95"
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <button onClick={() => setPinInput('')} className="h-12 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold flex items-center justify-center transition-colors active:scale-95">C</button>
+                  <button
+                    onClick={() => {
+                      const newPin = pinInput + '0';
+                      if (newPin.length <= 4) {
+                        setPinInput(newPin);
+                        if (newPin.length === 4) {
+                          if (newPin === securityPin) {
+                            setIsPinModalOpen(false);
+                            setPinInput('');
+                            if (pinAction === 'showCosts') setShowSensitiveData(true);
+                            if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
+                          } else {
+                            setTimeout(() => {
+                              setPinInput('');
+                              alert(t('incorrectPin'));
+                            }, 200);
+                          }
+                        }
                       }
                     }}
-                  />
+                    className="h-12 rounded-xl bg-gray-50 hover:bg-gray-100 text-lg font-bold text-gray-700 transition-colors flex items-center justify-center active:scale-95"
+                  >
+                    0
+                  </button>
+                  <button onClick={() => setIsPinModalOpen(false)} className="h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center transition-colors active:scale-95"><X size={20} /></button>
                 </div>
+
+                {/* Forgot PIN Link */}
+                <button
+                  onClick={() => {
+                    if (!securityQuestion || !securityAnswer) {
+                      alert(t('setSecurityQuestion') + " in Settings first!");
+                      return;
+                    }
+                    const ans = prompt(`${t('securityQuestion')}: ${t(securityQuestion)}\n${t('enterSecurityAnswer')}:`);
+                    if (ans && ans.toLowerCase().trim() === securityAnswer.toLowerCase().trim()) {
+                      const resetPin = '1234';
+                      setSecurityPin(resetPin);
+                      saveUserSettings({ securityPin: resetPin });
+                      alert(t('pinResetSuccess'));
+                    } else {
+                      alert(t('incorrectAnswer'));
+                    }
+                  }}
+                  className="text-sm text-blue-500 hover:text-blue-700 underline mt-2"
+                >
+                  {t('forgotPin')}
+                </button>
               </div>
             </div>
           </div>
