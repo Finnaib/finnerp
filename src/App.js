@@ -465,6 +465,12 @@ export default function App() {
       dangerZone: 'Danger Zone',
       irreversibleAction: 'Irreversible action. Deletes all data.',
       factoryReset: 'Factory Reset System',
+      compensation: 'Compensation',
+      advance: 'Advance',
+      totalLabel: 'Total',
+      delete: 'Delete',
+      terminateService: 'Terminate Service',
+      actions: 'Actions',
 
       addAttendance: 'Add Attendance',
       editAttendance: 'Edit Attendance',
@@ -721,6 +727,12 @@ export default function App() {
       dangerZone: 'खतरा क्षेत्र',
       irreversibleAction: 'अपरिवर्तनीय कार्रवाई। सभी डेटा हटा दिया जाएगा।',
       factoryReset: 'सिस्टम फैक्टरी रीसेट',
+      compensation: 'मुआवजा',
+      advance: 'अग्रिम',
+      totalLabel: 'कुल',
+      delete: 'हटाएं',
+      terminateService: 'सेवा समाप्त करें',
+      actions: 'क्रियाएँ',
 
       addAttendance: 'हाजिरी जोड़ें',
       editAttendance: 'हाजिरी संपादित करें',
@@ -1172,6 +1184,12 @@ export default function App() {
       dangerZone: 'منطقة الخطر',
       irreversibleAction: 'إجراء لا رجعة فيه. يحذف جميع البيانات.',
       factoryReset: 'إعادة ضبط المصنع للنظام',
+      compensation: 'التعويضات',
+      advance: 'سلفة',
+      totalLabel: 'الإجمالي',
+      delete: 'حذف',
+      terminateService: 'إنهاء الخدمة',
+      actions: 'إجراءات',
 
       addAttendance: 'إضافة حضور',
       editAttendance: 'تعديل الحضور',
@@ -1518,6 +1536,12 @@ export default function App() {
       dangerZone: '危险区域',
       irreversibleAction: '不可逆转的操作。删除所有数据。',
       factoryReset: '系统出厂重置',
+      compensation: '薪酬',
+      advance: '预支',
+      totalLabel: '总计',
+      delete: '删除',
+      terminateService: '终止服务',
+      actions: '操作',
       addAttendance: '添加考勤',
       editAttendance: '编辑考勤',
       deleteAttendance: '删除考勤',
@@ -4428,7 +4452,7 @@ export default function App() {
                                   {t('edit') || 'Edit'}
                                 </button>
                                 <button onClick={() => handleDeleteWarehouseItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm ml-2">
-                                  {t('delete') || 'Delete'}
+                                  {t('delete')}
                                 </button>
                               </td>
                             </tr>
@@ -4743,7 +4767,7 @@ export default function App() {
                     </div>
 
                     <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                      <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2"><DollarSign size={16} /> Compensation</h4>
+                      <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2"><DollarSign size={16} /> {t('compensation')}</h4>
                       <div className="space-y-3">
                         <div className="flex justify-between text-sm">
                           <span className="text-blue-700">{t('salary')}</span>
@@ -4763,7 +4787,7 @@ export default function App() {
                           <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.overtime} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'overtime', Number(e.target.value))} />
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-red-500">{t('advanceSalary') || 'Advance Salary'}</span>
+                          <span className="text-red-500">{t('advance')}</span>
                           <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-red-200 text-red-600 font-medium" value={selectedEmployee.advanceSalary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'advanceSalary', Number(e.target.value))} />
                         </div>
 
@@ -4821,11 +4845,19 @@ export default function App() {
                                 </div>
                               )}
 
-                              <div className="flex justify-between text-sm text-red-600 pt-2 border-t border-dashed border-red-100 mt-1">
-                                <span>Total {t('deductions')}</span>
+                              {advanceSalary > 0 && (
+                                <div className="flex justify-between text-sm text-red-500 font-medium pt-1">
+                                  <span>{t('advanceSalary')}</span>
+                                  <span>-{formatCurrency(advanceSalary)}</span>
+                                </div>
+                              )}
+
+                              <div className="flex justify-between text-sm text-red-600 font-bold pt-2 border-t border-red-100 mt-1">
+                                <span>{t('totalDeductions')}</span>
                                 <span>-{formatCurrency(deductionAmount)}</span>
                               </div>
-                              <div className="pt-2 border-t border-blue-200 flex justify-between font-bold text-blue-900">
+
+                              <div className="flex justify-between text-lg text-blue-900 font-bold pt-3 border-t-2 border-blue-100 mt-2">
                                 <span>{t('netPay')}</span>
                                 <span>{formatCurrency(netPay)}</span>
                               </div>
@@ -4839,7 +4871,7 @@ export default function App() {
 
 
                       <button onClick={() => handleDeleteEmployee(selectedEmployee.id)} className="w-full mt-4 text-red-600 hover:bg-red-50 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
-                        <Trash2 size={18} /> {t('terminateGuard')}
+                        <Trash2 size={18} /> {t('terminateService')}
                       </button>
                     </div>
                   </div>
