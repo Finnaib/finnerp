@@ -440,6 +440,10 @@ export default function App() {
       maintenance: 'Maintenance',
       morning12: 'Morning (12 Hours)',
       night12: 'Night (12 Hours)',
+      importSuccess: 'Successfully imported {0} records.',
+      importError: 'Error importing: ',
+      payrollUpdateSuccess: 'Successfully updated payroll for {0} employees.',
+      payrollUpdateError: 'Error updating payroll: ',
 
       addAttendance: 'Add Attendance',
       editAttendance: 'Edit Attendance',
@@ -671,6 +675,10 @@ export default function App() {
       maintenance: 'रखरखाव',
       morning12: 'सुबह (12 घंटे)',
       night12: 'रात (12 घंटे)',
+      importSuccess: '{0} रिकॉर्ड सफलतापूर्वक आयात किए गए।',
+      importError: 'आयात करने में त्रुटि: ',
+      payrollUpdateSuccess: '{0} कर्मचारियों के लिए वेतन अद्यतन किया गया।',
+      payrollUpdateError: 'वेतन अद्यतन करने में त्रुटि: ',
 
       addAttendance: 'हाजिरी जोड़ें',
       editAttendance: 'हाजिरी संपादित करें',
@@ -1097,6 +1105,10 @@ export default function App() {
       maintenance: 'الصيانة',
       morning12: 'صباحي (12 ساعة)',
       night12: 'ليلي (12 ساعة)',
+      importSuccess: 'تم استيراد {0} سجل بنجاح.',
+      importError: 'خطأ في الاستيراد: ',
+      payrollUpdateSuccess: 'تم تحديث الرواتب لـ {0} موظف بنجاح.',
+      payrollUpdateError: 'خطأ في تحديث الرواتب: ',
 
       addAttendance: 'إضافة حضور',
       editAttendance: 'تعديل الحضور',
@@ -1418,6 +1430,10 @@ export default function App() {
       maintenance: '维护',
       morning12: '早班 (12小时)',
       night12: '夜班 (12小时)',
+      importSuccess: '成功导入 {0} 条记录。',
+      importError: '导入错误：',
+      payrollUpdateSuccess: '成功更新 {0} 名员工的工资单。',
+      payrollUpdateError: '更新工资单错误：',
       addAttendance: '添加考勤',
       editAttendance: '编辑考勤',
       deleteAttendance: '删除考勤',
@@ -2192,10 +2208,10 @@ export default function App() {
 
       try {
         await batch.commit();
-        alert(`Successfully updated payroll for ${updatedCount} employees.`);
+        alert(t('payrollUpdateSuccess').replace('{0}', updatedCount));
       } catch (err) {
         console.error(err);
-        alert("Error updating payroll: " + err.message);
+        alert(t('payrollUpdateError') + err.message);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -2242,12 +2258,12 @@ export default function App() {
 
       try {
         await batch.commit();
-        alert(`Successfully imported ${count} records.`);
+        alert(t('importSuccess').replace('{0}', count));
       } catch (err) {
         console.error(err);
-        alert("Error importing: " + err.message);
+        alert(t('importError') + err.message);
       }
-    };
+    }
     reader.readAsArrayBuffer(file);
     event.target.value = null;
   };
@@ -3697,8 +3713,8 @@ export default function App() {
 
                   <label className="flex items-center gap-2 bg-gray-50 px-3 py-2.5 rounded-lg cursor-pointer border hover:bg-gray-100 transition-colors w-full sm:w-auto justify-center">
                     <Upload size={16} className="text-gray-500" />
-                    <span className="text-sm font-medium text-gray-700">{t('import')} CSV</span>
-                    <input type="file" accept=".csv" onChange={handleImportAttendance} className="hidden" />
+                    <span className="text-sm font-medium text-gray-700">{t('import')}</span>
+                    <input type="file" accept=".xlsx" onChange={handleImportAttendance} className="hidden" />
                   </label>
                   <button onClick={handleExportAttendance} className="flex items-center justify-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2.5 rounded-lg transition-colors w-full sm:w-auto">
                     <Download size={16} /> {t('export')}
