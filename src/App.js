@@ -457,7 +457,8 @@ export default function App() {
       addItemError: 'Error adding item: ',
       deleteLocationWarning: 'Cannot delete. Employees assigned.',
       deleteLocationConfirm: 'Delete this location?',
-      errorNoUser: 'Error: No user logged in.'
+      errorNoUser: 'Error: No user logged in.',
+      totalIncome: 'Total Income'
     },
     hi: {
       appName: 'Finn ERP',
@@ -776,7 +777,8 @@ export default function App() {
       phone: 'फोन',
       customer: 'ग्राहक',
       contactQuestions: 'यदि इस चालान के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें',
-      status: 'स्थिति'
+      status: 'स्थिति',
+      totalIncome: 'कुल आय'
     },
 
     ar: {
@@ -1117,7 +1119,8 @@ export default function App() {
       addItemError: 'خطأ في إضافة العنصر: ',
       deleteLocationWarning: 'لا يمكن الحذف. يوجد موظفين مرتبطين.',
       deleteLocationConfirm: 'حذف هذا الموقع؟',
-      errorNoUser: 'خطأ: لا يوجد مستخدم مسجل الدخول.'
+      errorNoUser: 'خطأ: لا يوجد مستخدم مسجل الدخول.',
+      totalIncome: 'إجمالي الدخل'
     },
     zh: {
       appName: 'Finn ERP',
@@ -1397,7 +1400,8 @@ export default function App() {
       addItemError: '添加项目错误: ',
       deleteLocationWarning: '无法删除。已分配员工。',
       deleteLocationConfirm: '删除此位置？',
-      errorNoUser: '错误：没有登录用户。'
+      errorNoUser: '错误：没有登录用户。',
+      totalIncome: '总收入'
     }
   };
 
