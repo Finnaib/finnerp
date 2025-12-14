@@ -426,6 +426,18 @@ export default function App() {
       security: 'Security',
       it: 'IT',
       headquarters: 'Headquarters',
+      sales: 'Sales',
+      marketing: 'Marketing',
+      kitchen: 'Kitchen',
+      service: 'Service',
+      bar: 'Bar',
+      retail: 'Retail',
+      warehouse: 'Warehouse',
+      inventory: 'Inventory',
+      accounts: 'Accounts',
+      management: 'Management',
+      cleaning: 'Cleaning',
+      maintenance: 'Maintenance',
 
       addAttendance: 'Add Attendance',
       editAttendance: 'Edit Attendance',
@@ -643,6 +655,18 @@ export default function App() {
       security: 'सुरक्षा',
       it: 'IT',
       headquarters: 'मुख्यालय',
+      sales: 'बिक्री',
+      marketing: 'मार्केटिंग',
+      kitchen: 'रसोई',
+      service: 'सेवा',
+      bar: 'बार',
+      retail: 'खुदरा',
+      warehouse: 'गोदाम',
+      inventory: 'इन्वेंटरी',
+      accounts: 'खाते',
+      management: 'प्रबंधन',
+      cleaning: 'साफ-सफाई',
+      maintenance: 'रखरखाव',
 
       addAttendance: 'हाजिरी जोड़ें',
       editAttendance: 'हाजिरी संपादित करें',
@@ -1055,6 +1079,18 @@ export default function App() {
       security: 'الأمن',
       it: 'IT',
       headquarters: 'المقر الرئيسي',
+      sales: 'المبيعات',
+      marketing: 'التسويق',
+      kitchen: 'المطبخ',
+      service: 'الخدمة',
+      bar: 'البار',
+      retail: 'البيع بالتجزئة',
+      warehouse: 'المستودع',
+      inventory: 'المخزون',
+      accounts: 'الحسابات',
+      management: 'الإدارة',
+      cleaning: 'التنظيف',
+      maintenance: 'الصيانة',
 
       addAttendance: 'إضافة حضور',
       editAttendance: 'تعديل الحضور',
@@ -1362,6 +1398,18 @@ export default function App() {
       security: '安保',
       it: 'IT',
       headquarters: '总部',
+      sales: '销售',
+      marketing: '市场营销',
+      kitchen: '厨房',
+      service: '服务',
+      bar: '酒吧',
+      retail: '零售',
+      warehouse: '仓库',
+      inventory: '库存',
+      accounts: '账户',
+      management: '管理',
+      cleaning: '清洁',
+      maintenance: '维护',
       addAttendance: '添加考勤',
       editAttendance: '编辑考勤',
       deleteAttendance: '删除考勤',
@@ -4449,7 +4497,9 @@ export default function App() {
                 </div>
 
                 <select className="input-field" value={newEmployeeForm.dept} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, dept: e.target.value })}>
-                  {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => <option key={d} value={d}>{d}</option>)}
+                  {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => (
+                    <option key={d} value={d}>{translations[language]?.[d.toLowerCase()] || d}</option>
+                  ))}
                 </select>
 
                 <select className="input-field" value={newEmployeeForm.location} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, location: e.target.value })} required>
@@ -4549,7 +4599,9 @@ export default function App() {
                           value={selectedEmployee.dept || ''}
                           onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'dept', e.target.value)}
                         >
-                          {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => <option key={d} value={d}>{d}</option>)}
+                          {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => (
+                            <option key={d} value={d}>{translations[language]?.[d.toLowerCase()] || d}</option>
+                          ))}
                         </select>
                       </div>
                       {/* Location Select for Update */}
