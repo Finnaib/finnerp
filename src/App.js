@@ -1602,6 +1602,43 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // --- PIN Modal Keyboard Support ---
+  useEffect(() => {
+    if (!isPinModalOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key >= '0' && e.key <= '9') {
+        setPinInput(prev => (prev.length < 4 ? prev + e.key : prev));
+      } else if (e.key === 'Backspace') {
+        setPinInput(prev => prev.slice(0, -1));
+      } else if (e.key === 'Enter') {
+        // Trigger verification (logic copied from button click)
+        const currentPin = pinInput; // pinInput state might be stale in closure? No, pinInput is dependency.
+        // Actually, best to rely on useEffect dependency on pinInput or just check current state in a ref?
+        // Simpler: Just allow typing, user still waits for auto-submit or we can trigger it.
+        // The existing logic triggers when length === 4.
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPinModalOpen, pinInput]);
+
+  // Auto-submit PIN when length is 4 (for keyboard support)
+  useEffect(() => {
+    if (isPinModalOpen && pinInput.length === 4) {
+      if (pinInput === securityPin) {
+        setIsPinModalOpen(false);
+        setPinInput('');
+        if (pinAction === 'showCosts') setShowSensitiveData(true);
+        if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
+      } else {
+        setTimeout(() => {
+          setPinInput('');
+          alert(t('incorrectPin'));
+        }, 200);
+      }
+    }
+  }, [pinInput, isPinModalOpen, pinAction, securityPin, t]);
+
   // --- Auth Handlers ---
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -5474,32 +5511,87 @@ export default function App() {
                 {/* Security Settings */}
                 <div>
                   <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
-                    <Shield size={16} /> {t('securityPin') || 'Security PIN'}
+                    <Shield size={16} /> {t('changePin') || 'Security PIN'}
                   </h4>
-                  <p className="text-xs text-gray-500 mb-2">PIN required to view sensitive warehouse data.</p>
-                  <input
-                    type="password"
-                    className="input-field"
-                    placeholder="Enter new 4-digit PIN"
-                    maxLength={4}
-                    value={pinInput}
-                    onChange={(e) => setPinInput(e.target.value)}
-                  />
-                  <div className="flex justify-end mt-2">
-                    <button
-                      onClick={() => {
-                        if (pinInput.length === 4) {
-                          setSecurityPin(pinInput);
-                          setPinInput('');
-                          alert('PIN Updated Successfully');
-                        } else {
-                          alert('PIN must be 4 digits');
-                        }
-                      }}
-                      className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 font-medium"
-                    >
-                      Update PIN
-                    </button>
+
+                  {/* PIN Change Section */}
+                  {securityPin === '1234' ? (
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-500 mb-2">Current PIN is default '1234'. Please change it.</p>
+                      <input
+                        type="password"
+                        className="input-field"
+                        placeholder={t('newPin') || "Enter new 4-digit PIN"}
+                        maxLength={4}
+                        // Use a local temp state or reuse pinInput (carefully)
+                        // Using pinInput for Settings as well
+                        value={pinInput}
+                        onChange={(e) => setPinInput(e.target.value)}
+                      />
+                      <div className="flex justify-end mt-2">
+                        <button
+                          onClick={() => {
+                            if (pinInput.length === 4) {
+                              setSecurityPin(pinInput);
+                              saveUserSettings({ securityPin: pinInput });
+                              setPinInput('');
+                              alert(t('pinChanged'));
+                            } else {
+                              alert('PIN must be 4 digits');
+                            }
+                          }}
+                          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 font-medium"
+                        >
+                          {t('saveSettings') || "Update PIN"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4">
+                      <p className="text-sm text-gray-600 flex items-center gap-2">
+                        <CheckCircle size={14} className="text-green-500" />
+                        {t('pinSetMessage') || "PIN is set."}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">Use "Forgot PIN" on the lock screen to reset.</p>
+                    </div>
+                  )}
+
+                  {/* Security Question Section */}
+                  <div className="border-t border-gray-100 pt-4">
+                    <h4 className="font-bold text-sm text-gray-700 mb-2">{t('setSecurityQuestion') || "Security Questions"}</h4>
+                    <div className="space-y-2">
+                      <select
+                        className="input-field"
+                        value={securityQuestion}
+                        onChange={(e) => setSecurityQuestion(e.target.value)}
+                      >
+                        <option value="">{t('securityQuestion') || "Select Question"}</option>
+                        <option value="secQ_pet">{t('secQ_pet')}</option>
+                        <option value="secQ_mother">{t('secQ_mother')}</option>
+                        <option value="secQ_city">{t('secQ_city')}</option>
+                        <option value="secQ_school">{t('secQ_school')}</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder={t('securityAnswer') || "Answer"}
+                        className="input-field"
+                        value={securityAnswer}
+                        onChange={(e) => setSecurityAnswer(e.target.value)}
+                      />
+                      <button
+                        onClick={() => {
+                          if (!securityQuestion || !securityAnswer) {
+                            alert("Please select a question and answer!");
+                            return;
+                          }
+                          saveUserSettings({ securityQuestion, securityAnswer });
+                          alert(t('saveSettings') + ' Success!');
+                        }}
+                        className="w-full bg-gray-800 text-white py-2 rounded-lg text-sm font-bold hover:bg-gray-900"
+                      >
+                        {t('saveSettings') || "Save Security Settings"}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
