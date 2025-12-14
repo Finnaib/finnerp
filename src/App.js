@@ -113,12 +113,15 @@ function StatusBadge({ status, lateHours, t }) {
 
   // Clean status string to matching translation key if possible, or leave as is
   const getStatusLabel = (s) => {
-    if (s === 'On Time') return t ? t('onTime') : s;
+    // Safety check: if t is undefined (not passed), return original string
+    if (typeof t !== 'function') return s;
+
+    if (s === 'On Time') return t('onTime');
     if (s === 'Late') {
-      const base = t ? t('late') : s;
+      const base = t('late');
       return lateHours ? `${base} (${lateHours})` : base;
     }
-    if (s === 'Absent') return t ? t('absent') : s;
+    if (s === 'Absent') return t('absent');
     return s;
   };
 
