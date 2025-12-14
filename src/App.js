@@ -438,6 +438,8 @@ export default function App() {
       management: 'Management',
       cleaning: 'Cleaning',
       maintenance: 'Maintenance',
+      morning12: 'Morning (12 Hours)',
+      night12: 'Night (12 Hours)',
 
       addAttendance: 'Add Attendance',
       editAttendance: 'Edit Attendance',
@@ -667,6 +669,8 @@ export default function App() {
       management: 'प्रबंधन',
       cleaning: 'साफ-सफाई',
       maintenance: 'रखरखाव',
+      morning12: 'सुबह (12 घंटे)',
+      night12: 'रात (12 घंटे)',
 
       addAttendance: 'हाजिरी जोड़ें',
       editAttendance: 'हाजिरी संपादित करें',
@@ -1091,6 +1095,8 @@ export default function App() {
       management: 'الإدارة',
       cleaning: 'التنظيف',
       maintenance: 'الصيانة',
+      morning12: 'صباحي (12 ساعة)',
+      night12: 'ليلي (12 ساعة)',
 
       addAttendance: 'إضافة حضور',
       editAttendance: 'تعديل الحضور',
@@ -1410,6 +1416,8 @@ export default function App() {
       management: '管理',
       cleaning: '清洁',
       maintenance: '维护',
+      morning12: '早班 (12小时)',
+      night12: '夜班 (12小时)',
       addAttendance: '添加考勤',
       editAttendance: '编辑考勤',
       deleteAttendance: '删除考勤',
@@ -4514,7 +4522,7 @@ export default function App() {
                 </select>
 
                 <select className="input-field" value={newEmployeeForm.shift} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, shift: e.target.value })}>
-                  {shifts.map(s => <option key={s} value={s}>{s}</option>)}
+                  {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
                 </select>
 
                 <input type="number" className="input-field" placeholder={t('salary')} value={newEmployeeForm.salary} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salary: Number(e.target.value) })} required />
@@ -4615,7 +4623,7 @@ export default function App() {
                       <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                         <span className="text-sm text-gray-500">{t('shift')}</span>
                         <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.shift} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'shift', e.target.value)}>
-                          {shifts.map(s => <option key={s} value={s}>{s}</option>)}
+                          {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
                         </select>
                       </div>
                       {/* Replacement Field (Dropdown) */}
