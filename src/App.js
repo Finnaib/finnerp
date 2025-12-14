@@ -3914,7 +3914,7 @@ export default function App() {
                           <User size={18} className="text-blue-600" />
                           <div className="text-left">
                             <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">{t('salesEmployee')}</div>
-                            <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : t('adminDefault')}</div>
+                            <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : t('selectEmployee') || 'Select Employee'}</div>
                           </div>
                         </div>
                         <ChevronDown size={16} className="text-blue-400" />
