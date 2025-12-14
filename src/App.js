@@ -458,6 +458,13 @@ export default function App() {
       departments: 'Departments',
       manageDepartments: 'Add or remove departments',
       addDepartment: 'Add Department',
+      backupRestore: 'Backup & Restore',
+      exportBackup: 'Export Backup',
+      importBackup: 'Import Backup',
+      backupDescription: 'Export your data as JSON or restore from a previous backup.',
+      dangerZone: 'Danger Zone',
+      irreversibleAction: 'Irreversible action. Deletes all data.',
+      factoryReset: 'Factory Reset System',
 
       addAttendance: 'Add Attendance',
       editAttendance: 'Edit Attendance',
@@ -707,6 +714,13 @@ export default function App() {
       departments: 'विभाग',
       manageDepartments: 'विभाग जोड़ें या हटाएँ',
       addDepartment: 'विभाग जोड़ें',
+      backupRestore: 'बैकअप और पुनर्स्थापना',
+      exportBackup: 'बैकअप निर्यात करें',
+      importBackup: 'बैकअप आयात करें',
+      backupDescription: 'अपना डेटा JSON के रूप में निर्यात करें या पिछले बैकअप से पुनर्स्थापित करें।',
+      dangerZone: 'खतरा क्षेत्र',
+      irreversibleAction: 'अपरिवर्तनीय कार्रवाई। सभी डेटा हटा दिया जाएगा।',
+      factoryReset: 'सिस्टम फैक्टरी रीसेट',
 
       addAttendance: 'हाजिरी जोड़ें',
       editAttendance: 'हाजिरी संपादित करें',
@@ -1151,6 +1165,13 @@ export default function App() {
       departments: 'الأقسام',
       manageDepartments: 'إضافة أو إزالة الأقسام',
       addDepartment: 'إضافة قسم',
+      backupRestore: 'النسخ الاحتياطي والاستعادة',
+      exportBackup: 'تصدير النسخة الاحتياطية',
+      importBackup: 'استيراد نسخة احتياطية',
+      backupDescription: 'تصدير بياناتك كملف JSON أو استعادتها من نسخة احتياطية سابقة.',
+      dangerZone: 'منطقة الخطر',
+      irreversibleAction: 'إجراء لا رجعة فيه. يحذف جميع البيانات.',
+      factoryReset: 'إعادة ضبط المصنع للنظام',
 
       addAttendance: 'إضافة حضور',
       editAttendance: 'تعديل الحضور',
@@ -1490,6 +1511,13 @@ export default function App() {
       departments: '部门',
       manageDepartments: '添加或删除部门',
       addDepartment: '添加部门',
+      backupRestore: '备份与恢复',
+      exportBackup: '导出备份',
+      importBackup: '导入备份',
+      backupDescription: '将数据导出为 JSON 或从以前的备份恢复。',
+      dangerZone: '危险区域',
+      irreversibleAction: '不可逆转的操作。删除所有数据。',
+      factoryReset: '系统出厂重置',
       addAttendance: '添加考勤',
       editAttendance: '编辑考勤',
       deleteAttendance: '删除考勤',
@@ -5743,7 +5771,7 @@ export default function App() {
                 {/* Backup & Restore */}
                 <div>
                   <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
-                    <Database size={16} /> Backup & Restore
+                    <Database size={16} /> {t('backupRestore')}
                   </h4>
                   <div className="space-y-2">
                     <button
@@ -5751,10 +5779,10 @@ export default function App() {
                       disabled={loading}
                       className="w-full bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                      <Download size={16} /> Export Backup
+                      <Download size={16} /> {t('exportBackup')}
                     </button>
                     <label className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                      <Upload size={16} /> Import Backup
+                      <Upload size={16} /> {t('importBackup')}
                       <input
                         type="file"
                         accept=".json"
@@ -5763,21 +5791,21 @@ export default function App() {
                         className="hidden"
                       />
                     </label>
-                    <p className="text-xs text-gray-500 mt-2">Export your data as JSON or restore from a previous backup.</p>
+                    <p className="text-xs text-gray-500 mt-2">{t('backupDescription')}</p>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-bold text-sm text-red-600 mb-2 flex items-center gap-2">
-                    <AlertCircle size={16} /> Danger Zone
+                    <AlertCircle size={16} /> {t('dangerZone')}
                   </h4>
                   <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                    <p className="text-xs text-red-700 mb-3">Irreversible action. Deletes all data.</p>
+                    <p className="text-xs text-red-700 mb-3">{t('irreversibleAction')}</p>
                     <button
                       onClick={handleFactoryReset}
                       className="w-full bg-red-600 text-white font-bold py-2 rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
                     >
-                      Factory Reset System
+                      {t('factoryReset')}
                     </button>
                   </div>
                 </div>
