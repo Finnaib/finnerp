@@ -2149,6 +2149,11 @@ export default function App() {
 
   const handleCheckout = async () => {
     if (!user || cart.length === 0) return;
+
+    if (!salesEmployee) {
+      alert(t('selectEmployeeAlert') || "Please select a sales employee!");
+      return;
+    }
     try {
       const totalAmount = calculateTotal();
       const prefix = orderType === 'Walk-in' ? 'W' : 'T';
