@@ -4363,6 +4363,7 @@ export default function App() {
                           ...sales.map(s => ({
                             id: 'sale-' + s.id,
                             type: t('sales'),
+                            category: 'Sale',
                             date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
                             desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
                             val: s.amount,
@@ -4372,6 +4373,7 @@ export default function App() {
                           ...inventory.map(i => ({
                             id: 'inv-' + i.id,
                             type: t('stockUpdates'),
+                            category: 'Stock Update',
                             date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
                             desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
                             val: `${i.quantity} ${t('units')}`,
@@ -4381,7 +4383,7 @@ export default function App() {
                         ].sort((a, b) => b.date - a.date);
 
                         // Apply Filters
-                        let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.type === historyFilter);
+                        let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.category === historyFilter);
 
                         // Apply Date Filter
                         if (historyDateFilter) {
@@ -4396,7 +4398,7 @@ export default function App() {
                         return filteredLogs.map(log => (
                           <tr key={log.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 text-gray-500 font-mono text-sm">{log.date.toLocaleString()}</td>
-                            <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${log.type === 'Sale' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{log.type}</span></td>
+                            <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${log.category === 'Sale' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{log.type}</span></td>
                             <td className="px-6 py-4 text-gray-900">{log.desc}</td>
                             <td className="px-6 py-4 text-gray-900">
                               {log.paymentMethod ? (
