@@ -4449,7 +4449,7 @@ export default function App() {
                 </div>
 
                 <select className="input-field" value={newEmployeeForm.dept} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, dept: e.target.value })}>
-                  {['Security', 'Operations', 'HR', 'IT'].map(d => <option key={d} value={d}>{d}</option>)}
+                  {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
 
                 <select className="input-field" value={newEmployeeForm.location} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, location: e.target.value })} required>
@@ -4542,7 +4542,16 @@ export default function App() {
 
                   <div className="space-y-4">
                     <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                      <InfoRow label={t('dept')} value={selectedEmployee.dept} />
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                        <span className="text-sm text-gray-500">{t('dept')}</span>
+                        <select
+                          className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600"
+                          value={selectedEmployee.dept || ''}
+                          onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'dept', e.target.value)}
+                        >
+                          {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </div>
                       {/* Location Select for Update */}
                       <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                         <span className="text-sm text-gray-500">{t('location')}</span>
