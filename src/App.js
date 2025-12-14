@@ -133,6 +133,14 @@ function StatusBadge({ status, lateHours, t }) {
 }
 
 export default function App() {
+  // --- Auth & UI State (Moved to top to fix TDZ) ---
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile Sidebar
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+  const [authForm, setAuthForm] = useState({ email: '', password: '', apiKey: '' });
+  const [loading, setLoading] = useState(false);
+  const [globalError, setGlobalError] = useState(null); // Explicit Error State
   const [printFormat, setPrintFormat] = useState('Thermal'); // 'Thermal' or 'A4'
   const [printDual, setPrintDual] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -1583,14 +1591,7 @@ export default function App() {
   const [editingAttendance, setEditingAttendance] = useState(null); // For edit modal
 
 
-  // --- Auth & UI State ---
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile Sidebar
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
-  const [authForm, setAuthForm] = useState({ email: '', password: '', apiKey: '' });
-  const [loading, setLoading] = useState(false);
-  const [globalError, setGlobalError] = useState(null); // Explicit Error State
+
 
   // --- Auth Effects ---
   useEffect(() => {
