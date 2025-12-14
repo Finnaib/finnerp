@@ -4125,6 +4125,39 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Income Summary Dashboard */}
+                {(() => {
+                  const relevantSales = sales.filter(s => {
+                    const sDate = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : s.date;
+                    return !historyDateFilter || sDate === historyDateFilter;
+                  });
+                  const total = relevantSales.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+                  const cash = relevantSales.filter(s => (s.paymentMethod || 'Cash') === 'Cash').reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+                  const visa = relevantSales.filter(s => s.paymentMethod === 'Visa').reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+                  const online = relevantSales.filter(s => s.paymentMethod === 'Online').reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><DollarSign size={24} /></div>
+                        <div><p className="text-sm text-gray-500">{t('totalIncome') || 'Total Income'}</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(total)}</h3></div>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-green-50 text-green-600 rounded-lg"><DollarSign size={24} /></div>
+                        <div><p className="text-sm text-gray-500">Cash</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(cash)}</h3></div>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><CreditCard size={24} /></div>
+                        <div><p className="text-sm text-gray-500">Visa</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(visa)}</h3></div>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Globe size={24} /></div>
+                        <div><p className="text-sm text-gray-500">Online</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(online)}</h3></div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
                   <table className="w-full text-left min-w-[640px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
