@@ -4178,6 +4178,7 @@ export default function App() {
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('time')}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('type')}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('description')}</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('paymentMode') || 'Payment Mode'}</th>
                         <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('valueStatus')}</th>
                       </tr>
                     </thead>
@@ -4191,7 +4192,8 @@ export default function App() {
                             date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
                             desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
                             val: s.amount,
-                            isCurrency: true
+                            isCurrency: true,
+                            paymentMethod: s.paymentMethod
                           })),
                           ...inventory.map(i => ({
                             id: 'inv-' + i.id,
@@ -4199,7 +4201,8 @@ export default function App() {
                             date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
                             desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
                             val: `${i.quantity} ${t('units')}`,
-                            isCurrency: false
+                            isCurrency: false,
+                            paymentMethod: null
                           }))
                         ].sort((a, b) => b.date - a.date);
 
@@ -4214,13 +4217,22 @@ export default function App() {
                           });
                         }
 
-                        if (filteredLogs.length === 0) return <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">{t('noHistory')}</td></tr>;
+                        if (filteredLogs.length === 0) return <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('noHistory')}</td></tr>;
 
                         return filteredLogs.map(log => (
                           <tr key={log.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 text-gray-500 font-mono text-sm">{log.date.toLocaleString()}</td>
                             <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${log.type === 'Sale' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{log.type}</span></td>
                             <td className="px-6 py-4 text-gray-900">{log.desc}</td>
+                            <td className="px-6 py-4 text-gray-900">
+                              {log.paymentMethod ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                  {log.paymentMethod === 'Online' ? (t('onlinePayment') || 'Online') : (t(log.paymentMethod.toLowerCase()) || log.paymentMethod)}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
                             <td className="px-6 py-4 text-right font-bold text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
                           </tr>
                         ));
