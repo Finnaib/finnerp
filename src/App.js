@@ -4824,14 +4824,6 @@ export default function App() {
                             <>
 
 
-                              {advanceSalary > 0 && (
-                                <div className="flex justify-between text-xs text-red-500">
-                                  <span>{t('advanceSalary') || 'Advance Salary'}</span>
-                                  <span>-{formatCurrency(advanceSalary)}</span>
-                                </div>
-                              )}
-
-                              {/* Detailed Deductions */}
                               {lateDeduction > 0 && (
                                 <div className="flex justify-between text-sm text-amber-600">
                                   <span>{t('lateDeductions')}</span>
@@ -4847,7 +4839,7 @@ export default function App() {
 
                               {advanceSalary > 0 && (
                                 <div className="flex justify-between text-sm text-red-500 font-medium pt-1">
-                                  <span>{t('advanceSalary')}</span>
+                                  <span>{t('advance')}</span>
                                   <span>-{formatCurrency(advanceSalary)}</span>
                                 </div>
                               )}
