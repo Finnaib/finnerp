@@ -514,6 +514,7 @@ export default function App() {
       enterNewPin: 'Enter New PIN',
       pinChanged: 'PIN Updated Successfully!',
       pinSetMessage: 'PIN is set. Use "Forgot PIN" to reset.',
+      confirmChangePin: 'Set new PIN?',
 
       // Security Questions
       secQ_pet: "What is your first pet's name?",
@@ -2412,7 +2413,6 @@ export default function App() {
         amount: totalAmount,
         userId: user.uid,
         items: cart.map(i => ({ id: i.id, name: i.name, qty: i.quantity, price: i.price })),
-        userId: user.uid,
         soldBy: salesEmployee ? salesEmployee.name : (user.email || 'Admin'),
         date: new Date().toISOString().split('T')[0],
         createdAt: serverTimestamp()
@@ -5317,7 +5317,7 @@ export default function App() {
                       alert(t('setSecurityQuestion') + " in Settings first!");
                       return;
                     }
-                    const ans = prompt(`${t('securityQuestion')}: ${t(securityQuestion)}\n${t('enterSecurityAnswer')}:`);
+                    const ans = prompt(`${t('securityQuestion')}: ${t(securityQuestion) || securityQuestion}\n${t('enterSecurityAnswer')}:`);
                     if (ans && ans.toLowerCase().trim() === securityAnswer.toLowerCase().trim()) {
                       const resetPin = '1234';
                       setSecurityPin(resetPin);
