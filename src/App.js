@@ -3855,8 +3855,8 @@ export default function App() {
                 </div>
 
                 {/* Right: Cart */}
-                <div className="w-full lg:w-96 bg-white flex flex-col rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-[500px] lg:max-h-none">
-                  <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <div className="w-full lg:w-96 bg-white flex flex-col rounded-xl shadow-xl border border-gray-100 overflow-hidden h-[calc(100vh-140px)]">
+                  <div className="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                     <h3 className="font-bold text-lg flex items-center gap-2"><ShoppingCart size={20} /> {t('currentBill')}</h3>
                     <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
                   </div>
@@ -3870,7 +3870,7 @@ export default function App() {
                       </div>
                     ) : (
                       cart.map(item => (
-                        <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100 group">
+                        <div key={item.id} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 group">
                           <div className="flex-1">
                             <div className="font-bold text-gray-900">{item.name}</div>
                             <div className="text-xs text-gray-500 font-mono">{formatCurrency(item.price)} x {item.quantity}</div>
@@ -3889,8 +3889,8 @@ export default function App() {
                     )}
                   </div>
 
-                  <div className="p-4 bg-gray-50 border-t border-gray-200">
-                    <div className="space-y-2 mb-4">
+                  <div className="p-3 bg-gray-50 border-t border-gray-200">
+                    <div className="space-y-1 mb-2">
                       <div className="flex justify-between text-sm text-gray-600">
                         <span>{t('subtotal')}</span>
                         <span>{formatCurrency(calculateTotal())}</span>
@@ -3905,10 +3905,10 @@ export default function App() {
                       </div>
                     </div>
                     {/* Sales Employee Selection */}
-                    <div className="mb-4">
+                    <div className="mb-2">
                       <button
                         onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                        className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                        className="w-full flex items-center justify-between p-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
                       >
                         <div className="flex items-center gap-2">
                           <User size={18} className="text-blue-600" />
@@ -3922,7 +3922,7 @@ export default function App() {
                     </div>
 
                     {/* Order Type Toggle */}
-                    <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
+                    <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
                       <button
                         onClick={() => {
                           setOrderType('Walk-in');
@@ -3949,19 +3949,19 @@ export default function App() {
                     </div>
 
                     <input
-                      className="w-full mb-3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                      className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
                       placeholder={t('customerNameOptional')}
                       value={newSaleForm.customer}
                       autoComplete="off"
                       onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                     />
 
-                    <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="grid grid-cols-3 gap-2 mb-2">
                       {['Cash', 'Visa', 'Online'].map(method => (
                         <button
                           key={method}
                           onClick={() => setPaymentMethod(method)}
-                          className={`py-2 text-sm font-bold rounded-lg border transition-colors ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                          className={`py-1 text-sm font-bold rounded-lg border transition-colors ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
                         >
                           {method}
                         </button>
@@ -3971,7 +3971,7 @@ export default function App() {
                     <button
                       onClick={handleCheckout}
                       disabled={cart.length === 0}
-                      className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                      className="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
                     >
                       <CheckCircle size={20} /> {t('checkout')}
                     </button>
