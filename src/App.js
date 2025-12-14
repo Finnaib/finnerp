@@ -444,6 +444,20 @@ export default function App() {
       importError: 'Error importing: ',
       payrollUpdateSuccess: 'Successfully updated payroll for {0} employees.',
       payrollUpdateError: 'Error updating payroll: ',
+      myProfile: 'My Profile',
+      emailLabel: 'Email:',
+      userIdLabel: 'User ID:',
+      accountTypeLabel: 'Account Type:',
+      admin: 'Admin',
+      shopSettingsSaved: 'Shop Settings Saved to Cloud',
+      shopSettingsError: 'Error saving settings',
+      localization: 'Localization',
+      language: 'Language',
+      currency: 'Currency',
+      departmentSettings: 'Department Settings',
+      departments: 'Departments',
+      manageDepartments: 'Add or remove departments',
+      addDepartment: 'Add Department',
 
       addAttendance: 'Add Attendance',
       editAttendance: 'Edit Attendance',
@@ -679,6 +693,20 @@ export default function App() {
       importError: 'आयात करने में त्रुटि: ',
       payrollUpdateSuccess: '{0} कर्मचारियों के लिए वेतन अद्यतन किया गया।',
       payrollUpdateError: 'वेतन अद्यतन करने में त्रुटि: ',
+      myProfile: 'मेरी प्रोफाइल',
+      emailLabel: 'ईमेल:',
+      userIdLabel: 'उपयोगकर्ता आईडी:',
+      accountTypeLabel: 'खाता प्रकार:',
+      admin: 'व्यवस्थापक',
+      shopSettingsSaved: 'दुकान सेटिंग्स क्लाउड पर सहेजी गईं',
+      shopSettingsError: 'सेटिंग्स सहेजने में त्रुटि',
+      localization: 'स्थानीयकरण',
+      language: 'भाषा',
+      currency: 'मुद्रा',
+      departmentSettings: 'विभाग सेटिंग्स',
+      departments: 'विभाग',
+      manageDepartments: 'विभाग जोड़ें या हटाएँ',
+      addDepartment: 'विभाग जोड़ें',
 
       addAttendance: 'हाजिरी जोड़ें',
       editAttendance: 'हाजिरी संपादित करें',
@@ -1109,6 +1137,20 @@ export default function App() {
       importError: 'خطأ في الاستيراد: ',
       payrollUpdateSuccess: 'تم تحديث الرواتب لـ {0} موظف بنجاح.',
       payrollUpdateError: 'خطأ في تحديث الرواتب: ',
+      myProfile: 'ملفي الشخصي',
+      emailLabel: 'البريد الإلكتروني:',
+      userIdLabel: 'معرف المستخدم:',
+      accountTypeLabel: 'نوع الحساب:',
+      admin: 'مسؤول',
+      shopSettingsSaved: 'تم حفظ إعدادات المتجر في السحابة',
+      shopSettingsError: 'خطأ في حفظ الإعدادات',
+      localization: 'التعريب',
+      language: 'اللغة',
+      currency: 'العملة',
+      departmentSettings: 'إعدادات القسم',
+      departments: 'الأقسام',
+      manageDepartments: 'إضافة أو إزالة الأقسام',
+      addDepartment: 'إضافة قسم',
 
       addAttendance: 'إضافة حضور',
       editAttendance: 'تعديل الحضور',
@@ -1434,6 +1476,20 @@ export default function App() {
       importError: '导入错误：',
       payrollUpdateSuccess: '成功更新 {0} 名员工的工资单。',
       payrollUpdateError: '更新工资单错误：',
+      myProfile: '我的资料',
+      emailLabel: '电子邮件:',
+      userIdLabel: '用户ID:',
+      accountTypeLabel: '账户类型:',
+      admin: '管理员',
+      shopSettingsSaved: '商店设置已保存到云端',
+      shopSettingsError: '保存设置错误',
+      localization: '本地化',
+      language: '语言',
+      currency: '货币',
+      departmentSettings: '部门设置',
+      departments: '部门',
+      manageDepartments: '添加或删除部门',
+      addDepartment: '添加部门',
       addAttendance: '添加考勤',
       editAttendance: '编辑考勤',
       deleteAttendance: '删除考勤',
@@ -5486,20 +5542,20 @@ export default function App() {
                 {/* My Profile */}
                 <div>
                   <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
-                    <User size={16} /> My Profile
+                    <User size={16} /> {t('myProfile')}
                   </h4>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <div>
-                      <p className="text-xs text-gray-500 font-semibold">Email:</p>
+                      <p className="text-xs text-gray-500 font-semibold">{t('emailLabel')}</p>
                       <p className="text-sm text-gray-900">{user?.email || 'Not available'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 font-semibold">User ID:</p>
+                      <p className="text-xs text-gray-500 font-semibold">{t('userIdLabel')}</p>
                       <p className="text-sm text-gray-900 font-mono">{user?.uid || 'Not available'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 font-semibold">Account Type:</p>
-                      <p className="text-sm text-gray-900">Admin</p>
+                      <p className="text-xs text-gray-500 font-semibold">{t('accountTypeLabel')}</p>
+                      <p className="text-sm text-gray-900">{t('admin')}</p>
                     </div>
                   </div>
                 </div>
@@ -5539,10 +5595,10 @@ export default function App() {
                         if (!user) return;
                         try {
                           await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
-                          alert("Shop Settings Saved to Cloud");
+                          alert(t('shopSettingsSaved'));
                         } catch (e) {
                           console.error(e);
-                          alert("Error saving settings");
+                          alert(t('shopSettingsError'));
                         }
                       }}
                       className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors mt-2"
@@ -5555,24 +5611,26 @@ export default function App() {
                 {/* Localization Settings */}
                 <div>
                   <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
-                    <Globe size={16} /> Localization
+                    <Globe size={16} /> {t('localization')}
                   </h4>
-                  <div className="space-y-3">
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">{t('language') || 'Language'}</label>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">{t('language')}</label>
                       <select
                         className="input-field"
                         value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
+                        onChange={() => { }} // Managed by effect
+                        disabled
                       >
                         <option value="en">English</option>
                         <option value="ar">Arabic (العربية)</option>
                         <option value="hi">Hindi (हिंदी)</option>
                         <option value="zh">Chinese (中文)</option>
                       </select>
+                      <p className="text-xs text-gray-400 mt-1">Language changes apply instantly.</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">Currency</label>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">{t('currency')}</label>
                       <select
                         className="input-field"
                         value={currency}
