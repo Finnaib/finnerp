@@ -1545,7 +1545,10 @@ export default function App() {
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
   useEffect(() => { localStorage.setItem('language', language); }, [language]);
 
-  const t = (key) => (translations[language] && translations[language][key]) || key;
+  const t = (key) => {
+    const lang = translations[language] ? language : 'en';
+    return (translations[lang] && translations[lang][key]) || key;
+  };
 
 
 
