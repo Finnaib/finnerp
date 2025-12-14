@@ -3612,9 +3612,9 @@ export default function App() {
                         {emp.status === 'Active' ? <CheckCircle size={18} className="text-green-500" /> : <AlertCircle size={18} className="text-gray-400" />}
                       </div>
                       <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-2"><Briefcase size={14} className="text-gray-400" /> {emp.dept}</div>
+                        <div className="flex items-center gap-2"><Briefcase size={14} className="text-gray-400" /> {translations[language]?.[(emp.dept || '').toLowerCase()] || emp.dept}</div>
                         <div className="flex items-center gap-2"><MapPin size={14} className="text-gray-400" /> {emp.location || t('unassigned')}</div>
-                        <div className="flex items-center gap-2"><Clock size={14} className="text-gray-400" /> {emp.shift}</div>
+                        <div className="flex items-center gap-2"><Clock size={14} className="text-gray-400" /> {emp.shift === 'Morning (12 Hours)' ? t('morning12') : emp.shift === 'Night (12 Hours)' ? t('night12') : emp.shift}</div>
                       </div>
                     </div>
                   ))}
