@@ -458,7 +458,9 @@ export default function App() {
       deleteLocationWarning: 'Cannot delete. Employees assigned.',
       deleteLocationConfirm: 'Delete this location?',
       errorNoUser: 'Error: No user logged in.',
-      totalIncome: 'Total Income'
+      totalIncome: 'Total Income',
+      visa: 'Visa',
+      onlinePayment: 'Online'
     },
     hi: {
       appName: 'Finn ERP',
@@ -778,7 +780,9 @@ export default function App() {
       customer: 'ग्राहक',
       contactQuestions: 'यदि इस चालान के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें',
       status: 'स्थिति',
-      totalIncome: 'कुल आय'
+      totalIncome: 'कुल आय',
+      visa: 'वीज़ा',
+      onlinePayment: 'ऑनलाइन'
     },
 
     ar: {
@@ -1120,7 +1124,9 @@ export default function App() {
       deleteLocationWarning: 'لا يمكن الحذف. يوجد موظفين مرتبطين.',
       deleteLocationConfirm: 'حذف هذا الموقع؟',
       errorNoUser: 'خطأ: لا يوجد مستخدم مسجل الدخول.',
-      totalIncome: 'إجمالي الدخل'
+      totalIncome: 'إجمالي الدخل',
+      visa: 'فيزا',
+      onlinePayment: 'دفع عبر الإنترنت'
     },
     zh: {
       appName: 'Finn ERP',
@@ -1401,7 +1407,10 @@ export default function App() {
       deleteLocationWarning: '无法删除。已分配员工。',
       deleteLocationConfirm: '删除此位置？',
       errorNoUser: '错误：没有登录用户。',
-      totalIncome: '总收入'
+      totalIncome: '总收入',
+      visa: 'Visa',
+      onlinePayment: '在线支付',
+      salesEmployee: '销售员'
     }
   };
 
@@ -3972,7 +3981,7 @@ export default function App() {
                           onClick={() => setPaymentMethod(method)}
                           className={`py-1 text-sm font-bold rounded-lg border transition-colors ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
                         >
-                          {method}
+                          {method === 'Online' ? (t('onlinePayment') || method) : (t(method.toLowerCase()) || method)}
                         </button>
                       ))}
                     </div>
@@ -4148,15 +4157,15 @@ export default function App() {
                       </div>
                       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
                         <div className="p-3 bg-green-50 text-green-600 rounded-lg"><DollarSign size={24} /></div>
-                        <div><p className="text-sm text-gray-500">Cash</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(cash)}</h3></div>
+                        <div><p className="text-sm text-gray-500">{t('cash') || 'Cash'}</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(cash)}</h3></div>
                       </div>
                       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
                         <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><CreditCard size={24} /></div>
-                        <div><p className="text-sm text-gray-500">Visa</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(visa)}</h3></div>
+                        <div><p className="text-sm text-gray-500">{t('visa') || 'Visa'}</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(visa)}</h3></div>
                       </div>
                       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Globe size={24} /></div>
-                        <div><p className="text-sm text-gray-500">Online</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(online)}</h3></div>
+                        <div><p className="text-sm text-gray-500">{t('onlinePayment') || 'Online'}</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(online)}</h3></div>
                       </div>
                     </div>
                   );
