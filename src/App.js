@@ -4959,16 +4959,7 @@ export default function App() {
               </div>
               <div className="p-2 max-h-[60vh] overflow-y-auto">
                 <div className="space-y-1">
-                  <button
-                    onClick={() => { setSalesEmployee(null); setIsSelectSalesEmployeeModalOpen(false); }}
-                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition-colors ${!salesEmployee ? 'bg-blue-50 border border-blue-100' : ''}`}
-                  >
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center"><User size={20} className="text-gray-500" /></div>
-                    <div>
-                      <div className="font-bold text-gray-900">Admin (Default)</div>
-                      <div className="text-xs text-gray-500">System User</div>
-                    </div>
-                  </button>
+                  {/* Admin option removed */}
                   {employees.map(emp => (
                     <button
                       key={emp.id}
