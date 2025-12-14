@@ -3796,7 +3796,7 @@ export default function App() {
 
                     <label className="flex items-center justify-center gap-2 bg-white border border-gray-300 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium w-full sm:w-auto">
                       <Upload size={16} /> {t('import')}
-                      <input type="file" accept=".csv" onChange={handleImportPayroll} className="hidden" />
+                      <input type="file" accept=".xlsx" onChange={handleImportPayroll} className="hidden" />
                     </label>
                     <button onClick={handleExportPayroll} className="bg-white border border-gray-300 px-3 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium hover:bg-gray-50 w-full sm:w-auto">
                       <Download size={16} /> {t('export')}
