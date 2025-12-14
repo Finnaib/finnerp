@@ -148,6 +148,7 @@ export default function App() {
   const [isSelectSalesEmployeeModalOpen, setIsSelectSalesEmployeeModalOpen] = useState(false);
   const [salesEmployee, setSalesEmployee] = useState(null);
   const [pinAction, setPinAction] = useState('showCosts'); // 'showCosts' | 'changeSalesEmployee'
+  const [paymentMethod, setPaymentMethod] = useState('Cash'); // 'Cash' | 'Visa' | 'Online'
 
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const formatCurrency = (val) => {
@@ -2179,6 +2180,7 @@ export default function App() {
       const saleData = {
         invoiceId: uniqueId,
         orderType: orderType,
+        paymentMethod: paymentMethod,
         customer: newSaleForm.customer || (orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')),
         amount: totalAmount,
         status: 'Completed',
@@ -2396,7 +2398,7 @@ export default function App() {
           <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
           <p><strong>${invoiceData.client || invoiceData.customer || t('customer')}</strong></p>
           <p><strong>${t('billNo')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
-          <p><strong>${t('paymentMode')}:</strong> ${t('cash')}</p>
+          <p><strong>${t('paymentMode')}:</strong> ${invoiceData.paymentMethod || t('cash')}</p>
         </div>
 
         <table>
@@ -2453,6 +2455,7 @@ export default function App() {
               <tr><td>${t('date').toUpperCase()}</td><td>${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
               <tr><td>${t('invoice').toUpperCase()} #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
               <tr><td>${t('customerId').toUpperCase()}</td><td>${invoiceData.customerId || '123'}</td></tr>
+              <tr><td>${t('paymentMode').toUpperCase()}</td><td>${invoiceData.paymentMethod || 'Cash'}</td></tr>
             </table>
           </div>
         </div>
@@ -3952,6 +3955,18 @@ export default function App() {
                       autoComplete="off"
                       onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                     />
+
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {['Cash', 'Visa', 'Online'].map(method => (
+                        <button
+                          key={method}
+                          onClick={() => setPaymentMethod(method)}
+                          className={`py-2 text-sm font-bold rounded-lg border transition-colors ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                        >
+                          {method}
+                        </button>
+                      ))}
+                    </div>
 
                     <button
                       onClick={handleCheckout}
