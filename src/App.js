@@ -589,7 +589,21 @@ export default function App() {
       secQ_pet: "What is your first pet's name?",
       secQ_mother: "What is your mother's maiden name?",
       secQ_city: "In what city were you born?",
-      secQ_school: "What is the name of your first school?"
+      secQ_school: "What is the name of your first school?",
+      printSettings: 'Print Settings',
+      dualPrint: 'Dual Print (2x)',
+
+      // Profit & Loss
+      monthlyPl: 'Monthly Profit & Loss',
+      plSubtitle: 'Revenue vs COGS vs Expenses analysis',
+      revenue: 'REVENUE',
+      totalSales: 'Total Sales',
+      cogs: 'COGS',
+      cogsFull: 'Cost of Goods Sold',
+      grossProfit: 'GROSS PROFIT',
+      expenses: 'EXPENSES',
+      purchasesOther: 'Purchases/Other',
+      netProfit: 'NET PROFIT',
     },
     hi: {
       appName: 'Finn ERP',
@@ -978,7 +992,21 @@ export default function App() {
       secQ_pet: "आपके पहले पालतू जानवर का नाम क्या है?",
       secQ_mother: "आपकी माँ का मायके का नाम क्या है?",
       secQ_city: "आपका जन्म किस शहर में हुआ था?",
-      secQ_school: "आपके पहले स्कूल का नाम क्या है?"
+      secQ_school: "आपके पहले स्कूल का नाम क्या है?",
+      printSettings: 'प्रिंट सेटिंग्स',
+      dualPrint: 'दोहरी प्रिंट (2x)',
+
+      // Profit & Loss
+      monthlyPl: 'मासिक लाभ और हानि',
+      plSubtitle: 'राजस्व बनाम बेचे गए माल की लागत बनाम व्यय विश्लेषण',
+      revenue: 'राजस्व',
+      totalSales: 'कुल बिक्री',
+      cogs: 'बेचे गए माल की लागत',
+      cogsFull: 'बेचे गए माल की लागत',
+      grossProfit: 'सकल लाभ',
+      expenses: 'व्यय',
+      purchasesOther: 'खरीद/अन्य',
+      netProfit: 'शुद्ध लाभ',
     },
 
     ar: {
@@ -1389,7 +1417,21 @@ export default function App() {
       secQ_pet: "ما هو اسم حيوانك الأليف الأول؟",
       secQ_mother: "ما هو اسم عائلة والدتك؟",
       secQ_city: "في أي مدينة ولدت؟",
-      secQ_school: "ما هو اسم مدرستك الأولى؟"
+      secQ_school: "ما هو اسم مدرستك الأولى؟",
+      printSettings: 'إعدادات الطباعة',
+      dualPrint: 'طباعة مزدوجة (2x)',
+
+      // Profit & Loss
+      monthlyPl: 'الربح والخسارة الشهري',
+      plSubtitle: 'تحليل الإيرادات مقابل تكلفة البضاعة المباعة مقابل المصاريف',
+      revenue: 'الإيرادات',
+      totalSales: 'إجمالي المبيعات',
+      cogs: 'تكلفة البضاعة المباعة',
+      cogsFull: 'تكلفة البضاعة المباعة',
+      grossProfit: 'إجمالي الربح',
+      expenses: 'المصاريف',
+      purchasesOther: 'المشتريات/أخرى',
+      netProfit: 'صافي الربح',
     },
     zh: {
       appName: 'Finn ERP',
@@ -1740,7 +1782,21 @@ export default function App() {
       secQ_pet: "你第一只宠物的名字是什么？",
       secQ_mother: "你母亲的娘家姓是什么？",
       secQ_city: "你在哪个城市出生？",
-      secQ_school: "你第一所学校的名字是什么？"
+      secQ_school: "你第一所学校的名字是什么？",
+      printSettings: '打印设置',
+      dualPrint: '双重打印 (2x)',
+
+      // Profit & Loss
+      monthlyPl: '每月损益',
+      plSubtitle: '收入与销货成本与费用分析',
+      revenue: '收入',
+      totalSales: '总销售额',
+      cogs: '销货成本',
+      cogsFull: '销货成本',
+      grossProfit: '毛利润',
+      expenses: '费用',
+      purchasesOther: '采购/其他',
+      netProfit: '净利润',
     }
   };
 
@@ -3533,16 +3589,16 @@ export default function App() {
         const netProfit = revenue - cogs - totalExpenses;
 
         data = [
-          ['REVENUE', 'Total Sales', revenue],
-          ['COGS', 'Cost of Goods Sold', -cogs],
-          ['GROSS PROFIT', '', revenue - cogs],
-          ['EXPENSES', 'Payroll', -monthPayroll],
-          ['EXPENSES', 'Purchases/Other', -otherExpenses],
-          ['NET PROFIT', '', netProfit]
+          [t('revenue'), t('totalSales'), revenue],
+          [t('cogs'), t('cogsFull'), -cogs],
+          [t('grossProfit'), '', revenue - cogs],
+          [t('expenses'), t('menuPayroll'), -monthPayroll],
+          [t('expenses'), t('purchasesOther'), -otherExpenses],
+          [t('netProfit'), '', netProfit]
         ];
 
         filename = `Profit_Loss_${profitMonthFilter}.xlsx`;
-        extraMetadata = [`Period: ${profitMonthFilter}`, `Location: ${reportLocationFilter || 'All'}`];
+        extraMetadata = [`Period: ${profitMonthFilter}`, `Location: ${reportLocationFilter || t('filterAll')}`];
         break;
       default: return;
     }
@@ -3631,7 +3687,7 @@ export default function App() {
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="bg-gray-100 border-none text-xs font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
+                className="bg-gray-100 border-none text-xs font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor:pointer focus:ring-0"
               >
                 <option value="en">English</option>
                 <option value="hi">हिंदी</option>
@@ -4283,8 +4339,8 @@ export default function App() {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
-                      <h3 className="font-bold text-gray-800 text-lg">Monthly Profit & Loss</h3>
-                      <p className="text-sm text-gray-500">Revenue vs COGS vs Expenses analysis</p>
+                      <h3 className="font-bold text-gray-800 text-lg">{t('monthlyPl')}</h3>
+                      <p className="text-sm text-gray-500">{t('plSubtitle')}</p>
                     </div>
                     <div className="flex gap-3">
                       <input
@@ -4360,58 +4416,49 @@ export default function App() {
 
           {
             activeTab === 'sales_purchases' && (
-              <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-140px)] gap-4 lg:gap-6 animate-in fade-in duration-500">
+              <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-80px)] overflow-hidden">
                 {/* Left: Product Grid */}
-                <div className="flex-1 flex flex-col gap-4">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                      <h2 className="text-lg sm:text-xl font-bold text-gray-900">{shopSettings.name || t('posTerminal')}</h2>
-                      <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                <div className="flex-1 flex flex-col h-full overflow-hidden bg-gray-50/50">
+                  <div className="p-4 flex-shrink-0 bg-white border-b border-gray-200">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-xl font-bold text-gray-900">{shopSettings.name || t('posTerminal')}</h2>
+                        <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block"></div>
                         <select
                           value={printFormat}
                           onChange={(e) => setPrintFormat(e.target.value)}
-                          className="bg-transparent text-sm font-medium text-gray-700 outline-none px-2 py-1 cursor-pointer hover:text-blue-600"
+                          className="text-sm font-medium text-gray-600 bg-transparent outline-none cursor-pointer hover:text-blue-600"
                           title={t('printSettings')}
                         >
                           <option value="Thermal">{t('thermal')}</option>
                           <option value="A4">{t('a4')}</option>
                         </select>
-                        <button
-                          onClick={() => setPrintDual(!printDual)}
-                          className={`text-xs font-bold px-2 py-1 rounded transition-colors ${printDual ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}
-                          title={t('dualPrint')}
-                        >
-                          2x
-                        </button>
                       </div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                      <select
-                        className={`bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${cart.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        value={posLocationFilter}
-                        onChange={e => setPosLocationFilter(e.target.value)}
-                        disabled={cart.length > 0}
-                        title={cart.length > 0 ? "Finish (or clear) current sale to change location" : "Filter by Store Location"}
-                      >
-                        {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                      </select>
-                      <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input
-                          type="text"
-                          name="search-products-custom"
-                          autoComplete="off"
-                          placeholder={t('searchProducts')}
-                          className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          value={inventorySearch}
-                          onChange={(e) => setInventorySearch(e.target.value)}
-                        />
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <select
+                          className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
+                          value={posLocationFilter}
+                          onChange={e => setPosLocationFilter(e.target.value)}
+                          disabled={cart.length > 0}
+                        >
+                          {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                        </select>
+                        <div className="relative flex-1 sm:w-64">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                          <input
+                            type="text"
+                            placeholder={t('searchProducts')}
+                            className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:border-blue-500 focus:ring-0 transition-all text-sm"
+                            value={inventorySearch}
+                            onChange={(e) => setInventorySearch(e.target.value)}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-[400px] lg:max-h-none">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                  <div className="flex-1 overflow-y-auto p-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
                       {inventory
                         .filter(item =>
                           (!posLocationFilter || item.location === posLocationFilter) &&
@@ -4422,121 +4469,103 @@ export default function App() {
                             key={item.id}
                             onClick={() => addToCart(item)}
                             disabled={item.quantity <= 0}
-                            className={`flex flex-col h-[220px] items-start p-3 border border-gray-100 rounded-xl transition-all group text-left relative overflow-hidden ${item.quantity <= 0 ? 'bg-gray-50 opacity-60 cursor-not-allowed' : 'bg-white hover:border-blue-300 hover:shadow-md'}`}
+                            className={`flex flex-col h-[200px] bg-white rounded-xl border border-gray-200 overflow-hidden transition-all hover:shadow-md hover:border-blue-300 relative group text-left ${item.quantity <= 0 ? 'opacity-60 cursor-not-allowed' : ''}`}
                           >
-                            <div className="w-full h-28 bg-gray-50 rounded-lg flex items-center justify-center mb-3 overflow-hidden">
+                            <div className="h-28 w-full bg-gray-100 relative overflow-hidden">
                               {item.photo ? (
-                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                               ) : (
-                                <Package size={24} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <Package size={24} />
+                                </div>
                               )}
-                            </div>
-                            <h4 className="font-bold text-gray-900 text-sm line-clamp-2 mb-1 w-full">{item.name}</h4>
-                            <div className="mt-auto w-full flex justify-between items-end border-t border-gray-50 pt-2">
-                              <div>
-                                <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{item.location}</div>
-                                <div className="font-mono font-bold text-blue-600 text-lg">{formatCurrency(item.sellPrice || 0)}</div>
+                              <div className="absolute top-2 right-2">
+                                <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                                  {item.quantity}
+                                </span>
                               </div>
-                              {item.quantity <= 0 ? (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100">Sold Out</span>
-                              ) : (
-                                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100">{item.quantity} left</span>
-                              )}
+                            </div>
+                            <div className="p-3 flex flex-col flex-1 justify-between">
+                              <h4 className="font-semibold text-gray-800 text-sm line-clamp-2 leading-tight">{item.name}</h4>
+                              <div className="text-blue-600 font-bold font-mono text-base">{formatCurrency(item.sellPrice || 0)}</div>
                             </div>
                           </button>
                         ))}
                     </div>
                   </div>
-
-                  {/* Daily History Toggle / View */}
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto">
-                    <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> {t('todaysSales')}</h3>
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">{t('invoiceId')} #</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {sales
-                          .filter(s => s.date === new Date().toISOString().split('T')[0])
-                          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                          .map(s => (
-                            <tr key={s.id}>
-                              <td className="p-2 text-gray-500">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
-                              <td className="p-2 font-mono text-xs text-blue-600 font-bold">{s.invoiceId || '-'}</td>
-                              <td className="p-2 font-mono font-bold text-gray-900">{formatCurrency(s.amount)}</td>
-                              <td className="p-2 text-xs truncate max-w-[150px]">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</td>
-                              <td className="p-2">
-                                <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="text-gray-400 hover:text-gray-600"><Printer size={16} /></button>
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
                 </div>
 
-                {/* Right: Cart */}
-                <div className="w-full lg:w-96 bg-white flex flex-col rounded-xl shadow-xl border border-gray-100 overflow-hidden h-[calc(100vh-140px)]">
-                  <div className="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <h3 className="font-bold text-lg flex items-center gap-2"><ShoppingCart size={20} /> {t('currentBill')}</h3>
-                    <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
+                {/* Right: Cart Sidebar */}
+                <div className="w-full lg:w-[400px] bg-white border-l border-gray-200 flex flex-col h-full shadow-2xl z-20">
+                  <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white">
+                    <div className="flex items-center gap-2 text-gray-800">
+                      <ShoppingCart size={20} className="text-blue-600" />
+                      <h3 className="font-bold text-lg">{t('currentBill')}</h3>
+                    </div>
+                    <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                  <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
                     {cart.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                        <ShoppingCart size={48} className="mb-4 opacity-20" />
-                        <p>{t('cartEmpty')}</p>
-                        <p className="text-sm">{t('selectItems')}</p>
+                      <div className="h-full flex flex-col items-center justify-center text-gray-300 p-8 text-center">
+                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                          <ShoppingCart size={24} className="opacity-50" />
+                        </div>
+                        <p className="font-medium text-gray-500">{t('cartEmpty')}</p>
+                        <p className="text-xs mt-1 text-gray-400">{t('selectItems')}</p>
                       </div>
                     ) : (
-                      cart.map(item => (
-                        <div key={item.id} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 group hover:border-blue-200 transition-colors">
-                          <div className="flex-1 min-w-0 pr-2">
-                            <div className="font-bold text-gray-900 text-sm truncate">{item.name}</div>
-                            <div className="text-[10px] text-gray-500 font-mono">{formatCurrency(item.price)} x {item.quantity}</div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center bg-white border border-gray-200 rounded-md h-7">
-                              <button onClick={() => updateCartQuantity(item.id, -1)} className="px-2 hover:bg-gray-100 text-gray-600 rounded-l-md h-full flex items-center justify-center text-xs">-</button>
-                              <span className="font-mono text-xs font-bold px-1 min-w-[1.5rem] text-center">{item.quantity}</span>
-                              <button onClick={() => updateCartQuantity(item.id, 1)} className="px-2 hover:bg-gray-100 text-gray-600 rounded-r-md h-full flex items-center justify-center text-xs">+</button>
+                      <div className="divide-y divide-gray-50">
+                        {cart.map(item => (
+                          <div key={item.id} className="p-3 flex gap-3 group hover:bg-gray-50 transition-colors">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start">
+                                <h4 className="font-medium text-gray-900 text-sm truncate pr-2">{item.name}</h4>
+                                <span className="font-mono font-bold text-gray-900 text-sm">{formatCurrency(item.price * item.quantity)}</span>
+                              </div>
+                              <div className="text-xs text-gray-500 mt-0.5">{formatCurrency(item.price)} / unit</div>
                             </div>
-                            <span className="font-mono font-bold text-gray-900 w-14 text-right text-sm">{formatCurrency(item.price * item.quantity)}</span>
+
+                            <div className="flex items-center gap-3 self-center">
+                              <div className="flex items-center border border-gray-200 rounded-lg bg-white h-7 shadow-sm">
+                                <button onClick={() => updateCartQuantity(item.id, -1)} className="px-2 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-l-lg transition-colors">-</button>
+                                <span className="w-6 text-center text-xs font-semibold text-gray-700">{item.quantity}</span>
+                                <button onClick={() => updateCartQuantity(item.id, 1)} className="px-2 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg transition-colors">+</button>
+                              </div>
+                              <button onClick={() => removeFromCart(item.id)} className="text-gray-300 hover:text-red-500 transition-colors p-1">
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
                           </div>
-                          <button onClick={() => removeFromCart(item.id)} className="ml-2 text-gray-300 hover:text-red-500 transition-colors p-1">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
                   </div>
 
-                  <div className="p-3 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
-                    <div className="space-y-2 mb-3">
-                      <div className="flex justify-between text-xs text-gray-500 font-medium">
+                  {/* Footer Section */}
+                  <div className="bg-gray-50 border-t border-gray-200 p-4 space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-gray-500">
                         <span>{t('subtotal')}</span>
-                        <span className="font-mono text-gray-700">{formatCurrency(calculateTotal())}</span>
+                        <span className="font-mono">{formatCurrency(calculateTotal())}</span>
                       </div>
-                      <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
-                        <span className="flex items-center gap-1 border-b border-dashed border-gray-300 pb-0.5">{t('discount') || 'Discount'}</span>
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">-</span>
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <span className="border-b border-dashed border-gray-300 pb-px cursor-help">{t('discount') || 'Discount'}</span>
+                        <div className="flex items-center bg-white border border-gray-200 rounded px-2 h-6 w-20">
+                          <span className="text-gray-400 mr-1">-</span>
                           <input
                             type="number"
                             min="0"
+                            className="w-full text-right bg-transparent border-none outline-none text-xs font-mono p-0 focus:ring-0"
                             placeholder="0"
-                            className="w-16 p-0 text-right text-xs border-0 border-b border-gray-200 bg-transparent focus:ring-0 focus:border-blue-500 placeholder-gray-300 font-mono transition-all h-5"
                             value={cartDiscount || ''}
                             onChange={(e) => setCartDiscount(Math.max(0, Number(e.target.value)))}
                           />
                         </div>
                       </div>
-                      <div className="flex justify-between text-xs text-gray-500 font-medium">
-                        <span>{t('tax')} (0%)</span>
-                        <span>{formatCurrency(0)}</span>
-                      </div>
-                      <div className="flex justify-between items-baseline border-t border-gray-100 pt-2 mt-1">
-                        <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{t('total')}</span>
-                        <span className="text-xl font-bold text-gray-900 tracking-tight">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
+                      <div className="pt-2 border-t border-gray-200 flex justify-between items-end">
+                        <span className="text-sm font-bold text-gray-700">{t('total')}</span>
+                        <span className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
                       </div>
                     </div>
                     {/* Sales Employee Selection */}
