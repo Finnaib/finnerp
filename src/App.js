@@ -2504,6 +2504,13 @@ export default function App() {
   const [orderType, setOrderType] = useState('Walk-in'); // 'Walk-in' or 'Takeaway'
   const [cart, setCart] = useState([]);
 
+  // Auto-select first location for Strict Mode
+  useEffect(() => {
+    if (!posLocationFilter && sites.length > 0) {
+      setPosLocationFilter(sites[0].name);
+    }
+  }, [sites, posLocationFilter]);
+
   const addToCart = (item) => {
     if (item.quantity <= 0) return;
 
@@ -4258,7 +4265,6 @@ export default function App() {
                         disabled={cart.length > 0}
                         title={cart.length > 0 ? "Finish (or clear) current sale to change location" : "Filter by Store Location"}
                       >
-                        <option value="">{t('filterAll') || 'All Locations'}</option>
                         {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                       </select>
                       <div className="relative w-full sm:w-64">
