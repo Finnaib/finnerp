@@ -598,6 +598,10 @@ export default function App() {
       plSubtitle: 'Revenue vs COGS vs Expenses analysis',
       revenue: 'REVENUE',
       totalSales: 'Total Sales',
+      discount: 'Discount',
+      subtotal: 'Subtotal',
+      tax: 'Tax',
+      total: 'TOTAL',
       cogs: 'COGS',
       cogsFull: 'Cost of Goods Sold',
       grossProfit: 'GROSS PROFIT',
@@ -998,6 +1002,10 @@ export default function App() {
 
       // Profit & Loss
       monthlyPl: 'मासिक लाभ और हानि',
+      discount: 'छूट',
+      subtotal: 'उपयोग',
+      tax: 'कर',
+      total: 'कुल',
       plSubtitle: 'राजस्व बनाम बेचे गए माल की लागत बनाम व्यय विश्लेषण',
       revenue: 'राजस्व',
       totalSales: 'कुल बिक्री',
@@ -1408,6 +1416,10 @@ export default function App() {
       changePin: 'تغيير رمز PIN',
       newPin: 'PIN جديد',
       saveSettings: 'حفظ الإعدادات',
+      discount: 'خصم',
+      subtotal: 'المجموع الفرعي',
+      tax: 'ضريبة',
+      total: 'المجموع',
       currentPin: 'PIN الحالي',
       enterNewPin: 'أدخل PIN الجديد',
       pinChanged: 'تم تحديث PIN بنجاح!',
@@ -1797,6 +1809,10 @@ export default function App() {
       expenses: '费用',
       purchasesOther: '采购/其他',
       netProfit: '净利润',
+      discount: '折扣',
+      subtotal: '小计',
+      tax: '税',
+      total: '总计',
     }
   };
 
@@ -4581,7 +4597,7 @@ export default function App() {
                         <span className="font-mono">{formatCurrency(calculateTotal())}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs text-gray-500">
-                        <span className="border-b border-dashed border-gray-300 pb-px cursor-help">{t('discount') || 'Discount'}</span>
+                        <span className="border-b border-dashed border-gray-300 pb-px cursor-help">{t('discount')}</span>
                         <div className="flex items-center bg-white border border-gray-200 rounded px-2 h-6 w-20">
                           <span className="text-gray-400 mr-1">-</span>
                           <input
