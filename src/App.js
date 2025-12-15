@@ -2804,6 +2804,14 @@ export default function App() {
       const printAddress = site.address || shopSettings.address;
       const printPhone = site.phone || shopSettings.phone;
 
+      // Resolve Time
+      let printTime = new Date().toLocaleTimeString();
+      if (invoiceData.createdAt && invoiceData.createdAt.seconds) {
+        printTime = new Date(invoiceData.createdAt.seconds * 1000).toLocaleTimeString();
+      } else if (invoiceData.time) {
+        printTime = invoiceData.time;
+      }
+
       const subtotal = Array.isArray(invoiceData.items)
         ? invoiceData.items.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || item.quantity || 0)), 0)
         : invoiceData.amount || 0;
@@ -2824,6 +2832,7 @@ export default function App() {
 
         <div class="details">
           <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
+          <p><strong>${t('time')}:</strong> ${printTime}</p>
           <p><strong>${invoiceData.client || invoiceData.customer || t('customer')}</strong></p>
           <p><strong>${t('billNo')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
           <p><strong>${t('paymentMode')}:</strong> ${invoiceData.paymentMethod || t('cash')}</p>
@@ -2881,6 +2890,7 @@ export default function App() {
             <h2>${t('invoice')}</h2>
             <table>
               <tr><td>${t('date').toUpperCase()}</td><td>${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
+              <tr><td>${t('time').toUpperCase()}</td><td>${printTime}</td></tr>
               <tr><td>${t('invoice').toUpperCase()} #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
               <tr><td>${t('customerId').toUpperCase()}</td><td>${invoiceData.customerId || '123'}</td></tr>
               <tr><td>${t('paymentMode').toUpperCase()}</td><td>${invoiceData.paymentMethod || 'Cash'}</td></tr>
