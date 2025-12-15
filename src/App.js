@@ -4410,7 +4410,7 @@ export default function App() {
                   </div>
 
                   <div className="flex-1 overflow-y-auto bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-[400px] lg:max-h-none">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                       {inventory
                         .filter(item =>
                           (!posLocationFilter || item.location === posLocationFilter) &&
@@ -4421,23 +4421,25 @@ export default function App() {
                             key={item.id}
                             onClick={() => addToCart(item)}
                             disabled={item.quantity <= 0}
-                            className={`flex flex-col items-start p-4 border border-gray-100 rounded-xl transition-all group text-left ${item.quantity <= 0 ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-gray-50 hover:bg-blue-50 hover:border-blue-200'}`}
+                            className={`flex flex-col h-[220px] items-start p-3 border border-gray-100 rounded-xl transition-all group text-left relative overflow-hidden ${item.quantity <= 0 ? 'bg-gray-50 opacity-60 cursor-not-allowed' : 'bg-white hover:border-blue-300 hover:shadow-md'}`}
                           >
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform overflow-hidden">
+                            <div className="w-full h-28 bg-gray-50 rounded-lg flex items-center justify-center mb-3 overflow-hidden">
                               {item.photo ? (
-                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
+                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                               ) : (
-                                <Package size={20} className="text-gray-500 group-hover:text-blue-600" />
+                                <Package size={24} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
                               )}
                             </div>
-                            <h4 className="font-bold text-gray-900 line-clamp-1">{item.name}</h4>
-                            <span className="text-xs text-gray-500 mb-2">{item.location}</span>
-                            <div className="mt-auto w-full flex justify-between items-center">
-                              <span className="font-mono font-bold text-blue-600">{formatCurrency(item.sellPrice || 0)}</span>
+                            <h4 className="font-bold text-gray-900 text-sm line-clamp-2 mb-1 w-full">{item.name}</h4>
+                            <div className="mt-auto w-full flex justify-between items-end border-t border-gray-50 pt-2">
+                              <div>
+                                <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{item.location}</div>
+                                <div className="font-mono font-bold text-blue-600 text-lg">{formatCurrency(item.sellPrice || 0)}</div>
+                              </div>
                               {item.quantity <= 0 ? (
-                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-600">Out of Stock</span>
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100">Sold Out</span>
                               ) : (
-                                <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-200 text-gray-600">{item.quantity} left</span>
+                                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100">{item.quantity} left</span>
                               )}
                             </div>
                           </button>
@@ -4505,32 +4507,33 @@ export default function App() {
                     )}
                   </div>
 
-                  <div className="p-3 bg-gray-50 border-t border-gray-200">
-                    <div className="space-y-2 mb-4 bg-gray-50 p-4 rounded-lg">
-                      <div className="flex justify-between text-sm text-gray-600">
+                  <div className="p-4 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+                    <div className="space-y-3 mb-4">
+                      <div className="flex justify-between text-sm text-gray-500 font-medium">
                         <span>{t('subtotal')}</span>
-                        <span>{formatCurrency(calculateTotal())}</span>
+                        <span className="font-mono text-gray-700">{formatCurrency(calculateTotal())}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm text-gray-600">
-                        <span>{t('discount') || 'Discount'}</span>
+                      <div className="flex justify-between items-center text-sm text-gray-500 font-medium">
+                        <span className="flex items-center gap-1 border-b border-dashed border-gray-300 pb-0.5">{t('discount') || 'Discount'} <span className="text-xs text-gray-400">(Optional)</span></span>
                         <div className="flex items-center gap-1">
                           <span className="text-gray-400">-</span>
                           <input
                             type="number"
                             min="0"
-                            className="w-20 p-1 text-right text-sm border border-gray-300 rounded bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                            value={cartDiscount}
+                            placeholder="0"
+                            className="w-20 p-0 text-right text-sm border-0 border-b border-gray-200 bg-transparent focus:ring-0 focus:border-blue-500 placeholder-gray-300 font-mono transition-all"
+                            value={cartDiscount || ''}
                             onChange={(e) => setCartDiscount(Math.max(0, Number(e.target.value)))}
                           />
                         </div>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-gray-500 font-medium">
                         <span>{t('tax')} (0%)</span>
                         <span>{formatCurrency(0)}</span>
                       </div>
-                      <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-200 pt-2">
-                        <span>{t('total')}</span>
-                        <span>{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
+                      <div className="flex justify-between items-baseline border-t border-gray-100 pt-3">
+                        <span className="text-lg font-bold text-gray-800">{t('total')}</span>
+                        <span className="text-2xl font-bold text-gray-900 tracking-tight">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
                       </div>
                     </div>
                     {/* Sales Employee Selection */}
