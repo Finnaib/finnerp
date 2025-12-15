@@ -2503,6 +2503,7 @@ export default function App() {
   const [newSaleForm, setNewSaleForm] = useState({ customer: 'Walk-in Customer', amount: 0, status: 'Completed', items: '' });
   const [orderType, setOrderType] = useState('Walk-in'); // 'Walk-in' or 'Takeaway'
   const [cart, setCart] = useState([]);
+  const [cartDiscount, setCartDiscount] = useState(0);
 
   // Auto-select first location for Strict Mode
   useEffect(() => {
@@ -2599,12 +2600,19 @@ export default function App() {
         orderType: orderType,
         paymentMethod: paymentMethod,
         customer: newSaleForm.customer || (orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')),
-        location: posLocationFilter || 'Main',
-        amount: totalAmount,
         status: 'Completed',
-        items: cart.map(i => ({ id: i.id, name: i.name, qty: i.quantity, price: i.price })),
+        items: cart.map(i => ({
+          id: i.id,
+          name: i.name,
+          price: i.sellPrice,
+          qty: i.quantity
+        })),
+        amount: Math.max(0, calculateTotal() - cartDiscount), // Apply Discount
+        discount: cartDiscount, // Save Discount
+        location: posLocationFilter || 'Main',
         userId: user.uid,
-        soldBy: salesEmployee ? salesEmployee.name : (user.email || 'Admin'),
+        soldBy: salesEmployee ? salesEmployee.name : 'Unknown', // Sales Employee Name
+        soldById: salesEmployee ? salesEmployee.id : null, // Sales Employee ID
         date: new Date().toISOString().split('T')[0],
         createdAt: serverTimestamp()
       };
@@ -2636,8 +2644,9 @@ export default function App() {
 
       // Reset
       setCart([]);
+      setCartDiscount(0); // Reset Discount
       setNewSaleForm({ customer: 'Walk-in Customer', amount: 0, status: 'Completed', items: '' });
-      alert("Sale Completed!");
+      setSalesEmployee(null);
     } catch (err) {
       console.error(err);
       alert("Checkout Error: " + err.message);
@@ -2867,6 +2876,11 @@ export default function App() {
             <span>${t('subtotal')}</span>
             <span>${formatCurrency(subtotal)}</span>
           </div>
+          ${(invoiceData.discount > 0) ? `
+          <div class="totals-row discount">
+             <span>${t('discount') || 'Discount'}</span>
+             <span>-${formatCurrency(invoiceData.discount)}</span>
+          </div>` : ''}
           <div class="totals-row total">
             <span>${t('total')}</span>
             <span>${formatCurrency(total)}</span>
@@ -2940,6 +2954,11 @@ export default function App() {
               <span>${t('subtotal')}</span>
               <span>${formatCurrency(subtotal)}</span>
             </div>
+            ${(invoiceData.discount > 0) ? `
+            <div class="totals-row">
+              <span>${t('discount') || 'Discount'}</span>
+              <span>-${formatCurrency(invoiceData.discount)}</span>
+            </div>` : ''}
             <div class="totals-row">
               <span>${t('taxVAT')}</span>
               <span>${formatCurrency(tax)}</span>
@@ -4394,10 +4413,23 @@ export default function App() {
                   </div>
 
                   <div className="p-3 bg-gray-50 border-t border-gray-200">
-                    <div className="space-y-1 mb-2">
+                    <div className="space-y-2 mb-4 bg-gray-50 p-4 rounded-lg">
                       <div className="flex justify-between text-sm text-gray-600">
                         <span>{t('subtotal')}</span>
                         <span>{formatCurrency(calculateTotal())}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm text-gray-600">
+                        <span>{t('discount') || 'Discount'}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">-</span>
+                          <input
+                            type="number"
+                            min="0"
+                            className="w-20 p-1 text-right text-sm border border-gray-300 rounded bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            value={cartDiscount}
+                            onChange={(e) => setCartDiscount(Math.max(0, Number(e.target.value)))}
+                          />
+                        </div>
                       </div>
                       <div className="flex justify-between text-sm text-gray-600">
                         <span>{t('tax')} (0%)</span>
@@ -4405,7 +4437,7 @@ export default function App() {
                       </div>
                       <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-200 pt-2">
                         <span>{t('total')}</span>
-                        <span>{formatCurrency(calculateTotal())}</span>
+                        <span>{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
                       </div>
                     </div>
                     {/* Sales Employee Selection */}
