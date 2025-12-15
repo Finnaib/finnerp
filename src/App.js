@@ -1774,6 +1774,7 @@ export default function App() {
   const [employeeLocationFilter, setEmployeeLocationFilter] = useState('');
   const [payrollLocationFilter, setPayrollLocationFilter] = useState('');
   const [payrollMonthFilter, setPayrollMonthFilter] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
+  const [profitMonthFilter, setProfitMonthFilter] = useState(new Date().toISOString().slice(0, 7));
   const [attendanceDateFilter, setAttendanceDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const [isAddAttendanceModalOpen, setIsAddAttendanceModalOpen] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState(null); // For edit modal
@@ -1818,6 +1819,10 @@ export default function App() {
         setPinInput('');
         if (pinAction === 'showCosts') setShowSensitiveData(true);
         if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
+        if (pinAction === 'accessReports') {
+          setActiveTab('reports');
+          setIsSidebarOpen(false);
+        }
       } else {
         setTimeout(() => {
           setPinInput('');
@@ -3483,6 +3488,62 @@ export default function App() {
           });
         filename = 'Weekly_Inventory_Buy_Report.xlsx';
         break;
+      case 'profit_loss':
+        headers = [t('category'), t('details'), t('amount')];
+        const startOfMonth = new Date(profitMonthFilter + '-01');
+        const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
+
+        // 1. Revenue (Sales)
+        const monthlySales = sales.filter(s => {
+          const d = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
+          return d >= startOfMonth && d <= endOfMonth && (!reportLocationFilter || s.location === reportLocationFilter);
+        });
+        const revenue = monthlySales.reduce((sum, s) => sum + (s.amount || 0), 0);
+
+        // 2. COGS (Cost of Goods Sold)
+        // We need to loop through sales items and find their original buyPrice from inventory
+        let cogs = 0;
+        monthlySales.forEach(sale => {
+          if (Array.isArray(sale.items)) {
+            sale.items.forEach(soldItem => {
+              // Try to find current buy price from inventory (Approximation if historic cost not stored)
+              const invItem = inventory.find(i => i.name === soldItem.name); // Match by name or ID if available
+              const cost = invItem ? (invItem.buyPrice || 0) : 0;
+              cogs += cost * (soldItem.qty || 0);
+            });
+          }
+        });
+
+        // 3. Expenses (Payroll + Purchases/Expenses)
+        // Payroll (Paid in this month)
+        // Check "payroll" collection logic? Assuming simple payroll calculation for now as per report logic
+        const monthPayroll = employees
+          .filter(e => !reportLocationFilter || e.location === reportLocationFilter)
+          .reduce((sum, e) => sum + (e.salary || 0) + (e.bonus || 0) + (e.overtime || 0), 0);
+
+        // Purchases (Marked as Paid/Received in this month)
+        const monthlyPurchases = purchases.filter(p => {
+          // Assuming purhcases have date field
+          const d = p.date ? new Date(p.date) : new Date();
+          return d >= startOfMonth && d <= endOfMonth && (!reportLocationFilter || p.location === reportLocationFilter); // Assuming purchases have location
+        });
+        const otherExpenses = monthlyPurchases.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+        const totalExpenses = monthPayroll + otherExpenses;
+        const netProfit = revenue - cogs - totalExpenses;
+
+        data = [
+          ['REVENUE', 'Total Sales', revenue],
+          ['COGS', 'Cost of Goods Sold', -cogs],
+          ['GROSS PROFIT', '', revenue - cogs],
+          ['EXPENSES', 'Payroll', -monthPayroll],
+          ['EXPENSES', 'Purchases/Other', -otherExpenses],
+          ['NET PROFIT', '', netProfit]
+        ];
+
+        filename = `Profit_Loss_${profitMonthFilter}.xlsx`;
+        extraMetadata = [`Period: ${profitMonthFilter}`, `Location: ${reportLocationFilter || 'All'}`];
+        break;
       default: return;
     }
     generateExcel(headers, data, filename, extraMetadata);
@@ -3608,7 +3669,7 @@ export default function App() {
           <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); setIsSidebarOpen(false); }} />
           <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<BarChart3 size={20} />} label={t('menuReports')} active={activeTab === 'reports'} onClick={() => { setActiveTab('reports'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<BarChart3 size={20} />} label={t('menuReports')} active={activeTab === 'reports'} onClick={() => { setPinAction('accessReports'); setIsPinModalOpen(true); }} />
 
           <div className="my-2 border-t border-slate-700/50"></div>
 
@@ -4234,6 +4295,38 @@ export default function App() {
                   <button onClick={() => setIsAddAccountModalOpen(true)} className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 w-full sm:w-auto">
                     <Plus size={20} /> Add Account
                   </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 items-center justify-between flex">
+                    <div>
+                      <h3 className="font-bold text-gray-800">{t('taxReport')}</h3>
+                      <p className="text-sm text-gray-500">Estimated tax deductions</p>
+                    </div>
+                    <button onClick={() => downloadReport('tax')} className="bg-orange-100 text-orange-600 p-3 rounded-xl hover:bg-orange-200 transition-colors">
+                      <Download size={20} />
+                    </button>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 md:col-span-2">
+                    <div className="flex justify-between items-center mb-4">
+                      <div>
+                        <h3 className="font-bold text-gray-800">Monthly Profit & Loss</h3>
+                        <p className="text-sm text-gray-500">Revenue vs Content vs Expenses</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="month"
+                          value={profitMonthFilter}
+                          onChange={e => setProfitMonthFilter(e.target.value)}
+                          className="border border-gray-200 rounded-lg px-2 text-sm"
+                        />
+                        <button onClick={() => downloadReport('profit_loss')} className="bg-emerald-100 text-emerald-600 p-3 rounded-xl hover:bg-emerald-200 transition-colors">
+                          <Download size={20} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
@@ -5729,6 +5822,10 @@ export default function App() {
                               // Execute Action
                               if (pinAction === 'showCosts') setShowSensitiveData(true);
                               if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
+                              if (pinAction === 'accessReports') {
+                                setActiveTab('reports');
+                                setIsSidebarOpen(false);
+                              }
                             } else {
                               setTimeout(() => {
                                 setPinInput('');
@@ -5755,6 +5852,10 @@ export default function App() {
                             setPinInput('');
                             if (pinAction === 'showCosts') setShowSensitiveData(true);
                             if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
+                            if (pinAction === 'accessReports') {
+                              setActiveTab('reports');
+                              setIsSidebarOpen(false);
+                            }
                           } else {
                             setTimeout(() => {
                               setPinInput('');
