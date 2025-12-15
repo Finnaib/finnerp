@@ -136,7 +136,7 @@ export default function App() {
   // --- Auth & UI State (Moved to top to fix TDZ) ---
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile Sidebar
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024); // Default open on Desktop
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [authForm, setAuthForm] = useState({ email: '', password: '', apiKey: '' });
   const [loading, setLoading] = useState(false);
@@ -3721,7 +3721,7 @@ export default function App() {
       <SpeedInsights />
       <Analytics />
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col shadow-xl z-30 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative`}>
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col shadow-xl z-30 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-slate-700 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600 rounded-lg">
@@ -3774,7 +3774,7 @@ export default function App() {
         {/* Header */}
         <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm z-10">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden text-gray-600 hover:text-gray-900"><Menu size={24} /></button>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-600 hover:text-gray-900"><Menu size={24} /></button>
             <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
               {activeTab === 'dashboard' && <LayoutDashboard className="text-sky-600" />}
               {activeTab === 'employees' && <Users className="text-blue-600" />}
