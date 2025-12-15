@@ -3721,7 +3721,7 @@ export default function App() {
       <SpeedInsights />
       <Analytics />
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col shadow-xl z-30 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed md:relative inset-y-0 left-0 bg-slate-900 text-white flex flex-col shadow-xl z-30 transition-all duration-300 ease-in-out overflow-hidden ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full opacity-0'}`}>
         <div className="p-6 border-b border-slate-700 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600 rounded-lg">
@@ -3732,7 +3732,7 @@ export default function App() {
               <p className="text-xs text-slate-400">{t('appSubtitle')}</p>
             </div>
           </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-400 hover:text-white"><X size={24} /></button>
+          <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-white"><X size={24} /></button>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
