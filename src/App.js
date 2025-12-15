@@ -4480,7 +4480,7 @@ export default function App() {
                     <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  <div className="flex-1 overflow-y-auto p-3 space-y-2">
                     {cart.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-gray-400">
                         <ShoppingCart size={48} className="mb-4 opacity-20" />
@@ -4489,52 +4489,54 @@ export default function App() {
                       </div>
                     ) : (
                       cart.map(item => (
-                        <div key={item.id} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 group">
-                          <div className="flex-1">
-                            <div className="font-bold text-gray-900">{item.name}</div>
-                            <div className="text-xs text-gray-500 font-mono">{formatCurrency(item.price)} x {item.quantity}</div>
+                        <div key={item.id} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 group hover:border-blue-200 transition-colors">
+                          <div className="flex-1 min-w-0 pr-2">
+                            <div className="font-bold text-gray-900 text-sm truncate">{item.name}</div>
+                            <div className="text-[10px] text-gray-500 font-mono">{formatCurrency(item.price)} x {item.quantity}</div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center bg-white border border-gray-200 rounded-lg">
-                              <button onClick={() => updateCartQuantity(item.id, -1)} className="px-2 py-1 hover:bg-gray-100 text-gray-600 rounded-l-lg">-</button>
-                              <span className="font-mono text-sm px-2">{item.quantity}</span>
-                              <button onClick={() => updateCartQuantity(item.id, 1)} className="px-2 py-1 hover:bg-gray-100 text-gray-600 rounded-r-lg">+</button>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center bg-white border border-gray-200 rounded-md h-7">
+                              <button onClick={() => updateCartQuantity(item.id, -1)} className="px-2 hover:bg-gray-100 text-gray-600 rounded-l-md h-full flex items-center justify-center text-xs">-</button>
+                              <span className="font-mono text-xs font-bold px-1 min-w-[1.5rem] text-center">{item.quantity}</span>
+                              <button onClick={() => updateCartQuantity(item.id, 1)} className="px-2 hover:bg-gray-100 text-gray-600 rounded-r-md h-full flex items-center justify-center text-xs">+</button>
                             </div>
-                            <span className="font-mono font-bold text-gray-900 w-16 text-right">{formatCurrency(item.price * item.quantity)}</span>
-                            <button onClick={() => removeFromCart(item.id)} className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
+                            <span className="font-mono font-bold text-gray-900 w-14 text-right text-sm">{formatCurrency(item.price * item.quantity)}</span>
                           </div>
+                          <button onClick={() => removeFromCart(item.id)} className="ml-2 text-gray-300 hover:text-red-500 transition-colors p-1">
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       ))
                     )}
                   </div>
 
-                  <div className="p-4 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
-                    <div className="space-y-3 mb-4">
-                      <div className="flex justify-between text-sm text-gray-500 font-medium">
+                  <div className="p-3 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+                    <div className="space-y-2 mb-3">
+                      <div className="flex justify-between text-xs text-gray-500 font-medium">
                         <span>{t('subtotal')}</span>
                         <span className="font-mono text-gray-700">{formatCurrency(calculateTotal())}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm text-gray-500 font-medium">
-                        <span className="flex items-center gap-1 border-b border-dashed border-gray-300 pb-0.5">{t('discount') || 'Discount'} <span className="text-xs text-gray-400">(Optional)</span></span>
+                      <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                        <span className="flex items-center gap-1 border-b border-dashed border-gray-300 pb-0.5">{t('discount') || 'Discount'}</span>
                         <div className="flex items-center gap-1">
                           <span className="text-gray-400">-</span>
                           <input
                             type="number"
                             min="0"
                             placeholder="0"
-                            className="w-20 p-0 text-right text-sm border-0 border-b border-gray-200 bg-transparent focus:ring-0 focus:border-blue-500 placeholder-gray-300 font-mono transition-all"
+                            className="w-16 p-0 text-right text-xs border-0 border-b border-gray-200 bg-transparent focus:ring-0 focus:border-blue-500 placeholder-gray-300 font-mono transition-all h-5"
                             value={cartDiscount || ''}
                             onChange={(e) => setCartDiscount(Math.max(0, Number(e.target.value)))}
                           />
                         </div>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-500 font-medium">
+                      <div className="flex justify-between text-xs text-gray-500 font-medium">
                         <span>{t('tax')} (0%)</span>
                         <span>{formatCurrency(0)}</span>
                       </div>
-                      <div className="flex justify-between items-baseline border-t border-gray-100 pt-3">
-                        <span className="text-lg font-bold text-gray-800">{t('total')}</span>
-                        <span className="text-2xl font-bold text-gray-900 tracking-tight">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
+                      <div className="flex justify-between items-baseline border-t border-gray-100 pt-2 mt-1">
+                        <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{t('total')}</span>
+                        <span className="text-xl font-bold text-gray-900 tracking-tight">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
                       </div>
                     </div>
                     {/* Sales Employee Selection */}
