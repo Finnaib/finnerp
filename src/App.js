@@ -3798,7 +3798,7 @@ export default function App() {
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{t('filterAll')}</h3>
-                  <p className="text-sm text-gray-500">{t('manageDetails')}</p>
+                  <p className="text-sm text-gray-500">{t('manageLocations') || 'View and manage all your physical locations'}</p>
                 </div>
                 <button onClick={() => setIsAddSiteModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all w-full sm:w-auto">
                   <Plus size={18} /> {t('addLocation')}
@@ -3809,7 +3809,7 @@ export default function App() {
                 {sites.map(site => (
                   <div key={site.id} onClick={() => setSelectedSite(site)} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-shadow cursor-pointer">
                     <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-lg ${site.status === 'Operational' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                      <div className={`p-3 rounded-lg ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
                         <Building2 size={24} />
                       </div>
                       <div>
@@ -3822,8 +3822,8 @@ export default function App() {
                         <p className="text-gray-500">{t('manager')}</p>
                         <p className="font-medium text-gray-800">{site.manager || '-'}</p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${site.status === 'Operational' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                        {site.status === 'Operational' ? t('operational') : t('renovating')}
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {t(site.status.toLowerCase()) || site.status}
                       </span>
                     </div>
                   </div>
