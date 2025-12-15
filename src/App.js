@@ -5626,8 +5626,18 @@ export default function App() {
               </div>
               <div className="p-2 max-h-[60vh] overflow-y-auto">
                 <div className="space-y-1">
-                  {/* Admin option removed */}
-                  {employees.map(emp => (
+                  {/* Filtered Employees: Assigned to Location OR Covering Today */}
+                  {employees.filter(emp => {
+                    if (!posLocationFilter) return true; // Safety check
+                    const isAssigned = emp.location === posLocationFilter;
+                    const today = new Date().toISOString().split('T')[0];
+                    const isCovering = attendance.some(a =>
+                      a.name === emp.name &&
+                      a.date === today &&
+                      (a.locationFilter === posLocationFilter || a.site === posLocationFilter) // check both just in case
+                    );
+                    return isAssigned || isCovering;
+                  }).map(emp => (
                     <button
                       key={emp.id}
                       onClick={() => { setSalesEmployee(emp); setIsSelectSalesEmployeeModalOpen(false); }}
