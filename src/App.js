@@ -2506,6 +2506,21 @@ export default function App() {
 
   const addToCart = (item) => {
     if (item.quantity <= 0) return;
+
+    // Strict Location Rule
+    if (cart.length > 0) {
+      const cartLocation = cart[0].location;
+      if (item.location !== cartLocation) {
+        alert(t('mixedLocationError') || "Cannot mix items from different locations! Please clear cart first.");
+        return;
+      }
+    } else {
+      // First item: Auto-lock filter if currently "All"
+      if (!posLocationFilter) {
+        setPosLocationFilter(item.location);
+      }
+    }
+
     setCart(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
@@ -2548,17 +2563,24 @@ export default function App() {
           const counterDoc = await transaction.get(counterRef);
           const today = new Date().toISOString().split('T')[0];
 
-          let data = counterDoc.exists() ? counterDoc.data() : { date: today, W: 0, T: 0 };
+          // Construct Key based on Location and Type
+          const locationName = posLocationFilter || 'Main';
+          const locCode = locationName.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4); // First 4 alphanumeric chars
+          const counterKey = `${locCode}_${prefix}`;
 
+          let data = counterDoc.exists() ? counterDoc.data() : { date: today };
+
+          // Reset if new day (keeping independent counters for now, or global day reset?)
+          // Current logic resets ALL counters if date changes.
           if (data.date !== today) {
-            data = { date: today, W: 0, T: 0 };
+            data = { date: today };
           }
 
-          const count = (data[prefix] || 0) + 1;
-          data[prefix] = count;
+          const count = (data[counterKey] || 0) + 1;
+          data[counterKey] = count;
 
           transaction.set(counterRef, data);
-          return `${prefix}-${count.toString().padStart(4, '0')}`;
+          return `${locCode}-${prefix}-${count.toString().padStart(4, '0')}`;
         });
       } catch (e) {
         console.error("Counter failed, using fallback", e);
@@ -2764,6 +2786,17 @@ export default function App() {
     `;
 
     const getPageContent = (copyLabel, isFirstPage) => {
+      // Resolve Site Details
+      const site = sites.find(s => s.name === invoiceData.location) || {};
+      // Logic: Use Site Name/Address/Phone if available, else fallback to Shop Settings
+      // For Name: If Site Name exists, append it? Or replace? User asked for "details of that site".
+      // Let's us Site Name if available, or Company Name.
+      // Actually, maybe show Company Name AND Site Name?
+      // User said "my site name also show...".
+      const printName = shopSettings.name + (site.name ? ` - ${site.name}` : '');
+      const printAddress = site.address || shopSettings.address;
+      const printPhone = site.phone || shopSettings.phone;
+
       const subtotal = Array.isArray(invoiceData.items)
         ? invoiceData.items.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || item.quantity || 0)), 0)
         : invoiceData.amount || 0;
@@ -2776,8 +2809,8 @@ export default function App() {
         ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
         
         <div class="header">
-          <div class="title">${shopSettings.name}</div>
-          <div class="subtitle">${shopSettings.address} | ${shopSettings.phone}</div>
+          <div class="title">${printName}</div>
+          <div class="subtitle">${printAddress} | ${printPhone}</div>
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         <div class="invoice-title">${t('retailInvoice')}</div>
@@ -2832,9 +2865,9 @@ export default function App() {
         
         <div class="header">
           <div class="brand">
-            <div class="title">${shopSettings.name}</div>
-            <div class="subtitle">${shopSettings.address}</div>
-            <div class="subtitle">${t('phone')}: ${shopSettings.phone}</div>
+            <div class="title">${printName}</div>
+            <div class="subtitle">${printAddress}</div>
+            <div class="subtitle">${t('phone')}: ${printPhone}</div>
             <div class="sold-by">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
           </div>
           <div class="invoice-info">
@@ -3222,13 +3255,17 @@ export default function App() {
     if (!user) return;
     await addDoc(collection(db, 'sites'), {
       ...newSiteForm,
-      userId: user.uid
+      address: newSiteForm.address || '',
+      phone: newSiteForm.phone || '',
+      userId: user.uid,
+      createdAt: serverTimestamp()
     });
     setIsAddSiteModalOpen(false);
-    setNewSiteForm({ name: '', city: '', manager: '', status: 'Operational' });
+    setNewSiteForm({ name: '', city: '', manager: '', status: 'Operational', address: '', phone: '' });
   };
 
   const handleUpdateSite = async (id, field, value) => {
+    // Basic validation or formatting if needed
     await updateDoc(doc(db, 'sites', id), { [field]: value });
     setSelectedSite(prev => ({ ...prev, [field]: value }));
   };
@@ -4215,9 +4252,11 @@ export default function App() {
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                       <select
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${cart.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                         value={posLocationFilter}
                         onChange={e => setPosLocationFilter(e.target.value)}
+                        disabled={cart.length > 0}
+                        title={cart.length > 0 ? "Finish (or clear) current sale to change location" : "Filter by Store Location"}
                       >
                         <option value="">{t('filterAll') || 'All Locations'}</option>
                         {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -4771,6 +4810,8 @@ export default function App() {
                 <input className="input-field" placeholder={t('siteName')} value={newSiteForm.name} onChange={e => setNewSiteForm({ ...newSiteForm, name: e.target.value })} required />
                 <input className="input-field" placeholder={t('city')} value={newSiteForm.city} onChange={e => setNewSiteForm({ ...newSiteForm, city: e.target.value })} required />
                 <input className="input-field" placeholder={t('manager')} value={newSiteForm.manager} onChange={e => setNewSiteForm({ ...newSiteForm, manager: e.target.value })} />
+                <input className="input-field" placeholder={t('shopAddress') || 'Address'} value={newSiteForm.address || ''} onChange={e => setNewSiteForm({ ...newSiteForm, address: e.target.value })} />
+                <input className="input-field" placeholder={t('phone') || 'Phone'} value={newSiteForm.phone || ''} onChange={e => setNewSiteForm({ ...newSiteForm, phone: e.target.value })} />
 
                 <select className="input-field" value={newSiteForm.status} onChange={e => setNewSiteForm({ ...newSiteForm, status: e.target.value })}>
                   <option value="Operational">Operational</option>
@@ -4982,6 +5023,22 @@ export default function App() {
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-bold uppercase text-gray-400">{t('manager')}</label>
                         <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.manager} onChange={(e) => handleUpdateSite(selectedSite.id, 'manager', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold uppercase text-gray-400">{t('shopAddress') || 'Address'}</label>
+                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.address || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'address', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold uppercase text-gray-400">{t('phone') || 'Phone'}</label>
+                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.phone || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'phone', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold uppercase text-gray-400">{t('shopAddress') || 'Address'}</label>
+                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.address || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'address', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold uppercase text-gray-400">{t('phone') || 'Phone'}</label>
+                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.phone || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'phone', e.target.value)} />
                       </div>
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-bold uppercase text-gray-400">{t('operationalStatus')}</label>
