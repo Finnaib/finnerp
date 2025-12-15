@@ -3655,22 +3655,22 @@ export default function App() {
           if (!reportLocationFilter || e.location === reportLocationFilter) {
             const dept = e.dept || 'General';
             if (!payrollByDept[dept]) payrollByDept[dept] = 0;
-            
+
             // Calculate Deductions based on Attendance for this month
             let deductionAmount = 0;
             const baseSalary = Number(e.salary) || 0;
-            
+
             const empAttendance = attendance.filter(a => {
-               const aDate = new Date(a.date);
-               return a.name === e.name && aDate >= startOfMonth && aDate <= endOfMonth;
+              const aDate = new Date(a.date);
+              return a.name === e.name && aDate >= startOfMonth && aDate <= endOfMonth;
             });
 
             empAttendance.forEach(record => {
               if (record.status === 'Late') {
-                 deductionAmount += 50; 
+                deductionAmount += 50;
               }
               if (record.status === 'Absent') {
-                 deductionAmount += (baseSalary / 30);
+                deductionAmount += (baseSalary / 30);
               }
             });
 
@@ -3679,7 +3679,7 @@ export default function App() {
 
             // Net Pay = (Base + Bonus + Overtime) - Deductions
             const cost = (baseSalary + (Number(e.bonus) || 0) + (Number(e.overtime) || 0)) - deductionAmount;
-            
+
             payrollByDept[dept] += cost;
             monthPayroll += cost;
           }
@@ -3718,7 +3718,7 @@ export default function App() {
           ['', t('netMargin'), ((revenue ? netProfit / revenue : 0) * 100).toFixed(2) + '%']
         ];
 
-        filename = `Profit_Loss_${profitMonthFilter}.xlsx`;
+        filename = `Profit_Loss_NetPay_${profitMonthFilter}.xlsx`;
         extraMetadata = [`Period: ${profitMonthFilter}`, `Location: ${reportLocationFilter || t('filterAll')}`];
         break;
       default: return;
