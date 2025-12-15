@@ -203,6 +203,11 @@ export default function App() {
   const [pinAction, setPinAction] = useState('showCosts'); // 'showCosts' | 'changeSalesEmployee'
   const [paymentMethod, setPaymentMethod] = useState('Cash'); // 'Cash' | 'Visa' | 'Online'
 
+
+  // [Added] Location Filters for new modules
+  const [warehouseLocationFilter, setWarehouseLocationFilter] = useState('');
+  const [posLocationFilter, setPosLocationFilter] = useState('');
+
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const formatCurrency = (val) => {
     try {
@@ -2422,9 +2427,12 @@ export default function App() {
     e.preventDefault();
     if (!user) return;
 
-    // Check for duplicates
-    if (inventory.some(item => item.name.toLowerCase() === newItemForm.name.trim().toLowerCase())) {
-      alert(t('itemExists') || "Item already exists!");
+    // Check for duplicates (Name + Location)
+    if (inventory.some(item =>
+      item.name.trim().toLowerCase() === newItemForm.name.trim().toLowerCase() &&
+      item.location === newItemForm.location
+    )) {
+      alert(t('itemExists') || "Item already exists at this location!");
       return;
     }
 
@@ -2446,9 +2454,13 @@ export default function App() {
     e.preventDefault();
     if (!user || !editingItem) return;
 
-    // Check for duplicates (excluding current item)
-    if (inventory.some(item => item.id !== editingItem.id && item.name.toLowerCase() === editingItem.name.trim().toLowerCase())) {
-      alert(t('itemExists') || "Item already exists!");
+    // Check for duplicates (excluding current item) - Name + Location unique
+    if (inventory.some(item =>
+      item.id !== editingItem.id &&
+      item.name.trim().toLowerCase() === editingItem.name.trim().toLowerCase() &&
+      item.location === editingItem.location
+    )) {
+      alert(t('itemExists') || "Item already exists at this location!");
       return;
     }
 
@@ -2555,6 +2567,7 @@ export default function App() {
         orderType: orderType,
         paymentMethod: paymentMethod,
         customer: newSaleForm.customer || (orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')),
+        location: posLocationFilter || 'Main',
         amount: totalAmount,
         status: 'Completed',
         items: cart.map(i => ({ id: i.id, name: i.name, qty: i.quantity, price: i.price })),
@@ -4154,24 +4167,37 @@ export default function App() {
                         </button>
                       </div>
                     </div>
-                    <div className="relative w-full sm:w-64">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        name="search-products-custom"
-                        autoComplete="off"
-                        placeholder={t('searchProducts')}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={inventorySearch}
-                        onChange={(e) => setInventorySearch(e.target.value)}
-                      />
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <select
+                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={posLocationFilter}
+                        onChange={e => setPosLocationFilter(e.target.value)}
+                      >
+                        <option value="">{t('filterAll') || 'All Locations'}</option>
+                        {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                      </select>
+                      <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          name="search-products-custom"
+                          autoComplete="off"
+                          placeholder={t('searchProducts')}
+                          className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          value={inventorySearch}
+                          onChange={(e) => setInventorySearch(e.target.value)}
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex-1 overflow-y-auto bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-[400px] lg:max-h-none">
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                       {inventory
-                        .filter(item => (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                        .filter(item =>
+                          (!posLocationFilter || item.location === posLocationFilter) &&
+                          (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase())
+                        )
                         .map(item => (
                           <button
                             key={item.id}
@@ -4384,20 +4410,30 @@ export default function App() {
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
                   <div className="p-4 border-b border-gray-100">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        type="text"
-                        placeholder={t('searchInventory')}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={inventorySearch}
-                        onChange={(e) => setInventorySearch(e.target.value)}
-                        autoComplete="new-password"
-                        name="search-inventory-xyz-unique"
-                        data-form-type="other"
-                        readOnly
-                        onFocus={(e) => e.target.removeAttribute('readonly')}
-                      />
+                    <div className="flex flex-col sm:flex-row gap-2 w-full">
+                      <select
+                        className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+                        value={warehouseLocationFilter}
+                        onChange={e => setWarehouseLocationFilter(e.target.value)}
+                      >
+                        <option value="">{t('filterAll') || 'All Locations'}</option>
+                        {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                      </select>
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <input
+                          type="text"
+                          placeholder={t('searchInventory')}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          value={inventorySearch}
+                          onChange={(e) => setInventorySearch(e.target.value)}
+                          autoComplete="new-password"
+                          name="search-inventory-xyz-unique"
+                          data-form-type="other"
+                          readOnly
+                          onFocus={(e) => e.target.removeAttribute('readonly')}
+                        />
+                      </div>
                     </div>
                   </div>
                   <table className="w-full text-left min-w-[640px]">
@@ -4418,8 +4454,9 @@ export default function App() {
                       ) : (
                         inventory
                           .filter(item =>
-                            (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
-                            (item.sku?.toLowerCase() || '').includes(inventorySearch.toLowerCase())
+                            (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                            ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                              (item.sku?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
                           )
                           .map(item => (
                             <tr key={item.id} className="hover:bg-gray-50">
@@ -5259,7 +5296,7 @@ export default function App() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1">Location</label>
-                  <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })}>
+                  <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })} required>
                     <option value="">Select Location</option>
                     {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                   </select>
