@@ -4433,6 +4433,13 @@ export default function App() {
                           <option value="Thermal">{t('thermal')}</option>
                           <option value="A4">{t('a4')}</option>
                         </select>
+                        <button
+                          onClick={() => setPrintDual(!printDual)}
+                          className={`text-xs font-bold px-2 py-1 rounded transition-colors ${printDual ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}
+                          title={t('dualPrint')}
+                        >
+                          2x
+                        </button>
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto">
                         <select
@@ -4492,6 +4499,30 @@ export default function App() {
                           </button>
                         ))}
                     </div>
+                  </div>
+
+                  {/* Daily History Toggle / View */}
+                  <div className="bg-white p-4 mx-4 mb-4 rounded-xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto shrink-0">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> {t('todaysSales')}</h3>
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">{t('invoiceId')} #</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {sales
+                          .filter(s => s.date === new Date().toISOString().split('T')[0])
+                          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+                          .map(s => (
+                            <tr key={s.id}>
+                              <td className="p-2 text-gray-500">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
+                              <td className="p-2 font-mono text-xs text-blue-600 font-bold">{s.invoiceId || '-'}</td>
+                              <td className="p-2 font-mono font-bold text-gray-900">{formatCurrency(s.amount)}</td>
+                              <td className="p-2 text-xs truncate max-w-[150px]">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</td>
+                              <td className="p-2">
+                                <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="text-gray-400 hover:text-gray-600"><Printer size={16} /></button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 
