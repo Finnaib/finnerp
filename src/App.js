@@ -608,6 +608,19 @@ export default function App() {
       expenses: 'EXPENSES',
       purchasesOther: 'Purchases/Other',
       netProfit: 'NET PROFIT',
+      // New Professional P&L Keys
+      incomeStatement: 'INCOME STATEMENT',
+      salesCash: 'Sales - Cash',
+      salesVisa: 'Sales - Visa',
+      salesOnline: 'Sales - Online',
+      totalRevenue: 'Total Revenue',
+      costOfGoodsSold: 'Cost of Goods Sold',
+      grossMargin: 'Gross Margin',
+      operatingExpenses: 'OPERATING EXPENSES',
+      totalExpenses: 'Total Expenses',
+      netMargin: 'Net Margin',
+      deptExpenses: 'Department Expenses',
+      invPurchases: 'Inventory Purchases',
     },
     hi: {
       appName: 'Finn ERP',
@@ -1015,6 +1028,19 @@ export default function App() {
       expenses: 'व्यय',
       purchasesOther: 'खरीद/अन्य',
       netProfit: 'शुद्ध लाभ',
+      // New Professional P&L Keys
+      incomeStatement: 'आय विवरण',
+      salesCash: 'बिक्री - नकद',
+      salesVisa: 'बिक्री - वीज़ा',
+      salesOnline: 'बिक्री - ऑनलाइन',
+      totalRevenue: 'कुल राजस्व',
+      costOfGoodsSold: 'बेचे गए माल की लागत',
+      grossMargin: 'सकल मार्जिन',
+      operatingExpenses: 'परिचालन व्यय',
+      totalExpenses: 'कुल व्यय',
+      netMargin: 'शुद्ध मार्जिन',
+      deptExpenses: 'विभाग व्यय',
+      invPurchases: 'इन्वेंटरी खरीद',
     },
 
     ar: {
@@ -1444,6 +1470,19 @@ export default function App() {
       expenses: 'المصاريف',
       purchasesOther: 'المشتريات/أخرى',
       netProfit: 'صافي الربح',
+      // New Professional P&L Keys
+      incomeStatement: 'قائمة الدخل',
+      salesCash: 'مبيعات - نقد',
+      salesVisa: 'مبيعات - فيزا',
+      salesOnline: 'مبيعات - أونلاين',
+      totalRevenue: 'إجمالي الإيرادات',
+      costOfGoodsSold: 'تكلفة البضاعة المباعة',
+      grossMargin: 'هامش الربح الإجمالي',
+      operatingExpenses: 'المصاريف التشغيلية',
+      totalExpenses: 'إجمالي المصاريف',
+      netMargin: 'هامش الربح الصافي',
+      deptExpenses: 'مصاريف الأقسام',
+      invPurchases: 'مشتريات المخزون',
     },
     zh: {
       appName: 'Finn ERP',
@@ -1809,6 +1848,19 @@ export default function App() {
       expenses: '费用',
       purchasesOther: '采购/其他',
       netProfit: '净利润',
+      // New Professional P&L Keys
+      incomeStatement: '损益表',
+      salesCash: '销售 - 现金',
+      salesVisa: '销售 - Visa',
+      salesOnline: '销售 - 在线',
+      totalRevenue: '总收入',
+      costOfGoodsSold: '销货成本',
+      grossMargin: '毛利率',
+      operatingExpenses: '运营费用',
+      totalExpenses: '总费用',
+      netMargin: '净利率',
+      deptExpenses: '部门费用',
+      invPurchases: '库存采购',
       discount: '折扣',
       subtotal: '小计',
       tax: '税',
@@ -3565,52 +3617,81 @@ export default function App() {
         const startOfMonth = new Date(profitMonthFilter + '-01');
         const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
 
-        // 1. Revenue (Sales)
+
+        // 1. Revenue Analysis (Breakdown by Payment Method)
         const monthlySales = sales.filter(s => {
           const d = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
           return d >= startOfMonth && d <= endOfMonth && (!reportLocationFilter || s.location === reportLocationFilter);
         });
-        const revenue = monthlySales.reduce((sum, s) => sum + (s.amount || 0), 0);
+
+        const revByMethod = {};
+        let revenue = 0;
+        monthlySales.forEach(s => {
+          const method = s.paymentMethod || 'Cash';
+          if (!revByMethod[method]) revByMethod[method] = 0;
+          revByMethod[method] += (s.amount || 0);
+          revenue += (s.amount || 0);
+        });
 
         // 2. COGS (Cost of Goods Sold)
-        // We need to loop through sales items and find their original buyPrice from inventory
         let cogs = 0;
         monthlySales.forEach(sale => {
           if (Array.isArray(sale.items)) {
             sale.items.forEach(soldItem => {
-              // Try to find current buy price from inventory (Approximation if historic cost not stored)
-              const invItem = inventory.find(i => i.name === soldItem.name); // Match by name or ID if available
+              const invItem = inventory.find(i => i.name === soldItem.name);
               const cost = invItem ? (invItem.buyPrice || 0) : 0;
               cogs += cost * (soldItem.qty || 0);
             });
           }
         });
 
-        // 3. Expenses (Payroll + Purchases/Expenses)
-        // Payroll (Paid in this month)
-        // Check "payroll" collection logic? Assuming simple payroll calculation for now as per report logic
-        const monthPayroll = employees
-          .filter(e => !reportLocationFilter || e.location === reportLocationFilter)
-          .reduce((sum, e) => sum + (e.salary || 0) + (e.bonus || 0) + (e.overtime || 0), 0);
+        const grossProfit = revenue - cogs;
 
-        // Purchases (Marked as Paid/Received in this month)
+        // 3. Expenses (Payroll + Purchases)
+        // Payroll by Dept
+        const payrollByDept = {};
+        let monthPayroll = 0;
+        employees.forEach(e => {
+          if (!reportLocationFilter || e.location === reportLocationFilter) {
+            const dept = e.dept || 'General';
+            if (!payrollByDept[dept]) payrollByDept[dept] = 0;
+            const cost = (e.salary || 0) + (e.bonus || 0) + (e.overtime || 0);
+            payrollByDept[dept] += cost;
+            monthPayroll += cost;
+          }
+        });
+
+        // Purchases (Inventory/Expenses)
         const monthlyPurchases = purchases.filter(p => {
-          // Assuming purhcases have date field
           const d = p.date ? new Date(p.date) : new Date();
-          return d >= startOfMonth && d <= endOfMonth && (!reportLocationFilter || p.location === reportLocationFilter); // Assuming purchases have location
+          return d >= startOfMonth && d <= endOfMonth && (!reportLocationFilter || p.location === reportLocationFilter);
         });
         const otherExpenses = monthlyPurchases.reduce((sum, p) => sum + (p.amount || 0), 0);
 
         const totalExpenses = monthPayroll + otherExpenses;
-        const netProfit = revenue - cogs - totalExpenses;
+        const netProfit = grossProfit - totalExpenses;
 
+        // 4. Construct Professional Logic
         data = [
-          [t('revenue'), t('totalSales'), revenue],
-          [t('cogs'), t('cogsFull'), -cogs],
-          [t('grossProfit'), '', revenue - cogs],
-          [t('expenses'), t('menuPayroll'), -monthPayroll],
-          [t('expenses'), t('purchasesOther'), -otherExpenses],
-          [t('netProfit'), '', netProfit]
+          [t('incomeStatement'), '', ''],
+          ['', '', ''],
+          [t('revenue').toUpperCase(), '', ''],
+          ...Object.entries(revByMethod).map(([m, amt]) => ['', t(m) || m, amt]),
+          [t('totalRevenue'), '', revenue],
+          ['', '', ''],
+          [t('costOfGoodsSold').toUpperCase(), '', ''],
+          ['', t('cogsFull'), -cogs],
+          [t('grossProfit'), '', grossProfit],
+          ['', t('grossMargin'), ((revenue ? grossProfit / revenue : 0) * 100).toFixed(2) + '%'],
+          ['', '', ''],
+          [t('operatingExpenses').toUpperCase(), '', ''],
+          [t('deptExpenses'), '', ''],
+          ...Object.entries(payrollByDept).map(([d, amt]) => ['', d + ' ' + t('menuPayroll'), -amt]),
+          ['', t('invPurchases'), -otherExpenses],
+          [t('totalExpenses'), '', -totalExpenses],
+          ['', '', ''],
+          [t('netProfit'), '', netProfit],
+          ['', t('netMargin'), ((revenue ? netProfit / revenue : 0) * 100).toFixed(2) + '%']
         ];
 
         filename = `Profit_Loss_${profitMonthFilter}.xlsx`;
