@@ -207,6 +207,9 @@ export default function App() {
   // [Added] Location Filters for new modules
   const [warehouseLocationFilter, setWarehouseLocationFilter] = useState('');
   const [posLocationFilter, setPosLocationFilter] = useState('');
+  const [homeLocationFilter, setHomeLocationFilter] = useState('');
+  const [historyLocationFilter, setHistoryLocationFilter] = useState('');
+  const [reportLocationFilter, setReportLocationFilter] = useState('');
 
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const formatCurrency = (val) => {
@@ -3305,18 +3308,21 @@ export default function App() {
     switch (reportType) {
       case 'attendance':
         headers = [t('employeeName'), t('date'), t('location'), t('status')];
-        data = attendance.map(r => [r.name, r.date, getEmployeeLocation(r.name), translateStatus(r.status)]);
+        data = attendance
+          .filter(r => !reportLocationFilter || getEmployeeLocation(r.name) === reportLocationFilter)
+          .map(r => [r.name, r.date, getEmployeeLocation(r.name), translateStatus(r.status)]);
         filename = 'FinnERP_Attendance.xlsx';
         break;
       case 'payroll':
         headers = [t('employeeName'), t('role'), t('dept'), `${t('basicSalary')} (${currency})`, `${t('bonus')} (${currency})`, `${t('overtime')} (${currency})`, `${t('total')} (${currency})`];
-        data = employees.map(e => [e.name, e.role, e.dept, e.salary, e.bonus, e.overtime, e.salary + e.bonus + e.overtime]);
+        const filteredEmployees = employees.filter(e => !reportLocationFilter || e.location === reportLocationFilter);
+        data = filteredEmployees.map(e => [e.name, e.role, e.dept, e.salary, e.bonus, e.overtime, e.salary + e.bonus + e.overtime]);
 
         // Add Totals Row
-        const totalSalary = employees.reduce((sum, e) => sum + (e.salary || 0), 0);
-        const totalBonus = employees.reduce((sum, e) => sum + (e.bonus || 0), 0);
-        const totalOvertime = employees.reduce((sum, e) => sum + (e.overtime || 0), 0);
-        const totalTotal = employees.reduce((sum, e) => sum + (e.salary || 0) + (e.bonus || 0) + (e.overtime || 0), 0);
+        const totalSalary = filteredEmployees.reduce((sum, e) => sum + (e.salary || 0), 0);
+        const totalBonus = filteredEmployees.reduce((sum, e) => sum + (e.bonus || 0), 0);
+        const totalOvertime = filteredEmployees.reduce((sum, e) => sum + (e.overtime || 0), 0);
+        const totalTotal = filteredEmployees.reduce((sum, e) => sum + (e.salary || 0) + (e.bonus || 0) + (e.overtime || 0), 0);
 
         // Add empty row then totals
         data.push([]);
@@ -3327,16 +3333,20 @@ export default function App() {
         break;
       case 'turnover':
         headers = [t('employeeName'), t('role'), t('dept'), t('status'), t('location')];
-        data = employees.map(e => [e.name, e.role, e.dept, e.status, e.location]);
+        data = employees
+          .filter(e => !reportLocationFilter || e.location === reportLocationFilter)
+          .map(e => [e.name, e.role, e.dept, e.status, e.location]);
         filename = 'FinnERP_Staff.xlsx';
         break;
       case 'tax':
         headers = [t('employeeName'), `${t('total')} (${currency})`, `${t('tax')} (20%)`, t('netPay')];
-        data = employees.map(e => {
-          const total = e.salary + e.bonus + e.overtime;
-          const tax = total * 0.2;
-          return [e.name, total, tax, total - tax];
-        });
+        data = employees
+          .filter(e => !reportLocationFilter || e.location === reportLocationFilter)
+          .map(e => {
+            const total = e.salary + e.bonus + e.overtime;
+            const tax = total * 0.2;
+            return [e.name, total, tax, total - tax];
+          });
         filename = 'FinnERP_Tax.xlsx';
         break;
       case 'weekly_sales':
@@ -3347,7 +3357,9 @@ export default function App() {
         data = sales
           .filter(s => {
             const date = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
-            return date >= sevenDaysAgoSales;
+            // Weekly filter AND Location Filter
+            return date >= sevenDaysAgoSales &&
+              (!reportLocationFilter || s.location === reportLocationFilter);
           })
           .map(s => {
             const date = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
@@ -3374,9 +3386,9 @@ export default function App() {
         data = inventory
           .filter(i => {
             const date = i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date();
-            // If no updatedAt, assume standard report of all items, but user asked for "Buy Report" weekly based.
-            // Best interpretation: Items active/updated recently. If strict weekly, use date filter:
-            return date >= sevenDaysAgoInv;
+            // Weekly Filter AND Location Filter
+            return date >= sevenDaysAgoInv &&
+              (!reportLocationFilter || i.location === reportLocationFilter);
           })
           .map(i => {
             const date = i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date();
@@ -3639,6 +3651,17 @@ export default function App() {
 
           {activeTab === 'dashboard' && (
             <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="flex justify-end mb-4">
+                <select
+                  className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                  value={homeLocationFilter}
+                  onChange={e => setHomeLocationFilter(e.target.value)}
+                >
+                  <option value="">{t('filterAll') || 'All Locations'}</option>
+                  {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                </select>
+              </div>
+
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-200">
@@ -3646,7 +3669,9 @@ export default function App() {
                     <div className="p-2 bg-white/20 rounded-lg"><Users size={24} /></div>
                     <span className="bg-white/20 px-2 py-1 rounded text-xs font-medium">{t('dashboardTotal')}</span>
                   </div>
-                  <h3 className="text-3xl font-bold">{employees.length}</h3>
+                  <h3 className="text-3xl font-bold">
+                    {employees.filter(e => !homeLocationFilter || e.location === homeLocationFilter).length}
+                  </h3>
                   <p className="text-blue-100 text-sm mt-1">{t('activeGuards')}</p>
                 </div>
 
@@ -3655,7 +3680,9 @@ export default function App() {
                     <div className="p-2 bg-white/20 rounded-lg"><MapPin size={24} /></div>
                     <span className="bg-white/20 px-2 py-1 rounded text-xs font-medium">{t('active')}</span>
                   </div>
-                  <h3 className="text-3xl font-bold">{sites.filter(s => s.status === 'Operational').length}</h3>
+                  <h3 className="text-3xl font-bold">
+                    {sites.filter(s => (!homeLocationFilter || s.name === homeLocationFilter) && s.status === 'Operational').length}
+                  </h3>
                   <p className="text-emerald-100 text-sm mt-1">{t('operationalSites')}</p>
                 </div>
 
@@ -3665,7 +3692,10 @@ export default function App() {
                     <span className="text-gray-400 text-xs">{t('today')}</span>
                   </div>
                   <h3 className="text-3xl font-bold text-gray-800">
-                    {attendance.filter(a => a.date === new Date().toISOString().split('T')[0]).length}
+                    {attendance.filter(a =>
+                      a.date === new Date().toISOString().split('T')[0] &&
+                      (!homeLocationFilter || getEmployeeLocation(a.name) === homeLocationFilter)
+                    ).length}
                   </h3>
                   <p className="text-gray-500 text-sm mt-1">{t('checkedInToday')}</p>
                 </div>
@@ -3676,7 +3706,11 @@ export default function App() {
                     <span className="text-gray-400 text-xs">{t('lateAbsent')}</span>
                   </div>
                   <h3 className="text-3xl font-bold text-gray-800">
-                    {attendance.filter(a => (a.status === 'Late' || a.status === 'Absent') && a.date === new Date().toISOString().split('T')[0]).length}
+                    {attendance.filter(a =>
+                      (a.status === 'Late' || a.status === 'Absent') &&
+                      a.date === new Date().toISOString().split('T')[0] &&
+                      (!homeLocationFilter || getEmployeeLocation(a.name) === homeLocationFilter)
+                    ).length}
                   </h3>
                   <p className="text-gray-500 text-sm mt-1">{t('issuesToday')}</p>
                 </div>
@@ -4074,25 +4108,37 @@ export default function App() {
 
           {
             activeTab === 'reports' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { id: 'attendance', label: t('attendanceReport'), icon: <Clock />, color: 'text-orange-600', bg: 'bg-orange-50' },
-                  { id: 'payroll', label: t('payrollReport'), icon: <DollarSign />, color: 'text-purple-600', bg: 'bg-purple-50' },
-                  { id: 'turnover', label: t('staffReport'), icon: <Users />, color: 'text-blue-600', bg: 'bg-blue-50' },
-                  { id: 'tax', label: t('taxReport'), icon: <FileText />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                  { id: 'weekly_sales', label: t('weeklySales'), icon: <ShoppingCart />, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                  { id: 'weekly_buy', label: t('weeklyBuy'), icon: <Package />, color: 'text-teal-600', bg: 'bg-teal-50' },
-                ].map(report => (
-                  <button key={report.id} onClick={() => downloadReport(report.id)} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all text-left group">
-                    <div className={`w-12 h-12 ${report.bg} ${report.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                      {React.cloneElement(report.icon, { size: 24 })}
-                    </div>
-                    <h4 className="font-bold text-gray-900 mb-1">{report.label}</h4>
-                    <div className="flex items-center text-sm text-gray-500 gap-1 group-hover:text-blue-600">
-                      {t('downloadReport')} <Download size={14} />
-                    </div>
-                  </button>
-                ))}
+              <div className="space-y-6">
+                <div className="flex justify-end mb-4">
+                  <select
+                    className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    value={reportLocationFilter}
+                    onChange={e => setReportLocationFilter(e.target.value)}
+                  >
+                    <option value="">{t('filterAll') || 'All Locations'}</option>
+                    {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[
+                    { id: 'attendance', label: t('attendanceReport'), icon: <Clock />, color: 'text-orange-600', bg: 'bg-orange-50' },
+                    { id: 'payroll', label: t('payrollReport'), icon: <DollarSign />, color: 'text-purple-600', bg: 'bg-purple-50' },
+                    { id: 'turnover', label: t('staffReport'), icon: <Users />, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    { id: 'tax', label: t('taxReport'), icon: <FileText />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    { id: 'weekly_sales', label: t('weeklySales'), icon: <ShoppingCart />, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    { id: 'weekly_buy', label: t('weeklyBuy'), icon: <Package />, color: 'text-teal-600', bg: 'bg-teal-50' },
+                  ].map(report => (
+                    <button key={report.id} onClick={() => downloadReport(report.id)} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all text-left group">
+                      <div className={`w-12 h-12 ${report.bg} ${report.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                        {React.cloneElement(report.icon, { size: 24 })}
+                      </div>
+                      <h4 className="font-bold text-gray-900 mb-1">{report.label}</h4>
+                      <div className="flex items-center text-sm text-gray-500 gap-1 group-hover:text-blue-600">
+                        {t('downloadReport')} <Download size={14} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )
           }
@@ -4512,6 +4558,14 @@ export default function App() {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <select
+                      value={historyLocationFilter}
+                      onChange={(e) => setHistoryLocationFilter(e.target.value)}
+                      className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+                    >
+                      <option value="">{t('filterAll') || 'All Locations'}</option>
+                      {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    </select>
+                    <select
                       value={historyFilter}
                       onChange={(e) => setHistoryFilter(e.target.value)}
                       className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
@@ -4533,7 +4587,9 @@ export default function App() {
                 {(() => {
                   const relevantSales = sales.filter(s => {
                     const sDate = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : s.date;
-                    return !historyDateFilter || sDate === historyDateFilter;
+                    // Check Date AND Location
+                    return (!historyDateFilter || sDate === historyDateFilter) &&
+                      (!historyLocationFilter || s.location === historyLocationFilter);
                   });
                   const total = relevantSales.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
                   const cash = relevantSales.filter(s => (s.paymentMethod || 'Cash') === 'Cash').reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
@@ -4577,26 +4633,30 @@ export default function App() {
                       {(() => {
                         // Merge Sales and Relevant Inventory Updates
                         const logs = [
-                          ...sales.map(s => ({
-                            id: 'sale-' + s.id,
-                            type: t('sales'),
-                            category: 'Sale',
-                            date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
-                            desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
-                            val: s.amount,
-                            isCurrency: true,
-                            paymentMethod: s.paymentMethod
-                          })),
-                          ...inventory.map(i => ({
-                            id: 'inv-' + i.id,
-                            type: t('stockUpdates'),
-                            category: 'Stock Update',
-                            date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
-                            desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
-                            val: `${i.quantity} ${t('units')}`,
-                            isCurrency: false,
-                            paymentMethod: null
-                          }))
+                          ...sales
+                            .filter(s => !historyLocationFilter || s.location === historyLocationFilter)
+                            .map(s => ({
+                              id: 'sale-' + s.id,
+                              type: t('sales'),
+                              category: 'Sale',
+                              date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
+                              desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
+                              val: s.amount,
+                              isCurrency: true,
+                              paymentMethod: s.paymentMethod
+                            })),
+                          ...inventory
+                            .filter(i => !historyLocationFilter || i.location === historyLocationFilter)
+                            .map(i => ({
+                              id: 'inv-' + i.id,
+                              type: t('stockUpdates'),
+                              category: 'Stock Update',
+                              date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
+                              desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
+                              val: `${i.quantity} ${t('units')}`,
+                              isCurrency: false,
+                              paymentMethod: null
+                            }))
                         ].sort((a, b) => b.date - a.date);
 
                         // Apply Filters
