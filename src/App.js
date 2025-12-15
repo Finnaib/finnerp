@@ -4278,6 +4278,27 @@ export default function App() {
                     </button>
                   ))}
                 </div>
+
+                {/* Monthly Profit & Loss Section */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                      <h3 className="font-bold text-gray-800 text-lg">Monthly Profit & Loss</h3>
+                      <p className="text-sm text-gray-500">Revenue vs COGS vs Expenses analysis</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <input
+                        type="month"
+                        value={profitMonthFilter}
+                        onChange={e => setProfitMonthFilter(e.target.value)}
+                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                      <button onClick={() => downloadReport('profit_loss')} className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 font-medium shadow-lg shadow-emerald-600/20">
+                        <Download size={18} /> {t('downloadReport')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )
           }
@@ -4306,26 +4327,6 @@ export default function App() {
                     <button onClick={() => downloadReport('tax')} className="bg-orange-100 text-orange-600 p-3 rounded-xl hover:bg-orange-200 transition-colors">
                       <Download size={20} />
                     </button>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 md:col-span-2">
-                    <div className="flex justify-between items-center mb-4">
-                      <div>
-                        <h3 className="font-bold text-gray-800">Monthly Profit & Loss</h3>
-                        <p className="text-sm text-gray-500">Revenue vs Content vs Expenses</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          type="month"
-                          value={profitMonthFilter}
-                          onChange={e => setProfitMonthFilter(e.target.value)}
-                          className="border border-gray-200 rounded-lg px-2 text-sm"
-                        />
-                        <button onClick={() => downloadReport('profit_loss')} className="bg-emerald-100 text-emerald-600 p-3 rounded-xl hover:bg-emerald-200 transition-colors">
-                          <Download size={20} />
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
