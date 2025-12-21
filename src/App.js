@@ -17,6 +17,7 @@ import {
   Plus,
   MoreHorizontal,
   ChevronDown,
+  ChevronRight,
   Mail,
   Phone,
   FileText,
@@ -578,6 +579,8 @@ export default function App() {
       setSecurityQuestion: 'Set Security Question',
       changePin: 'Change Security PIN',
       newPin: 'New PIN',
+      manageLocations: 'Manage and monitor all your physical sites and locations.',
+      guards: 'Guards',
       saveSettings: 'Save Settings',
       currentPin: 'Current PIN',
       enterNewPin: 'Enter New PIN',
@@ -1459,6 +1462,8 @@ export default function App() {
       secQ_school: "ما هو اسم مدرستك الأولى؟",
       printSettings: 'إعدادات الطباعة',
       dualPrint: 'طباعة مزدوجة (2x)',
+      manageLocations: 'إدارة ومراقبة جميع مواقعك الفعلية.',
+      guards: 'حراس',
 
       // Profit & Loss
       monthlyPl: 'الربح والخسارة الشهري',
@@ -1659,6 +1664,8 @@ export default function App() {
       absentDeductions: '缺席扣款',
       manualDeduction: '手动扣款',
       cost: '成本',
+      manageLocations: '管理和监控您的所有物理位置。',
+      guards: '安保人员',
       none: '无',
       dashboardTotal: '总计',
       activeGuards: '活跃员工',
@@ -4123,29 +4130,53 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {sites.map(site => (
-                  <div key={site.id} onClick={() => setSelectedSite(site)} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-lg ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-                        <Building2 size={24} />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sites.map(site => {
+                  const guardCount = employees.filter(e => e.location === site.name).length;
+                  return (
+                    <div key={site.id} onClick={() => setSelectedSite(site)} className="group bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-lg transition-all cursor-pointer hover:border-emerald-500 relative overflow-hidden">
+                      <div className={`absolute top-0 left-0 w-1 h-full ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+
+                      <div className="flex justify-between items-start mb-4 pl-2">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2.5 rounded-lg ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                            <Building2 size={20} />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900 leading-tight">{site.name}</h4>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                              {t(site.status.toLowerCase()) || site.status}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-gray-300 group-hover:text-emerald-600 transition-colors">
+                          <ChevronRight size={20} />
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-lg text-gray-900">{site.name}</h4>
-                        <p className="text-slate-500 flex items-center gap-1 text-sm"><MapPin size={14} /> {site.city}</p>
+
+                      <div className="space-y-2 pl-2 text-sm text-gray-500">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2"><MapPin size={14} /> {site.city}</span>
+                        </div>
+                        <div className="flex items-center justify-between border-t border-gray-50 pt-2 mt-2">
+                          <div className="flex flex-col">
+                            <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">{t('manager')}</span>
+                            <span className="text-gray-700 font-medium">{site.manager || '-'}</span>
+                          </div>
+                          <div className="flex flex-col text-right">
+                            <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">{t('guards')}</span>
+                            <span className="text-gray-700 font-medium">{guardCount}</span>
+                          </div>
+                        </div>
+                        {site.phone && (
+                          <div className="flex items-center gap-2 pt-1 text-xs text-emerald-600">
+                            <Phone size={12} /> {site.phone}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="hidden md:block text-right">
-                        <p className="text-gray-500">{t('manager')}</p>
-                        <p className="font-medium text-gray-800">{site.manager || '-'}</p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                        {t(site.status.toLowerCase()) || site.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
