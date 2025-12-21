@@ -1015,6 +1015,8 @@ export default function App() {
       secQ_school: "आपके पहले स्कूल का नाम क्या है?",
       printSettings: 'प्रिंट सेटिंग्स',
       dualPrint: 'दोहरी प्रिंट (2x)',
+      manageLocations: 'अपने सभी भौतिक स्थानों को प्रबंधित और मॉनिटर करें।',
+      guards: 'गार्ड',
 
       // Profit & Loss
       monthlyPl: 'मासिक लाभ और हानि',
