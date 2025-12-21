@@ -581,6 +581,7 @@ export default function App() {
       newPin: 'New PIN',
       manageLocations: 'Manage and monitor all your physical sites and locations.',
       guards: 'Guards',
+      siteEmployees: 'Employees',
       saveSettings: 'Save Settings',
       currentPin: 'Current PIN',
       enterNewPin: 'Enter New PIN',
@@ -1017,6 +1018,7 @@ export default function App() {
       dualPrint: 'दोहरी प्रिंट (2x)',
       manageLocations: 'अपने सभी भौतिक स्थानों को प्रबंधित और मॉनिटर करें।',
       guards: 'गार्ड',
+      siteEmployees: 'कर्मचारी',
 
       // Profit & Loss
       monthlyPl: 'मासिक लाभ और हानि',
@@ -1466,6 +1468,7 @@ export default function App() {
       dualPrint: 'طباعة مزدوجة (2x)',
       manageLocations: 'إدارة ومراقبة جميع مواقعك الفعلية.',
       guards: 'حراس',
+      siteEmployees: 'الموظفين',
 
       // Profit & Loss
       monthlyPl: 'الربح والخسارة الشهري',
@@ -1668,6 +1671,7 @@ export default function App() {
       cost: '成本',
       manageLocations: '管理和监控您的所有物理位置。',
       guards: '安保人员',
+      siteEmployees: '员工',
       none: '无',
       dashboardTotal: '总计',
       activeGuards: '活跃员工',
@@ -4166,7 +4170,7 @@ export default function App() {
                             <span className="text-gray-700 font-medium">{site.manager || '-'}</span>
                           </div>
                           <div className="flex flex-col text-right">
-                            <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">{t('menuEmployees')}</span>
+                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">{t('siteEmployees')}</span>
                             <span className="text-gray-700 font-medium">{guardCount}</span>
                           </div>
                         </div>
