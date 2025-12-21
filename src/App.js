@@ -1310,6 +1310,7 @@ export default function App() {
       grossPay: 'إجمالي الراتب',
       totalDeductions: 'إجمالي الخصومات',
       otherDeductions: 'خصومات أخرى',
+      advanceSalary: 'سلفة الراتب',
       employeeSignature: 'توقيع الموظف',
       authorizedSignature: 'التوقيع المعتمد',
       computerGenerated: 'هذه قسيمة راتب إلكترونية. لا يلزم التوقيع.',
@@ -1639,6 +1640,7 @@ export default function App() {
       factoryReset: '系统出厂重置',
       compensation: '薪酬',
       advance: '预支',
+      advanceSalary: '预支工资',
       totalLabel: '总计',
       delete: '删除',
       terminateService: '终止服务',
@@ -5365,14 +5367,7 @@ export default function App() {
                         <label className="text-xs font-bold uppercase text-gray-400">{t('phone') || 'Phone'}</label>
                         <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.phone || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'phone', e.target.value)} />
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-bold uppercase text-gray-400">{t('shopAddress') || 'Address'}</label>
-                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.address || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'address', e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-bold uppercase text-gray-400">{t('phone') || 'Phone'}</label>
-                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.phone || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'phone', e.target.value)} />
-                      </div>
+
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-bold uppercase text-gray-400">{t('operationalStatus')}</label>
                         <select className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.status} onChange={(e) => handleUpdateSite(selectedSite.id, 'status', e.target.value)}>
