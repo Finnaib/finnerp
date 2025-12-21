@@ -4166,7 +4166,7 @@ export default function App() {
                             <span className="text-gray-700 font-medium">{site.manager || '-'}</span>
                           </div>
                           <div className="flex flex-col text-right">
-                            <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">{t('guards')}</span>
+                            <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">{t('menuEmployees')}</span>
                             <span className="text-gray-700 font-medium">{guardCount}</span>
                           </div>
                         </div>
