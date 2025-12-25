@@ -563,6 +563,7 @@ export default function App() {
       backToLogin: 'Back to Login',
       passwordResetSent: 'Password reset email sent!',
       enterEmail: 'Enter your email to reset password',
+      orContinue: 'Or continue with',
       linkSuccess: 'Google Account Linked Successfully!',
       linkError: 'Link Error: ',
       accountLinked: 'This Google Account is already active. Please Log Out and use "Sign in with Google" directly.',
@@ -696,6 +697,7 @@ export default function App() {
       backToLogin: 'लॉगिन पर वापस',
       passwordResetSent: 'पासवर्ड रीसेट ईमेल भेजा गया!',
       enterEmail: 'पासवर्ड रीसेट करने के लिए अपना ईमेल दर्ज करें',
+      orContinue: 'या जारी रखें',
       location: 'स्थान',
       shift: 'शिफ्ट',
       totalComp: 'कुल आय',
@@ -1470,6 +1472,7 @@ export default function App() {
       backToLogin: 'العودة لتسجيل الدخول',
       passwordResetSent: 'تم إرسال رابط إعادة التعيين!',
       enterEmail: 'أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور',
+      orContinue: 'أو الاستمرار مع',
 
       // PIN & Security
       forgotPin: 'نسيت رقم التعريف الشخصي؟',
@@ -1568,6 +1571,7 @@ export default function App() {
       backToLogin: '返回登录',
       passwordResetSent: '密码重置邮件已发送！',
       enterEmail: '输入您的电子邮件以重置密码',
+      orContinue: '或继续使用',
       location: '地点',
       shift: '班次',
       totalComp: '总薪酬',
@@ -3911,7 +3915,7 @@ export default function App() {
 
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
-                  <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div>
+                  <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">{t('orContinue')}</span></div>
                 </div>
 
                 <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2">
