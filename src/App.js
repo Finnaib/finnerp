@@ -564,6 +564,7 @@ export default function App() {
       passwordResetSent: 'Password reset email sent!',
       enterEmail: 'Enter your email to reset password',
       orContinue: 'Or continue with',
+      signInGoogle: 'Sign in with Google',
       linkSuccess: 'Google Account Linked Successfully!',
       linkError: 'Link Error: ',
       accountLinked: 'This Google Account is already active. Please Log Out and use "Sign in with Google" directly.',
@@ -698,6 +699,7 @@ export default function App() {
       passwordResetSent: 'पासवर्ड रीसेट ईमेल भेजा गया!',
       enterEmail: 'पासवर्ड रीसेट करने के लिए अपना ईमेल दर्ज करें',
       orContinue: 'या जारी रखें',
+      signInGoogle: 'Google के साथ साइन इन करें',
       location: 'स्थान',
       shift: 'शिफ्ट',
       totalComp: 'कुल आय',
@@ -1473,6 +1475,7 @@ export default function App() {
       passwordResetSent: 'تم إرسال رابط إعادة التعيين!',
       enterEmail: 'أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور',
       orContinue: 'أو الاستمرار مع',
+      signInGoogle: 'تسجيل الدخول عبر Google',
 
       // PIN & Security
       forgotPin: 'نسيت رقم التعريف الشخصي؟',
@@ -1572,6 +1575,7 @@ export default function App() {
       passwordResetSent: '密码重置邮件已发送！',
       enterEmail: '输入您的电子邮件以重置密码',
       orContinue: '或继续使用',
+      signInGoogle: '通过 Google 登录',
       location: '地点',
       shift: '班次',
       totalComp: '总薪酬',
@@ -2854,7 +2858,7 @@ export default function App() {
         // but for concurrency, Firestore transactions are better. 
         // For simplicity in this demo, we assume 'inventory' state is close enough 
         // or we just use increment(-qty).
-        // However, 'increment' import is needed. Let's just use the state value logic for now 
+        // HOWEVER, 'increment' import is needed. Let's just use the state value logic for now 
         // or assumes the user manages it manually if complex. 
         // BETTER: Use existing item data from state to calculate new qty.
         const currentItem = inventory.find(inv => inv.id === item.id);
@@ -3128,7 +3132,7 @@ export default function App() {
             <div class="title">${printName}</div>
             <div class="subtitle">${printAddress}</div>
             <div class="subtitle">${t('phone')}: ${printPhone}</div>
-            <div class="sold-by">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
+            <div class="sold-by">${invoiceData.soldBy || 'Admin'}</div>
           </div>
           <div class="invoice-info">
             <h2>${t('invoice')}</h2>
@@ -3920,7 +3924,7 @@ export default function App() {
 
                 <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2">
                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-                  Sign in with Google
+                  {t('signInGoogle')}
                 </button>
 
                 <button onClick={handleAnonymousLogin} className="w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2 mb-6">
