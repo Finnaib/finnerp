@@ -641,6 +641,9 @@ export default function App() {
       deptExpenses: 'Department Expenses',
       invPurchases: 'Inventory Purchases',
       selectEmployeeAlert: 'Please select a sales employee!',
+      accountHandling: 'Account Handling',
+      connectGoogle: 'Connect Google Account',
+      linkGoogleDesc: 'Link your Google account to login with it instead of password.',
     },
     hi: {
       appName: 'Finn ERP',
@@ -801,6 +804,9 @@ export default function App() {
       delete: 'हटाएं',
       terminateService: 'सेवा समाप्त करें',
       selectEmployeeAlert: 'कृपया एक बिक्री कर्मचारी चुनें!',
+      accountHandling: 'खाता प्रबंधन',
+      connectGoogle: 'Google खाता कनेक्ट करें',
+      linkGoogleDesc: 'पासवर्ड के बजाय इससे लॉगिन करने के लिए अपने Google खाते को लिंक करें।',
       actions: 'क्रियाएँ',
 
       addAttendance: 'हाजिरी जोड़ें',
@@ -1301,6 +1307,9 @@ export default function App() {
       delete: 'حذف',
       terminateService: 'إنهاء الخدمة',
       selectEmployeeAlert: 'الرجاء تحديد موظف المبيعات!',
+      accountHandling: 'إدارة الحساب',
+      connectGoogle: 'ربط حساب Google',
+      linkGoogleDesc: 'ربط حساب Google الخاص بك لتسجيل الدخول به بدلاً من كلمة المرور.',
       actions: 'إجراءات',
 
       addAttendance: 'إضافة حضور',
@@ -1707,6 +1716,9 @@ export default function App() {
       delete: '删除',
       terminateService: '终止服务',
       selectEmployeeAlert: '请选择销售人员！',
+      accountHandling: '帐户处理',
+      connectGoogle: '连接 Google 帐户',
+      linkGoogleDesc: '链接您的 Google 帐户以使用它而不是密码登录。',
       actions: '操作',
       addAttendance: '添加考勤',
       editAttendance: '编辑考勤',
@@ -5639,20 +5651,29 @@ export default function App() {
                   </div>
 
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <h4 className="font-bold text-gray-800 mb-2">My Profile</h4>
+                    <h4 className="font-bold text-gray-800 mb-2">{t('myProfile')}</h4>
                     <div className="space-y-2 mb-4">
-                      <p className="text-sm text-gray-600"><strong className="text-gray-900">Email:</strong> {user?.email}</p>
-                      <p className="text-sm text-gray-600"><strong className="text-gray-900">User ID:</strong> <span className="font-mono text-xs">{user?.uid}</span></p>
-                      <p className="text-sm text-gray-600"><strong className="text-gray-900">Account Type:</strong> Admin</p>
+                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <strong className="text-gray-900">{t('emailLabel')}</strong>
+                        <span className="break-all">{user?.email}</span>
+                      </p>
+                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <strong className="text-gray-900">{t('userIdLabel')}</strong>
+                        <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded break-all select-all">{user?.uid}</span>
+                      </p>
+                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <strong className="text-gray-900">{t('accountTypeLabel')}</strong>
+                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">{t('admin')}</span>
+                      </p>
                     </div>
 
 
-                    <h4 className="font-bold text-gray-800 mb-2 mt-6">Account Handling</h4>
-                    <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-2 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2">
-                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
-                      Connect Google Account
+                    <h4 className="font-bold text-gray-800 mb-2 mt-6">{t('accountHandling')}</h4>
+                    <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
+                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                      {t('connectGoogle')}
                     </button>
-                    <p className="text-xs text-gray-500 mb-4">Link your Google account to login with it instead of password.</p>
+                    <p className="text-xs text-gray-500 mb-4 text-center px-2">{t('linkGoogleDesc')}</p>
 
                     <div className="border-t border-gray-100 pt-4 mt-4">
                       <h4 className="font-bold text-gray-800 mb-3">{t('changePin')}</h4>
