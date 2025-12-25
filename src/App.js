@@ -5595,172 +5595,208 @@ export default function App() {
       {/* Settings Modal */}
       {
         showSettings && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
-              <button onClick={() => setShowSettings(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20} /></button>
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Settings className="text-slate-600" /> {t('settings')}</h3>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
 
-              <div className="space-y-4">
-                <div className="space-y-4">
-
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <h4 className="font-bold text-gray-800 mb-2">{t('myProfile')}</h4>
-                    <div className="space-y-2 mb-4">
-                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <strong className="text-gray-900">{t('emailLabel')}</strong>
-                        <span className="break-all">{user?.email}</span>
-                      </p>
-                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <strong className="text-gray-900">{t('userIdLabel')}</strong>
-                        <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded break-all select-all">{user?.uid}</span>
-                      </p>
-                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <strong className="text-gray-900">{t('accountTypeLabel')}</strong>
-                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">{t('admin')}</span>
-                      </p>
-                    </div>
-
-                    <h4 className="font-bold text-gray-800 mb-2 mt-6">{t('accountHandling')}</h4>
-                    <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
-                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-                      {t('connectGoogle')}
-                    </button>
-                    <p className="text-xs text-gray-500 mb-4 text-center px-2">{t('linkGoogleDesc')}</p>
+              {/* Header - Fixed */}
+              <div className="p-6 border-b border-gray-100 flex-shrink-0 flex justify-between items-center bg-white z-10">
+                <h3 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <Settings className="text-slate-600" size={24} />
                   </div>
+                  {t('settings')}
+                </h3>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-                  {/* Shop Settings */}
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                      <Building2 size={16} /> {t('shopSettings') || 'Shop Settings'}
-                    </h4>
-                    <div className="space-y-2">
-                      <input
-                        className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500"
-                        placeholder={t('shopName')}
-                        value={shopSettings.name}
-                        autoComplete="off"
-                        name="shop_name_field_no_autofill"
-                        onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
-                      />
-                      <input
-                        className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500"
-                        placeholder={t('shopAddress')}
-                        value={shopSettings.address}
-                        autoComplete="off"
-                        name="shop_address_field_no_autofill"
-                        onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
-                      />
-                      <input
-                        className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500"
-                        placeholder={t('shopPhone')}
-                        value={shopSettings.phone}
-                        autoComplete="off"
-                        name="shop_phone_field_no_autofill"
-                        onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
-                      />
-                      <button
-                        onClick={async () => {
-                          if (!user) return;
-                          try {
-                            await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
-                            alert(t('shopSettingsSaved'));
-                          } catch (e) {
-                            console.error(e);
-                            alert(t('shopSettingsError'));
-                          }
-                        }}
-                        className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors mt-2"
-                      >
-                        {t('updateSettings') || 'Update Settings'}
-                      </button>
-                    </div>
-                  </div>
+              {/* Scrollable Content */}
+              <div className="p-6 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                      <Globe size={16} /> {t('localization')}
-                    </h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-500 mb-1">{t('language')}</label>
-                        <select
-                          value={language}
-                          onChange={(e) => {
-                            const newLang = e.target.value;
-                            setLanguage(newLang);
-                            saveUserSettings({ language: newLang });
-                          }}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-                        >
-                          <option value="en">English</option>
-                          <option value="hi">हिंदी</option>
-                          <option value="ar">العربية</option>
-                          <option value="zh">中文</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-500 mb-1">{t('currency')}</label>
-                        <select
-                          value={currency}
-                          onChange={(e) => {
-                            const newCurrency = e.target.value;
-                            setCurrency(newCurrency);
-                            saveUserSettings({ currency: newCurrency });
-                          }}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-                        >
-                          <option value="EGP">EGP</option>
-                          <option value="USD">USD</option>
-                          <option value="EUR">EUR</option>
-                          <option value="GBP">GBP</option>
-                          <option value="SAR">SAR</option>
-                          <option value="AED">AED</option>
-                          <option value="INR">INR</option>
-                          <option value="CNY">CNY</option>
-                          <option value="JPY">JPY</option>
-                          <option value="CAD">CAD</option>
-                          <option value="AUD">AUD</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                      <Shield size={16} /> {t('changePin')}
-                    </h4>
-                    {securityPin === '1234' ? (
-                      <input
-                        type="password"
-                        placeholder={t('newPin')}
-                        maxLength={4}
-                        className="w-full px-3 py-2 border border-blue-200 rounded-lg mb-2 text-sm bg-blue-50 focus:ring-2 focus:ring-blue-500"
-                        onBlur={(e) => {
-                          if (e.target.value.length === 4) {
-                            if (window.confirm(t('confirmChangePin') || "Set new PIN?")) {
-                              setSecurityPin(e.target.value);
-                              saveUserSettings({ securityPin: e.target.value });
-                              e.target.value = '';
-                              alert(t('pinChanged'));
-                            }
-                          }
-                        }}
-                      />
-                    ) : (
-                      <p className="text-sm text-gray-500 italic bg-white p-3 rounded-lg border border-gray-100 flex items-center gap-2">
-                        <CheckCircle size={14} className="text-green-500" />
-                        {t('pinSetMessage')}
-                      </p>
-                    )}
-
-                    <div className="border-t border-gray-200 pt-4 mt-4">
-                      <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                        <Shield size={16} /> {t('setSecurityQuestion')}
+                  {/* Column 1: Profile & Localization */}
+                  <div className="space-y-6">
+                    {/* My Profile */}
+                    <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                        <User size={18} className="text-blue-600" /> {t('myProfile')}
                       </h4>
-                      <div className="space-y-2">
+                      <div className="space-y-3 mb-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('emailLabel')}</span>
+                          <span className="text-sm font-medium text-gray-900 break-all">{user?.email}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('userIdLabel')}</span>
+                          <span className="text-xs font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 break-all select-all text-gray-600">{user?.uid}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('accountTypeLabel')}</span>
+                          <span className="self-start bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-bold">{t('admin')}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-50">
+                        <h5 className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">{t('accountHandling')}</h5>
+                        <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-300 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
+                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                          {t('connectGoogle')}
+                        </button>
+                        <p className="text-[10px] text-gray-400 text-center px-2">{t('linkGoogleDesc')}</p>
+                      </div>
+                    </div>
+
+                    {/* Localization */}
+                    <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                        <Globe size={18} className="text-indigo-600" /> {t('localization')}
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('language')}</label>
+                          <select
+                            value={language}
+                            onChange={(e) => {
+                              const newLang = e.target.value;
+                              setLanguage(newLang);
+                              saveUserSettings({ language: newLang });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          >
+                            <option value="en">English</option>
+                            <option value="hi">हिंदी</option>
+                            <option value="ar">العربية</option>
+                            <option value="zh">中文</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('currency')}</label>
+                          <select
+                            value={currency}
+                            onChange={(e) => {
+                              const newCurrency = e.target.value;
+                              setCurrency(newCurrency);
+                              saveUserSettings({ currency: newCurrency });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          >
+                            <option value="EGP">EGP</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="SAR">SAR</option>
+                            <option value="AED">AED</option>
+                            <option value="INR">INR</option>
+                            <option value="CNY">CNY</option>
+                            <option value="JPY">JPY</option>
+                            <option value="CAD">CAD</option>
+                            <option value="AUD">AUD</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Column 2: Shop, Security, Backup, Danger */}
+                  <div className="space-y-6">
+                    {/* Shop Settings */}
+                    <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                        <Building2 size={18} className="text-orange-600" /> {t('shopSettings')}
+                      </h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopName')}</label>
+                          <input
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                            placeholder="My Shop"
+                            value={shopSettings.name}
+                            autoComplete="off"
+                            name="shop_name_no_autofill"
+                            onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopAddress')}</label>
+                          <input
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                            placeholder="123 Main St"
+                            value={shopSettings.address}
+                            autoComplete="off"
+                            name="shop_address_no_autofill"
+                            onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopPhone')}</label>
+                          <input
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                            placeholder="+1 234..."
+                            value={shopSettings.phone}
+                            autoComplete="off"
+                            name="shop_phone_no_autofill"
+                            onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
+                          />
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!user) return;
+                            try {
+                              await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
+                              alert(t('shopSettingsSaved'));
+                            } catch (e) {
+                              console.error(e);
+                              alert(t('shopSettingsError'));
+                            }
+                          }}
+                          className="w-full bg-gray-900 text-white font-bold py-2 rounded-lg hover:bg-black transition-colors text-sm mt-2"
+                        >
+                          {t('updateSettings')}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Security */}
+                    <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                        <Shield size={18} className="text-teal-600" /> {t('changePin')} & {t('setSecurityQuestion')}
+                      </h4>
+
+                      {/* PIN */}
+                      <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{t('securityPin')}</label>
+                        {securityPin === '1234' ? (
+                          <input
+                            type="password"
+                            placeholder={t('newPin')}
+                            maxLength={4}
+                            className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-red-50 focus:ring-2 focus:ring-red-500 outline-none"
+                            onBlur={(e) => {
+                              if (e.target.value.length === 4) {
+                                if (window.confirm(t('confirmChangePin') || "Set new PIN?")) {
+                                  setSecurityPin(e.target.value);
+                                  saveUserSettings({ securityPin: e.target.value });
+                                  e.target.value = '';
+                                  alert(t('pinChanged'));
+                                }
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
+                            <CheckCircle size={16} /> <span className="font-medium">{t('pinSetMessage')}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Security Question */}
+                      <div className="space-y-2 pt-2 border-t border-gray-100">
                         <select
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"
                           value={securityQuestion}
                           onChange={(e) => setSecurityQuestion(e.target.value)}
                         >
@@ -5773,7 +5809,7 @@ export default function App() {
                         <input
                           type="text"
                           placeholder={t('securityAnswer')}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                           value={securityAnswer}
                           onChange={(e) => setSecurityAnswer(e.target.value)}
                         />
@@ -5786,60 +5822,43 @@ export default function App() {
                             saveUserSettings({ securityQuestion, securityAnswer });
                             alert(t('saveSettings') + ' Success!');
                           }}
-                          className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-blue-700"
+                          className="w-full bg-teal-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-teal-700 shadow-sm"
                         >
                           {t('saveSettings')}
                         </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Backup & Restore */}
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                      <Database size={16} /> {t('backupRestore')}
-                    </h4>
-                    <div className="space-y-2">
-                      <button
-                        onClick={handleExportBackup}
-                        disabled={loading}
-                        className="w-full bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                        <Download size={16} /> {t('exportBackup')}
-                      </button>
-                      <label className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                        <Upload size={16} /> {t('importBackup')}
-                        <input
-                          type="file"
-                          accept=".json"
-                          onChange={handleImportBackup}
-                          disabled={loading}
-                          className="hidden"
-                        />
-                      </label>
-                      <p className="text-xs text-gray-500 mt-2">{t('backupDescription')}</p>
+                    {/* Backup & Danger Zone Group */}
+                    <div className="grid grid-cols-1 gap-4">
+                      {/* Backup */}
+                      <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2 text-sm">
+                          <Database size={16} /> {t('backupRestore')}
+                        </h4>
+                        <div className="flex gap-2">
+                          <button onClick={handleExportBackup} disabled={loading} className="flex-1 bg-white text-blue-700 border border-blue-200 font-bold py-1.5 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-1 text-xs shadow-sm">
+                            <Download size={14} /> {t('export')}
+                          </button>
+                          <label className="flex-1 bg-blue-600 text-white font-bold py-1.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 text-xs cursor-pointer shadow-sm">
+                            <Upload size={14} /> {t('import')}
+                            <input type="file" accept=".json" onChange={handleImportBackup} disabled={loading} className="hidden" />
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Danger */}
+                      <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+                        <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2 text-sm">
+                          <AlertCircle size={16} /> {t('dangerZone')}
+                        </h4>
+                        <button onClick={handleFactoryReset} className="w-full bg-white text-red-600 border border-red-200 font-bold py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-xs shadow-sm">
+                          <Trash2 size={14} /> {t('factoryReset')}
+                        </button>
+                      </div>
                     </div>
+
                   </div>
-
-                  {/* Danger Zone */}
-                  <div>
-                    <h4 className="font-bold text-red-600 mb-2 flex items-center gap-2">
-                      <AlertCircle size={16} /> {t('dangerZone')}
-                    </h4>
-                    <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                      <p className="text-xs text-red-700 mb-3">{t('irreversibleAction')}</p>
-                      <button
-                        onClick={handleFactoryReset}
-                        className="w-full bg-white border border-red-200 text-red-600 font-bold py-2 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Trash2 size={16} /> {t('factoryReset')}
-                      </button>
-                    </div>
-                  </div>
-
-
-
-
                 </div>
               </div>
             </div>
