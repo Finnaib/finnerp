@@ -58,6 +58,7 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail,
   linkWithPopup,
   signInAnonymously
 } from 'firebase/auth';
@@ -141,6 +142,8 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024); // Default open on Desktop
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [authForm, setAuthForm] = useState({ email: '', password: '', apiKey: '' });
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState(null); // Explicit Error State
   const [printFormat, setPrintFormat] = useState('Thermal'); // 'Thermal' or 'A4'
@@ -554,6 +557,12 @@ export default function App() {
       importFailed: 'Import failed: ',
       overwriteWarning: 'WARNING: This will OVERWRITE all existing data. Continue?',
       guestLogin: 'Guest Login',
+      forgotPassword: 'Forgot Password?',
+      resetPassword: 'Reset Password',
+      sendResetLink: 'Send Reset Link',
+      backToLogin: 'Back to Login',
+      passwordResetSent: 'Password reset email sent!',
+      enterEmail: 'Enter your email to reset password',
       linkSuccess: 'Google Account Linked Successfully!',
       linkError: 'Link Error: ',
       accountLinked: 'This Google Account is already active. Please Log Out and use "Sign in with Google" directly.',
@@ -997,6 +1006,13 @@ export default function App() {
       onlinePayment: 'ऑनलाइन',
 
       // PIN & Security
+      forgotPassword: 'पासवर्ड भूल गए?',
+      resetPassword: 'पासवर्ड ड़िसेट करें',
+      sendResetLink: 'लिंक भेजो',
+      backToLogin: 'लॉगिन पर वापस',
+      passwordResetSent: 'पासवर्ड रीसेट ईमेल भेजा गया!',
+      enterEmail: 'पासवर्ड रीसेट करने के लिए अपना ईमेल दर्ज करें',
+      email: 'ईमेल',
       forgotPin: 'पिन भूल गए?',
       securityQuestion: 'सुरक्षा प्रश्न',
       securityAnswer: 'सुरक्षा उत्तर',
@@ -1835,9 +1851,15 @@ export default function App() {
 
       // PIN & Security
       forgotPin: '忘记 PIN？',
+      forgotPassword: '忘记密码？',
       securityQuestion: '安全问题',
       securityAnswer: '安全答案',
       enterSecurityAnswer: '输入安全答案',
+      resetPassword: '重置密码',
+      sendResetLink: '发送重置链接',
+      backToLogin: '返回登录',
+      passwordResetSent: '密码重置邮件已发送！',
+      enterEmail: '输入您的电子邮件以重置密码',
       pinResetSuccess: 'PIN 重置成功！您的新 PIN 是 1234。',
       incorrectAnswer: '答案错误。',
       setSecurityQuestion: '设置安全问题',
@@ -2011,6 +2033,26 @@ export default function App() {
     } catch (error) {
       console.error(error);
       alert("Anonymous login failed: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      alert(t('enterEmail'));
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      alert(t('passwordResetSent'));
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (error) {
+      console.error(error);
+      alert("Error: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -3772,74 +3814,110 @@ export default function App() {
               <div className="inline-flex p-4 bg-blue-50 text-blue-600 rounded-2xl mb-4 shadow-inner">
                 <Shield size={48} />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{authMode === 'login' ? t('welcome') : t('createAccount')}</h1>
-              <p className="text-gray-500 mt-2 text-sm">{t('signInToAccess')}</p>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{showForgotPassword ? t('resetPassword') : (authMode === 'login' ? t('welcome') : t('createAccount'))}</h1>
+              <p className="text-gray-500 mt-2 text-sm">{showForgotPassword ? t('enterEmail') : t('signInToAccess')}</p>
             </div>
 
-            <form onSubmit={handleAuth} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-                  <input
-                    type="email"
-                    className="pl-10 input-field"
-                    placeholder="name@example.com"
-                    value={authForm.email}
-                    onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
-                    required
-                    autoComplete="off"
-                    name="new-password-field-hack-email"
-                  />
+            {showForgotPassword ? (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                    <input
+                      type="email"
+                      className="pl-10 input-field"
+                      placeholder="name@example.com"
+                      value={resetEmail}
+                      onChange={e => setResetEmail(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('password')}</label>
-                <div className="relative">
-                  <div className="absolute left-3 top-3 text-gray-400"><Shield size={18} /></div>
-                  <input
-                    type="password"
-                    className="pl-10 input-field"
-                    placeholder="••••••••"
-                    value={authForm.password}
-                    onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
-                    required
-                    autoComplete="new-password"
-                  />
+                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
+                  {loading ? <Loader2 className="animate-spin" /> : t('sendResetLink')}
+                </button>
+                <div className="text-center">
+                  <button type="button" onClick={() => setShowForgotPassword(false)} className="text-sm text-gray-600 hover:text-gray-900 font-medium hover:underline">
+                    {t('backToLogin')}
+                  </button>
                 </div>
-              </div>
+              </form>
+            ) : (
+              <>
+                <form onSubmit={handleAuth} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                      <input
+                        type="email"
+                        className="pl-10 input-field"
+                        placeholder="name@example.com"
+                        value={authForm.email}
+                        onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
+                        required
+                        autoComplete="off"
+                        name="new-password-field-hack-email"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('password')}</label>
+                    <div className="relative">
+                      <div className="absolute left-3 top-3 text-gray-400"><Shield size={18} /></div>
+                      <input
+                        type="password"
+                        className="pl-10 input-field"
+                        placeholder="••••••••"
+                        value={authForm.password}
+                        onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
+                        required
+                        autoComplete="new-password"
+                      />
+                    </div>
+                  </div>
 
+                  {authMode === 'login' && (
+                    <div className="flex justify-end">
+                      <button type="button" onClick={() => setShowForgotPassword(true)} className="text-sm text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+                        {t('forgotPassword') || 'Forgot Password?'}
+                      </button>
+                    </div>
+                  )}
 
+                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
+                    {loading ? <Loader2 className="animate-spin" /> : (authMode === 'login' ? t('login') : t('signup'))}
+                  </button>
+                </form>
 
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
-                {loading ? <Loader2 className="animate-spin" /> : (authMode === 'login' ? t('login') : t('signup'))}
-              </button>
-            </form>
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                  <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div>
+                </div>
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
-              <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div>
-            </div>
+                <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2">
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                  Sign in with Google
+                </button>
 
-            <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2">
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-              Sign in with Google
-            </button>
+                <button onClick={handleAnonymousLogin} className="w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2 mb-6">
+                  <User size={20} />
+                  {t('guestLogin') || 'Guest Login'}
+                </button>
 
-            <button onClick={handleAnonymousLogin} className="w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2 mb-6">
-              <User size={20} />
-              {t('guestLogin') || 'Guest Login'}
-            </button>
+                <div className="mt-6 text-center text-sm">
+                  <span className="text-gray-500">{authMode === 'login' ? t('noAccount') : t('haveAccount')}</span>
+                  <button
+                    onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                    className="ml-2 text-blue-600 font-bold hover:underline"
+                  >
+                    {authMode === 'login' ? t('signup') : t('login')}
+                  </button>
+                </div>
 
-            <div className="mt-6 text-center text-sm">
-              <span className="text-gray-500">{authMode === 'login' ? t('noAccount') : t('haveAccount')}</span>
-              <button
-                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                className="ml-2 text-blue-600 font-bold hover:underline"
-              >
-                {authMode === 'login' ? t('signup') : t('login')}
-              </button>
-            </div>
+              </>
+            )}
 
             <div className="mt-4 flex justify-center gap-4">
               <select
