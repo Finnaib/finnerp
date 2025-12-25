@@ -172,6 +172,8 @@ export default function App() {
             if (data.securityPin) setSecurityPin(data.securityPin);
             if (data.securityQuestion) setSecurityQuestion(data.securityQuestion);
             if (data.securityAnswer) setSecurityAnswer(data.securityAnswer);
+            if (data.language) setLanguage(data.language);
+            if (data.currency) setCurrency(data.currency);
           }
           setIsSettingsLoaded(true);
         } catch (error) {
@@ -638,6 +640,7 @@ export default function App() {
       netMargin: 'Net Margin',
       deptExpenses: 'Department Expenses',
       invPurchases: 'Inventory Purchases',
+      selectEmployeeAlert: 'Please select a sales employee!',
     },
     hi: {
       appName: 'Finn ERP',
@@ -797,6 +800,7 @@ export default function App() {
       totalLabel: 'कुल',
       delete: 'हटाएं',
       terminateService: 'सेवा समाप्त करें',
+      selectEmployeeAlert: 'कृपया एक बिक्री कर्मचारी चुनें!',
       actions: 'क्रियाएँ',
 
       addAttendance: 'हाजिरी जोड़ें',
@@ -4052,7 +4056,11 @@ export default function App() {
               {/* Currency Selector */}
               <select
                 value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
+                onChange={(e) => {
+                  const newCurrency = e.target.value;
+                  setCurrency(newCurrency);
+                  saveUserSettings({ currency: newCurrency });
+                }}
                 className="bg-gray-100 border-none text-sm font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
               >
                 <option value="EGP">EGP</option>
@@ -4072,7 +4080,11 @@ export default function App() {
               {/* Language Selector */}
               <select
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
+                onChange={(e) => {
+                  const newLang = e.target.value;
+                  setLanguage(newLang);
+                  saveUserSettings({ language: newLang });
+                }}
                 className="bg-gray-100 border-none text-sm font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
               >
                 <option value="en">English</option>
@@ -5576,6 +5588,53 @@ export default function App() {
 
               <div className="space-y-4">
                 <div className="space-y-4">
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <h4 className="font-bold text-gray-800 mb-2">{t('localization')}</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 mb-1">{t('language')}</label>
+                        <select
+                          value={language}
+                          onChange={(e) => {
+                            const newLang = e.target.value;
+                            setLanguage(newLang);
+                            saveUserSettings({ language: newLang });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
+                        >
+                          <option value="en">English</option>
+                          <option value="hi">हिंदी</option>
+                          <option value="ar">العربية</option>
+                          <option value="zh">中文</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 mb-1">{t('currency')}</label>
+                        <select
+                          value={currency}
+                          onChange={(e) => {
+                            const newCurrency = e.target.value;
+                            setCurrency(newCurrency);
+                            saveUserSettings({ currency: newCurrency });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
+                        >
+                          <option value="EGP">EGP</option>
+                          <option value="USD">USD</option>
+                          <option value="EUR">EUR</option>
+                          <option value="GBP">GBP</option>
+                          <option value="SAR">SAR</option>
+                          <option value="AED">AED</option>
+                          <option value="INR">INR</option>
+                          <option value="CNY">CNY</option>
+                          <option value="JPY">JPY</option>
+                          <option value="CAD">CAD</option>
+                          <option value="AUD">AUD</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                     <h4 className="font-bold text-gray-800 mb-2">My Profile</h4>
