@@ -58,7 +58,8 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  linkWithPopup
+  linkWithPopup,
+  signInAnonymously
 } from 'firebase/auth';
 
 import {
@@ -1999,6 +2000,18 @@ export default function App() {
     }
   };
 
+  const handleAnonymousLogin = async () => {
+    setLoading(true);
+    try {
+      await signInAnonymously(auth);
+    } catch (error) {
+       console.error(error);
+       alert("Anonymous login failed: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -3804,9 +3817,14 @@ export default function App() {
               <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div>
             </div>
 
-            <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-6">
+            <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2">
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
               Sign in with Google
+            </button>
+
+            <button onClick={handleAnonymousLogin} className="w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2 mb-6">
+               <User size={20} />
+               {t('guestLogin') || 'Guest Login'}
             </button>
 
             <div className="mt-6 text-center text-sm">
