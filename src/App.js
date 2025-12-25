@@ -553,6 +553,7 @@ export default function App() {
       backupImported: 'Backup imported successfully! Reloading...',
       importFailed: 'Import failed: ',
       overwriteWarning: 'WARNING: This will OVERWRITE all existing data. Continue?',
+      guestLogin: 'Guest Login',
       linkSuccess: 'Google Account Linked Successfully!',
       linkError: 'Link Error: ',
       accountLinked: 'This Google Account is already active. Please Log Out and use "Sign in with Google" directly.',
@@ -679,6 +680,7 @@ export default function App() {
       haveAccount: 'क्या आपके पास खाता है?',
       noAccount: 'खाता नहीं है?',
       logout: 'लॉग आउट',
+      guestLogin: 'अतिथि लॉगिन',
       location: 'स्थान',
       shift: 'शिफ्ट',
       totalComp: 'कुल आय',
@@ -1156,6 +1158,7 @@ export default function App() {
       haveAccount: 'لديك حساب؟',
       noAccount: 'ليس لديك حساب؟',
       logout: 'تسجيل خروج',
+      guestLogin: 'دخول زائر',
       location: 'الموقع',
       shift: 'الوردية',
       totalComp: 'إجمالي الراتب',
@@ -1530,6 +1533,7 @@ export default function App() {
       haveAccount: '已有账户？',
       noAccount: '没有账户？',
       logout: '登出',
+      guestLogin: '访客登录',
       location: '地点',
       shift: '班次',
       totalComp: '总薪酬',
@@ -2005,8 +2009,8 @@ export default function App() {
     try {
       await signInAnonymously(auth);
     } catch (error) {
-       console.error(error);
-       alert("Anonymous login failed: " + error.message);
+      console.error(error);
+      alert("Anonymous login failed: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -3823,8 +3827,8 @@ export default function App() {
             </button>
 
             <button onClick={handleAnonymousLogin} className="w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2 mb-6">
-               <User size={20} />
-               {t('guestLogin') || 'Guest Login'}
+              <User size={20} />
+              {t('guestLogin') || 'Guest Login'}
             </button>
 
             <div className="mt-6 text-center text-sm">
