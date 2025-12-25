@@ -5604,7 +5604,82 @@ export default function App() {
                 <div className="space-y-4">
 
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <h4 className="font-bold text-gray-800 mb-2">{t('localization')}</h4>
+                    <h4 className="font-bold text-gray-800 mb-2">{t('myProfile')}</h4>
+                    <div className="space-y-2 mb-4">
+                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <strong className="text-gray-900">{t('emailLabel')}</strong>
+                        <span className="break-all">{user?.email}</span>
+                      </p>
+                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <strong className="text-gray-900">{t('userIdLabel')}</strong>
+                        <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded break-all select-all">{user?.uid}</span>
+                      </p>
+                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <strong className="text-gray-900">{t('accountTypeLabel')}</strong>
+                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">{t('admin')}</span>
+                      </p>
+                    </div>
+
+                    <h4 className="font-bold text-gray-800 mb-2 mt-6">{t('accountHandling')}</h4>
+                    <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
+                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                      {t('connectGoogle')}
+                    </button>
+                    <p className="text-xs text-gray-500 mb-4 text-center px-2">{t('linkGoogleDesc')}</p>
+                  </div>
+
+                  {/* Shop Settings */}
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                      <Building2 size={16} /> {t('shopSettings') || 'Shop Settings'}
+                    </h4>
+                    <div className="space-y-2">
+                      <input
+                        className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500"
+                        placeholder={t('shopName')}
+                        value={shopSettings.name}
+                        autoComplete="off"
+                        name="shop_name_field_no_autofill"
+                        onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
+                      />
+                      <input
+                        className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500"
+                        placeholder={t('shopAddress')}
+                        value={shopSettings.address}
+                        autoComplete="off"
+                        name="shop_address_field_no_autofill"
+                        onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
+                      />
+                      <input
+                        className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500"
+                        placeholder={t('shopPhone')}
+                        value={shopSettings.phone}
+                        autoComplete="off"
+                        name="shop_phone_field_no_autofill"
+                        onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (!user) return;
+                          try {
+                            await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
+                            alert(t('shopSettingsSaved'));
+                          } catch (e) {
+                            console.error(e);
+                            alert(t('shopSettingsError'));
+                          }
+                        }}
+                        className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors mt-2"
+                      >
+                        {t('updateSettings') || 'Update Settings'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                      <Globe size={16} /> {t('localization')}
+                    </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-gray-500 mb-1">{t('language')}</label>
@@ -5650,59 +5725,39 @@ export default function App() {
                     </div>
                   </div>
 
+
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <h4 className="font-bold text-gray-800 mb-2">{t('myProfile')}</h4>
-                    <div className="space-y-2 mb-4">
-                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <strong className="text-gray-900">{t('emailLabel')}</strong>
-                        <span className="break-all">{user?.email}</span>
-                      </p>
-                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <strong className="text-gray-900">{t('userIdLabel')}</strong>
-                        <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded break-all select-all">{user?.uid}</span>
-                      </p>
-                      <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <strong className="text-gray-900">{t('accountTypeLabel')}</strong>
-                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">{t('admin')}</span>
-                      </p>
-                    </div>
-
-
-                    <h4 className="font-bold text-gray-800 mb-2 mt-6">{t('accountHandling')}</h4>
-                    <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
-                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-                      {t('connectGoogle')}
-                    </button>
-                    <p className="text-xs text-gray-500 mb-4 text-center px-2">{t('linkGoogleDesc')}</p>
-
-                    <div className="border-t border-gray-100 pt-4 mt-4">
-                      <h4 className="font-bold text-gray-800 mb-3">{t('changePin')}</h4>
-                      {securityPin === '1234' ? (
-                        <input
-                          type="password"
-                          placeholder={t('newPin')}
-                          maxLength={4}
-                          className="w-full px-3 py-2 border border-blue-200 rounded-lg mb-2 text-sm bg-blue-50 focus:ring-2 focus:ring-blue-500"
-                          onBlur={(e) => {
-                            if (e.target.value.length === 4) {
-                              if (window.confirm(t('confirmChangePin') || "Set new PIN?")) {
-                                setSecurityPin(e.target.value);
-                                saveUserSettings({ securityPin: e.target.value });
-                                e.target.value = '';
-                                alert(t('pinChanged'));
-                              }
+                    <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <Shield size={16} /> {t('changePin')}
+                    </h4>
+                    {securityPin === '1234' ? (
+                      <input
+                        type="password"
+                        placeholder={t('newPin')}
+                        maxLength={4}
+                        className="w-full px-3 py-2 border border-blue-200 rounded-lg mb-2 text-sm bg-blue-50 focus:ring-2 focus:ring-blue-500"
+                        onBlur={(e) => {
+                          if (e.target.value.length === 4) {
+                            if (window.confirm(t('confirmChangePin') || "Set new PIN?")) {
+                              setSecurityPin(e.target.value);
+                              saveUserSettings({ securityPin: e.target.value });
+                              e.target.value = '';
+                              alert(t('pinChanged'));
                             }
-                          }}
-                        />
-                      ) : (
-                        <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg border border-gray-100">
-                          {t('pinSetMessage')}
-                        </p>
-                      )}
-                    </div>
+                          }
+                        }}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-500 italic bg-white p-3 rounded-lg border border-gray-100 flex items-center gap-2">
+                        <CheckCircle size={14} className="text-green-500" />
+                        {t('pinSetMessage')}
+                      </p>
+                    )}
 
-                    <div className="border-t border-gray-100 pt-4 mt-4">
-                      <h4 className="font-bold text-gray-800 mb-3">{t('setSecurityQuestion')}</h4>
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                      <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        <Shield size={16} /> {t('setSecurityQuestion')}
+                      </h4>
                       <div className="space-y-2">
                         <select
                           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
@@ -5736,6 +5791,49 @@ export default function App() {
                           {t('saveSettings')}
                         </button>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Backup & Restore */}
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                      <Database size={16} /> {t('backupRestore')}
+                    </h4>
+                    <div className="space-y-2">
+                      <button
+                        onClick={handleExportBackup}
+                        disabled={loading}
+                        className="w-full bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Download size={16} /> {t('exportBackup')}
+                      </button>
+                      <label className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                        <Upload size={16} /> {t('importBackup')}
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={handleImportBackup}
+                          disabled={loading}
+                          className="hidden"
+                        />
+                      </label>
+                      <p className="text-xs text-gray-500 mt-2">{t('backupDescription')}</p>
+                    </div>
+                  </div>
+
+                  {/* Danger Zone */}
+                  <div>
+                    <h4 className="font-bold text-red-600 mb-2 flex items-center gap-2">
+                      <AlertCircle size={16} /> {t('dangerZone')}
+                    </h4>
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+                      <p className="text-xs text-red-700 mb-3">{t('irreversibleAction')}</p>
+                      <button
+                        onClick={handleFactoryReset}
+                        className="w-full bg-white border border-red-200 text-red-600 font-bold py-2 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Trash2 size={16} /> {t('factoryReset')}
+                      </button>
                     </div>
                   </div>
 
