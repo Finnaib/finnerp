@@ -613,6 +613,11 @@ export default function App() {
       dualPrint: 'Dual Print (2x)',
 
       // Profit & Loss
+      daily: 'Daily',
+      weekly: 'Weekly',
+      monthly: 'Monthly',
+      yearly: 'Yearly',
+      profitLossReport: 'Profit & Loss Report',
       monthlyPl: 'Monthly Profit & Loss',
       plSubtitle: 'Revenue vs COGS vs Expenses analysis',
       revenue: 'REVENUE',
@@ -786,6 +791,11 @@ export default function App() {
       shopSettingsError: 'सेटिंग्स सहेजने में त्रुटि',
       localization: 'स्थानीयकरण',
       language: 'भाषा',
+      daily: 'दैनिक',
+      weekly: 'साप्ताहिक',
+      monthly: 'मासिक',
+      yearly: 'वार्षिक',
+      profitLossReport: 'लाभ और हानि रिपोर्ट',
       currency: 'मुद्रा',
       departmentSettings: 'विभाग सेटिंग्स',
       departments: 'विभाग',
@@ -1524,6 +1534,11 @@ export default function App() {
 
       // Profit & Loss
       monthlyPl: 'الربح والخسارة الشهري',
+      daily: 'يومي',
+      weekly: 'أسبوعي',
+      monthly: 'شهري',
+      yearly: 'سنوي',
+      profitLossReport: 'تقرير الربح والخسارة',
       plSubtitle: 'تحليل الإيرادات مقابل تكلفة البضاعة المباعة مقابل المصاريف',
       revenue: 'الإيرادات',
       totalSales: 'إجمالي المبيعات',
@@ -1985,6 +2000,9 @@ export default function App() {
   const [payrollLocationFilter, setPayrollLocationFilter] = useState('');
   const [payrollMonthFilter, setPayrollMonthFilter] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
   const [profitMonthFilter, setProfitMonthFilter] = useState(new Date().toISOString().slice(0, 7));
+  const [profitPeriod, setProfitPeriod] = useState('Monthly');
+  const [profitDateFilter, setProfitDateFilter] = useState(new Date().toISOString().split('T')[0]);
+  const [profitYearFilter, setProfitYearFilter] = useState(new Date().getFullYear().toString());
   const [attendanceDateFilter, setAttendanceDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const [isAddAttendanceModalOpen, setIsAddAttendanceModalOpen] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState(null); // For edit modal
@@ -3732,112 +3750,145 @@ export default function App() {
         break;
       case 'profit_loss':
         headers = [t('category'), t('details'), t('amount')];
-        const startOfMonth = new Date(profitMonthFilter + '-01');
-        const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
+        let startDate, endDate, periodLabel;
+
+        if (profitPeriod === 'Daily') {
+          startDate = new Date(profitDateFilter);
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date(profitDateFilter);
+          endDate.setHours(23, 59, 59, 999);
+          periodLabel = profitDateFilter;
+        } else if (profitPeriod === 'Weekly') {
+          const selectedDate = new Date(profitDateFilter);
+          const day = selectedDate.getDay();
+          const diff = selectedDate.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+          startDate = new Date(selectedDate.setDate(diff));
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date(startDate);
+          endDate.setDate(startDate.getDate() + 6);
+          endDate.setHours(23, 59, 59, 999);
+          periodLabel = `${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`;
+        } else if (profitPeriod === 'Yearly') {
+          startDate = new Date(profitYearFilter + '-01-01');
+          endDate = new Date(profitYearFilter + '-12-31');
+          endDate.setHours(23, 59, 59, 999);
+          periodLabel = profitYearFilter;
+        } else {
+          // Monthly
+          startDate = new Date(profitMonthFilter + '-01');
+          endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+          endDate.setHours(23, 59, 59, 999);
+          periodLabel = profitMonthFilter;
+        }
 
 
-        // 1. Revenue Analysis (Breakdown by Payment Method)
-        const monthlySales = sales.filter(s => {
+        // 1. Revenue Analysis
+        const filteredSales = sales.filter(s => {
           const d = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
-          return d >= startOfMonth && d <= endOfMonth && (!reportLocationFilter || s.location === reportLocationFilter);
+          return d >= startDate && d <= endDate && (!reportLocationFilter || s.location === reportLocationFilter);
         });
 
         const revByMethod = {};
-        let revenue = 0;
-        monthlySales.forEach(s => {
+        let totalRevenue = 0;
+        filteredSales.forEach(s => {
           const method = s.paymentMethod || 'Cash';
           if (!revByMethod[method]) revByMethod[method] = 0;
           revByMethod[method] += (s.amount || 0);
-          revenue += (s.amount || 0);
+          totalRevenue += (s.amount || 0);
         });
 
-        // 2. COGS (Cost of Goods Sold)
-        let cogs = 0;
-        monthlySales.forEach(sale => {
+        // 2. COGS
+        let totalCogs = 0;
+        filteredSales.forEach(sale => {
           if (Array.isArray(sale.items)) {
             sale.items.forEach(soldItem => {
               const invItem = inventory.find(i => i.name === soldItem.name);
               const cost = invItem ? (invItem.buyPrice || 0) : 0;
-              cogs += cost * (soldItem.qty || 0);
+              totalCogs += cost * (soldItem.qty || 0);
             });
           }
         });
 
-        const grossProfit = revenue - cogs;
+        const grossProfitVal = totalRevenue - totalCogs;
 
         // 3. Expenses (Payroll + Purchases)
-        // Payroll by Dept
         const payrollByDept = {};
-        let monthPayroll = 0;
+        let totalPeriodPayroll = 0;
         employees.forEach(e => {
           if (!reportLocationFilter || e.location === reportLocationFilter) {
             const dept = e.dept || 'General';
             if (!payrollByDept[dept]) payrollByDept[dept] = 0;
 
-            // Calculate Deductions based on Attendance for this month
-            let deductionAmount = 0;
             const baseSalary = Number(e.salary) || 0;
+            const bonusVal = Number(e.bonus) || 0;
+            const overtimeVal = Number(e.overtime) || 0;
 
-            const empAttendance = attendance.filter(a => {
+            // Simple scaling for periods shorter than a month if needed?
+            // User didn't specify, but usually P&L shows full salaries if it's a "cost" for that period.
+            // However, for Daily/Weekly payroll, maybe we should scale? 
+            // In many ERPs, "Daily" P&L only scales variable costs.
+            // Let's assume the user wants full monthly burden for Monthly/Yearly, 
+            // but for Daily/Weekly we scale by (days in period / 30).
+
+            let scaleDays = 30;
+            if (profitPeriod === 'Daily') scaleDays = 1;
+            else if (profitPeriod === 'Weekly') scaleDays = 7;
+            else if (profitPeriod === 'Yearly') scaleDays = 365;
+
+            const multiplier = scaleDays / 30;
+
+            let periodDeduction = 0;
+            const periodAttendance = attendance.filter(a => {
               const aDate = new Date(a.date);
-              return a.name === e.name && aDate >= startOfMonth && aDate <= endOfMonth;
+              return a.name === e.name && aDate >= startDate && aDate <= endDate;
             });
 
-            empAttendance.forEach(record => {
-              if (record.status === 'Late') {
-                deductionAmount += 50;
-              }
-              if (record.status === 'Absent') {
-                deductionAmount += (baseSalary / 30);
-              }
+            periodAttendance.forEach(record => {
+              if (record.status === 'Late') periodDeduction += 50;
+              if (record.status === 'Absent') periodDeduction += (baseSalary / 30);
             });
 
-            // Add Advance Salary (Assuming it applies to current period lookup)
-            deductionAmount += (Number(e.advanceSalary) || 0);
-
-            // Net Pay = (Base + Bonus + Overtime) - Deductions
-            const cost = (baseSalary + (Number(e.bonus) || 0) + (Number(e.overtime) || 0)) - deductionAmount;
+            // Scale fixed costs, add actual attendance-based deductions
+            const cost = ((baseSalary + bonusVal + overtimeVal) * multiplier) - periodDeduction;
 
             payrollByDept[dept] += cost;
-            monthPayroll += cost;
+            totalPeriodPayroll += cost;
           }
         });
 
-        // Purchases (Inventory/Expenses)
-        const monthlyPurchases = purchases.filter(p => {
+        const periodPurchases = purchases.filter(p => {
           const d = p.date ? new Date(p.date) : new Date();
-          return d >= startOfMonth && d <= endOfMonth && (!reportLocationFilter || p.location === reportLocationFilter);
+          return d >= startDate && d <= endDate && (!reportLocationFilter || p.location === reportLocationFilter);
         });
-        const otherExpenses = monthlyPurchases.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const totalOtherExpenses = periodPurchases.reduce((sum, p) => sum + (p.amount || 0), 0);
 
-        const totalExpenses = monthPayroll + otherExpenses;
-        const netProfit = grossProfit - totalExpenses;
+        const totalPeriodExpenses = totalPeriodPayroll + totalOtherExpenses;
+        const netProfitVal = grossProfitVal - totalPeriodExpenses;
 
-        // 4. Construct Professional Logic
         data = [
-          [t('incomeStatement'), '', ''],
+          [`${t('incomeStatement')} (${profitPeriod})`, '', ''],
           ['', '', ''],
           [t('revenue').toUpperCase(), '', ''],
-          ...Object.entries(revByMethod).map(([m, amt]) => ['', t(m) || m, amt]),
-          [t('totalRevenue'), '', revenue],
+          ...Object.entries(revByMethod).map(([m, amt]) => ['', t(m.toLowerCase()) || m, amt]),
+          [t('totalRevenue'), '', totalRevenue],
           ['', '', ''],
           [t('costOfGoodsSold').toUpperCase(), '', ''],
-          ['', t('cogsFull'), -cogs],
-          [t('grossProfit'), '', grossProfit],
-          ['', t('grossMargin'), ((revenue ? grossProfit / revenue : 0) * 100).toFixed(2) + '%'],
+          ['', t('cogsFull'), -totalCogs],
+          [t('grossProfit'), '', grossProfitVal],
+          ['', t('grossMargin'), ((totalRevenue ? grossProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%'],
           ['', '', ''],
           [t('operatingExpenses').toUpperCase(), '', ''],
           [t('deptExpenses'), '', ''],
           ...Object.entries(payrollByDept).map(([d, amt]) => ['', d + ' ' + t('menuPayroll'), -amt]),
-          ['', t('invPurchases'), -otherExpenses],
-          [t('totalExpenses'), '', -totalExpenses],
+          ['', t('invPurchases'), -totalOtherExpenses],
+          [t('totalExpenses'), '', -totalPeriodExpenses],
           ['', '', ''],
-          [t('netProfit'), '', netProfit],
-          ['', t('netMargin'), ((revenue ? netProfit / revenue : 0) * 100).toFixed(2) + '%']
+          [t('netProfit'), '', netProfitVal],
+          ['', t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%']
         ];
 
-        filename = `Profit_Loss_NetPay_${profitMonthFilter}.xlsx`;
-        extraMetadata = [`Period: ${profitMonthFilter}`, `Location: ${reportLocationFilter || t('filterAll')}`];
+        filename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.xlsx`;
+        extraMetadata = [`Period: ${profitPeriod} (${periodLabel})`, `Location: ${reportLocationFilter || t('filterAll')}`];
         break;
       default: return;
     }
@@ -4647,20 +4698,65 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* Monthly Profit & Loss Section */}
+                {/* Profit & Loss Report Section */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
-                      <h3 className="font-bold text-gray-800 text-lg">{t('monthlyPl')}</h3>
+                      <h3 className="font-bold text-gray-800 text-lg">{t('profitLossReport')}</h3>
                       <p className="text-sm text-gray-500">{t('plSubtitle')}</p>
                     </div>
-                    <div className="flex gap-3">
-                      <input
-                        type="month"
-                        value={profitMonthFilter}
-                        onChange={e => setProfitMonthFilter(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                      />
+                    <div className="flex flex-wrap gap-3 items-center justify-center">
+                      <select
+                        value={profitPeriod}
+                        onChange={e => setProfitPeriod(e.target.value)}
+                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 font-medium"
+                      >
+                        <option value="Daily">{t('daily')}</option>
+                        <option value="Weekly">{t('weekly')}</option>
+                        <option value="Monthly">{t('monthly')}</option>
+                        <option value="Yearly">{t('yearly')}</option>
+                      </select>
+
+                      {profitPeriod === 'Daily' && (
+                        <input
+                          type="date"
+                          value={profitDateFilter}
+                          onChange={e => setProfitDateFilter(e.target.value)}
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                      )}
+
+                      {profitPeriod === 'Weekly' && (
+                        <input
+                          type="date"
+                          value={profitDateFilter}
+                          onChange={e => setProfitDateFilter(e.target.value)}
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                          title="Select any day in the target week"
+                        />
+                      )}
+
+                      {profitPeriod === 'Monthly' && (
+                        <input
+                          type="month"
+                          value={profitMonthFilter}
+                          onChange={e => setProfitMonthFilter(e.target.value)}
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                      )}
+
+                      {profitPeriod === 'Yearly' && (
+                        <select
+                          value={profitYearFilter}
+                          onChange={e => setProfitYearFilter(e.target.value)}
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium"
+                        >
+                          {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                      )}
+
                       <button onClick={() => downloadReport('profit_loss')} className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 font-medium shadow-lg shadow-emerald-600/20">
                         <Download size={18} /> {t('downloadReport')}
                       </button>
