@@ -13,9 +13,7 @@ import {
   BarChart3,
   Settings,
   Search,
-  Bell,
   Plus,
-  MoreHorizontal,
   ChevronDown,
   ChevronRight,
   Mail,
@@ -23,15 +21,12 @@ import {
   FileText,
   CheckCircle,
   AlertCircle,
-  Sparkles,
   Loader2,
   X,
   Trash2,
-  Save,
   Briefcase,
   Building2,
   Shield,
-  Filter,
   Download,
   Camera,
   User,
@@ -39,7 +34,6 @@ import {
   Globe,
   Database,
 
-  Image as ImageIcon,
   Menu, // Hamburger Menu
   LogOut, // Logout Icon
   Calculator, // General Accounts
@@ -47,7 +41,6 @@ import {
   Package, // Warehouses
   FileText as InvoiceIcon, // Electronic Invoice
   CreditCard,
-  Truck,
   Printer
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
@@ -152,13 +145,15 @@ export default function App() {
   const [securityPin, setSecurityPin] = useState('1234'); // Default until loaded
   const [securityQuestion, setSecurityQuestion] = useState('');
   const [securityAnswer, setSecurityAnswer] = useState('');
-  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890' });
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
+
+  const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
+  useEffect(() => { localStorage.setItem('language', language); }, [language]);
 
   // Sync Settings from Firestore
   useEffect(() => {
@@ -175,7 +170,6 @@ export default function App() {
             if (data.language) setLanguage(data.language);
             if (data.currency) setCurrency(data.currency);
           }
-          setIsSettingsLoaded(true);
         } catch (error) {
           console.error("Error fetching settings:", error);
         }
@@ -192,19 +186,10 @@ export default function App() {
       await setDoc(docRef, newSettings, { merge: true });
     } catch (error) {
       console.error("Error saving settings:", error);
-      alert(t('saveError') + ': ' + error.message);
+      alert((translations[language]?.saveError || 'Error saving') + ': ' + error.message);
     }
   };
 
-  const [historyFilter, setHistoryFilter] = useState('All');
-  // Set default to current week start (Monday)
-  const getWeekStart = () => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    const monday = new Date(today.setDate(diff));
-    return monday.toISOString().split('T')[0];
-  };
   const [isSelectSalesEmployeeModalOpen, setIsSelectSalesEmployeeModalOpen] = useState(false);
   const [salesEmployee, setSalesEmployee] = useState(null);
   const [pinAction, setPinAction] = useState('showCosts'); // 'showCosts' | 'changeSalesEmployee'
@@ -279,9 +264,6 @@ export default function App() {
       assignedGuards: 'Assigned Employees',
       deleteLocation: 'Delete Location',
       terminateGuard: 'Terminate / Delete Employee',
-      assignedGuards: 'Assigned Employees',
-      deleteLocation: 'Delete Location',
-      terminateGuard: 'Terminate / Delete Employee',
       aiAssistant: 'AI Assistant',
       genReview: 'Generate Performance Review',
       generating: 'Generating...',
@@ -342,7 +324,6 @@ export default function App() {
       todaysSales: "Today's Sales",
       time: 'Time',
       amount: 'Amount',
-      items: 'Items',
       receipt: 'Receipt',
       currentBill: 'Current Bill',
       cartEmpty: 'Cart is empty',
@@ -379,8 +360,6 @@ export default function App() {
       // Invoice Print
       retailInvoice: 'Retail Invoice',
       invoice: 'INVOICE',
-      customerCopy: 'Customer Copy',
-      shopCopy: 'Shop Copy',
       date: 'Date',
       billNo: 'Bill No',
       paymentMode: 'Payment Mode',
@@ -389,8 +368,6 @@ export default function App() {
       qty: 'Qty',
       amt: 'Amt',
       price: 'Price',
-      amount: 'Amount',
-      subtotal: 'Subtotal',
       taxVAT: 'Tax/VAT',
       taxRate: 'Tax rate',
       total: 'TOTAL',
@@ -441,8 +418,6 @@ export default function App() {
       security: 'Security',
       it: 'IT',
       headquarters: 'Headquarters',
-      sales: 'Sales',
-      marketing: 'Marketing',
       kitchen: 'Kitchen',
       service: 'Service',
       bar: 'Bar',
@@ -467,7 +442,6 @@ export default function App() {
       shopSettingsSaved: 'Shop Settings Saved to Cloud',
       shopSettingsError: 'Error saving settings',
       localization: 'Localization',
-      language: 'Language',
       currency: 'Currency',
       departmentSettings: 'Department Settings',
       departments: 'Departments',
@@ -494,7 +468,6 @@ export default function App() {
       selectDate: 'Select Date',
       selectStatus: 'Select Status',
       save: 'Save',
-      actions: 'Actions',
       replacementFor: 'Replacement For',
       coveringFor: 'Covering For',
       lateDeductions: 'Late Deductions',
@@ -595,7 +568,6 @@ export default function App() {
       changePin: 'Change Security PIN',
       newPin: 'New PIN',
       manageLocations: 'Manage and monitor all your physical sites and locations.',
-      guards: 'Guards',
       siteEmployees: 'Employees',
       saveSettings: 'Save Settings',
       currentPin: 'Current PIN',
@@ -609,8 +581,6 @@ export default function App() {
       secQ_mother: "What is your mother's maiden name?",
       secQ_city: "In what city were you born?",
       secQ_school: "What is the name of your first school?",
-      printSettings: 'Print Settings',
-      dualPrint: 'Dual Print (2x)',
 
       // Profit & Loss
       daily: 'Daily',
@@ -623,9 +593,6 @@ export default function App() {
       revenue: 'REVENUE',
       totalSales: 'Total Sales',
       discount: 'Discount',
-      subtotal: 'Subtotal',
-      tax: 'Tax',
-      total: 'TOTAL',
       cogs: 'COGS',
       cogsFull: 'Cost of Goods Sold',
       grossProfit: 'GROSS PROFIT',
@@ -649,6 +616,7 @@ export default function App() {
       accountHandling: 'Account Handling',
       connectGoogle: 'Connect Google Account',
       linkGoogleDesc: 'Link your Google account to login with it instead of password.',
+
     },
     hi: {
       appName: 'Finn ERP',
@@ -826,7 +794,6 @@ export default function App() {
       selectDate: 'दिनांक चुनें',
       selectStatus: 'स्थिति चुनें',
       save: 'सहेजें',
-      actions: 'कार्रवाई',
       replacementFor: 'की जगह (Replacement)',
       coveringFor: 'कवरिंग (Covering)',
       lateDeductions: 'देरी कटौती',
@@ -875,7 +842,6 @@ export default function App() {
       companyAddress: 'कंपनी का पता',
       selectLocation: 'स्थान चुनें',
       noLocations: 'कोई स्थान उपलब्ध नहीं है - कृपया पहले एक स्थान बनाएं',
-      // Alerts & Errors (Extensions)
 
       // New Modules
       menuAccounts: 'Accounts',
@@ -911,8 +877,6 @@ export default function App() {
       currentBill: 'वर्तमान बिल',
       cartEmpty: 'कार्ट खाली है',
       selectItems: 'ग्रिड से आइटम चुनें',
-      subtotal: 'उप-योग (Subtotal)',
-      tax: 'कर (Tax)',
       checkout: 'चेकआउट',
       customerNameOptional: 'ग्राहक का नाम (वैकल्पिक)',
       soldBy: 'विक्रेता (Sold By)',
@@ -938,14 +902,11 @@ export default function App() {
       shopPhone: 'दुकान का फोन',
       updateSettings: 'सेटिंग्स अपडेट करें',
       securityPin: 'सुरक्षा पिन',
-      language: 'भाषा',
       close: 'बंद करें',
 
       // Invoice Print
       retailInvoice: 'खुदरा चालान',
       invoice: 'चालान',
-      customerCopy: 'ग्राहक प्रति',
-      shopCopy: 'दुकान प्रति',
       date: 'तारीख',
       billNo: 'बिल नंबर',
       paymentMode: 'भुगतान मोड',
@@ -999,37 +960,6 @@ export default function App() {
       deleteLocationConfirm: 'इस स्थान को हटाएं?',
       errorNoUser: 'त्रुटि: कोई उपयोगकर्ता लॉग इन नहीं है।',
 
-      // Invoice Print (Extensions)
-      retailInvoice: 'खुदरा चालान',
-      invoice: 'चालान',
-      customerCopy: 'ग्राहक प्रति',
-      shopCopy: 'दुकान प्रति',
-      date: 'तारीख',
-      billNo: 'बिल नंबर',
-      paymentMode: 'भुगतान मोड',
-      cash: 'नकद',
-      item: 'वस्तु',
-      qty: 'मात्रा',
-      amt: 'राशि',
-      price: 'मूल्य',
-      amount: 'राशि',
-      subtotal: 'उप-योग',
-      taxVAT: 'कर/वैट',
-      taxRate: 'कर दर',
-      total: 'कुल',
-      makeChecksPayable: 'सभी चेक देय बनाएं',
-      thankYou: 'आपके व्यवसाय के लिए धन्यवाद!',
-      billTo: 'बिल प्राप्तकर्ता',
-      description: 'विवरण',
-      unitPrice: 'इकाई मूल्य',
-      lineTotal: 'पंक्ति कुल',
-      comments: 'टिप्पणियाँ',
-      termsConditions: 'नियम और शर्तें',
-      paymentTerms: '1. 30 दिनों में कुल भुगतान देय',
-      includeInvoiceNumber: '2. कृपया अपने चेक पर चालान संख्या शामिल करें',
-      phone: 'फोन',
-      customer: 'ग्राहक',
-      contactQuestions: 'यदि इस चालान के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें',
       status: 'स्थिति',
       totalIncome: 'कुल आय',
       visa: 'वीज़ा',
@@ -1063,10 +993,7 @@ export default function App() {
       secQ_mother: "आपकी माँ का मायके का नाम क्या है?",
       secQ_city: "आपका जन्म किस शहर में हुआ था?",
       secQ_school: "आपके पहले स्कूल का नाम क्या है?",
-      printSettings: 'प्रिंट सेटिंग्स',
-      dualPrint: 'दोहरी प्रिंट (2x)',
       manageLocations: 'अपने सभी भौतिक स्थानों को प्रबंधित और मॉनिटर करें।',
-      guards: 'गार्ड',
       siteEmployees: 'कर्मचारी',
 
       // Profit & Loss
@@ -1097,6 +1024,7 @@ export default function App() {
       netMargin: 'शुद्ध मार्जिन',
       deptExpenses: 'विभाग व्यय',
       invPurchases: 'इन्वेंटरी खरीद',
+
     },
 
     ar: {
@@ -1329,7 +1257,6 @@ export default function App() {
       selectDate: 'اختر التاريخ',
       selectStatus: 'اختر الحالة',
       save: 'حفظ',
-      actions: 'إجراءات',
       replacementFor: 'بديل عن',
       coveringFor: 'تغطية عن',
       lateDeductions: 'خصومات التأخير',
@@ -1381,6 +1308,18 @@ export default function App() {
       companyAddress: 'عنوان الشركة',
       selectLocation: 'اختر الموقع',
       noLocations: 'لا توجد مواقع متاحة - يرجى إنشاء موقع أولاً',
+
+      // New Modules
+      menuAccounts: 'الحسابات العامة',
+      menuSalesPurchases: 'بيع',
+      menuWarehouses: 'المخازن',
+      menuInvoices: 'السجل',
+      weeklySales: 'تقرير المبيعات الأسبوعي',
+      weeklyBuy: 'تقرير الشراء/المخزون الأسبوعي',
+      walkIn: 'زبون عادي',
+      takeaway: 'طلبات خارجية',
+      walkInCustomer: 'زبون عادي',
+      takeawayCustomer: 'زبون طلبات خارجية',
       // New additions
       customerCopy: 'نسخة العميل',
       shopCopy: 'نسخة المتجر',
@@ -1406,8 +1345,6 @@ export default function App() {
       currentBill: 'الفاتورة الحالية',
       cartEmpty: 'السلة فارغة',
       selectItems: 'اختر عناصر لإضافتها',
-      subtotal: 'المجموع الفرعي',
-      tax: 'الضريبة',
       checkout: 'الدفع',
       customerNameOptional: 'اسم العميل (اختياري)',
       inventorySubtitle: 'مستويات المخزون وحركات المخزون',
@@ -1429,14 +1366,11 @@ export default function App() {
       shopPhone: 'هاتف المتجر',
       updateSettings: 'تحديث الإعدادات',
       securityPin: 'رمز الأمان',
-      language: 'اللغة',
       close: 'إغلاق',
 
       // Invoice Print
       retailInvoice: 'فاتورة التجزئة',
       invoice: 'فاتورة',
-      customerCopy: 'نسخة العميل',
-      shopCopy: 'نسخة المتجر',
       date: 'التاريخ',
       billNo: 'رقم الفاتورة',
       paymentMode: 'طريقة الدفع',
@@ -1512,10 +1446,6 @@ export default function App() {
       changePin: 'تغيير رمز PIN',
       newPin: 'PIN جديد',
       saveSettings: 'حفظ الإعدادات',
-      discount: 'خصم',
-      subtotal: 'المجموع الفرعي',
-      tax: 'ضريبة',
-      total: 'المجموع',
       currentPin: 'PIN الحالي',
       enterNewPin: 'أدخل PIN الجديد',
       pinChanged: 'تم تحديث PIN بنجاح!',
@@ -1526,10 +1456,7 @@ export default function App() {
       secQ_mother: "ما هو اسم عائلة والدتك؟",
       secQ_city: "في أي مدينة ولدت؟",
       secQ_school: "ما هو اسم مدرستك الأولى؟",
-      printSettings: 'إعدادات الطباعة',
-      dualPrint: 'طباعة مزدوجة (2x)',
       manageLocations: 'إدارة ومراقبة جميع مواقعك الفعلية.',
-      guards: 'حراس',
       siteEmployees: 'الموظفين',
 
       // Profit & Loss
@@ -1742,7 +1669,6 @@ export default function App() {
       selectDate: '选择日期',
       selectStatus: '选择状态',
       save: '保存',
-      actions: '操作',
       replacementFor: '替班',
       coveringFor: '顶班',
       lateDeductions: '迟到扣款',
@@ -1750,7 +1676,6 @@ export default function App() {
       manualDeduction: '手动扣款',
       cost: '成本',
       manageLocations: '管理和监控您的所有物理位置。',
-      guards: '安保人员',
       siteEmployees: '员工',
       none: '无',
       dashboardTotal: '总计',
@@ -1970,9 +1895,6 @@ export default function App() {
   };
 
 
-
-  const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
-  useEffect(() => { localStorage.setItem('language', language); }, [language]);
 
   const t = (key) => {
     const lang = translations[language] ? language : 'en';
@@ -2270,51 +2192,7 @@ export default function App() {
 
 
   // --- Initial Data (Only used if localStorage is empty) ---
-  const initialEmployees = [
-    {
-      id: 1,
-      name: 'Sarah Connor',
-      role: 'Security Supervisor',
-      dept: 'Operations',
-      status: 'Active',
-      location: 'Headquarters',
-      shift: 'Morning (12 Hours)',
-      salary: 120000,
-      bonus: 5000,
-      overtime: 200,
-      photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-    },
-    {
-      id: 2,
-      name: 'James Cameron',
-      role: 'Senior Guard',
-      dept: 'Security',
-      status: 'Active',
-      location: 'Site Alpha',
-      shift: 'Night (12 Hours)',
-      salary: 145000,
-      bonus: 8000,
-      overtime: 0,
-      photo: ''
-    },
-    { id: 3, name: 'Ellen Ripley', role: 'HR Manager', dept: 'Human Resources', status: 'On Leave', location: 'Headquarters', shift: 'Morning (12 Hours)', salary: 95000, bonus: 2000, overtime: 0, photo: '' },
-    { id: 4, name: 'Kyle Reese', role: 'Patrol Lead', dept: 'Security', status: 'Active', location: 'NYC Branch', shift: 'Night (12 Hours)', salary: 110000, bonus: 6500, overtime: 1200, photo: '' },
-    { id: 5, name: 'John Matrix', role: 'Surveillance Tech', dept: 'IT', status: 'Remote', location: 'Remote', shift: 'Night (12 Hours)', salary: 135000, bonus: 4000, overtime: 3500, photo: '' },
-  ];
 
-  const initialSites = [
-    { id: 1, name: 'Headquarters', city: 'San Francisco', manager: 'Ellen Ripley', status: 'Operational' },
-    { id: 2, name: 'NYC Branch', city: 'New York', manager: 'Kyle Reese', status: 'Operational' },
-    { id: 3, name: 'Site Alpha', city: 'Nevada', manager: 'Sarah Connor', status: 'Renovating' },
-    { id: 4, name: 'Remote Team', city: 'Global', manager: 'James Cameron', status: 'Active' },
-  ];
-
-  const initialAttendance = [
-    { id: 1, name: 'Sarah Connor', date: '2025-12-07', status: 'On Time' },
-    { id: 2, name: 'James Cameron', date: '2025-12-07', status: 'Late' },
-    { id: 3, name: 'Kyle Reese', date: '2025-12-07', status: 'On Time' },
-    { id: 4, name: 'John Matrix', date: '2025-12-07', status: 'Absent' },
-  ];
 
   // --- State with Firestore Integration ---
   const [employees, setEmployees] = useState([]);
@@ -2826,7 +2704,7 @@ export default function App() {
       return;
     }
     try {
-      const totalAmount = calculateTotal();
+      calculateTotal();
       const prefix = orderType === 'Walk-in' ? 'W' : 'T';
       let uniqueId;
 
