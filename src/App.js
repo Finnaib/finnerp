@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
@@ -87,15 +87,6 @@ function SidebarItem({ icon, label, active, onClick }) {
       <span className="font-medium text-sm">{label}</span>
       {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-sm"></div>}
     </button>
-  );
-}
-
-function InfoRow({ label, value }) {
-  return (
-    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-medium text-gray-900">{value}</span>
-    </div>
   );
 }
 
@@ -371,7 +362,6 @@ export default function App() {
       price: 'Price',
       taxVAT: 'Tax/VAT',
       taxRate: 'Tax rate',
-      total: 'TOTAL',
       makeChecksPayable: 'Make all checks payable to',
       thankYou: 'Thank you for your business!',
       billTo: 'BILL TO',
@@ -733,8 +723,6 @@ export default function App() {
       security: 'सुरक्षा',
       it: 'IT',
       headquarters: 'मुख्यालय',
-      sales: 'बिक्री',
-      marketing: 'मार्केटिंग',
       kitchen: 'रसोई',
       service: 'सेवा',
       bar: 'बार',
@@ -786,7 +774,6 @@ export default function App() {
       accountHandling: 'खाता प्रबंधन',
       connectGoogle: 'Google खाता कनेक्ट करें',
       linkGoogleDesc: 'पासवर्ड के बजाय इससे लॉगिन करने के लिए अपने Google खाते को लिंक करें।',
-      actions: 'क्रियाएँ',
 
       addAttendance: 'हाजिरी जोड़ें',
       editAttendance: 'हाजिरी संपादित करें',
@@ -872,7 +859,6 @@ export default function App() {
       searchProducts: 'उत्पाद खोजें...',
       todaysSales: 'आज की बिक्री',
       time: 'समय',
-      amount: 'राशि',
       items: 'वस्तुएं',
       receipt: 'रसीद',
       currentBill: 'वर्तमान बिल',
@@ -920,7 +906,6 @@ export default function App() {
       subtotal: 'उप-योग',
       taxVAT: 'कर/वैट',
       taxRate: 'कर दर',
-      total: 'कुल',
       makeChecksPayable: 'सभी चेक देय बनाएं',
       thankYou: 'आपके व्यवसाय के लिए धन्यवाद!',
       billTo: 'बिल प्राप्तकर्ता',
@@ -961,18 +946,11 @@ export default function App() {
       deleteLocationConfirm: 'इस स्थान को हटाएं?',
       errorNoUser: 'त्रुटि: कोई उपयोगकर्ता लॉग इन नहीं है।',
 
-      status: 'स्थिति',
       totalIncome: 'कुल आय',
       visa: 'वीज़ा',
       onlinePayment: 'ऑनलाइन',
 
       // PIN & Security
-      forgotPassword: 'पासवर्ड भूल गए?',
-      resetPassword: 'पासवर्ड ड़िसेट करें',
-      sendResetLink: 'लिंक भेजो',
-      backToLogin: 'लॉगिन पर वापस',
-      passwordResetSent: 'पासवर्ड रीसेट ईमेल भेजा गया!',
-      enterEmail: 'पासवर्ड रीसेट करने के लिए अपना ईमेल दर्ज करें',
       email: 'ईमेल',
       forgotPin: 'पिन भूल गए?',
       securityQuestion: 'सुरक्षा प्रश्न',
@@ -1000,9 +978,6 @@ export default function App() {
       // Profit & Loss
       monthlyPl: 'मासिक लाभ और हानि',
       discount: 'छूट',
-      subtotal: 'उपयोग',
-      tax: 'कर',
-      total: 'कुल',
       plSubtitle: 'राजस्व बनाम बेचे गए माल की लागत बनाम व्यय विश्लेषण',
       revenue: 'राजस्व',
       totalSales: 'कुल बिक्री',
@@ -1120,7 +1095,6 @@ export default function App() {
       stockCheck: 'فحص المخزون',
       items: 'عناصر',
 
-      total: 'الإجمالي',
       netPay: 'صافي الراتب',
       actions: 'إجراءات',
       login: 'تسجيل الدخول',
@@ -1141,7 +1115,6 @@ export default function App() {
       trackAttendance: 'تتبع حضور وانصراف الحراس.',
       checkIn: 'دخول',
       checkOut: 'خروج',
-      status: 'الحالة',
       import: 'استيراد',
       export: 'تصدير',
       payrollMgmt: 'إدارة الرواتب',
@@ -1168,7 +1141,6 @@ export default function App() {
       menuWarehouses: 'المخازن',
       menuInvoices: 'السجل',
       weeklySales: 'تقرير المبيعات الأسبوعي',
-      weeklyBuy: 'تقرير الشراء/المخزون الأسبوعي',
       weeklyBuy: 'تقرير الشراء/المخزون الأسبوعي',
       walkIn: 'زبون عادي',
       takeaway: 'طلبات خارجية',
@@ -1201,8 +1173,6 @@ export default function App() {
       security: 'الأمن',
       it: 'IT',
       headquarters: 'المقر الرئيسي',
-      sales: 'المبيعات',
-      marketing: 'التسويق',
       kitchen: 'المطبخ',
       service: 'الخدمة',
       bar: 'البار',
@@ -1249,7 +1219,6 @@ export default function App() {
       accountHandling: 'إدارة الحساب',
       connectGoogle: 'ربط حساب Google',
       linkGoogleDesc: 'ربط حساب Google الخاص بك لتسجيل الدخول به بدلاً من كلمة المرور.',
-      actions: 'إجراءات',
 
       addAttendance: 'إضافة حضور',
       editAttendance: 'تعديل الحضور',
@@ -1288,41 +1257,9 @@ export default function App() {
       theme: 'المظهر',
       light: 'فاتح',
       dark: 'داكن',
-      // Payroll Slip
-      payrollSlip: 'قسيمة الراتب',
-      payrollFor: 'الراتب لشهر',
-      employeeName: 'اسم الموظف',
-      employeeId: 'رقم الموظف',
-      department: 'القسم',
-      payPeriod: 'فترة الدفع',
-      basicSalary: 'الراتب الأساسي',
-      grossPay: 'إجمالي الراتب',
-      totalDeductions: 'إجمالي الخصومات',
-      otherDeductions: 'خصومات أخرى',
-      advanceSalary: 'سلفة الراتب',
-      employeeSignature: 'توقيع الموظف',
-      authorizedSignature: 'التوقيع المعتمد',
-      computerGenerated: 'هذه قسيمة راتب إلكترونية. لا يلزم التوقيع.',
-      generatedOn: 'تم الإنشاء في',
-      at: 'في',
-      companyName: 'اسم الشركة',
-      companyAddress: 'عنوان الشركة',
-      selectLocation: 'اختر الموقع',
-      noLocations: 'لا توجد مواقع متاحة - يرجى إنشاء موقع أولاً',
+      dark: 'داكن',
 
-      // New Modules
-      menuAccounts: 'الحسابات العامة',
-      menuSalesPurchases: 'بيع',
-      menuWarehouses: 'المخازن',
-      menuInvoices: 'السجل',
-      weeklySales: 'تقرير المبيعات الأسبوعي',
-      weeklyBuy: 'تقرير الشراء/المخزون الأسبوعي',
-      walkIn: 'زبون عادي',
-      takeaway: 'طلبات خارجية',
-      walkInCustomer: 'زبون عادي',
-      takeawayCustomer: 'زبون طلبات خارجية',
       // New additions
-      customerCopy: 'نسخة العميل',
       shopCopy: 'نسخة المتجر',
       printSettings: 'إعدادات الطباعة',
       thermal: 'حراري (80 مم)',
@@ -1338,8 +1275,6 @@ export default function App() {
       type: 'النوع',
       posTerminal: 'محطة نقطة البيع',
       searchProducts: 'بحث عن المنتجات...',
-      todaysSales: 'مبيعات اليوم',
-      time: 'الوقت',
       amount: 'المبلغ',
       items: 'العناصر',
       receipt: 'إيصال',
@@ -1369,34 +1304,6 @@ export default function App() {
       securityPin: 'رمز الأمان',
       close: 'إغلاق',
 
-      // Invoice Print
-      retailInvoice: 'فاتورة التجزئة',
-      invoice: 'فاتورة',
-      date: 'التاريخ',
-      billNo: 'رقم الفاتورة',
-      paymentMode: 'طريقة الدفع',
-      cash: 'نقدي',
-      item: 'الصنف',
-      qty: 'الكمية',
-      amt: 'المبلغ',
-      price: 'السعر',
-      amount: 'المبلغ',
-      subtotal: 'المجموع الفرعي',
-      taxVAT: 'الضريبة/القيمة المضافة',
-      taxRate: 'معدل الضريبة',
-      total: 'الإجمالي',
-      makeChecksPayable: 'اجعل جميع الشيكات مستحقة الدفع إلى',
-      thankYou: 'شكراً لتعاملكم معنا!',
-      billTo: 'الفاتورة إلى',
-      description: 'الوصف',
-      unitPrice: 'سعر الوحدة',
-      lineTotal: 'إجمالي السطر',
-      comments: 'ملاحظات',
-      termsConditions: 'الشروط والأحكام',
-      paymentTerms: '1. إجمالي الدفع مستحق خلال 30 يومًا',
-      includeInvoiceNumber: '2. يرجى تضمين رقم الفاتورة على الشيك الخاص بك',
-      phone: 'هاتف',
-      customer: 'عميل',
       contactQuestions: 'إذا كان لديك أي أسئلة حول هذه الفاتورة، يرجى الاتصال',
       // Alerts
       authError: 'خطأ في المصادقة: ',
@@ -1427,11 +1334,6 @@ export default function App() {
       totalIncome: 'إجمالي الدخل',
       visa: 'فيزا',
       onlinePayment: 'دفع عبر الإنترنت',
-      forgotPassword: 'نسيت كلمة المرور؟',
-      resetPassword: 'إعادة تعيين كلمة المرور',
-      sendResetLink: 'إرسال الرابط',
-      backToLogin: 'العودة لتسجيل الدخول',
-      passwordResetSent: 'تم إرسال رابط إعادة التعيين!',
       enterEmail: 'أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور',
       orContinue: 'أو الاستمرار مع',
       signInGoogle: 'تسجيل الدخول عبر Google',
@@ -1469,7 +1371,6 @@ export default function App() {
       profitLossReport: 'تقرير الربح والخسارة',
       plSubtitle: 'تحليل الإيرادات مقابل تكلفة البضاعة المباعة مقابل المصاريف',
       revenue: 'الإيرادات',
-      totalSales: 'إجمالي المبيعات',
       cogs: 'تكلفة البضاعة المباعة',
       cogsFull: 'تكلفة البضاعة المباعة',
       grossProfit: 'إجمالي الربح',
@@ -1749,13 +1650,11 @@ export default function App() {
       shopPhone: '店铺电话',
       updateSettings: '更新设置',
       securityPin: '安全密码',
-      language: '语言',
       close: '关闭',
 
       // Invoice Print
       retailInvoice: '零售发票',
       invoice: '发票',
-      customerCopy: '客户联',
       shopCopy: '店铺联',
       date: '日期',
       billNo: '账单号',
@@ -1765,11 +1664,8 @@ export default function App() {
       qty: '数量',
       amt: '金额',
       price: '价格',
-      amount: '金额',
-      subtotal: '小计',
       taxVAT: '税/增值税',
       taxRate: '税率',
-      total: '总计',
       makeChecksPayable: '所有支票抬头请写',
       thankYou: '感谢您的惠顾！',
       billTo: '账单收件人',
@@ -1808,24 +1704,6 @@ export default function App() {
       googleSignInError: 'Google 登录错误: ',
       factoryResetWarning: '严重警告：这将永久删除所有数据。你确定吗？',
       pinPrompt: '输入安全 PIN 以确认：',
-      incorrectPin: 'PIN 错误。重置已中止。',
-      resetComplete: '出厂重置完成。',
-      resetFailed: '重置失败: ',
-      backupExported: '备份导出成功！',
-      exportFailed: '导出失败: ',
-      backupImported: '备份导入成功！正在重新加载...',
-      importFailed: '导入失败: ',
-      overwriteWarning: '警告：这将覆盖所有现有数据。继续吗？',
-      linkSuccess: 'Google 帐户关联成功！',
-      linkError: '关联错误: ',
-      accountLinked: '此 Google 帐户已处于活动状态。',
-      employeeSaved: '员工保存成功！',
-      saveError: '保存错误: ',
-      deleteConfirm: '你确定吗？',
-      updateError: '更新错误: ',
-      addPurchaseError: '添加购买错误: ',
-      genInvoiceError: '生成发票错误: ',
-      addItemError: '添加项目错误: ',
       deleteLocationWarning: '无法删除。已分配员工。',
       deleteLocationConfirm: '删除此位置？',
       errorNoUser: '错误：没有登录用户。',
@@ -1836,14 +1714,6 @@ export default function App() {
 
       // PIN & Security
       forgotPin: '忘记 PIN？',
-      forgotPassword: '忘记密码？',
-      securityQuestion: '安全问题',
-      securityAnswer: '安全答案',
-      enterSecurityAnswer: '输入安全答案',
-      resetPassword: '重置密码',
-      sendResetLink: '发送重置链接',
-      backToLogin: '返回登录',
-      passwordResetSent: '密码重置邮件已发送！',
       enterEmail: '输入您的电子邮件以重置密码',
       pinResetSuccess: 'PIN 重置成功！您的新 PIN 是 1234。',
       incorrectAnswer: '答案错误。',
@@ -1861,8 +1731,6 @@ export default function App() {
       secQ_mother: "你母亲的娘家姓是什么？",
       secQ_city: "你在哪个城市出生？",
       secQ_school: "你第一所学校的名字是什么？",
-      printSettings: '打印设置',
-      dualPrint: '双重打印 (2x)',
 
       // Profit & Loss
       monthlyPl: '每月损益',
@@ -1889,18 +1757,15 @@ export default function App() {
       deptExpenses: '部门费用',
       invPurchases: '库存采购',
       discount: '折扣',
-      subtotal: '小计',
-      tax: '税',
-      total: '总计',
     }
   };
 
 
 
-  const t = (key) => {
+  const t = useCallback((key) => {
     const lang = translations[language] ? language : 'en';
     return (translations[lang] && translations[lang][key]) || key;
-  };
+  }, [language]);
 
 
 
@@ -1950,12 +1815,6 @@ export default function App() {
         setPinInput(prev => (prev.length < 4 ? prev + e.key : prev));
       } else if (e.key === 'Backspace') {
         setPinInput(prev => prev.slice(0, -1));
-      } else if (e.key === 'Enter') {
-        // Trigger verification (logic copied from button click)
-        const currentPin = pinInput; // pinInput state might be stale in closure? No, pinInput is dependency.
-        // Actually, best to rely on useEffect dependency on pinInput or just check current state in a ref?
-        // Simpler: Just allow typing, user still waits for auto-submit or we can trigger it.
-        // The existing logic triggers when length === 4.
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -2240,12 +2099,9 @@ export default function App() {
 
   // --- New Modules State & Listeners ---
   const [accounts, setAccounts] = useState([]);
-  const [journalEntries, setJournalEntries] = useState([]);
   const [sales, setSales] = useState([]);
   const [purchases, setPurchases] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
   const [inventory, setInventory] = useState([]);
-  const [invoices, setInvoices] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -2253,11 +2109,6 @@ export default function App() {
     // Accounts Listener
     const unsubAccounts = onSnapshot(query(collection(db, 'accounts'), where('userId', '==', user.uid)), (snapshot) => {
       setAccounts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-
-    // Journal Entries Listener
-    const unsubJournal = onSnapshot(query(collection(db, 'journal_entries'), where('userId', '==', user.uid)), (snapshot) => {
-      setJournalEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
     // Sales Listener
@@ -2270,19 +2121,9 @@ export default function App() {
       setPurchases(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
-    // Suppliers Listener
-    const unsubSuppliers = onSnapshot(query(collection(db, 'suppliers'), where('userId', '==', user.uid)), (snapshot) => {
-      setSuppliers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-
     // Inventory Listener
     const unsubInventory = onSnapshot(query(collection(db, 'inventory'), where('userId', '==', user.uid)), (snapshot) => {
       setInventory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-
-    // Electronic Invoices Listener
-    const unsubInvoices = onSnapshot(query(collection(db, 'invoices'), where('userId', '==', user.uid)), (snapshot) => {
-      setInvoices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
     // Mobile/Shop Settings Listener
@@ -2294,12 +2135,9 @@ export default function App() {
 
     return () => {
       unsubAccounts();
-      unsubJournal();
       unsubSales();
       unsubPurchases();
-      unsubSuppliers();
       unsubInventory();
-      unsubInvoices();
       unsubSettings();
     };
   }, [user]);
