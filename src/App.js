@@ -202,6 +202,7 @@ export default function App() {
   const [homeLocationFilter, setHomeLocationFilter] = useState('');
   const [historyLocationFilter, setHistoryLocationFilter] = useState('');
   const [reportLocationFilter, setReportLocationFilter] = useState('');
+  const [historyFilter, setHistoryFilter] = useState('All');
 
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const formatCurrency = (val) => {
