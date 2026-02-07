@@ -3216,7 +3216,7 @@ export default function App() {
             </div>
             <div class="totals-row total">
               <span>${t('total')}</span>
-              <span>$ ${formatCurrency(total)}</span>
+              <span>${formatCurrency(total)}</span>
             </div>
           </div>
         </div>
