@@ -3589,24 +3589,64 @@ export default function App() {
         ];
 
         // Append SOLD ITEMS Table
-        data.push(['', '', '']);
-        data.push(['SOLD ITEMS', 'Qty', 'Amount']);
+        data.push(['', '', '', '', '', '', '']);
+        data.push(['SOLD ITEMS DETAIL', '', '', '', '', '', '']);
+        data.push([
+          t('itemName') || 'Item Name',
+          t('quantity') || 'Qty',
+          `${t('sellPrice') || 'Sell Price'} (Unit)`,
+          `${t('buyPrice') || 'Buy Price'} (Unit)`,
+          t('total') || 'Total Sales',
+          t('totalCost') || 'Total Cost',
+          t('profit') || 'Profit'
+        ]);
+
         filteredSales.forEach(sale => {
           if (Array.isArray(sale.items)) {
             sale.items.forEach(item => {
-              data.push([(item.name || 'Unknown Item'), item.qty || 1, (item.price || 0) * (item.qty || 1)]);
+              const invItem = inventory.find(i => i.name === item.name);
+              const unitBuyPrice = invItem ? (Number(invItem.buyPrice) || 0) : 0;
+              const unitSellPrice = Number(item.price) || 0;
+              const qty = Number(item.qty) || 1;
+
+              const totalSell = unitSellPrice * qty;
+              const totalCost = unitBuyPrice * qty;
+              const profit = totalSell - totalCost;
+
+              data.push([
+                item.name || 'Unknown',
+                qty,
+                unitSellPrice,
+                unitBuyPrice,
+                totalSell,
+                totalCost,
+                profit
+              ]);
             });
           }
         });
 
         // Append BOUGHT ITEMS Table (Purchases)
-        data.push(['', '', '']);
-        data.push(['BOUGHT ITEMS (Purchases)', t('description') || 'Description', 'Amount']);
+        data.push(['', '', '', '', '', '', '']);
+        data.push(['BOUGHT ITEMS DETAIL (Purchases & Expenses)', '', '', '', '', '', '']);
+        data.push([
+          t('description') || 'Description',
+          t('date') || 'Date',
+          t('quantity') || 'Qty',
+          'Unit Cost',
+          t('amount') || 'Total Amount'
+        ]);
+
         periodPurchases.forEach(p => {
           const label = p.name || p.description || p.itemName || 'Purchase';
-          const amt = p.amount || 0;
-          const qty = p.quantity ? p.quantity + (p.unit ? ' ' + p.unit : '') : (p.qty || '-');
-          data.push([label, qty, -amt]);
+          const dateStr = p.date ? new Date(p.date).toLocaleDateString() : '-';
+          const amt = Number(p.amount) || 0;
+          const qtyVal = Number(p.quantity) || (Number(p.qty) || 1);
+          const unitCost = qtyVal > 0 ? (amt / qtyVal).toFixed(2) : amt;
+
+          const qtyDisplay = p.quantity ? p.quantity + (p.unit ? ' ' + p.unit : '') : (p.qty || '-');
+
+          data.push([label, dateStr, qtyDisplay, unitCost, amt]);
         });
 
         filename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.xlsx`;
