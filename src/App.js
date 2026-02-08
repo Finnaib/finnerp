@@ -1773,6 +1773,7 @@ export default function App() {
   const [employeeLocationFilter, setEmployeeLocationFilter] = useState('');
   const [payrollLocationFilter, setPayrollLocationFilter] = useState('');
   const [payrollMonthFilter, setPayrollMonthFilter] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
+  const [employeeMonthFilter, setEmployeeMonthFilter] = useState(new Date().toISOString().slice(0, 7)); // For Employees tab
   const [profitMonthFilter, setProfitMonthFilter] = useState(new Date().toISOString().slice(0, 7));
   const [profitPeriod, setProfitPeriod] = useState('Monthly');
   const [profitDateFilter, setProfitDateFilter] = useState(new Date().toISOString().split('T')[0]);
@@ -4244,6 +4245,13 @@ export default function App() {
                     <option value="">{t('filterAll')}</option>
                     {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                   </select>
+                  <input
+                    type="month"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+                    value={employeeMonthFilter}
+                    onChange={e => setEmployeeMonthFilter(e.target.value)}
+                    title="Select month to view salary details"
+                  />
                   <button onClick={() => setIsAddModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all w-full sm:w-auto">
                     <Plus size={18} /> {t('addEmployee')}
                   </button>
