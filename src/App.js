@@ -2215,7 +2215,6 @@ export default function App() {
 
       // Auto-detect row type based on content
       const firstCellVal = rowData[0] ? String(rowData[0]) : '';
-      const strRow = rowData.join(' ').toLowerCase();
 
       // Heuristics for styling
       const isTotalRow = firstCellVal.toUpperCase().includes('TOTAL') || firstCellVal.includes('Net Profit') || firstCellVal.includes('Gross Profit');
