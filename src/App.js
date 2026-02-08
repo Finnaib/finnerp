@@ -2507,6 +2507,24 @@ export default function App() {
     }
   };
 
+  const handleDeletePayrollRecord = async (employeeId, month) => {
+    if (!user) return;
+
+    const confirmDelete = window.confirm(`Reset payroll to default values for ${month}? This will delete any custom adjustments.`);
+    if (!confirmDelete) return;
+
+    try {
+      const docId = `${employeeId}_${month}`;
+      const docRef = doc(db, 'payroll', docId);
+      await deleteDoc(docRef);
+      setIsManagePayrollModalOpen(false);
+      // Optional: alert('Reset to defaults');
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting record: " + err.message);
+    }
+  };
+
   // --- Accounts Logic ---
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [newAccountForm, setNewAccountForm] = useState({ name: '', type: 'Asset', balance: 0 });
@@ -6497,6 +6515,16 @@ export default function App() {
 
                 <div className="pt-2 flex gap-3">
                   <button type="button" onClick={() => setIsManagePayrollModalOpen(false)} className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-colors">{t('cancel')}</button>
+                  {payrolls.find(p => p.employeeId === currentPayrollForm.id && p.month === currentPayrollForm.month) && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePayrollRecord(currentPayrollForm.id, currentPayrollForm.month)}
+                      className="flex-1 px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 font-bold transition-all flex items-center justify-center gap-2 border border-red-200"
+                      title="Delete custom record and reset to employee defaults"
+                    >
+                      <X size={18} /> Reset
+                    </button>
+                  )}
                   <button type="submit" className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
                     <Save size={18} /> Save Record
                   </button>
