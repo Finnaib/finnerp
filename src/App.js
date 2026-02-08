@@ -508,6 +508,7 @@ const translations = {
     expenses: 'EXPENSES',
     purchasesOther: 'Purchases/Other',
     netProfit: 'NET PROFIT',
+    netLoss: 'NET LOSS',
     // New Professional P&L Keys
     incomeStatement: 'INCOME STATEMENT',
     salesCash: 'Sales - Cash',
@@ -903,6 +904,7 @@ const translations = {
     expenses: 'व्यय',
     purchasesOther: 'खरीद/अन्य',
     netProfit: 'शुद्ध लाभ',
+    netLoss: 'शुद्ध हानि',
     // New Professional P&L Keys
     incomeStatement: 'आय विवरण',
     salesCash: 'बिक्री - नकद',
@@ -1285,6 +1287,7 @@ const translations = {
     expenses: 'المصاريف',
     purchasesOther: 'المشتريات/أخرى',
     netProfit: 'صافي الربح',
+    netLoss: 'صافي الخسارة',
     // New Professional P&L Keys
     incomeStatement: 'قائمة الدخل',
     salesCash: 'مبيعات - نقد',
@@ -1643,6 +1646,7 @@ const translations = {
     expenses: '费用',
     purchasesOther: '采购/其他',
     netProfit: '净利润',
+    netLoss: '净亏损',
     // New Professional P&L Keys
     incomeStatement: '损益表',
     salesCash: '销售 - 现金',
@@ -2581,11 +2585,30 @@ export default function App() {
     }
 
     try {
-      await addDoc(collection(db, 'inventory'), {
+      const invData = {
         ...newItemForm,
         userId: user.uid,
         updatedAt: serverTimestamp()
-      });
+      };
+      await addDoc(collection(db, 'inventory'), invData);
+
+      // Record as a purchase for P&L
+      const totalCost = (Number(newItemForm.quantity) || 0) * (Number(newItemForm.buyPrice) || 0);
+      if (totalCost > 0) {
+        await addDoc(collection(db, 'purchases'), {
+          name: newItemForm.name + " (Initial Stock)",
+          amount: totalCost,
+          quantity: Number(newItemForm.quantity),
+          buyPrice: Number(newItemForm.buyPrice),
+          location: newItemForm.location,
+          category: newItemForm.category,
+          userId: user.uid,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: serverTimestamp(),
+          type: 'Inventory Add'
+        });
+      }
+
       setIsAddItemModalOpen(false);
       setNewItemForm({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0, photo: '' });
     } catch (err) {
@@ -2609,9 +2632,14 @@ export default function App() {
     }
 
     try {
+      const oldItem = inventory.find(i => i.id === editingItem.id);
+      const oldQty = oldItem ? Number(oldItem.quantity) || 0 : 0;
+      const newQty = Number(editingItem.quantity) || 0;
+      const qtyDiff = newQty - oldQty;
+
       await updateDoc(doc(db, 'inventory', editingItem.id), {
         name: editingItem.name,
-        quantity: Number(editingItem.quantity),
+        quantity: newQty,
         location: editingItem.location,
         category: editingItem.category,
         buyPrice: Number(editingItem.buyPrice),
@@ -2619,6 +2647,24 @@ export default function App() {
         photo: editingItem.photo || '',
         updatedAt: serverTimestamp()
       });
+
+      // If quantity increased, record as a purchase for P&L
+      if (qtyDiff > 0) {
+        const totalCost = qtyDiff * (Number(editingItem.buyPrice) || 0);
+        await addDoc(collection(db, 'purchases'), {
+          name: editingItem.name + " (Stock Update)",
+          amount: totalCost,
+          quantity: qtyDiff,
+          buyPrice: Number(editingItem.buyPrice),
+          location: editingItem.location,
+          category: editingItem.category,
+          userId: user.uid,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: serverTimestamp(),
+          type: 'Stock Increase'
+        });
+      }
+
       setEditingItem(null);
       setIsAddItemModalOpen(false); // Close generic modal if used, or edit modal
     } catch (err) {
@@ -3749,7 +3795,7 @@ export default function App() {
           [t('invPurchases'), '', -totalOtherExpenses],
           [t('totalExpenses'), '', -totalOperatingExpenses],
           ['', '', ''],
-          [t('netProfit'), '', netProfitVal],
+          [netProfitVal >= 0 ? t('netProfit') : t('netLoss'), '', netProfitVal],
           ['', t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%']
         ];
 
