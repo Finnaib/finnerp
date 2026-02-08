@@ -526,7 +526,16 @@ const translations = {
     accountHandling: 'Account Handling',
     connectGoogle: 'Connect Google Account',
     linkGoogleDesc: 'Link your Google account to login with it instead of password.',
-
+    soldItemsDetail: 'SOLD ITEMS DETAIL',
+    boughtItemsDetail: 'BOUGHT ITEMS DETAIL (Purchases & Expenses)',
+    unknown: 'Unknown',
+    totals: 'TOTALS',
+    unitCost: 'Unit Cost',
+    period: 'Period',
+    na: 'N/A',
+    totalCost: 'Total Cost',
+    profit: 'Profit',
+    description: 'Description',
   },
   hi: {
     appName: 'Finn ERP',
@@ -692,8 +701,17 @@ const translations = {
     selectEmployeeAlert: 'कृपया एक बिक्री कर्मचारी चुनें!',
     accountHandling: 'खाता प्रबंधन',
     connectGoogle: 'Google खाता कनेक्ट करें',
-    linkGoogleDesc: 'पासवर्ड के बजाय इससे लॉगिन करने के लिए अपने Google खाते को लिंक करें।',
-
+    linkGoogleDesc: 'पासवर्ड के बजाय इसका उपयोग करके लॉग इन करने के लिए अपने Google खाते को लिंक करें।',
+    soldItemsDetail: 'बेची गई वस्तुओं का विवरण',
+    boughtItemsDetail: 'खरीदी गई वस्तुओं का विवरण (खरीद और व्यय)',
+    unknown: 'अज्ञात',
+    totals: 'कुल',
+    unitCost: 'इकाई लागत',
+    period: 'अवधि',
+    na: 'लागू नहीं',
+    totalCost: 'कुल लागत',
+    profit: 'लाभ',
+    description: 'विवरण',
     addAttendance: 'हाजिरी जोड़ें',
     editAttendance: 'हाजिरी संपादित करें',
     deleteAttendance: 'हाजिरी हटाएं',
@@ -1132,8 +1150,17 @@ const translations = {
     selectEmployeeAlert: 'الرجاء تحديد موظف المبيعات!',
     accountHandling: 'إدارة الحساب',
     connectGoogle: 'ربط حساب Google',
-    linkGoogleDesc: 'ربط حساب Google الخاص بك لتسجيل الدخول به بدلاً من كلمة المرور.',
-
+    linkGoogleDesc: 'ربط حساب Google الخاص بك لاستخدامه بدلاً من كلمة المرور لتسجيل الدخول.',
+    soldItemsDetail: 'تفاصيل العناصر المباعة',
+    boughtItemsDetail: 'تفاصيل العناصر المشتراة (المشتريات والمصاريف)',
+    unknown: 'غير معروف',
+    totals: 'الإجماليات',
+    unitCost: 'تكلفة الوحدة',
+    period: 'الفترة',
+    na: 'غير متاح',
+    totalCost: 'إجمالي التكلفة',
+    profit: 'الربح',
+    description: 'الوصف',
     addAttendance: 'إضافة حضور',
     editAttendance: 'تعديل الحضور',
     deleteAttendance: 'حذف الحضور',
@@ -1471,6 +1498,16 @@ const translations = {
     accountHandling: '帐户处理',
     connectGoogle: '连接 Google 帐户',
     linkGoogleDesc: '链接您的 Google 帐户以使用它而不是密码登录。',
+    soldItemsDetail: '销售项目详情',
+    boughtItemsDetail: '采购项目详情（采购与费用）',
+    unknown: '未知',
+    totals: '总计',
+    unitCost: '单位成本',
+    period: '时期',
+    na: '不适用',
+    totalCost: '总成本',
+    profit: '利润',
+    description: '描述',
     addAttendance: '添加考勤',
     editAttendance: '编辑考勤',
     deleteAttendance: '删除考勤',
@@ -3628,12 +3665,12 @@ export default function App() {
           })
           .map(s => {
             const date = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
-            const itemsSummary = Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join('; ') : 'N/A';
+            const itemsSummary = Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join('; ') : t('na');
             const typeLabel = s.orderType === 'Walk-in' ? t('walkIn') : (s.orderType === 'Takeaway' ? t('takeaway') : s.orderType);
 
             return [
               date.toLocaleString(),
-              s.invoiceId || 'N/A',
+              s.invoiceId || t('na'),
               typeLabel,
               s.customer || t('walkInCustomer'),
               itemsSummary,
@@ -3741,7 +3778,7 @@ export default function App() {
         let totalPayrollExpenses = 0;
 
         periodEmployees.forEach(emp => {
-          const dept = emp.dept || 'Unassigned';
+          const dept = emp.dept || t('unassigned');
           if (!employeesByDept[dept]) {
             employeesByDept[dept] = [];
           }
@@ -3774,7 +3811,7 @@ export default function App() {
         const netProfitVal = grossProfitVal - totalOperatingExpenses;
 
         data = [
-          [`${t('incomeStatement')} (${profitPeriod})`, '', ''],
+          [`${t('incomeStatement')} (${t(profitPeriod.toLowerCase())})`, '', ''],
           ['', '', ''],
           [t('revenue').toUpperCase(), '', ''],
           ...Object.entries(revByMethod).map(([m, amt]) => ['', t(m.toLowerCase()) || m, amt]),
@@ -3789,7 +3826,7 @@ export default function App() {
           [t('deptExpenses'), '', ''],
           // Add employees grouped by department
           ...Object.entries(employeesByDept).flatMap(([dept, emps]) => [
-            ['', `${translations[language]?.[dept.toLowerCase()] || dept} ${t('payrollReport') || 'Payroll'}`, ''],
+            ['', `${translations[language]?.[dept.toLowerCase()] || dept} ${t('payrollReport')}`, ''],
             ...emps.map(emp => ['', `  ${emp.name}`, -emp.totalComp])
           ]),
           [t('invPurchases'), '', -totalOtherExpenses],
@@ -3801,15 +3838,15 @@ export default function App() {
 
         // Append SOLD ITEMS Table
         data.push(['', '', '', '', '', '', '']);
-        data.push(['SOLD ITEMS DETAIL', '', '', '', '', '', '']);
+        data.push([t('soldItemsDetail'), '', '', '', '', '', '']);
         data.push([
-          t('itemName') || 'Item Name',
-          t('quantity') || 'Qty',
-          `${t('sellPrice') || 'Sell Price'} (Unit)`,
-          `${t('buyPrice') || 'Buy Price'} (Unit)`,
-          t('total') || 'Total Sales',
-          t('totalCost') || 'Total Cost',
-          t('profit') || 'Profit'
+          t('itemName'),
+          t('quantity'),
+          `${t('sellPrice')} (${t('dashboardTotal')})`,
+          `${t('buyPrice')} (${t('dashboardTotal')})`,
+          t('total'),
+          t('totalCost'),
+          t('profit')
         ]);
 
         let sumSoldQty = 0;
@@ -3835,7 +3872,7 @@ export default function App() {
               sumSoldProfit += profit;
 
               data.push([
-                item.name || 'Unknown',
+                item.name || t('unknown'),
                 qty,
                 unitSellPrice,
                 unitBuyPrice,
@@ -3848,7 +3885,7 @@ export default function App() {
         });
         // Add Sold Items Total Row
         data.push([
-          'TOTALS',
+          t('totals'),
           sumSoldQty,
           '',
           '',
@@ -3859,20 +3896,20 @@ export default function App() {
 
         // Append BOUGHT ITEMS Table (Purchases)
         data.push(['', '', '', '', '', '', '']);
-        data.push(['BOUGHT ITEMS DETAIL (Purchases & Expenses)', '', '', '', '', '', '']);
+        data.push([t('boughtItemsDetail'), '', '', '', '', '', '']);
         data.push([
-          t('description') || 'Description',
-          t('date') || 'Date',
-          t('quantity') || 'Qty',
-          'Unit Cost',
-          t('amount') || 'Total Amount'
+          t('description'),
+          t('date'),
+          t('quantity'),
+          t('unitCost'),
+          t('amount')
         ]);
 
         let sumBoughtQty = 0;
         let sumBoughtAmount = 0;
 
         periodPurchases.forEach(p => {
-          const label = p.name || p.description || p.itemName || 'Purchase';
+          const label = p.name || p.description || p.itemName || t('boughtItemsDetail');
           const dateStr = p.date ? new Date(p.date).toLocaleDateString() : '-';
           const amt = Number(p.amount) || 0;
           const qtyVal = Number(p.quantity) || (Number(p.qty) || 1);
@@ -3887,7 +3924,7 @@ export default function App() {
         });
         // Add Bought Items Total Row
         data.push([
-          'TOTALS',
+          t('totals'),
           '',
           sumBoughtQty,
           '',
@@ -3895,7 +3932,7 @@ export default function App() {
         ]);
 
         filename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.xlsx`;
-        extraMetadata = [`Period: ${profitPeriod} (${periodLabel})`, `Location: ${reportLocationFilter || t('filterAll')}`];
+        extraMetadata = [`${t('period')}: ${t(profitPeriod.toLowerCase())} (${periodLabel})`, `${t('location')}: ${reportLocationFilter || t('filterAll')}`];
         break;
       default: return;
     }
