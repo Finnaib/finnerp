@@ -2155,72 +2155,135 @@ export default function App() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Report');
 
-    // 1. Metadata Section (Rows 1-4)
-    worksheet.mergeCells('A1:E1');
+    // -- STYLING CONSTANTS --
+    const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; // Slate-800
+    const headerFont = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+    const subHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } }; // Slate-100
+    const subHeaderFont = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF334155' } };
+    const totalFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } }; // Blue-50
+    const totalFont = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF1E40AF' } }; // Blue-800
+    const baseFont = { name: 'Segoe UI', size: 10, color: { argb: 'FF334155' } };
+    const borderStyle = { style: 'thin', color: { argb: 'FFCBD5E1' } }; // Slate-300
+
+    // 1. Metadata Section (Clean Professional Header)
+    // Merge first 7 columns for header
+    const lastCol = Math.max(7, headers.length || 5);
+    const endColChar = String.fromCharCode(64 + lastCol); // Simple char Calc (works for A-Z)
+
+    worksheet.mergeCells(`A1:${endColChar}1`);
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = `${t('companyName') || 'Company'}: Finn ERP`;
-    titleCell.font = { name: 'Arial', size: 16, bold: true };
-    titleCell.alignment = { horizontal: 'center' };
+    titleCell.value = (t('companyName') || 'Company') + ': Finn ERP';
+    titleCell.font = { name: 'Segoe UI', size: 18, bold: true, color: { argb: 'FF0F172A' } };
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-    worksheet.mergeCells('A2:E2');
-    worksheet.getCell('A2').value = `${t('menuReports') || 'Report'}: ${filename.replace('.xlsx', '').replace(/_/g, ' ')}`;
-    worksheet.getCell('A2').alignment = { horizontal: 'center' };
+    worksheet.mergeCells(`A2:${endColChar}2`);
+    const subTitle = worksheet.getCell('A2');
+    subTitle.value = `${filename.replace('.xlsx', '').replace(/_/g, ' ')}`;
+    subTitle.font = { name: 'Segoe UI', size: 14, color: { argb: 'FF475569' } };
+    subTitle.alignment = { horizontal: 'center' };
 
-    worksheet.mergeCells('A3:E3');
-    worksheet.getCell('A3').value = `${t('date')}: ${new Date().toLocaleString()}`;
+    worksheet.mergeCells(`A3:${endColChar}3`);
+    worksheet.getCell('A3').value = `${t('date')}: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
     worksheet.getCell('A3').alignment = { horizontal: 'center' };
+    worksheet.getCell('A3').font = { name: 'Segoe UI', size: 10, italic: true, color: { argb: 'FF64748B' } };
 
     if (extraMetadata.length > 0) {
-      worksheet.mergeCells('A4:E4');
-      worksheet.getCell('A4').value = extraMetadata.join(' | ');
+      worksheet.mergeCells(`A4:${endColChar}4`);
+      worksheet.getCell('A4').value = extraMetadata.join('  |  ');
       worksheet.getCell('A4').alignment = { horizontal: 'center' };
-      worksheet.getCell('A4').font = { italic: true };
+      worksheet.getCell('A4').font = { name: 'Segoe UI', size: 10, color: { argb: 'FF64748B' } };
     }
 
-    // 2. Header Row (Row 6)
-    const headerRow = worksheet.getRow(6);
-    headerRow.values = headers;
-    headerRow.eachCell((cell) => {
-      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF4F46E5' }, // Indigo-600
-      };
-      cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-    });
+    let currentRow = 6;
 
-    // 3. Data Rows
+    // 2. Main Headers (if provided via arguments, e.g. Attendance/Payroll reports)
+    if (headers && headers.length > 0) {
+      const headerRow = worksheet.getRow(currentRow);
+      headerRow.values = headers;
+      headerRow.eachCell((cell) => {
+        cell.fill = headerFill;
+        cell.font = headerFont;
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle };
+      });
+      currentRow++;
+    }
+
+    // 3. Data Rows with Smart Styling
     data.forEach((rowData) => {
       const row = worksheet.addRow(rowData);
-      row.eachCell((cell) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        };
+
+      // Auto-detect row type based on content
+      const firstCellVal = rowData[0] ? String(rowData[0]) : '';
+      const strRow = rowData.join(' ').toLowerCase();
+
+      // Heuristics for styling
+      const isTotalRow = firstCellVal.toUpperCase().includes('TOTAL') || firstCellVal.includes('Net Profit') || firstCellVal.includes('Gross Profit');
+      // Subheaders are typically ALL CAPS strings in first column or known section titles
+      const isSubHeader = (firstCellVal === firstCellVal.toUpperCase() && firstCellVal.length > 3 && !isTotalRow && isNaN(firstCellVal)) ||
+        firstCellVal.includes('Statement') || firstCellVal.includes('DETAIL');
+
+      // Embedded Headers: Look for "Item Name", "Qty", or "Date" in the row
+      const isEmbeddedHeader = (rowData.includes(t('quantity') || 'Qty') || rowData.includes('Item Name') || rowData.includes('Quantity')) && !isTotalRow;
+
+      row.eachCell((cell, colNumber) => {
+        cell.font = baseFont;
+        cell.border = { top: borderStyle, left: borderStyle, bottom: borderStyle, right: borderStyle };
+
+        // Alignment: Numbers right, Text left (default)
+        if (typeof cell.value === 'number') {
+          cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          // Apply currency format if it looks like currency (heuristic: distinct values usually)
+          // or just generic number format with 2 decimals
+          cell.numFmt = '#,##0.00';
+        } else {
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        }
+
+        // --- Conditional Styles ---
+
+        if (isSubHeader) {
+          cell.fill = subHeaderFill;
+          cell.font = subHeaderFont;
+          // Merge across if it seems like a title? Let's avoid merging distinct cells for safety, just style.
+        }
+
+        if (isEmbeddedHeader) {
+          cell.fill = headerFill;
+          cell.font = headerFont;
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        }
+
+        if (isTotalRow) {
+          cell.fill = totalFill;
+          cell.font = totalFont;
+          cell.border = {
+            top: { style: 'double', color: { argb: 'FF1E40AF' } },
+            bottom: { style: 'thick', color: { argb: 'FF1E40AF' } },
+            left: borderStyle,
+            right: borderStyle
+          };
+        }
       });
+
+      // Special: If entire row is just one value in first column (Section Header typical pattern), merge it?
+      // P&L logic often puts ['', '', ''] before headers.
+      // If row has only 1 non-empty value in first col, maybe style differently?
+      // Keeping it simple with the heuristic above for now.
     });
 
-    // 4. Determine Columns Width
+    // 4. Auto-width Columns
     worksheet.columns.forEach((column) => {
       let maxLength = 0;
+      // iterating all cells in column to find max length
       if (column && column.eachCell) {
         column.eachCell({ includeEmpty: true }, (cell) => {
-          const columnLength = cell.value ? cell.value.toString().length : 10;
-          if (columnLength > maxLength) {
-            maxLength = columnLength;
-          }
+          const val = cell.value ? cell.value.toString() : '';
+          // Don't let long titles skew the width too much
+          if (val.length > maxLength && val.length < 50) maxLength = val.length;
         });
       }
-      column.width = maxLength < 12 ? 12 : maxLength + 2;
+      column.width = Math.max(12, maxLength + 2);
     });
 
     // 5. Generate and Save
@@ -3601,6 +3664,11 @@ export default function App() {
           t('profit') || 'Profit'
         ]);
 
+        let sumSoldQty = 0;
+        let sumSoldSales = 0;
+        let sumSoldCost = 0;
+        let sumSoldProfit = 0;
+
         filteredSales.forEach(sale => {
           if (Array.isArray(sale.items)) {
             sale.items.forEach(item => {
@@ -3612,6 +3680,11 @@ export default function App() {
               const totalSell = unitSellPrice * qty;
               const totalCost = unitBuyPrice * qty;
               const profit = totalSell - totalCost;
+
+              sumSoldQty += qty;
+              sumSoldSales += totalSell;
+              sumSoldCost += totalCost;
+              sumSoldProfit += profit;
 
               data.push([
                 item.name || 'Unknown',
@@ -3625,6 +3698,16 @@ export default function App() {
             });
           }
         });
+        // Add Sold Items Total Row
+        data.push([
+          'TOTALS',
+          sumSoldQty,
+          '',
+          '',
+          sumSoldSales,
+          sumSoldCost,
+          sumSoldProfit
+        ]);
 
         // Append BOUGHT ITEMS Table (Purchases)
         data.push(['', '', '', '', '', '', '']);
@@ -3637,6 +3720,9 @@ export default function App() {
           t('amount') || 'Total Amount'
         ]);
 
+        let sumBoughtQty = 0;
+        let sumBoughtAmount = 0;
+
         periodPurchases.forEach(p => {
           const label = p.name || p.description || p.itemName || 'Purchase';
           const dateStr = p.date ? new Date(p.date).toLocaleDateString() : '-';
@@ -3646,8 +3732,19 @@ export default function App() {
 
           const qtyDisplay = p.quantity ? p.quantity + (p.unit ? ' ' + p.unit : '') : (p.qty || '-');
 
+          if (!isNaN(qtyVal)) sumBoughtQty += qtyVal;
+          sumBoughtAmount += amt;
+
           data.push([label, dateStr, qtyDisplay, unitCost, amt]);
         });
+        // Add Bought Items Total Row
+        data.push([
+          'TOTALS',
+          '',
+          sumBoughtQty,
+          '',
+          sumBoughtAmount
+        ]);
 
         filename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.xlsx`;
         extraMetadata = [`Period: ${profitPeriod} (${periodLabel})`, `Location: ${reportLocationFilter || t('filterAll')}`];
