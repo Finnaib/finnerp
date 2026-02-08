@@ -3687,59 +3687,45 @@ export default function App() {
 
         const grossProfitVal = totalRevenue - totalCogs;
 
-        // 3. Expenses (Payroll + Purchases)
-        const payrollByDept = {};
-        let totalPeriodPayroll = 0;
-        employees.forEach(e => {
-          if (!reportLocationFilter || e.location === reportLocationFilter) {
-            const dept = e.dept || 'General';
-            if (!payrollByDept[dept]) payrollByDept[dept] = 0;
+        // 3. Operating Expenses - Employee Payroll by Department
+        const periodEmployees = employees.filter(e => !reportLocationFilter || e.location === reportLocationFilter);
 
-            const baseSalary = Number(e.salary) || 0;
-            const bonusVal = Number(e.bonus) || 0;
-            const overtimeVal = Number(e.overtime) || 0;
+        // Group employees by department
+        const employeesByDept = {};
+        let totalPayrollExpenses = 0;
 
-            // Simple scaling for periods shorter than a month if needed?
-            // User didn't specify, but usually P&L shows full salaries if it's a "cost" for that period.
-            // However, for Daily/Weekly payroll, maybe we should scale? 
-            // In many ERPs, "Daily" P&L only scales variable costs.
-            // Let's assume the user wants full monthly burden for Monthly/Yearly, 
-            // but for Daily/Weekly we scale by (days in period / 30).
-
-            let scaleDays = 30;
-            if (profitPeriod === 'Daily') scaleDays = 1;
-            else if (profitPeriod === 'Weekly') scaleDays = 7;
-            else if (profitPeriod === 'Yearly') scaleDays = 365;
-
-            const multiplier = scaleDays / 30;
-
-            let periodDeduction = 0;
-            const periodAttendance = attendance.filter(a => {
-              const aDate = new Date(a.date);
-              return a.name === e.name && aDate >= startDate && aDate <= endDate;
-            });
-
-            periodAttendance.forEach(record => {
-              if (record.status === 'Late') periodDeduction += 50;
-              if (record.status === 'Absent') periodDeduction += (baseSalary / 30);
-            });
-
-            // Scale fixed costs, add actual attendance-based deductions
-            const cost = ((baseSalary + bonusVal + overtimeVal) * multiplier) - periodDeduction;
-
-            payrollByDept[dept] += cost;
-            totalPeriodPayroll += cost;
+        periodEmployees.forEach(emp => {
+          const dept = emp.dept || 'Unassigned';
+          if (!employeesByDept[dept]) {
+            employeesByDept[dept] = [];
           }
+
+          // Calculate employee's total compensation for the period
+          const baseSalary = Number(emp.salary) || 0;
+          const bonus = Number(emp.bonus) || 0;
+          const overtime = Number(emp.overtime) || 0;
+          const totalComp = baseSalary + bonus + overtime;
+
+          employeesByDept[dept].push({
+            name: emp.name,
+            totalComp: totalComp
+          });
+
+          totalPayrollExpenses += totalComp;
         });
 
+        // 4. Other Expenses (Inventory Purchases)
         const periodPurchases = purchases.filter(p => {
           const d = p.date ? new Date(p.date) : new Date();
           return d >= startDate && d <= endDate && (!reportLocationFilter || p.location === reportLocationFilter);
         });
         const totalOtherExpenses = periodPurchases.reduce((sum, p) => sum + (p.amount || 0), 0);
 
-        const totalPeriodExpenses = totalPeriodPayroll + totalOtherExpenses;
-        const netProfitVal = grossProfitVal - totalPeriodExpenses;
+        // Total Operating Expenses
+        const totalOperatingExpenses = totalPayrollExpenses + totalOtherExpenses;
+
+        // Net profit = Gross Profit - Operating Expenses
+        const netProfitVal = grossProfitVal - totalOperatingExpenses;
 
         data = [
           [`${t('incomeStatement')} (${profitPeriod})`, '', ''],
@@ -3755,9 +3741,13 @@ export default function App() {
           ['', '', ''],
           [t('operatingExpenses').toUpperCase(), '', ''],
           [t('deptExpenses'), '', ''],
-          ...Object.entries(payrollByDept).map(([d, amt]) => ['', d + ' ' + t('menuPayroll'), -amt]),
-          ['', t('invPurchases'), -totalOtherExpenses],
-          [t('totalExpenses'), '', -totalPeriodExpenses],
+          // Add employees grouped by department
+          ...Object.entries(employeesByDept).flatMap(([dept, emps]) => [
+            ['', `${translations[language]?.[dept.toLowerCase()] || dept} ${t('payrollReport') || 'Payroll'}`, ''],
+            ...emps.map(emp => ['', `  ${emp.name}`, -emp.totalComp])
+          ]),
+          [t('invPurchases'), '', -totalOtherExpenses],
+          [t('totalExpenses'), '', -totalOperatingExpenses],
           ['', '', ''],
           [t('netProfit'), '', netProfitVal],
           ['', t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%']
@@ -5537,6 +5527,21 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Month Period Indicator */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 rounded-lg p-3 flex items-center gap-3 shadow-sm mb-4">
+                      <div className="bg-blue-600 p-2 rounded-lg">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="text-xs text-blue-600 font-semibold uppercase tracking-wide">{t('payPeriod')}</div>
+                        <div className="text-sm font-bold text-gray-900 mt-0.5">
+                          {new Date(employeeMonthFilter + '-01').toLocaleDateString(language === 'ar' ? 'ar-EG' : language === 'hi' ? 'hi-IN' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'long', year: 'numeric' })}
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                       <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2"><DollarSign size={16} /> {t('compensation')}</h4>
                       <div className="space-y-3">
@@ -5565,31 +5570,72 @@ export default function App() {
 
 
 
-                        {/* Deductions in Sidebar */}
+                        {/* Deductions in Sidebar - Filtered by Selected Month */}
                         {(() => {
-                          const baseSalary = Number(selectedEmployee.salary) || 0;
+                          let baseSalary = Number(selectedEmployee.salary) || 0;
+                          let bonus = Number(selectedEmployee.bonus) || 0;
+                          let overtime = Number(selectedEmployee.overtime) || 0;
                           let deductionAmount = 0;
                           let lateDeduction = 0;
                           let absentDeduction = 0;
-                          const empAttendance = attendance.filter(a => a.name === selectedEmployee.name);
+
+                          // Filter attendance by selected month (same logic as Payroll tab)
+                          const empAttendance = attendance.filter(a => {
+                            if (a.name !== selectedEmployee.name) return false;
+                            if (!a.date) return false;
+
+                            // Handle different date formats
+                            let attendanceMonth;
+                            if (typeof a.date === 'string') {
+                              attendanceMonth = a.date.substring(0, 7); // YYYY-MM
+                            } else if (a.date.toDate) {
+                              // Firestore Timestamp
+                              attendanceMonth = a.date.toDate().toISOString().substring(0, 7);
+                            } else if (a.date instanceof Date) {
+                              attendanceMonth = a.date.toISOString().substring(0, 7);
+                            } else {
+                              return false;
+                            }
+
+                            return attendanceMonth === employeeMonthFilter;
+                          });
 
                           empAttendance.forEach(record => {
                             if (record.status === 'Late') {
-                              lateDeduction += 50;
-                              deductionAmount += 50;
+                              // Hourly Rate = Salary / 360
+                              const hourlyRate = baseSalary / 360;
+                              const lateCost = (Number(record.lateHours) || 0) * hourlyRate;
+                              if (lateCost > 0) {
+                                lateDeduction += lateCost;
+                                deductionAmount += lateCost;
+                              }
                             }
                             if (record.status === 'Absent') {
-                              const absCost = baseSalary / 30;
-                              absentDeduction += absCost;
-                              deductionAmount += absCost;
+                              const cost = baseSalary / 30;
+                              absentDeduction += cost;
+                              deductionAmount += cost;
                             }
                           });
 
-                          // Advance Salary
-                          const advanceSalary = Number(selectedEmployee.advanceSalary) || 0;
-                          deductionAmount += advanceSalary;
+                          // Add Manual Hourly Deductions
+                          const hourlyRate = baseSalary / 360;
+                          const manualDeduction = (Number(selectedEmployee.deductionHours) || 0) * hourlyRate;
 
-                          const netPay = baseSalary + (Number(selectedEmployee.bonus) || 0) + (Number(selectedEmployee.overtime) || 0) - deductionAmount;
+                          // Check for Stored Payroll Record for selected month
+                          const storedRecord = payrolls.find(p => p.employeeId === selectedEmployee.id && p.month === employeeMonthFilter);
+
+                          if (storedRecord) {
+                            baseSalary = Number(storedRecord.salary) || baseSalary;
+                            bonus = Number(storedRecord.bonus) || 0;
+                            overtime = Number(storedRecord.overtime) || 0;
+                          }
+
+                          const effectiveManualDeduction = storedRecord ? (Number(storedRecord.deductions) || 0) : manualDeduction;
+                          const effectiveAdvance = storedRecord ? (Number(storedRecord.advance) || 0) : (Number(selectedEmployee.advanceSalary) || 0);
+
+                          deductionAmount = lateDeduction + absentDeduction + effectiveManualDeduction + effectiveAdvance;
+
+                          const netPay = baseSalary + bonus + overtime - deductionAmount;
 
                           return (
                             <>
@@ -5608,10 +5654,10 @@ export default function App() {
                                 </div>
                               )}
 
-                              {advanceSalary > 0 && (
+                              {effectiveAdvance > 0 && (
                                 <div className="flex justify-between text-sm text-red-500 font-medium pt-1">
                                   <span>{t('advance')}</span>
-                                  <span>-{formatCurrency(advanceSalary)}</span>
+                                  <span>-{formatCurrency(effectiveAdvance)}</span>
                                 </div>
                               )}
 
