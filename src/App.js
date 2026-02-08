@@ -18,6 +18,8 @@ import {
   ChevronRight,
   Mail,
   Phone,
+  Edit,
+  Save,
   FileText,
   CheckCircle,
   AlertCircle,
@@ -2042,6 +2044,7 @@ export default function App() {
   const [employees, setEmployees] = useState([]);
   const [sites, setSites] = useState([]);
   const [attendance, setAttendance] = useState([]);
+  const [payrolls, setPayrolls] = useState([]); // [New] Monthly Payroll Records
 
   // --- Firestore Listeners ---
   useEffect(() => {
@@ -2074,10 +2077,19 @@ export default function App() {
       setGlobalError("Access Denied: Attendance List. " + error.message);
     });
 
+    // Payroll Listener
+    const qPay = query(collection(db, 'payroll'), where('userId', '==', user.uid));
+    const unsubPay = onSnapshot(qPay, (snapshot) => {
+      setPayrolls(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("Payroll Listener Error:", error);
+    });
+
     return () => {
       unsubEmp();
       unsubSites();
       unsubAtt();
+      unsubPay();
     };
   }, [user]);
 
@@ -2410,6 +2422,88 @@ export default function App() {
     }
     reader.readAsArrayBuffer(file);
     event.target.value = null;
+  };
+
+  // --- Payroll Management Logic ---
+  const [isManagePayrollModalOpen, setIsManagePayrollModalOpen] = useState(false);
+  const [currentPayrollForm, setCurrentPayrollForm] = useState({
+    id: '', // Employee ID
+    name: '',
+    role: '',
+    month: '',
+    salary: 0,
+    bonus: 0,
+    overtime: 0,
+    advance: 0,
+    deductions: 0, // Manual Deductions
+    lateDeduction: 0, // For Display/Reference
+    absentDeduction: 0 // For Display/Reference
+  });
+
+  const handleManagePayroll = (emp, month, calculatedLate, calculatedAbsent) => {
+    // Check if record exists for this month
+    const existingRecord = payrolls.find(p => p.employeeId === emp.id && p.month === month);
+
+    if (existingRecord) {
+      setCurrentPayrollForm({
+        id: emp.id,
+        name: emp.name,
+        role: emp.role,
+        month: month,
+        salary: Number(existingRecord.salary) || 0,
+        bonus: Number(existingRecord.bonus) || 0,
+        overtime: Number(existingRecord.overtime) || 0,
+        advance: Number(existingRecord.advance) || 0,
+        deductions: Number(existingRecord.deductions) || 0,
+        lateDeduction: calculatedLate,
+        absentDeduction: calculatedAbsent
+      });
+    } else {
+      // Default from Profile
+      setCurrentPayrollForm({
+        id: emp.id,
+        name: emp.name,
+        role: emp.role,
+        month: month,
+        salary: Number(emp.salary) || 0,
+        bonus: Number(emp.bonus) || 0,
+        overtime: Number(emp.overtime) || 0,
+        advance: Number(emp.advanceSalary) || 0,
+        deductions: Number(emp.deductionHours) || 0,
+        lateDeduction: calculatedLate,
+        absentDeduction: calculatedAbsent
+      });
+    }
+    setIsManagePayrollModalOpen(true);
+  };
+
+  const handleSavePayroll = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+
+    try {
+      // Create a deterministic ID: employeeId_YYYY-MM
+      const docId = `${currentPayrollForm.id}_${currentPayrollForm.month}`;
+      const docRef = doc(db, 'payroll', docId);
+
+      await setDoc(docRef, {
+        employeeId: currentPayrollForm.id,
+        month: currentPayrollForm.month,
+        salary: Number(currentPayrollForm.salary),
+        bonus: Number(currentPayrollForm.bonus),
+        overtime: Number(currentPayrollForm.overtime),
+        advance: Number(currentPayrollForm.advance),
+        deductions: Number(currentPayrollForm.deductions),
+        updatedAt: serverTimestamp(),
+        userId: user.uid
+      }, { merge: true });
+
+      setIsManagePayrollModalOpen(false);
+      // Optional: alert('Saved');
+    } catch (err) {
+      console.error(err);
+      alert("Error saving payroll: " + err.message);
+    }
   };
 
   // --- Accounts Logic ---
@@ -4413,9 +4507,9 @@ export default function App() {
                       {employees
                         .filter(emp => !payrollLocationFilter || emp.location === payrollLocationFilter)
                         .map(emp => {
-                          const baseSalary = Number(emp.salary) || 0;
-                          const bonus = Number(emp.bonus) || 0;
-                          const overtime = Number(emp.overtime) || 0;
+                          let baseSalary = Number(emp.salary) || 0;
+                          let bonus = Number(emp.bonus) || 0;
+                          let overtime = Number(emp.overtime) || 0;
                           let deductionAmount = 0;
                           let lateDeduction = 0;
                           let absentDeduction = 0;
@@ -4466,8 +4560,34 @@ export default function App() {
                           // Hourly Rate = Salary / 30 / 12 (assuming 12 hour shift, 30 days) => Salary / 360
                           const hourlyRate = baseSalary / 360;
                           const manualDeduction = (Number(emp.deductionHours) || 0) * hourlyRate;
-                          deductionAmount += manualDeduction;
-                          deductionAmount += Number(emp.advanceSalary || 0);
+
+                          // [Modified] Check for Stored Payroll Record
+                          const storedRecord = payrolls.find(p => p.employeeId === emp.id && p.month === payrollMonthFilter);
+
+                          if (storedRecord) {
+                            baseSalary = Number(storedRecord.salary) || baseSalary;
+                            bonus = Number(storedRecord.bonus) || 0;
+                            overtime = Number(storedRecord.overtime) || 0;
+                            // Stored deductions in record usually implies "Manual/Other" deductions
+                            // We will assume storedRecord.deductions replaces the manualDeduction part
+                            // BUT Late/Absent is usually calculated from attendance unless we freeze that too.
+                            // For valid snapshot, if record exists, we should probably stick to what's in record?
+                            // But the prompt says "salary... automatic get normally ... until changes happen".
+                            // This suggests "changes" are the overrides.
+                            // Let's use stored values for the editable fields.
+
+                            // We will still calculate Late/Absent dynamically for display context, 
+                            // BUT the total net pay should ideally rely on the saved record if we want it "Frozen".
+                            // However, keeping Late/Absent dynamic allows correcting attendance to fix payroll.
+
+                            // Let's just override the manual components:
+                            // deductionAmount (Total) = Late + Absent + Manual(Stored or Default)
+                          }
+
+                          const effectiveManualDeduction = storedRecord ? (Number(storedRecord.deductions) || 0) : manualDeduction;
+                          const effectiveAdvance = storedRecord ? (Number(storedRecord.advance) || 0) : (Number(emp.advanceSalary) || 0);
+
+                          deductionAmount = lateDeduction + absentDeduction + effectiveManualDeduction + effectiveAdvance;
 
                           const netPay = baseSalary + bonus + overtime - deductionAmount;
 
@@ -4482,7 +4602,7 @@ export default function App() {
                               <td className="px-6 py-4 text-right font-mono">{formatCurrency(baseSalary)}</td>
                               <td className="px-6 py-4 text-right font-mono text-green-600">+{formatCurrency(bonus)}</td>
                               <td className="px-6 py-4 text-right font-mono text-orange-600">+{formatCurrency(overtime)}</td>
-                              <td className="px-6 py-4 text-right font-mono text-red-600">-{formatCurrency(emp.advanceSalary || 0)}</td>
+                              <td className="px-6 py-4 text-right font-mono text-red-600">-{formatCurrency(effectiveAdvance)}</td>
 
                               {/* Detailed Deductions Columns */}
                               <td className="px-6 py-4 text-right font-mono text-amber-600">
@@ -4494,23 +4614,32 @@ export default function App() {
                               <td className="px-6 py-4 text-right font-mono text-red-800 font-bold">-{formatCurrency(deductionAmount)}</td>
                               <td className="px-6 py-4 text-right font-bold text-gray-900">{formatCurrency(netPay)}</td>
                               <td className="px-6 py-4 text-center">
-                                <button
-                                  onClick={() => handlePrintPayrollSlip(emp, {
-                                    baseSalary,
-                                    bonus,
-                                    overtime,
-                                    lateDeduction,
-                                    absentDeduction,
-                                    manualDeduction,
-                                    deductionAmount,
-                                    advanceSalary: emp.advanceSalary || 0,
-                                    netPay
-                                  }, payrollMonthFilter)}
-                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium"
-                                  title="Print Payroll Slip"
-                                >
-                                  <Printer size={16} /> Print
-                                </button>
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => handleManagePayroll(emp, payrollMonthFilter, lateDeduction, absentDeduction)}
+                                    className={`p-2 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium ${storedRecord ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'text-gray-600 hover:bg-gray-100'}`}
+                                    title="Manage/Edit for this Month"
+                                  >
+                                    <Edit size={16} /> {storedRecord ? 'Edit' : 'Manage'}
+                                  </button>
+                                  <button
+                                    onClick={() => handlePrintPayrollSlip(emp, {
+                                      baseSalary,
+                                      bonus,
+                                      overtime,
+                                      lateDeduction,
+                                      absentDeduction,
+                                      manualDeduction: effectiveManualDeduction,
+                                      deductionAmount,
+                                      advanceSalary: effectiveAdvance,
+                                      netPay
+                                    }, payrollMonthFilter)}
+                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium"
+                                    title="Print Payroll Slip"
+                                  >
+                                    <Printer size={16} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -6282,6 +6411,90 @@ export default function App() {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Manage Payroll Modal */}
+      {
+        isManagePayrollModalOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-900">Manage Payroll</h3>
+                  <p className="text-xs text-slate-500">{currentPayrollForm.name} • {currentPayrollForm.month}</p>
+                </div>
+                <button onClick={() => setIsManagePayrollModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleSavePayroll} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+
+                {/* Fixed Fields */}
+                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Base Salary</label>
+                    <input type="number" className="input-field bg-white" value={currentPayrollForm.salary} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, salary: e.target.value })} required title="Monthly Base Salary" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Advance Taken</label>
+                    <input type="number" className="input-field bg-white text-red-600" value={currentPayrollForm.advance} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, advance: e.target.value })} title="Advance Salary Taken" />
+                  </div>
+                </div>
+
+                {/* Variable Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Bonus (+)</label>
+                    <input type="number" className="input-field text-green-600 font-bold" value={currentPayrollForm.bonus} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, bonus: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Overtime (+)</label>
+                    <input type="number" className="input-field text-orange-600 font-bold" value={currentPayrollForm.overtime} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, overtime: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Manual Deductions (-)</label>
+                    <input type="number" className="input-field text-red-600 font-bold" value={currentPayrollForm.deductions} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, deductions: e.target.value })} />
+                  </div>
+                  <div className="opacity-70 pointer-events-none">
+                    <label className="text-xs font-semibold text-gray-400 block mb-1">Late/Absent (Auto)</label>
+                    <input type="number" className="input-field bg-gray-100 text-gray-500" value={(currentPayrollForm.lateDeduction + currentPayrollForm.absentDeduction).toFixed(2)} readOnly />
+                  </div>
+                </div>
+
+                {/* Summary Box */}
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-2">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium text-blue-800">Gross Earnings:</span>
+                    <span className="font-mono font-bold text-blue-900">{formatCurrency(Number(currentPayrollForm.salary) + Number(currentPayrollForm.bonus) + Number(currentPayrollForm.overtime))}</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-1 text-red-700">
+                    <span className="text-sm font-medium">Total Deductions:</span>
+                    <span className="font-mono font-bold">-{formatCurrency(Number(currentPayrollForm.advance) + Number(currentPayrollForm.deductions) + Number(currentPayrollForm.lateDeduction) + Number(currentPayrollForm.absentDeduction))}</span>
+                  </div>
+                  <div className="h-px bg-blue-200 my-2"></div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-base font-bold text-blue-900">Net Payable:</span>
+                    <span className="text-xl font-bold text-blue-700 font-mono">
+                      {formatCurrency(
+                        (Number(currentPayrollForm.salary) + Number(currentPayrollForm.bonus) + Number(currentPayrollForm.overtime)) -
+                        (Number(currentPayrollForm.advance) + Number(currentPayrollForm.deductions) + Number(currentPayrollForm.lateDeduction) + Number(currentPayrollForm.absentDeduction))
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsManagePayrollModalOpen(false)} className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-colors">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
+                    <Save size={18} /> Save Record
+                  </button>
+                </div>
+
+              </form>
             </div>
           </div>
         )
