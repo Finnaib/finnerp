@@ -1783,6 +1783,18 @@ export default function App() {
   const [historyFilter, setHistoryFilter] = useState('All');
 
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const formatCurrency = (val) => {
     try {
@@ -4291,31 +4303,30 @@ export default function App() {
 
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                   <div className="flex justify-between items-start mb-4">
-                    <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><Clock size={24} /></div>
-                    <span className="text-gray-400 text-xs">{t('today')}</span>
+                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><DollarSign size={24} /></div>
+                    <span className="text-gray-400 text-xs">{t('todaysSales') || "Today's Sales"}</span>
                   </div>
                   <h3 className="text-3xl font-bold text-gray-800">
-                    {attendance.filter(a =>
-                      a.date === new Date().toISOString().split('T')[0] &&
-                      (!homeLocationFilter || getEmployeeLocation(a.name) === homeLocationFilter)
-                    ).length}
+                    {formatCurrency(sales.filter(s =>
+                      s.date === new Date().toISOString().split('T')[0] &&
+                      (!homeLocationFilter || s.location === homeLocationFilter)
+                    ).reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0))}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1">{t('checkedInToday')}</p>
+                  <p className="text-gray-500 text-sm mt-1">{t('revenue') || 'Revenue'}</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                   <div className="flex justify-between items-start mb-4">
-                    <div className="p-2 bg-red-100 text-red-600 rounded-lg"><AlertCircle size={24} /></div>
-                    <span className="text-gray-400 text-xs">{t('lateAbsent')}</span>
+                    <div className="p-2 bg-purple-100 text-purple-600 rounded-lg"><ShoppingCart size={24} /></div>
+                    <span className="text-gray-400 text-xs">{t('todaysPurchases') || "Today's Buy"}</span>
                   </div>
                   <h3 className="text-3xl font-bold text-gray-800">
-                    {attendance.filter(a =>
-                      (a.status === 'Late' || a.status === 'Absent') &&
-                      a.date === new Date().toISOString().split('T')[0] &&
-                      (!homeLocationFilter || getEmployeeLocation(a.name) === homeLocationFilter)
-                    ).length}
+                    {formatCurrency(purchases.filter(p =>
+                      p.date === new Date().toISOString().split('T')[0] &&
+                      (!homeLocationFilter || p.location === homeLocationFilter)
+                    ).reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0))}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1">{t('issuesToday')}</p>
+                  <p className="text-gray-500 text-sm mt-1">{t('expenses') || 'Expenses'}</p>
                 </div>
               </div>
 
@@ -4336,9 +4347,9 @@ export default function App() {
                   <div className="absolute top-0 right-0 p-32 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-16 -mt-16"></div>
                   <h3 className="font-bold text-lg mb-2 relative z-10">{t('systemStatus')}</h3>
                   <p className="text-slate-400 text-sm mb-4 relative z-10">{t('systemOperational')}</p>
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-mono relative z-10">
-                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                    {t('online')}
+                  <div className={`flex items-center gap-2 text-sm font-mono relative z-10 ${isOnline ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`}></span>
+                    {isOnline ? (t('online') || 'Online') : (t('offline') || 'Offline')}
                   </div>
                 </div>
               </div>
