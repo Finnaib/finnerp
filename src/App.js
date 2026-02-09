@@ -2835,33 +2835,38 @@ export default function App() {
       const prefix = orderType === 'Walk-in' ? 'W' : 'T';
       let uniqueId;
 
-      try {
-        uniqueId = await runTransaction(db, async (transaction) => {
-          const counterRef = doc(db, 'counters', 'daily_invoice');
-          const counterDoc = await transaction.get(counterRef);
-          const today = new Date().toISOString().split('T')[0];
+      if (navigator.onLine) {
+        try {
+          uniqueId = await runTransaction(db, async (transaction) => {
+            const counterRef = doc(db, 'counters', 'daily_invoice');
+            const counterDoc = await transaction.get(counterRef);
+            const today = new Date().toISOString().split('T')[0];
 
-          // Construct Key based on Location and Type
-          const locationName = posLocationFilter || 'Main';
-          const locCode = locationName.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4); // First 4 alphanumeric chars
-          const counterKey = `${locCode}_${prefix}`;
+            // Construct Key based on Location and Type
+            const locationName = posLocationFilter || 'Main';
+            const locCode = locationName.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4); // First 4 alphanumeric chars
+            const counterKey = `${locCode}_${prefix}`;
 
-          let data = counterDoc.exists() ? counterDoc.data() : { date: today };
+            let data = counterDoc.exists() ? counterDoc.data() : { date: today };
 
-          // Reset if new day (keeping independent counters for now, or global day reset?)
-          // Current logic resets ALL counters if date changes.
-          if (data.date !== today) {
-            data = { date: today };
-          }
+            // Reset if new day (keeping independent counters for now, or global day reset?)
+            // Current logic resets ALL counters if date changes.
+            if (data.date !== today) {
+              data = { date: today };
+            }
 
-          const count = (data[counterKey] || 0) + 1;
-          data[counterKey] = count;
+            const count = (data[counterKey] || 0) + 1;
+            data[counterKey] = count;
 
-          transaction.set(counterRef, data);
-          return `${locCode}-${prefix}-${count.toString().padStart(4, '0')}`;
-        });
-      } catch (e) {
-        console.error("Counter failed, using fallback", e);
+            transaction.set(counterRef, data);
+            return `${locCode}-${prefix}-${count.toString().padStart(4, '0')}`;
+          });
+        } catch (e) {
+          console.error("Counter failed, using fallback", e);
+          uniqueId = prefix + '-' + Date.now().toString().slice(-6);
+        }
+      } else {
+        // Offline Fallback
         uniqueId = prefix + '-' + Date.now().toString().slice(-6);
       }
 
@@ -2893,7 +2898,7 @@ export default function App() {
         soldBy: salesEmployee ? salesEmployee.name : 'Unknown', // Sales Employee Name
         soldById: salesEmployee ? salesEmployee.id : null, // Sales Employee ID
         date: new Date().toISOString().split('T')[0],
-        createdAt: serverTimestamp()
+        createdAt: navigator.onLine ? serverTimestamp() : new Date()
       };
 
       // 1. Save Sale
