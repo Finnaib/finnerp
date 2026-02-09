@@ -1,10 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 
 // Your web app's Firebase configuration
-// REPLACE these values with your own from the Firebase Console
 const firebaseConfig = {
     apiKey: "AIzaSyA5pqqR101MLes4CrPAlI4ffYn4JPq9XD0",
     authDomain: "finnerp-326a6.firebaseapp.com",
@@ -20,7 +19,12 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Services
 export const auth = getAuth(app);
-export const db = getFirestore(app);
 
+// Enable Offline Persistence with Multi-Tab Support
+export const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+    })
+});
 
 export default app;
