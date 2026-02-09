@@ -802,7 +802,6 @@ const translations = {
     checkout: 'चेकआउट',
     customerNameOptional: 'ग्राहक का नाम (वैकल्पिक)',
     soldBy: 'विक्रेता (Sold By)',
-    customerId: 'ग्राहक आईडी',
     taxed: 'कर',
     advanceSalary: 'अग्रिम वेतन',
     inventorySubtitle: 'इन्वेंटरी स्तर और स्टॉक गतिविधियां',
