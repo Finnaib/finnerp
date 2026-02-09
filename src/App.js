@@ -55,7 +55,9 @@ import {
   signInWithPopup,
   sendPasswordResetEmail,
   linkWithPopup,
-  signInAnonymously
+  signInAnonymously,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 
 import {
@@ -73,7 +75,9 @@ import {
   writeBatch,
   query,
   where,
-  serverTimestamp
+  serverTimestamp,
+  enableNetwork,
+  disableNetwork
 } from 'firebase/firestore';
 
 // DEBUG: Global Error Handler to catch white screen cause
@@ -232,6 +236,8 @@ const translations = {
     posTerminal: 'POS Terminal',
     searchProducts: 'Search products...',
     todaysSales: "Today's Sales",
+    todaysPurchases: "Today's Purchases",
+    issuesToday: "Issues Today",
     time: 'Time',
     amount: 'Amount',
     receipt: 'Receipt',
@@ -730,6 +736,8 @@ const translations = {
     activeGuards: 'सक्रिय गार्ड',
     operationalSites: 'परिचालन स्थल',
     checkedInToday: 'आज चेक-इन किया',
+    todaysSales: 'आज की बिक्री',
+    todaysPurchases: 'आज की खरीद',
     issuesToday: 'आज की समस्याएं',
     quickActions: 'त्वरित कार्रवाई',
     addStaff: 'स्टाफ जोड़ें',
@@ -1177,6 +1185,8 @@ const translations = {
     activeGuards: 'الحراس النشطين',
     operationalSites: 'المواقع التشغيلية',
     checkedInToday: 'تم تسجيل الدخول اليوم',
+    todaysSales: 'مبيعات اليوم',
+    todaysPurchases: 'مشتريات اليوم',
     issuesToday: 'مشاكل اليوم',
     quickActions: 'إجراءات سريعة',
     addStaff: 'إضافة موظف',
@@ -1565,6 +1575,8 @@ const translations = {
     posTerminal: 'POS 终端',
     searchProducts: '搜索产品...',
     todaysSales: '今日销售',
+    todaysPurchases: '今日采购',
+    issuesToday: '今日问题',
     time: '时间',
     amount: '金额',
     receipt: '收据',
@@ -1786,8 +1798,16 @@ export default function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => { setIsOnline(true); enableNetwork(db).catch(console.error); };
+    const handleOffline = () => { setIsOnline(false); disableNetwork(db).catch(console.error); };
+
+    // Initial State Check
+    if (navigator.onLine) {
+      enableNetwork(db).catch(console.error);
+    } else {
+      disableNetwork(db).catch(console.error);
+    }
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {
@@ -1845,11 +1865,18 @@ export default function App() {
 
   // --- Auth Effects ---
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+          setAuthLoading(false);
+        });
+        return () => unsubscribe();
+      })
+      .catch((error) => {
+        console.error("Auth Persistence Error:", error);
+        setAuthLoading(false);
+      });
   }, []);
 
   // --- PIN Modal Keyboard Support ---
