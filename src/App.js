@@ -1330,6 +1330,7 @@ const translations = {
     includeInvoiceNumber: '2. يرجى تضمين رقم الفاتورة على الشيك الخاص بك',
     contactQuestions: 'إذا كان لديك أي أسئلة حول هذه الفاتورة ، يرجى الاتصال',
     customerId: 'رقم العميل',
+    time: 'الوقت',
   },
   zh: {
     appName: 'Finn ERP',
