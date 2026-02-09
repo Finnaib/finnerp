@@ -5,9 +5,9 @@ Addressed user request to fix translation gaps in print outputs, modify security
 
 ## Changes
 1.  **Translations**:
-    *   **Arabic (`ar`)**: Added missing keys for invoice generation including `soldBy`, `paymentTerms`, `includeInvoiceNumber`, `contactQuestions`, and `customerId`.
+    *   **Arabic (`ar`)**: Added missing keys for invoice generation including `soldBy`, `paymentTerms`, `includeInvoiceNumber`, `contactQuestions`, `customerId`, and **`time` ('الوقت')**.
     *   **Chinese (`zh`)**: Added missing keys `soldBy`, `shopCopy`, and `customerId`.
-    *   **Hindi (`hi`)**: Added missing key `customerId`.
+    *   **Hindi (`hi`)**: Added missing key `customerId` (and fixed a duplicate key error).
     *   **Note**: Ensured critical print-related keys are present to prevent "missing" text in A4/Thermal prints.
 
 2.  **Payroll Security**:
@@ -26,12 +26,16 @@ Addressed user request to fix translation gaps in print outputs, modify security
     *   Updated `handlePrintInvoice` to use a `locale` variable derived from the selected `language` (e.g., 'ar-EG' for Arabic).
     *   Applied this `locale` to `toLocaleTimeString()` and `toLocaleDateString()` so that dates and times appear in the correct language format on the printed invoice.
 
+6.  **Build Error Fix**:
+    *   Removed a duplicate `customerId` key in the Hindi translation section that was causing the build to fail.
+
 ## Files Modified
 *   `src/App.js`
 
 ## Verification
 *   **Print**: Check A4 and Thermal prints in Arabic, Chinese, and Hindi. Ensure:
     *   `Customer ID` is translated.
+    *   **`Time` label is translated (e.g., 'الوقت' in Arabic).**
     *   Thermal print layout in Arabic is correct (RTL + Centered).
     *   Date and Time are localized.
 *   **Payroll**: Verify that checking Payroll asks for PIN.

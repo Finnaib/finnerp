@@ -2733,10 +2733,11 @@ export default function App() {
 
   // --- Sales & Purchases (POS) Logic ---
   const [isAddSaleModalOpen, setIsAddSaleModalOpen] = useState(false);
-  const [newSaleForm, setNewSaleForm] = useState({ customer: 'Walk-in Customer', amount: 0, status: 'Completed', items: '' });
+  const [newSaleForm, setNewSaleForm] = useState({ customer: 'Walk-in Customer', customerId: '', amount: 0, status: 'Completed', items: '' });
   const [orderType, setOrderType] = useState('Walk-in'); // 'Walk-in' or 'Takeaway'
   const [cart, setCart] = useState([]);
   const [cartDiscount, setCartDiscount] = useState(0);
+  const [taxRate, setTaxRate] = useState(0);
 
   // Auto-select first location for Strict Mode
   useEffect(() => {
@@ -2828,11 +2829,17 @@ export default function App() {
         uniqueId = prefix + '-' + Date.now().toString().slice(-6);
       }
 
+      const subtotal = calculateTotal();
+      const taxableAmount = Math.max(0, subtotal - cartDiscount);
+      const taxAmount = taxableAmount * (taxRate / 100);
+      const totalAmount = taxableAmount + taxAmount;
+
       const saleData = {
         invoiceId: uniqueId,
         orderType: orderType,
         paymentMethod: paymentMethod,
         customer: newSaleForm.customer || (orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')),
+        customerId: newSaleForm.customerId || '',
         status: 'Completed',
         items: cart.map(i => ({
           id: i.id,
@@ -2840,8 +2847,11 @@ export default function App() {
           price: i.sellPrice,
           qty: i.quantity
         })),
-        amount: Math.max(0, calculateTotal() - cartDiscount), // Apply Discount
-        discount: cartDiscount, // Save Discount
+        subtotal: subtotal,
+        amount: totalAmount, // Final Total
+        discount: cartDiscount,
+        taxRate: taxRate,
+        taxAmount: taxAmount,
         location: posLocationFilter || 'Main',
         userId: user.uid,
         soldBy: salesEmployee ? salesEmployee.name : 'Unknown', // Sales Employee Name
@@ -2878,7 +2888,8 @@ export default function App() {
       // Reset
       setCart([]);
       setCartDiscount(0); // Reset Discount
-      setNewSaleForm({ customer: 'Walk-in Customer', amount: 0, status: 'Completed', items: '' });
+      setTaxRate(0);
+      setNewSaleForm({ customer: 'Walk-in Customer', customerId: '', amount: 0, status: 'Completed', items: '' });
       setSalesEmployee(null);
     } catch (err) {
       console.error(err);
@@ -3132,6 +3143,7 @@ export default function App() {
         `;
       } else {
         // A4 Format
+        // A4 Format
         return `
       <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
         ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
@@ -3149,7 +3161,7 @@ export default function App() {
               <tr><td>${t('date').toUpperCase()}</td><td>${printDate}</td></tr>
               <tr><td>${t('time').toUpperCase()}</td><td>${printTime}</td></tr>
               <tr><td>${t('invoice').toUpperCase()} #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
-              <tr><td>${t('customerId').toUpperCase()}</td><td>${invoiceData.customerId || '123'}</td></tr>
+              <tr><td>${t('customerId').toUpperCase()}</td><td>${invoiceData.customerId || ''}</td></tr>
               <tr><td>${t('paymentMode').toUpperCase()}</td><td>${printPaymentMethod}</td></tr>
             </table>
           </div>
@@ -3164,18 +3176,20 @@ export default function App() {
           <thead>
             <tr>
               <th>${t('description')}</th>
-              <th class="center">${t('taxed')}</th>
-              <th class="right">${t('amount')}</th>
+              <th class="center">${t('quantity')}</th>
+              <th class="right">${t('price')}</th>
+              <th class="right">${t('subtotal')}</th>
             </tr>
           </thead>
           <tbody>
             ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
             <tr>
               <td>${item.name}</td>
-              <td class="center">X</td>
+              <td class="center">${item.qty || item.quantity || 1}</td>
+              <td class="right">${formatCurrency(item.price || 0)}</td>
               <td class="right">${formatCurrency((item.price || 0) * (item.qty || item.quantity || 1))}</td>
             </tr>
-            `).join('') : `<tr><td colspan="3">${invoiceData.items}</td></tr>`}
+            `).join('') : `<tr><td colspan="4">${invoiceData.items}</td></tr>`}
           </tbody>
         </table>
 
@@ -3197,14 +3211,11 @@ export default function App() {
               <span>${t('discount') || 'Discount'}</span>
               <span>-${formatCurrency(invoiceData.discount)}</span>
             </div>` : ''}
+            ${(invoiceData.taxAmount > 0 || (tax > 0 && !invoiceData.taxAmount)) ? `
             <div class="totals-row">
-              <span>${t('taxVAT')}</span>
-              <span>${formatCurrency(tax)}</span>
-            </div>
-            <div class="totals-row">
-              <span>${t('taxRate')}</span>
-              <span>6.250%</span>
-            </div>
+              <span>${t('taxVAT')} (${invoiceData.taxRate || '6.25'}%)</span>
+              <span>${formatCurrency(invoiceData.taxAmount || tax)}</span>
+            </div>` : ''}
             <div class="totals-row total">
               <span>${t('total')}</span>
               <span>${formatCurrency(total)}</span>
@@ -5102,9 +5113,26 @@ export default function App() {
                           />
                         </div>
                       </div>
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <span className="border-b border-dashed border-gray-300 pb-px cursor-help">Tax %</span>
+                        <div className="flex items-center bg-white border border-gray-200 rounded px-2 h-6 w-20">
+                          <span className="text-gray-400 mr-1">%</span>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            className="w-full text-right bg-transparent border-none outline-none text-xs font-mono p-0 focus:ring-0"
+                            placeholder="0"
+                            value={taxRate || ''}
+                            onChange={(e) => setTaxRate(Math.max(0, Number(e.target.value)))}
+                          />
+                        </div>
+                      </div>
                       <div className="pt-2 border-t border-gray-200 flex justify-between items-end">
                         <span className="text-sm font-bold text-gray-700">{t('total')}</span>
-                        <span className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
+                        <span className="text-2xl font-bold text-gray-900 leading-none">
+                          {formatCurrency((Math.max(0, calculateTotal() - cartDiscount)) * (1 + taxRate / 100))}
+                        </span>
                       </div>
                     </div>
                     {/* Sales Employee Selection */}
@@ -5151,13 +5179,22 @@ export default function App() {
                       </button>
                     </div>
 
-                    <input
-                      className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                      placeholder={t('customerNameOptional')}
-                      value={newSaleForm.customer}
-                      autoComplete="off"
-                      onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
-                    />
+                    <div className="flex gap-2 mb-2">
+                       <input
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                        placeholder={t('customerNameOptional')}
+                        value={newSaleForm.customer}
+                        autoComplete="off"
+                        onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
+                      />
+                       <input
+                        className="w-1/3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                        placeholder="ID"
+                        value={newSaleForm.customerId || ''}
+                        autoComplete="off"
+                        onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
+                      />
+                    </div>
 
                     <div className="grid grid-cols-3 gap-2 mb-2">
                       {['Cash', 'Visa', 'Online'].map(method => (
