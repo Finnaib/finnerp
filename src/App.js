@@ -3078,7 +3078,7 @@ export default function App() {
       const subtotal = Array.isArray(invoiceData.items)
         ? invoiceData.items.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || item.quantity || 0)), 0)
         : invoiceData.amount || 0;
-      const tax = subtotal * 0.0625; // 6.25% tax
+      const tax = invoiceData.taxAmount || 0;
       const total = invoiceData.amount || subtotal;
 
       if (printFormat === 'Thermal') {
@@ -5179,17 +5179,17 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="flex gap-2 mb-2">
-                       <input
+                    <div className="space-y-2 mb-2">
+                      <input
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
                         placeholder={t('customerNameOptional')}
                         value={newSaleForm.customer}
                         autoComplete="off"
                         onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                       />
-                       <input
-                        className="w-1/3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                        placeholder="ID"
+                      <input
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                        placeholder={t('customerId') || "Customer ID"}
                         value={newSaleForm.customerId || ''}
                         autoComplete="off"
                         onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
