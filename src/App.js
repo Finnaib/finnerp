@@ -278,6 +278,7 @@ const translations = {
     invoice: 'INVOICE',
     date: 'Date',
     billNo: 'Bill No',
+    orderNo: 'Order Number',
     paymentMode: 'Payment Mode',
     cash: 'Cash',
     item: 'Item',
@@ -836,6 +837,7 @@ const translations = {
     invoice: 'चालान',
     date: 'तारीख',
     billNo: 'बिल नंबर',
+    orderNo: 'ऑर्डर नंबर',
     paymentMode: 'भुगतान मोड',
     cash: 'नकद',
     item: 'वस्तु',
@@ -996,6 +998,7 @@ const translations = {
     shopCopy: 'نسخة المتجر',
     date: 'تاريخ',
     billNo: 'رقم الفاتورة',
+    orderNo: 'رقم الطلب',
     paymentMode: 'طريقة الدفع',
     cash: 'نقد',
     item: 'عنصر',
@@ -1610,6 +1613,7 @@ const translations = {
     invoice: '发票',
     date: '日期',
     billNo: '账单号',
+    orderNo: '订单号',
     paymentMode: '付款方式',
     cash: '现金',
     item: '项目',
@@ -3033,6 +3037,11 @@ export default function App() {
       /* Footer */
       .footer { text-align: center; font-size: 0.75em; margin-top: 15px; border-top: 2px solid #000; padding-top: 8px; font-weight: 900; }
       .copy-label { text-align: center; font-weight: 900 !important; margin-bottom: 8px; text-transform: uppercase; font-size: 0.8em; border: 2px solid #000; display: inline-block; padding: 4px 10px; color: #000 !important; }
+      
+      /* Big Order Number for Tracker */
+      .order-number-box { border: 2px solid #000; margin: 10px 0; padding: 8px; text-align: center; }
+      .order-number-label { font-size: 0.8em; font-weight: 900; text-transform: uppercase; margin-bottom: 2px; }
+      .order-number-value { font-size: 3em; font-weight: 900; line-height: 1; }
     ` : `
       @page { margin: 0; size: A4; }
       body { font-family: Arial, Helvetica, sans-serif; padding: 0; color: #000 !important; margin: 0; background: #fff; }
@@ -3133,6 +3142,11 @@ export default function App() {
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         <div class="invoice-title">${t('retailInvoice')}</div>
+
+        <div class="order-number-box">
+          <div class="order-number-label">${t('orderNo')}</div>
+          <div class="order-number-value">${invoiceData.invoiceId && invoiceData.invoiceId.includes('-') ? invoiceData.invoiceId.split('-').pop() : (invoiceData.invoiceId || 'N/A')}</div>
+        </div>
 
         <div class="details">
           <p><strong>${t('date')}:</strong> ${printDate}</p>
