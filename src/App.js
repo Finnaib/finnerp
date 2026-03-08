@@ -243,9 +243,14 @@ const translations = {
     cartEmpty: 'Cart is empty',
     selectItems: 'Select items from grid to add',
     subtotal: 'Subtotal',
-    tax: 'Tax',
     checkout: 'Checkout',
     customerNameOptional: 'Customer Name (Optional)',
+    hold: 'Hold Cart',
+    resumeWarning: 'Resuming will overwrite current cart. Continue?',
+    quickStockIn: 'Quick Stock In',
+    currentQuantity: 'Current Quantity',
+    enterAddedQty: 'Enter added quantity to add',
+    payWithUPI: 'Pay with UPI',
 
     inventorySubtitle: 'Inventory levels and stock movements',
     searchInventory: 'Search inventory by name ...',
@@ -811,6 +816,12 @@ const translations = {
     selectItems: 'ग्रिड से आइटम चुनें',
     checkout: 'चेकआउट',
     customerNameOptional: 'ग्राहक का नाम (वैकल्पिक)',
+    hold: 'रोकें',
+    resumeWarning: 'फिर से शुरू करने से वर्तमान कार्ट बदल जाएगा। जारी रखें?',
+    quickStockIn: 'त्वरित स्टॉक इन',
+    currentQuantity: 'वर्तमान मात्रा',
+    enterAddedQty: 'जोड़ी गई मात्रा दर्ज करें',
+    payWithUPI: 'UPI के साथ भुगतान करें',
     soldBy: 'विक्रेता (Sold By)',
     customerId: 'ग्राहक आईडी',
     taxed: 'कर',
@@ -1729,6 +1740,8 @@ export default function App() {
   const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890', upiId: '' });
+  const [heldCarts, setHeldCarts] = useState([]); // Multiple selling sessions
+  const [scannerMode, setScannerMode] = useState('sell'); // 'sell' or 'buy'
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
 
@@ -1785,6 +1798,28 @@ export default function App() {
   const [historyLocationFilter, setHistoryLocationFilter] = useState('');
   const [reportLocationFilter, setReportLocationFilter] = useState('');
   const [historyFilter, setHistoryFilter] = useState('All');
+
+  // Keyboard Shortcuts for Speed
+  useEffect(() => {
+    const handleShortcuts = (e) => {
+      if (activeTab === 'sales_purchases') {
+        if (e.key === 'F1') {
+          e.preventDefault();
+          document.getElementById('pos-search')?.focus();
+        }
+        if (e.key === 'F2') {
+          e.preventDefault();
+          handleCheckout();
+        }
+        if (e.key === 'F4') {
+          e.preventDefault();
+          handleHoldCart();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleShortcuts);
+    return () => window.removeEventListener('keydown', handleShortcuts);
+  }, [activeTab, cart, calculateTotal, handleCheckout, handleHoldCart]);
 
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
 
@@ -2772,23 +2807,69 @@ export default function App() {
     });
   };
 
+  const handleHoldCart = () => {
+    if (cart.length === 0) return;
+    setHeldCarts(prev => [...prev, {
+      id: Date.now(),
+      cart: [...cart],
+      cartDiscount,
+      salesEmployee,
+      customer: newSaleForm.customer,
+      orderType,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }]);
+    setCart([]);
+    setCartDiscount(0);
+    setSalesEmployee(null);
+  };
+
+  const handleResumeCart = (heldId) => {
+    const held = heldCarts.find(h => h.id === heldId);
+    if (!held) return;
+    if (cart.length > 0) {
+      // Hold current before resuming if not empty? 
+      // Manual choice is better. Assuming users clear or hold first.
+      if (!window.confirm(t('resumeWarning') || 'Resuming will overwrite current cart. Continue?')) return;
+    }
+    setCart(held.cart);
+    setCartDiscount(held.cartDiscount);
+    setSalesEmployee(held.salesEmployee);
+    setNewSaleForm(prev => ({ ...prev, customer: held.customer }));
+    setOrderType(held.orderType);
+    setHeldCarts(prev => prev.filter(h => h.id !== heldId));
+  };
+
   // Barcode Scanner State (Moved here to avoid TDZ error)
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const scannerRef = useRef(null);
 
-  const onScanSuccess = useCallback((decodedText) => {
+  const onScanSuccess = useCallback(async (decodedText) => {
     const item = inventory.find(i => i.barcode === decodedText);
-    if (item) {
+    if (!item) {
+      console.log("Barcode not found:", decodedText);
+      return;
+    }
+
+    if (scannerMode === 'sell') {
       if (item.quantity > 0) {
         addToCart(item);
-        setIsScannerOpen(false); // Close after find to be cleaner for user
+        setIsScannerOpen(false);
       } else {
         alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
       }
-    } else {
-      console.log("Barcode not found:", decodedText);
+    } else if (scannerMode === 'buy') {
+      const moreStock = prompt(`${t('quickStockIn') || 'Quick Stock In'}: ${item.name}\n${t('currentQuantity') || 'Current'}: ${item.quantity}\n${t('enterAddedQty') || 'Enter added quantity'}:`, "1");
+      if (moreStock !== null && !isNaN(moreStock) && Number(moreStock) > 0) {
+        try {
+          const itemRef = doc(db, 'inventory', item.id);
+          await updateDoc(itemRef, { quantity: Number(item.quantity) + Number(moreStock) });
+          // Optional: Add to history
+        } catch (err) {
+          alert("Error updating stock: " + err.message);
+        }
+      }
     }
-  }, [inventory, addToCart, t]);
+  }, [inventory, addToCart, t, scannerMode]);
 
   const onScanError = useCallback((err) => {
     // console.warn(err);
@@ -5009,8 +5090,22 @@ export default function App() {
                           <input
                             type="text"
                             placeholder={t('searchProducts')}
+                            id="pos-search"
                             className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:border-blue-500 focus:ring-0 transition-all text-sm"
                             value={inventorySearch}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const filtered = inventory.filter(item =>
+                                  (!posLocationFilter || item.location === posLocationFilter) &&
+                                  ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                                    (item.barcode || '').includes(inventorySearch))
+                                );
+                                if (filtered.length === 1) {
+                                  addToCart(filtered[0]);
+                                  setInventorySearch('');
+                                }
+                              }
+                            }}
                             onChange={(e) => setInventorySearch(e.target.value)}
                           />
                         </div>
@@ -5088,8 +5183,34 @@ export default function App() {
                       <ShoppingCart size={20} className="text-blue-600" />
                       <h3 className="font-bold text-lg">{t('currentBill')}</h3>
                     </div>
-                    <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleHoldCart}
+                        disabled={cart.length === 0}
+                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-amber-100 disabled:opacity-30"
+                        title={t('hold') || 'Hold Cart'}
+                      >
+                        <Clock size={18} />
+                      </button>
+                      <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
+                    </div>
                   </div>
+
+                  {heldCarts.length > 0 && (
+                    <div className="bg-amber-50/50 p-2 border-b border-amber-100 overflow-x-auto whitespace-nowrap scrollbar-none">
+                      <div className="flex gap-2">
+                        {heldCarts.map((h, idx) => (
+                          <button
+                            key={h.id}
+                            onClick={() => handleResumeCart(h.id)}
+                            className="bg-white border border-amber-200 px-3 py-1 rounded-full text-[10px] font-bold text-amber-700 shadow-sm hover:border-amber-400 transition-all flex items-center gap-1.5"
+                          >
+                            <Clock size={10} /> {h.time} - {h.customer || `Cart ${idx + 1}`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
                     {cart.length === 0 ? (
@@ -5253,6 +5374,12 @@ export default function App() {
                       className={`px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all w-full sm:w-auto ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                     >
                       {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
+                    </button>
+                    <button
+                      onClick={() => { setScannerMode('buy'); setIsScannerOpen(true); }}
+                      className="bg-emerald-600 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-700 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
+                    >
+                      <Scan size={20} /> {t('quickStockIn') || 'Stock In'}
                     </button>
                     <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 w-full sm:w-auto">
                       <Plus size={20} /> {t('addItem')}
