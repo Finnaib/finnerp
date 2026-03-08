@@ -1986,7 +1986,7 @@ export default function App() {
         if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
         if (pinAction === 'accessReports') {
           setActiveTab('reports');
-          setIsSidebarOpen(false);
+          if (window.innerWidth < 768) setIsSidebarOpen(false);
         }
       } else {
         setTimeout(() => {
@@ -4426,34 +4426,34 @@ export default function App() {
     <div className="flex h-screen bg-gray-50 font-sans text-gray-900 overflow-hidden">
       <SpeedInsights />
       <Analytics />
-      {/* Sidebar */}
-      <aside className={`fixed md:relative inset-y-0 left-0 bg-slate-900 text-white flex flex-col shadow-xl z-30 transition-all duration-300 ease-in-out overflow-hidden ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full opacity-0'}`}>
-        <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+      {/* Sidebar (Responsive & High Z-Index) */}
+      <aside className={`fixed md:relative inset-y-0 left-0 bg-slate-900 text-white flex flex-col shadow-2xl z-[70] transition-all duration-[400ms] ease-in-out overflow-hidden ${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full opacity-0 md:w-0'}`}>
+        <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-xl sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <Shield size={24} className="text-white" />
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg ring-4 ring-blue-500/10">
+              <Shield size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg tracking-tight">{t('appName')}</h1>
-              <p className="text-xs text-slate-400">{t('appSubtitle')}</p>
+              <h1 className="font-black text-sm uppercase tracking-widest">{t('appName')}</h1>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{t('appSubtitle')}</p>
             </div>
           </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-white"><X size={24} /></button>
+          <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-all bg-slate-800/50"><X size={18} /></button>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-          <SidebarItem icon={<LayoutDashboard size={20} />} label={t('menuDashboard')} active={activeTab === 'dashboard'} onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Users size={20} />} label={t('menuEmployees')} active={activeTab === 'employees'} onClick={() => { setActiveTab('employees'); setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<LayoutDashboard size={20} />} label={t('menuDashboard')} active={activeTab === 'dashboard'} onClick={() => { setActiveTab('dashboard'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Users size={20} />} label={t('menuEmployees')} active={activeTab === 'employees'} onClick={() => { setActiveTab('employees'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<BarChart3 size={20} />} label={t('menuReports')} active={activeTab === 'reports'} onClick={() => { setPinAction('accessReports'); setIsPinModalOpen(true); }} />
 
           <div className="my-2 border-t border-slate-700/50"></div>
 
-          <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Package size={20} />} label={t('menuWarehouses')} active={activeTab === 'warehouses'} onClick={() => { setActiveTab('warehouses'); setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Clock size={20} />} label={t('menuInvoices')} active={activeTab === 'history'} onClick={() => { setActiveTab('history'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Package size={20} />} label={t('menuWarehouses')} active={activeTab === 'warehouses'} onClick={() => { setActiveTab('warehouses'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Clock size={20} />} label={t('menuInvoices')} active={activeTab === 'history'} onClick={() => { setActiveTab('history'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
         </nav>
 
         <div className="p-4 border-t border-slate-800 space-y-2">
@@ -4473,14 +4473,14 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
-        {/* Mobile Header Overlay */}
-        {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>}
+      <main className="flex-1 flex flex-col overflow-hidden relative pb-20 lg:pb-0">
+        {/* Mobile Sidebar Overlay with Blur Effect */}
+        {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[65] md:hidden animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)}></div>}
 
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center justify-between px-4 md:px-8 sticky top-0 z-50 transition-all">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all md:hidden"><Menu size={24} /></button>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2 -ml-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all ${isSidebarOpen ? 'md:hidden' : 'block'}`}><Menu size={24} /></button>
             <h2 className="text-lg font-black text-gray-900 flex items-center gap-2.5 tracking-tight">
               <span className="p-2 bg-blue-50 text-blue-600 rounded-xl">
                 {activeTab === 'dashboard' && <LayoutDashboard size={20} />}
@@ -5436,33 +5436,68 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Daily History Toggle / View */}
-                  <div className="bg-white p-4 mx-4 mb-4 rounded-xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto shrink-0">
-                    <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><Clock size={16} /> {t('todaysSales')}</h3>
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-gray-50 sticky top-0"><tr><th className="p-2">{t('time')}</th><th className="p-2">{t('invoiceId')} #</th><th className="p-2">{t('amount')}</th><th className="p-2">{t('items')}</th><th className="p-2">{t('actions')}</th></tr></thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {sales
-                          .filter(s => s.date === new Date().toISOString().split('T')[0])
-                          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                          .map(s => (
-                            <tr key={s.id}>
-                              <td className="p-2 text-gray-500">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
-                              <td className="p-2 font-mono text-xs text-blue-600 font-bold">{s.invoiceId || '-'}</td>
-                              <td className="p-2 font-mono font-bold text-gray-900">{formatCurrency(s.amount)}</td>
-                              <td className="p-2 text-xs truncate max-w-[150px]">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</td>
-                              <td className="p-2">
-                                <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="text-gray-400 hover:text-gray-600"><Printer size={16} /></button>
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
+                  {/* Daily History Toggle / View - Responsive Card/Table */}
+                  <div className="bg-white p-4 mx-4 mb-20 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-64 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
+                    <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><Clock size={18} className="text-blue-600" /> {t('todaysSales')}</h3>
+
+                    {/* Desktop Table View */}
+                    <div className="hidden sm:block">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-gray-50 border-b border-gray-100 sticky top-0 z-10">
+                          <tr>
+                            <th className="p-3 font-bold text-gray-700">{t('time')}</th>
+                            <th className="p-3 font-bold text-gray-700">{t('invoiceId')} #</th>
+                            <th className="p-3 font-bold text-gray-700">{t('amount')}</th>
+                            <th className="p-3 font-bold text-gray-700">{t('items')}</th>
+                            <th className="p-3 font-bold text-gray-700">{t('actions')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {sales
+                            .filter(s => s.date === new Date().toISOString().split('T')[0])
+                            .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+                            .map(s => (
+                              <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="p-3 text-gray-500">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
+                                <td className="p-3 font-mono text-xs text-blue-600 font-bold">{s.invoiceId || '-'}</td>
+                                <td className="p-3 font-mono font-bold text-gray-900">{formatCurrency(s.amount)}</td>
+                                <td className="p-3 text-xs text-gray-600 truncate max-w-[150px]">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</td>
+                                <td className="p-3">
+                                  <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Printer size={18} /></button>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="sm:hidden space-y-3">
+                      {sales
+                        .filter(s => s.date === new Date().toISOString().split('T')[0])
+                        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+                        .map(s => (
+                          <div key={s.id} className="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex flex-col gap-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</span>
+                              <span className="font-mono text-[10px] text-blue-600 font-bold">{s.invoiceId || '-'}</span>
+                            </div>
+                            <div className="flex justify-between items-end">
+                              <div>
+                                <div className="text-xs text-gray-500 mb-0.5">{Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : s.items}</div>
+                                <div className="font-mono font-black text-gray-900">{formatCurrency(s.amount)}</div>
+                              </div>
+                              <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl shadow-sm active:bg-blue-50 active:text-blue-600 transition-all"><Printer size={20} /></button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 </div>
 
                 {/* Right: Cart Sidebar (Mobile Drawer) */}
-                <div className={`fixed inset-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[70] lg:z-20 transition-transform duration-300 ease-in-out transform ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                {isMobileCartOpen && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[75] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
+                <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[80] lg:z-20 transition-transform duration-300 ease-in-out transform ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
                   <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white">
                     <div className="flex items-center gap-3 text-gray-800">
                       <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -5691,11 +5726,11 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full">
                       <select
-                        className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+                        className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto shadow-sm"
                         value={warehouseLocationFilter}
                         onChange={e => setWarehouseLocationFilter(e.target.value)}
                       >
@@ -5703,85 +5738,131 @@ export default function App() {
                         {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                       </select>
                       <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                           type="text"
                           placeholder={t('searchInventory')}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                           value={inventorySearch}
                           onChange={(e) => setInventorySearch(e.target.value)}
-                          autoComplete="new-password"
-                          name="search-inventory-xyz-unique"
-                          data-form-type="other"
-                          readOnly
-                          onFocus={(e) => e.target.removeAttribute('readonly')}
+                          autoComplete="off"
                         />
                       </div>
                     </div>
                   </div>
-                  <table className="w-full text-left min-w-[640px]">
-                    <thead className="bg-gray-50 border-b border-gray-100">
-                      <tr>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('image') || 'Image'}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('itemName')}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('barcode') || 'Barcode'}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('location')}</th>
-                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('buyPrice')}</th>
-                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('sellPrice')}</th>
-                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('quantity')}</th>
-                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('refinement')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {inventory.length === 0 ? (
-                        <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">{t('noInventory')}</td></tr>
-                      ) : (
-                        inventory
+
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('image') || 'Image'}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('itemName')}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('barcode') || 'Barcode'}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('location')}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('buyPrice')}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('sellPrice')}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('quantity')}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('actions')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {inventory
                           .filter(item =>
                             (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
                             ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
                               (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
                           )
                           .map(item => (
-                            <tr key={item.id} className="hover:bg-gray-50">
+                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                               <td className="px-6 py-4">
-                                <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-gray-100 overflow-hidden">
+                                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden shadow-inner">
                                   {item.photo ? (
                                     <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
                                   ) : (
-                                    <Package size={20} className="text-gray-400" />
+                                    <Package size={20} className="text-gray-300" />
                                   )}
                                 </div>
                               </td>
-                              <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
+                              <td className="px-6 py-4">
+                                <span className="font-bold text-gray-900 block">{item.name}</span>
+                              </td>
                               <td className="px-6 py-4 text-xs font-mono text-gray-400">{item.barcode || '-'}</td>
-                              <td className="px-6 py-4 text-gray-500">{item.location}</td>
+                              <td className="px-6 py-4 text-xs font-bold text-gray-500">{item.location}</td>
                               <td className="px-6 py-4 text-right font-mono text-gray-500">
                                 {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
                               </td>
-                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
-                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">
-                                {item.quantity === 0 ? (
-                                  <span className="flex items-center justify-end gap-1 text-red-600">
-                                    <AlertCircle size={14} /> Out of Stock
-                                  </span>
-                                ) : (
-                                  item.quantity
-                                )}
+                              <td className="px-6 py-4 text-right font-mono font-black text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
+                              <td className="px-6 py-4 text-right font-mono font-black text-gray-900">
+                                {item.quantity === 0 ? <span className="text-red-600">0</span> : item.quantity}
                               </td>
                               <td className="px-6 py-4 text-right">
-                                <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium text-sm">
-                                  {t('edit') || 'Edit'}
-                                </button>
-                                <button onClick={() => handleDeleteWarehouseItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm ml-2">
-                                  {t('delete')}
-                                </button>
+                                <div className="flex justify-end gap-2">
+                                  <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Edit size={16} /></button>
+                                  <button onClick={() => handleDeleteWarehouseItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Trash2 size={16} /></button>
+                                </div>
                               </td>
                             </tr>
-                          ))
-                      )}
-                    </tbody>
-                  </table>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Mobile Card View */}
+                  <div className="md:hidden p-4 space-y-4 max-h-[60vh] overflow-y-auto bg-gray-50/30">
+                    {inventory
+                      .filter(item =>
+                        (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                        ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                          (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                      )
+                      .map(item => (
+                        <div key={item.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex gap-4 animate-in fade-in duration-300">
+                          <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 overflow-hidden shrink-0 shadow-inner">
+                            {item.photo ? (
+                              <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Package size={24} className="text-gray-300" />
+                            )}
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between overflow-hidden">
+                            <div>
+                              <div className="flex justify-between items-start">
+                                <h4 className="font-black text-gray-900 text-sm truncate uppercase tracking-tight pr-2">{item.name}</h4>
+                                <div className="flex gap-2">
+                                  <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="text-blue-500 p-1"><Edit size={16} /></button>
+                                  <button onClick={() => handleDeleteWarehouseItem(item.id)} className="text-red-400 p-1"><Trash2 size={16} /></button>
+                                </div>
+                              </div>
+                              <p className="text-[10px] text-gray-400 font-mono mt-0.5">{item.barcode || 'NO BARCODE'}</p>
+                            </div>
+                            <div className="flex justify-between items-end mt-2">
+                              <div className="space-y-0.5">
+                                <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{item.location}</span>
+                                <div className="font-mono font-black text-xs text-gray-900">
+                                  {formatCurrency(item.sellPrice || 0)}
+                                  <span className="text-[10px] text-gray-400 ml-1 font-normal opacity-50">/ UNIT</span>
+                                </div>
+                              </div>
+                              <div className={`px-3 py-1 rounded-full text-[10px] font-black shadow-sm flex items-center gap-1 ${item.quantity <= 0 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-gray-900 text-white'}`}>
+                                {item.quantity <= 0 ? (
+                                  <>OUT</>
+                                ) : (
+                                  <>{item.quantity} IN STOCK</>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {inventory.length === 0 && (
+                    <div className="p-12 text-center">
+                      <Package size={48} className="mx-auto text-gray-200 mb-4" />
+                      <p className="text-gray-500 font-bold">{t('noInventory')}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )
@@ -5857,80 +5938,125 @@ export default function App() {
                   );
                 })()}
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-                  <table className="w-full text-left min-w-[640px]">
-                    <thead className="bg-gray-50 border-b border-gray-100">
-                      <tr>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('time')}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('type')}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('description')}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('paymentMode') || 'Payment Mode'}</th>
-                        <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('valueStatus')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {(() => {
-                        // Merge Sales and Relevant Inventory Updates
-                        const logs = [
-                          ...sales
-                            .filter(s => !historyLocationFilter || s.location === historyLocationFilter)
-                            .map(s => ({
-                              id: 'sale-' + s.id,
-                              type: t('sales'),
-                              category: 'Sale',
-                              date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
-                              desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
-                              val: s.amount,
-                              isCurrency: true,
-                              paymentMethod: s.paymentMethod
-                            })),
-                          ...inventory
-                            .filter(i => !historyLocationFilter || i.location === historyLocationFilter)
-                            .map(i => ({
-                              id: 'inv-' + i.id,
-                              type: t('stockUpdates'),
-                              category: 'Stock Update',
-                              date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(), // Fallback if no update time
-                              desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
-                              val: `${i.quantity} ${t('units')}`,
-                              isCurrency: false,
-                              paymentMethod: null
-                            }))
-                        ].sort((a, b) => b.date - a.date);
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-20 lg:mb-0">
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('time')}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('type')}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('description')}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('paymentMode') || 'Payment'}</th>
+                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('valueStatus')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {(() => {
+                          // ... same log filtering logic ...
+                          const logs = [
+                            ...sales
+                              .filter(s => !historyLocationFilter || s.location === historyLocationFilter)
+                              .map(s => ({
+                                id: 'sale-' + s.id,
+                                type: t('sales'),
+                                category: 'Sale',
+                                date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
+                                desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
+                                val: s.amount,
+                                isCurrency: true,
+                                paymentMethod: s.paymentMethod
+                              })),
+                            ...inventory
+                              .filter(i => !historyLocationFilter || i.location === historyLocationFilter)
+                              .map(i => ({
+                                id: 'inv-' + i.id,
+                                type: t('stockUpdates'),
+                                category: 'Stock Update',
+                                date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(),
+                                desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
+                                val: `${i.quantity} ${t('units')}`,
+                                isCurrency: false,
+                                paymentMethod: null
+                              }))
+                          ].sort((a, b) => b.date - a.date);
 
-                        // Apply Filters
-                        let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.category === historyFilter);
+                          let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.category === historyFilter);
+                          if (historyDateFilter) {
+                            filteredLogs = filteredLogs.filter(l => new Date(l.date).toISOString().split('T')[0] === historyDateFilter);
+                          }
 
-                        // Apply Date Filter
-                        if (historyDateFilter) {
-                          filteredLogs = filteredLogs.filter(l => {
-                            const logDate = new Date(l.date).toISOString().split('T')[0];
-                            return logDate === historyDateFilter;
-                          });
-                        }
+                          if (filteredLogs.length === 0) return <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('noHistory')}</td></tr>;
 
-                        if (filteredLogs.length === 0) return <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('noHistory')}</td></tr>;
+                          return filteredLogs.map(log => (
+                            <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 text-gray-500 font-mono text-xs">{log.date.toLocaleString()}</td>
+                              <td className="px-6 py-4"><span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${log.category === 'Sale' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'}`}>{log.type}</span></td>
+                              <td className="px-6 py-4 text-sm text-gray-700 font-bold">{log.desc}</td>
+                              <td className="px-6 py-4 text-gray-500">
+                                {log.paymentMethod && (
+                                  <span className="flex items-center gap-1.5 text-xs font-bold">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                    {log.paymentMethod}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right font-black font-mono text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
+                            </tr>
+                          ));
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
 
-                        return filteredLogs.map(log => (
-                          <tr key={log.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-gray-500 font-mono text-sm">{log.date.toLocaleString()}</td>
-                            <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${log.category === 'Sale' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{log.type}</span></td>
-                            <td className="px-6 py-4 text-gray-900">{log.desc}</td>
-                            <td className="px-6 py-4 text-gray-900">
-                              {log.paymentMethod ? (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                  {log.paymentMethod === 'Online' ? (t('onlinePayment') || 'Online') : (t(log.paymentMethod.toLowerCase()) || log.paymentMethod)}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400">-</span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-right font-bold text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
-                          </tr>
-                        ));
-                      })()}
-                    </tbody>
-                  </table>
+                  {/* Mobile Mobile Card View */}
+                  <div className="md:hidden p-4 space-y-3 bg-gray-50/30 overflow-y-auto max-h-[60vh]">
+                    {(() => {
+                      const logs = [
+                        ...sales.filter(s => !historyLocationFilter || s.location === historyLocationFilter).map(s => ({
+                          id: 'sale-' + s.id,
+                          type: t('sales'),
+                          category: 'Sale',
+                          date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
+                          desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
+                          val: s.amount,
+                          isCurrency: true,
+                          paymentMethod: s.paymentMethod
+                        })),
+                        ...inventory.filter(i => !historyLocationFilter || i.location === historyLocationFilter).map(i => ({
+                          id: 'inv-' + i.id,
+                          type: t('stockUpdates'),
+                          category: 'Stock Update',
+                          date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(),
+                          desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
+                          val: `${i.quantity} ${t('units')}`,
+                          isCurrency: false,
+                          paymentMethod: null
+                        }))
+                      ].sort((a, b) => b.date - a.date);
+
+                      let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.category === historyFilter);
+                      if (historyDateFilter) filteredLogs = filteredLogs.filter(l => new Date(l.date).toISOString().split('T')[0] === historyDateFilter);
+
+                      if (filteredLogs.length === 0) return <div className="text-center py-8 text-gray-400">{t('noHistory')}</div>;
+
+                      return filteredLogs.map(log => (
+                        <div key={log.id} className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2">
+                          <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-gray-400">{log.date.toLocaleString()}</span>
+                            <span className={log.category === 'Sale' ? 'text-blue-600' : 'text-orange-500'}>{log.type}</span>
+                          </div>
+                          <p className="text-xs font-bold text-gray-900 leading-relaxed">{log.desc}</p>
+                          <div className="flex justify-between items-end border-t border-gray-50 pt-2 mt-1">
+                            <div className="text-[10px] font-bold text-gray-400">
+                              {log.paymentMethod && <span className="flex items-center gap-1 uppercase"> <CreditCard size={10} /> {log.paymentMethod}</span>}
+                            </div>
+                            <div className="font-mono font-black text-gray-900 border-b-2 border-blue-100">{log.isCurrency ? formatCurrency(log.val) : log.val}</div>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
                 </div>
               </div>
             )
@@ -5940,11 +6066,11 @@ export default function App() {
 
       {/* --- Modals --- */}
 
-      {/* Employee Modal */}
+      {/* Employee Modal (Premium) */}
       {
         isAddModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">{t('addEmployee')}</h3>
                 <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
@@ -5997,11 +6123,11 @@ export default function App() {
         )
       }
 
-      {/* Site Modal */}
+      {/* Site Modal (Premium) */}
       {
         isAddSiteModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">{t('createLocation')}</h3>
                 <button onClick={() => setIsAddSiteModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
@@ -6324,319 +6450,328 @@ export default function App() {
         )
       }
 
-      {/* Settings Modal */}
+      {/* Settings Modal (Premium with Scroll Padding) */}
       {
         showSettings && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-[150] backdrop-blur-xl p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-2xl h-full sm:h-[85vh] shadow-2xl overflow-hidden flex flex-col border border-white/20 relative">
+              {/* Fixed Close Button for Mobile Accessibility */}
+              <button
+                onClick={() => setShowSettings(false)}
+                className="absolute top-6 right-6 z-20 p-2.5 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all shadow-sm border border-gray-100"
+              >
+                <X size={24} />
+              </button>
 
-              {/* Header - Fixed */}
-              <div className="p-6 border-b border-gray-100 flex-shrink-0 flex justify-between items-center bg-white z-10">
-                <h3 className="text-xl font-bold flex items-center gap-2 text-gray-800">
-                  <div className="p-2 bg-slate-100 rounded-lg">
-                    <Settings className="text-slate-600" size={24} />
-                  </div>
-                  {t('settings')}
-                </h3>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="p-6 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                  {/* Column 1: Profile & Localization */}
-                  <div className="space-y-6">
-                    {/* My Profile */}
-                    <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
-                        <User size={18} className="text-blue-600" /> {t('myProfile')}
-                      </h4>
-                      <div className="space-y-3 mb-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('emailLabel')}</span>
-                          <span className="text-sm font-medium text-gray-900 break-all">{user?.email}</span>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('userIdLabel')}</span>
-                          <span className="text-xs font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 break-all select-all text-gray-600">{user?.uid}</span>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('accountTypeLabel')}</span>
-                          <span className="self-start bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-bold">{t('admin')}</span>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-gray-50">
-                        <h5 className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">{t('accountHandling')}</h5>
-                        <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-300 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
-                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-                          {t('connectGoogle')}
-                        </button>
-                        <p className="text-[10px] text-gray-400 text-center px-2">{t('linkGoogleDesc')}</p>
-                      </div>
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-32 sm:pb-8">
+                {/* Header - Fixed */}
+                <div className="p-6 border-b border-gray-100 flex-shrink-0 flex justify-between items-center bg-white z-10">
+                  <h3 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                    <div className="p-2 bg-slate-100 rounded-lg">
+                      <Settings className="text-slate-600" size={24} />
                     </div>
+                    {t('settings')}
+                  </h3>
+                  <button
+                    onClick={() => setShowSettings(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
 
-                    {/* Localization */}
-                    <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
-                        <Globe size={18} className="text-indigo-600" /> {t('localization')}
-                      </h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('language')}</label>
-                          <select
-                            value={language}
-                            onChange={(e) => {
-                              const newLang = e.target.value;
-                              setLanguage(newLang);
-                              saveUserSettings({ language: newLang });
-                            }}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                          >
-                            <option value="en">English</option>
-                            <option value="hi">हिंदी</option>
-                            <option value="ar">العربية</option>
-                            <option value="zh">中文</option>
-                          </select>
+                {/* Scrollable Content */}
+                <div className="p-6 overflow-y-auto custom-scrollbar">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    {/* Column 1: Profile & Localization */}
+                    <div className="space-y-6">
+                      {/* My Profile */}
+                      <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                          <User size={18} className="text-blue-600" /> {t('myProfile')}
+                        </h4>
+                        <div className="space-y-3 mb-4">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('emailLabel')}</span>
+                            <span className="text-sm font-medium text-gray-900 break-all">{user?.email}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('userIdLabel')}</span>
+                            <span className="text-xs font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 break-all select-all text-gray-600">{user?.uid}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('accountTypeLabel')}</span>
+                            <span className="self-start bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-bold">{t('admin')}</span>
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('currency')}</label>
-                          <select
-                            value={currency}
-                            onChange={(e) => {
-                              const newCurrency = e.target.value;
-                              setCurrency(newCurrency);
-                              saveUserSettings({ currency: newCurrency });
-                            }}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                          >
-                            <option value="EGP">EGP</option>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option>
-                            <option value="SAR">SAR</option>
-                            <option value="AED">AED</option>
-                            <option value="INR">INR</option>
-                            <option value="CNY">CNY</option>
-                            <option value="JPY">JPY</option>
-                            <option value="CAD">CAD</option>
-                            <option value="AUD">AUD</option>
-                          </select>
+
+                        <div className="pt-4 border-t border-gray-50">
+                          <h5 className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">{t('accountHandling')}</h5>
+                          <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-300 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                            {t('connectGoogle')}
+                          </button>
+                          <p className="text-[10px] text-gray-400 text-center px-2">{t('linkGoogleDesc')}</p>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Column 2: Shop, Security, Backup, Danger */}
-                  <div className="space-y-6">
-                    {/* Shop Settings */}
-                    <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
-                        <Building2 size={18} className="text-orange-600" /> {t('shopSettings')}
-                      </h4>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopName')}</label>
-                          <input
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                            placeholder="My Shop"
-                            value={shopSettings.name}
-                            autoComplete="off"
-                            name="shop_name_no_autofill"
-                            onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopAddress')}</label>
-                          <input
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                            placeholder="123 Main St"
-                            value={shopSettings.address}
-                            autoComplete="off"
-                            name="shop_address_no_autofill"
-                            onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopPhone')}</label>
-                          <input
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                            placeholder="+1 234..."
-                            value={shopSettings.phone}
-                            autoComplete="off"
-                            name="shop_phone_no_autofill"
-                            onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('upiId') || 'UPI ID'} (for India)</label>
-                          <input
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
-                            placeholder="example@upi"
-                            value={shopSettings.upiId || ''}
-                            onChange={(e) => setShopSettings({ ...shopSettings, upiId: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('paypalEmail') || 'PayPal Email'}</label>
-                          <input
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
-                            placeholder="paypal@example.com"
-                            value={shopSettings.paypalEmail || ''}
-                            onChange={(e) => setShopSettings({ ...shopSettings, paypalEmail: e.target.value })}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
+                      {/* Localization */}
+                      <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                          <Globe size={18} className="text-indigo-600" /> {t('localization')}
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('alipayId') || 'Alipay ID'}</label>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('language')}</label>
+                            <select
+                              value={language}
+                              onChange={(e) => {
+                                const newLang = e.target.value;
+                                setLanguage(newLang);
+                                saveUserSettings({ language: newLang });
+                              }}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            >
+                              <option value="en">English</option>
+                              <option value="hi">हिंदी</option>
+                              <option value="ar">العربية</option>
+                              <option value="zh">中文</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('currency')}</label>
+                            <select
+                              value={currency}
+                              onChange={(e) => {
+                                const newCurrency = e.target.value;
+                                setCurrency(newCurrency);
+                                saveUserSettings({ currency: newCurrency });
+                              }}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            >
+                              <option value="EGP">EGP</option>
+                              <option value="USD">USD</option>
+                              <option value="EUR">EUR</option>
+                              <option value="GBP">GBP</option>
+                              <option value="SAR">SAR</option>
+                              <option value="AED">AED</option>
+                              <option value="INR">INR</option>
+                              <option value="CNY">CNY</option>
+                              <option value="JPY">JPY</option>
+                              <option value="CAD">CAD</option>
+                              <option value="AUD">AUD</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Column 2: Shop, Security, Backup, Danger */}
+                    <div className="space-y-6">
+                      {/* Shop Settings */}
+                      <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                          <Building2 size={18} className="text-orange-600" /> {t('shopSettings')}
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopName')}</label>
                             <input
-                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
-                              placeholder="Alipay ID"
-                              value={shopSettings.alipayId || ''}
-                              onChange={(e) => setShopSettings({ ...shopSettings, alipayId: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                              placeholder="My Shop"
+                              value={shopSettings.name}
+                              autoComplete="off"
+                              name="shop_name_no_autofill"
+                              onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('wechatId') || 'WeChat ID'}</label>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopAddress')}</label>
                             <input
-                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
-                              placeholder="WeChat ID"
-                              value={shopSettings.wechatId || ''}
-                              onChange={(e) => setShopSettings({ ...shopSettings, wechatId: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                              placeholder="123 Main St"
+                              value={shopSettings.address}
+                              autoComplete="off"
+                              name="shop_address_no_autofill"
+                              onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
                             />
                           </div>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('instapayId') || 'InstaPay ID'}</label>
-                          <input
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
-                            placeholder="InstaPay ID"
-                            value={shopSettings.instapayId || ''}
-                            onChange={(e) => setShopSettings({ ...shopSettings, instapayId: e.target.value })}
-                          />
-                        </div>
-                        <button
-                          onClick={async () => {
-                            if (!user) return;
-                            try {
-                              await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
-                              alert(t('shopSettingsSaved'));
-                            } catch (e) {
-                              console.error(e);
-                              alert(t('shopSettingsError'));
-                            }
-                          }}
-                          className="w-full bg-gray-900 text-white font-bold py-2 rounded-lg hover:bg-black transition-colors text-sm mt-2"
-                        >
-                          {t('updateSettings')}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Security */}
-                    <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
-                        <Shield size={18} className="text-teal-600" /> {t('changePin')} & {t('setSecurityQuestion')}
-                      </h4>
-
-                      {/* PIN */}
-                      <div className="mb-4">
-                        <label className="block text-xs font-medium text-gray-500 mb-1">{t('securityPin')}</label>
-                        {securityPin === '1234' ? (
-                          <input
-                            type="password"
-                            placeholder={t('newPin')}
-                            maxLength={4}
-                            className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-red-50 focus:ring-2 focus:ring-red-500 outline-none"
-                            onBlur={(e) => {
-                              if (e.target.value.length === 4) {
-                                if (window.confirm(t('confirmChangePin') || "Set new PIN?")) {
-                                  setSecurityPin(e.target.value);
-                                  saveUserSettings({ securityPin: e.target.value });
-                                  e.target.value = '';
-                                  alert(t('pinChanged'));
-                                }
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopPhone')}</label>
+                            <input
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                              placeholder="+1 234..."
+                              value={shopSettings.phone}
+                              autoComplete="off"
+                              name="shop_phone_no_autofill"
+                              onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('upiId') || 'UPI ID'} (for India)</label>
+                            <input
+                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                              placeholder="example@upi"
+                              value={shopSettings.upiId || ''}
+                              onChange={(e) => setShopSettings({ ...shopSettings, upiId: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('paypalEmail') || 'PayPal Email'}</label>
+                            <input
+                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                              placeholder="paypal@example.com"
+                              value={shopSettings.paypalEmail || ''}
+                              onChange={(e) => setShopSettings({ ...shopSettings, paypalEmail: e.target.value })}
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">{t('alipayId') || 'Alipay ID'}</label>
+                              <input
+                                className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                                placeholder="Alipay ID"
+                                value={shopSettings.alipayId || ''}
+                                onChange={(e) => setShopSettings({ ...shopSettings, alipayId: e.target.value })}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">{t('wechatId') || 'WeChat ID'}</label>
+                              <input
+                                className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                                placeholder="WeChat ID"
+                                value={shopSettings.wechatId || ''}
+                                onChange={(e) => setShopSettings({ ...shopSettings, wechatId: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('instapayId') || 'InstaPay ID'}</label>
+                            <input
+                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                              placeholder="InstaPay ID"
+                              value={shopSettings.instapayId || ''}
+                              onChange={(e) => setShopSettings({ ...shopSettings, instapayId: e.target.value })}
+                            />
+                          </div>
+                          <button
+                            onClick={async () => {
+                              if (!user) return;
+                              try {
+                                await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
+                                alert(t('shopSettingsSaved'));
+                              } catch (e) {
+                                console.error(e);
+                                alert(t('shopSettingsError'));
                               }
                             }}
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
-                            <CheckCircle size={16} /> <span className="font-medium">{t('pinSetMessage')}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Security Question */}
-                      <div className="space-y-2 pt-2 border-t border-gray-100">
-                        <select
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"
-                          value={securityQuestion}
-                          onChange={(e) => setSecurityQuestion(e.target.value)}
-                        >
-                          <option value="">{t('securityQuestion')}</option>
-                          <option value="secQ_pet">{t('secQ_pet')}</option>
-                          <option value="secQ_mother">{t('secQ_mother')}</option>
-                          <option value="secQ_city">{t('secQ_city')}</option>
-                          <option value="secQ_school">{t('secQ_school')}</option>
-                        </select>
-                        <input
-                          type="text"
-                          placeholder={t('securityAnswer')}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
-                          value={securityAnswer}
-                          onChange={(e) => setSecurityAnswer(e.target.value)}
-                        />
-                        <button
-                          onClick={() => {
-                            if (!securityQuestion || !securityAnswer) {
-                              alert("Please select a question and answer!");
-                              return;
-                            }
-                            saveUserSettings({ securityQuestion, securityAnswer });
-                            alert(t('saveSettings') + ' Success!');
-                          }}
-                          className="w-full bg-teal-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-teal-700 shadow-sm"
-                        >
-                          {t('saveSettings')}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Backup & Danger Zone Group */}
-                    <div className="grid grid-cols-1 gap-4">
-                      {/* Backup */}
-                      <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                        <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2 text-sm">
-                          <Database size={16} /> {t('backupRestore')}
-                        </h4>
-                        <div className="flex gap-2">
-                          <button onClick={handleExportBackup} disabled={loading} className="flex-1 bg-white text-blue-700 border border-blue-200 font-bold py-1.5 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-1 text-xs shadow-sm">
-                            <Download size={14} /> {t('export')}
+                            className="w-full bg-gray-900 text-white font-bold py-2 rounded-lg hover:bg-black transition-colors text-sm mt-2"
+                          >
+                            {t('updateSettings')}
                           </button>
-                          <label className="flex-1 bg-blue-600 text-white font-bold py-1.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 text-xs cursor-pointer shadow-sm">
-                            <Upload size={14} /> {t('import')}
-                            <input type="file" accept=".json" onChange={handleImportBackup} disabled={loading} className="hidden" />
-                          </label>
                         </div>
                       </div>
 
-                      {/* Danger */}
-                      <div className="p-4 bg-red-50 rounded-xl border border-red-100">
-                        <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2 text-sm">
-                          <AlertCircle size={16} /> {t('dangerZone')}
+                      {/* Security */}
+                      <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                          <Shield size={18} className="text-teal-600" /> {t('changePin')} & {t('setSecurityQuestion')}
                         </h4>
-                        <button onClick={handleFactoryReset} className="w-full bg-white text-red-600 border border-red-200 font-bold py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-xs shadow-sm">
-                          <Trash2 size={14} /> {t('factoryReset')}
-                        </button>
-                      </div>
-                    </div>
 
+                        {/* PIN */}
+                        <div className="mb-4">
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('securityPin')}</label>
+                          {securityPin === '1234' ? (
+                            <input
+                              type="password"
+                              placeholder={t('newPin')}
+                              maxLength={4}
+                              className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-red-50 focus:ring-2 focus:ring-red-500 outline-none"
+                              onBlur={(e) => {
+                                if (e.target.value.length === 4) {
+                                  if (window.confirm(t('confirmChangePin') || "Set new PIN?")) {
+                                    setSecurityPin(e.target.value);
+                                    saveUserSettings({ securityPin: e.target.value });
+                                    e.target.value = '';
+                                    alert(t('pinChanged'));
+                                  }
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
+                              <CheckCircle size={16} /> <span className="font-medium">{t('pinSetMessage')}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Security Question */}
+                        <div className="space-y-2 pt-2 border-t border-gray-100">
+                          <select
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"
+                            value={securityQuestion}
+                            onChange={(e) => setSecurityQuestion(e.target.value)}
+                          >
+                            <option value="">{t('securityQuestion')}</option>
+                            <option value="secQ_pet">{t('secQ_pet')}</option>
+                            <option value="secQ_mother">{t('secQ_mother')}</option>
+                            <option value="secQ_city">{t('secQ_city')}</option>
+                            <option value="secQ_school">{t('secQ_school')}</option>
+                          </select>
+                          <input
+                            type="text"
+                            placeholder={t('securityAnswer')}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                            value={securityAnswer}
+                            onChange={(e) => setSecurityAnswer(e.target.value)}
+                          />
+                          <button
+                            onClick={() => {
+                              if (!securityQuestion || !securityAnswer) {
+                                alert("Please select a question and answer!");
+                                return;
+                              }
+                              saveUserSettings({ securityQuestion, securityAnswer });
+                              alert(t('saveSettings') + ' Success!');
+                            }}
+                            className="w-full bg-teal-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-teal-700 shadow-sm"
+                          >
+                            {t('saveSettings')}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Backup & Danger Zone Group */}
+                      <div className="grid grid-cols-1 gap-4">
+                        {/* Backup */}
+                        <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                          <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2 text-sm">
+                            <Database size={16} /> {t('backupRestore')}
+                          </h4>
+                          <div className="flex gap-2">
+                            <button onClick={handleExportBackup} disabled={loading} className="flex-1 bg-white text-blue-700 border border-blue-200 font-bold py-1.5 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-1 text-xs shadow-sm">
+                              <Download size={14} /> {t('export')}
+                            </button>
+                            <label className="flex-1 bg-blue-600 text-white font-bold py-1.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 text-xs cursor-pointer shadow-sm">
+                              <Upload size={14} /> {t('import')}
+                              <input type="file" accept=".json" onChange={handleImportBackup} disabled={loading} className="hidden" />
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Danger */}
+                        <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+                          <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2 text-sm">
+                            <AlertCircle size={16} /> {t('dangerZone')}
+                          </h4>
+                          <button onClick={handleFactoryReset} className="w-full bg-white text-red-600 border border-red-200 font-bold py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-xs shadow-sm">
+                            <Trash2 size={14} /> {t('factoryReset')}
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               </div>
@@ -6648,7 +6783,7 @@ export default function App() {
       {/* Add Attendance Modal */}
       {
         isAddAttendanceModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">{t('addAttendance')}</h3>
@@ -6747,7 +6882,7 @@ export default function App() {
       {/* Edit Attendance Modal */}
       {
         editingAttendance && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">{t('editAttendance')}</h3>
@@ -6823,7 +6958,7 @@ export default function App() {
       {/* Add Account Modal */}
       {
         isAddAccountModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">Add Account</h3>
@@ -6854,7 +6989,7 @@ export default function App() {
       {/* Add / Edit Item Modal */}
       {
         isAddItemModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">{editingItem ? 'Edit Item' : 'Add Inventory Item'}</h3>
@@ -6925,7 +7060,7 @@ export default function App() {
       {/* Add Sale Modal */}
       {
         isAddSaleModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">New Sale</h3>
@@ -6954,7 +7089,7 @@ export default function App() {
       {/* Add Purchase Modal */}
       {
         isAddPurchaseModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">New Purchase</h3>
@@ -6983,7 +7118,7 @@ export default function App() {
       {/* Add Invoice Modal */}
       {
         isAddInvoiceModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">Create Invoice</h3>
@@ -7079,7 +7214,7 @@ export default function App() {
       {/* Select Sales Employee Modal */}
       {
         isSelectSalesEmployeeModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-bold text-lg text-gray-900">Select Sales Employee</h3>
@@ -7123,7 +7258,7 @@ export default function App() {
       {/* Manage Payroll Modal */}
       {
         isManagePayrollModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <div>
@@ -7217,7 +7352,7 @@ export default function App() {
       {/* PIN Verification Modal */}
       {
         isPinModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="p-6 text-center">
                 <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
@@ -7249,7 +7384,7 @@ export default function App() {
                               if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
                               if (pinAction === 'accessReports') {
                                 setActiveTab('reports');
-                                setIsSidebarOpen(false);
+                                if (window.innerWidth < 768) setIsSidebarOpen(false);
                               }
                             } else {
                               setTimeout(() => {
@@ -7279,7 +7414,7 @@ export default function App() {
                             if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
                             if (pinAction === 'accessReports') {
                               setActiveTab('reports');
-                              setIsSidebarOpen(false);
+                              if (window.innerWidth < 768) setIsSidebarOpen(false);
                             }
                           } else {
                             setTimeout(() => {
