@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { QRCodeSVG } from 'qrcode.react';
 
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -267,6 +267,12 @@ const translations = {
     products: 'Products',
     scanner: 'Scanner',
     cart: 'Cart',
+    digitalPayment: 'Digital Payment',
+    linkExpired: 'Link Expired',
+    linkExpiredDetail: 'This payment link was valid for 10 minutes only. Please ask the merchant for a new QR code.',
+    payNow: 'Pay Now',
+    secureUpi: 'Secure UPI Payment',
+    goBackToApp: 'Go back to App',
 
     inventorySubtitle: 'Inventory levels and stock movements',
     searchInventory: 'Search inventory by name ...',
@@ -275,9 +281,18 @@ const translations = {
     sellPrice: 'Sell Price',
     barcode: 'Barcode',
     scanBarcode: 'Scan Barcode',
+    paymentMethodNotConfigured: 'Payment method not configured in Settings',
     digitalPayment: 'Digital Payment (QR)',
     upiId: 'UPI ID',
+    paypalEmail: 'PayPal Email',
+    alipayId: 'Alipay ID/QR',
+    wechatId: 'WeChat ID/QR',
+    instapayId: 'InstaPay ID',
     payWithUPI: 'Pay with UPI',
+    payWithPaypal: 'Pay with PayPal',
+    payWithAlipay: 'Pay with Alipay',
+    payWithWechat: 'Pay with WeChat',
+    payWithInstapay: 'Pay with InstaPay',
     confirmCheckout: 'Confirm Checkout',
     totalWithDiscount: 'Total after discount',
     quantity: 'Quantity',
@@ -608,6 +623,26 @@ const translations = {
     products: 'उत्पाद',
     scanner: 'स्कैनर',
     cart: 'कार्ट',
+    digitalPayment: 'डिजिटल भुगतान',
+    paymentMethodNotConfigured: 'सेटिंग्स में भुगतान विधि कॉन्फ़िगर नहीं की गई है',
+    scanBarcode: 'बारकोड स्कैन करें',
+    digitalPayment: 'डिजिटल भुगतान (QR)',
+    upiId: 'UPI आईडी',
+    paypalEmail: 'PayPal ईमेल',
+    alipayId: 'Alipay आईडी/QR',
+    wechatId: 'WeChat आईडी/QR',
+    instapayId: 'InstaPay आईडी',
+    payWithUPI: 'UPI से भुगतान करें',
+    payWithPaypal: 'PayPal से भुगतान करें',
+    payWithAlipay: 'Alipay से भुगतान करें',
+    payWithWechat: 'WeChat से भुगतान करें',
+    payWithInstapay: 'InstaPay से भुगतान करें',
+    confirmCheckout: 'चेकआउट की पुष्टि करें',
+    linkExpired: 'लिंक की अवधि समाप्त',
+    linkExpiredDetail: 'यह भुगतान लिंक केवल 10 मिनट के लिए मान्य था। कृपया नया क्यूआर कोड मांगें।',
+    payNow: 'अभी भुगतान करें',
+    secureUpi: 'सुरक्षित UPI भुगतान',
+    goBackToApp: 'ऐप पर वापस जाएं',
     units: 'इकाइयाँ',
     stockCheck: 'स्टॉक चेक',
     items: 'वस्तुएं',
@@ -1760,14 +1795,56 @@ export default function App() {
   const [pinInput, setPinInput] = useState('');
   const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-  const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890', upiId: '' });
+  const [shopSettings, setShopSettings] = useState({
+    name: 'Finn ERP',
+    address: '123 Business St',
+    phone: '+1 234 567 890',
+    upiId: '',
+    paypalEmail: '',
+    alipayId: '',
+    wechatId: '',
+    instapayId: ''
+  });
+  const [cameras, setCameras] = useState([]);
+  const [activeCameraId, setActiveCameraId] = useState(null);
   const [heldCarts, setHeldCarts] = useState([]); // Multiple selling sessions
   const [scannerMode, setScannerMode] = useState('sell'); // 'sell' or 'buy'
   const [showUpiQr, setShowUpiQr] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [upiQrTimer, setUpiQrTimer] = useState(15);
+  const [digitalSubMethod, setDigitalSubMethod] = useState('UPI');
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
+  const [externalPayment, setExternalPayment] = useState(null); // { invoiceId, amount, upiId, expiry }
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
+
+  // Handle Incoming Payment QR Codes from Prints
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payId = params.get('pay');
+    const amt = params.get('amt');
+    const upi = params.get('upi');
+    const pn = params.get('pn');
+    const exp = params.get('exp');
+
+    if (payId && amt && upi && exp) {
+      const now = Date.now();
+      const expiryTime = parseInt(exp);
+      if (now < expiryTime) {
+        setExternalPayment({
+          invoiceId: payId,
+          amount: parseFloat(amt),
+          upiId: upi,
+          merchantName: pn || 'Merchant',
+          expiry: expiryTime,
+          expired: false
+        });
+        setActiveTab('payment_portal');
+      } else {
+        setExternalPayment({ expired: true });
+        setActiveTab('payment_portal');
+      }
+    }
+  }, []);
 
 
 
@@ -3170,12 +3247,17 @@ export default function App() {
           <p>${t('thankYou')}</p>
         </div>
 
-        ${(invoiceData.paymentMethod === 'Online' && shopSettings.upiId) ? `
-        <div style="text-align: center; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`)}" style="width: 120px; height: 120px;" />
-          <p style="font-size: 0.6em; margin-top: 5px; font-weight: bold;">${t('payWithUPI') || 'Scan to Pay'}</p>
-        </div>
-        ` : ''}
+        ${(invoiceData.paymentMethod === 'Online' && shopSettings.upiId) ? (() => {
+            const expiryTime = Date.now() + 600000; // 10 minutes in ms
+            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&upi=${shopSettings.upiId}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
+            return `
+          <div style="text-align: center; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(payUrl)}" style="width: 120px; height: 120px;" />
+            <p style="font-size: 0.6em; margin-top: 5px; font-weight: bold;">${t('payWithUPI') || 'Scan to Pay'}</p>
+            <p style="font-size: 0.5em; color: #666; margin-top: 2px;">(Valid for 10 minutes)</p>
+          </div>
+          `;
+          })() : ''}
       </div>
         `;
       } else {
@@ -3267,12 +3349,17 @@ export default function App() {
           <p class="thank-you">${t('thankYou')}</p>
         </div>
 
-          ${(invoiceData.paymentMethod === 'Online' && shopSettings.upiId) ? `
-          <div style="position: absolute; bottom: 50px; left: 50px; text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`)}" style="width: 100px; height: 100px;" />
-            <p style="font-size: 9px; margin-top: 5px; font-weight: bold; color: #4a5f8f;">${t('payWithUPI') || 'Digital Payment'}</p>
-          </div>
-          ` : ''}
+          ${(invoiceData.paymentMethod === 'Online' && shopSettings.upiId) ? (() => {
+            const expiryTime = Date.now() + 600000;
+            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&upi=${shopSettings.upiId}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
+            return `
+            <div style="position: absolute; bottom: 50px; left: 50px; text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(payUrl)}" style="width: 100px; height: 100px;" />
+              <p style="font-size: 9px; margin-top: 5px; font-weight: bold; color: #4a5f8f;">${t('payWithUPI') || 'Digital Payment'}</p>
+              <p style="font-size: 8px; color: #666; margin-top: 2px;">Valid for 10 mins</p>
+            </div>
+            `;
+          })() : ''}
       </div>
         `;
       }
@@ -4071,12 +4158,46 @@ export default function App() {
   const onScanError = useCallback((err) => { }, []);
 
   useEffect(() => {
+    let html5QrCode;
     if (isScannerOpen) {
-      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
-      scanner.render(onScanSuccess, onScanError);
-      return () => scanner.clear();
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      html5QrCode = new Html5Qrcode("reader");
+
+      const startScanner = async (cameraId) => {
+        try {
+          await html5QrCode.start(
+            cameraId || { facingMode: "environment" },
+            config,
+            onScanSuccess,
+            onScanError
+          );
+        } catch (err) {
+          console.error("Scanner start error:", err);
+        }
+      };
+
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length > 0) {
+          setCameras(devices);
+          const backCamera = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear'));
+          const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
+          setActiveCameraId(selectedId);
+          startScanner(selectedId);
+        } else {
+          startScanner();
+        }
+      }).catch(err => {
+        console.error("Get cameras error:", err);
+        startScanner();
+      });
+
+      return () => {
+        if (html5QrCode.isScanning) {
+          html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => console.error(err));
+        }
+      };
     }
-  }, [isScannerOpen, onScanSuccess, onScanError]);
+  }, [isScannerOpen, onScanSuccess, onScanError, activeCameraId]);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -4112,6 +4233,60 @@ export default function App() {
   }, [paymentMethod, cart.length, activeTab]);
 
 
+
+  // --- Payment Portal (for Customers scanning Printed QR) ---
+  if (externalPayment) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 p-8 text-center animate-in zoom-in-95 duration-500">
+          <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <QrCode size={40} className="text-blue-600" />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tight">{t('digitalPayment')}</h2>
+          <p className="text-sm text-gray-500 mb-8 font-medium">{t('invoice')}: <span className="text-blue-600 font-bold">{externalPayment.invoiceId}</span></p>
+
+          {externalPayment.expired ? (
+            <div className="bg-rose-50 border border-rose-100 p-6 rounded-3xl mb-8">
+              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle size={24} className="text-rose-600" />
+              </div>
+              <h3 className="font-black text-rose-900 uppercase tracking-wide text-sm mb-1">{t('linkExpired')}</h3>
+              <p className="text-xs text-rose-600 font-medium">{t('linkExpiredDetail')}</p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-blue-50/50 p-6 rounded-3xl mb-8 border border-blue-100/50">
+                <p className="text-xs text-blue-600 font-black uppercase tracking-[0.2em] mb-2">{t('totalLabel') || 'Total Amount'}</p>
+                <p className="text-4xl font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(externalPayment.amount)}</p>
+              </div>
+
+              <a
+                href={`upi://pay?pa=${externalPayment.upiId}&pn=${encodeURIComponent(externalPayment.merchantName)}&am=${externalPayment.amount}&cu=INR`}
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-[2rem] shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-1 active:scale-95 text-lg uppercase tracking-widest"
+              >
+                {t('payNow')}
+              </a>
+              <p className="mt-6 text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                <Shield size={12} /> {t('secureUpi')}
+              </p>
+            </>
+          )}
+
+          <button
+            onClick={() => {
+              setExternalPayment(null);
+              const url = new URL(window.location);
+              url.search = '';
+              window.history.replaceState({}, '', url);
+            }}
+            className="mt-8 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-[0.2em]"
+          >
+            {t('goBackToApp')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // --- Login Screen ---
   if (authLoading) return <div className="flex h-screen items-center justify-center bg-gray-50"><Loader2 className="animate-spin text-blue-600" size={48} /></div>;
@@ -5115,31 +5290,31 @@ export default function App() {
           {
             activeTab === 'sales_purchases' && (
               <div className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-gray-50">
-                {/* Mobile Bottom Navigation (Only visible on small screens) */}
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center z-[60] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-                  <div className="flex gap-8">
+                {/* Mobile Bottom Navigation (Premium Glassmorphism) */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-8 py-3 flex justify-between items-center z-[65] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
+                  <div className="flex gap-10">
                     <button
                       onClick={() => setIsMobileCartOpen(false)}
-                      className={`flex flex-col items-center gap-1 ${!isMobileCartOpen ? 'text-blue-600' : 'text-gray-400'}`}
+                      className={`flex flex-col items-center gap-1.5 transition-all ${!isMobileCartOpen ? 'text-blue-600 scale-110' : 'text-gray-300 hover:text-gray-400'}`}
                     >
-                      <Package size={20} />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{t('products')}</span>
+                      <div className={`p-2 rounded-xl transition-all ${!isMobileCartOpen ? 'bg-blue-50' : ''}`}><Package size={20} /></div>
+                      <span className="text-[9px] font-black uppercase tracking-[0.15em]">{t('products')}</span>
                     </button>
                     <button
                       onClick={() => setIsScannerOpen(true)}
-                      className="flex flex-col items-center gap-1 text-gray-400"
+                      className="flex flex-col items-center gap-1.5 text-gray-300 hover:text-gray-600 transition-all"
                     >
-                      <Scan size={20} />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{t('scanner')}</span>
+                      <div className="p-2 rounded-xl"><Scan size={20} /></div>
+                      <span className="text-[9px] font-black uppercase tracking-[0.15em]">{t('scanner')}</span>
                     </button>
                   </div>
                   <button
                     onClick={() => setIsMobileCartOpen(true)}
-                    className="relative bg-blue-600 text-white p-3 rounded-2xl shadow-lg shadow-blue-200 transform active:scale-95 transition-all"
+                    className="relative -top-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 rounded-[2rem] shadow-[0_15px_40px_rgba(37,99,235,0.4)] transform active:scale-95 transition-all border-4 border-white group"
                   >
-                    <ShoppingCart size={24} />
+                    <ShoppingCart size={28} className="group-hover:rotate-12 transition-transform" />
                     {cart.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white animate-bounce">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white animate-bounce shadow-md">
                         {cart.reduce((a, b) => a + b.quantity, 0)}
                       </span>
                     )}
@@ -5440,16 +5615,32 @@ export default function App() {
                       onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                     />
 
-                    <div className="grid grid-cols-3 gap-2 mb-2">
-                      {['Cash', 'Visa', 'Online'].map(method => (
-                        <button
-                          key={method}
-                          onClick={() => setPaymentMethod(method)}
-                          className={`py-1 text-sm font-bold rounded-lg border transition-colors ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
-                        >
-                          {method === 'Online' ? (t('onlinePayment') || method) : (t(method.toLowerCase()) || method)}
-                        </button>
-                      ))}
+                    <div className="space-y-3 mb-4">
+                      <div className="grid grid-cols-3 gap-2">
+                        {['Cash', 'Visa', 'Online'].map(method => (
+                          <button
+                            key={method}
+                            onClick={() => setPaymentMethod(method)}
+                            className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-[1.02]' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
+                          >
+                            {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
+                          </button>
+                        ))}
+                      </div>
+
+                      {paymentMethod === 'Online' && (
+                        <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 rounded-2xl animate-in slide-in-from-top-2 duration-300 border border-gray-100">
+                          {['UPI', 'PayPal', 'Alipay', 'WeChat', 'InstaPay'].map(sub => (
+                            <button
+                              key={sub}
+                              onClick={() => setDigitalSubMethod(sub)}
+                              className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-tight rounded-lg transition-all ${digitalSubMethod === sub ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 hover:text-gray-600'}`}
+                            >
+                              {sub}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <button
@@ -6284,12 +6475,50 @@ export default function App() {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('upiId') || 'UPI ID'} (for QR Payments)</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('upiId') || 'UPI ID'} (for India)</label>
                           <input
                             className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
                             placeholder="example@upi"
                             value={shopSettings.upiId || ''}
                             onChange={(e) => setShopSettings({ ...shopSettings, upiId: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('paypalEmail') || 'PayPal Email'}</label>
+                          <input
+                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                            placeholder="paypal@example.com"
+                            value={shopSettings.paypalEmail || ''}
+                            onChange={(e) => setShopSettings({ ...shopSettings, paypalEmail: e.target.value })}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('alipayId') || 'Alipay ID'}</label>
+                            <input
+                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                              placeholder="Alipay ID"
+                              value={shopSettings.alipayId || ''}
+                              onChange={(e) => setShopSettings({ ...shopSettings, alipayId: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('wechatId') || 'WeChat ID'}</label>
+                            <input
+                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                              placeholder="WeChat ID"
+                              value={shopSettings.wechatId || ''}
+                              onChange={(e) => setShopSettings({ ...shopSettings, wechatId: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('instapayId') || 'InstaPay ID'}</label>
+                          <input
+                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                            placeholder="InstaPay ID"
+                            value={shopSettings.instapayId || ''}
+                            onChange={(e) => setShopSettings({ ...shopSettings, instapayId: e.target.value })}
                           />
                         </div>
                         <button
@@ -7105,9 +7334,22 @@ export default function App() {
       {isScannerOpen && (
         <div className="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden relative shadow-2xl">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="font-bold flex items-center gap-2"><Scan size={20} /> {t('scanBarcode')}</h3>
-              <button onClick={() => setIsScannerOpen(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={24} /></button>
+            <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+              <div className="flex flex-col">
+                <h3 className="font-bold flex items-center gap-2"><Scan size={20} className="text-blue-600" /> {t('scanBarcode')}</h3>
+                {cameras.length > 1 && (
+                  <select
+                    className="text-[10px] mt-1 bg-white border border-gray-200 rounded px-2 py-1 outline-none font-bold text-gray-500 uppercase tracking-tighter"
+                    value={activeCameraId || ''}
+                    onChange={(e) => setActiveCameraId(e.target.value)}
+                  >
+                    {cameras.map(cam => (
+                      <option key={cam.id} value={cam.id}>{cam.label || `Camera ${cam.id}`}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              <button onClick={() => setIsScannerOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all"><X size={24} /></button>
             </div>
             <div id="reader" className="w-full h-[400px]"></div>
             <div className="p-4 bg-gray-50 text-center text-sm text-gray-500">
@@ -7118,12 +7360,18 @@ export default function App() {
       )}
 
       {/* UPI QR Payment Modal (Improved with Close and Overlap fix) */}
-      {activeTab === 'sales_purchases' && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && cart.length > 0 && shopSettings.upiId && (
+      {activeTab === 'sales_purchases' && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && cart.length > 0 && (
         <div className="fixed bottom-24 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,.1)] border border-blue-50 p-6 animate-in slide-in-from-bottom-10 duration-500 z-[60]">
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-3 text-blue-800">
               <div className="p-2 bg-blue-50 rounded-xl"><QrCode size={20} /></div>
-              <span className="font-black text-xs uppercase tracking-widest">{t('payWithUPI')}</span>
+              <span className="font-black text-xs uppercase tracking-widest">
+                {digitalSubMethod === 'UPI' ? t('payWithUPI') :
+                  digitalSubMethod === 'PayPal' ? t('payWithPaypal') :
+                    digitalSubMethod === 'Alipay' ? t('payWithAlipay') :
+                      digitalSubMethod === 'WeChat' ? t('payWithWechat') :
+                        t('payWithInstapay')}
+              </span>
             </div>
             <button
               onClick={() => setShowUpiQr(false)}
@@ -7133,15 +7381,55 @@ export default function App() {
             </button>
           </div>
           <div className="flex justify-center bg-gray-50 p-5 rounded-3xl mb-4 border border-gray-100 shadow-inner">
-            <QRCodeSVG
-              value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(calculateTotal() - cartDiscount).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
-              size={180}
-              level="H"
-              includeMargin={true}
-            />
+            {digitalSubMethod === 'UPI' && shopSettings.upiId ? (
+              <QRCodeSVG
+                value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(calculateTotal() - cartDiscount).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
+                size={180}
+                level="H"
+                includeMargin={true}
+              />
+            ) : digitalSubMethod === 'PayPal' && shopSettings.paypalEmail ? (
+              <QRCodeSVG
+                value={`https://www.paypal.com/paypalme/${shopSettings.paypalEmail}/${(calculateTotal() - cartDiscount).toFixed(2)}`}
+                size={180}
+                level="H"
+                includeMargin={true}
+              />
+            ) : digitalSubMethod === 'Alipay' && shopSettings.alipayId ? (
+              <div className="text-center">
+                <div className="bg-white p-2 rounded-lg inline-block border border-gray-100 shadow-sm mb-2">
+                  <QRCodeSVG value={shopSettings.alipayId} size={150} />
+                </div>
+                <p className="text-[10px] font-bold text-gray-500">Alipay ID: {shopSettings.alipayId}</p>
+              </div>
+            ) : digitalSubMethod === 'WeChat' && shopSettings.wechatId ? (
+              <div className="text-center">
+                <div className="bg-white p-2 rounded-lg inline-block border border-gray-100 shadow-sm mb-2">
+                  <QRCodeSVG value={shopSettings.wechatId} size={150} />
+                </div>
+                <p className="text-[10px] font-bold text-gray-500">WeChat ID: {shopSettings.wechatId}</p>
+              </div>
+            ) : digitalSubMethod === 'InstaPay' && shopSettings.instapayId ? (
+              <div className="text-center">
+                <div className="bg-white p-2 rounded-lg inline-block border border-gray-100 shadow-sm mb-2">
+                  <QRCodeSVG value={shopSettings.instapayId} size={150} />
+                </div>
+                <p className="text-[10px] font-bold text-gray-500">InstaPay ID: {shopSettings.instapayId}</p>
+              </div>
+            ) : (
+              <div className="p-4 text-center text-xs text-red-500 italic">
+                {t('paymentMethodNotConfigured') || 'Details not configured in Settings'}
+              </div>
+            )}
           </div>
           <div className="text-center mb-6">
-            <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">{shopSettings.upiId}</p>
+            <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">
+              {digitalSubMethod === 'UPI' ? shopSettings.upiId :
+                digitalSubMethod === 'PayPal' ? shopSettings.paypalEmail :
+                  digitalSubMethod === 'Alipay' ? shopSettings.alipayId :
+                    digitalSubMethod === 'WeChat' ? shopSettings.wechatId :
+                      shopSettings.instapayId}
+            </p>
             <p className="text-lg font-black text-gray-900 font-mono tracking-tight">{formatCurrency(calculateTotal() - cartDiscount)}</p>
           </div>
 
@@ -7159,21 +7447,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      {/* Floating AI Assistant Button (Premium Feel) */}
-      <div className={`fixed bottom-0 right-0 z-[100] p-6 transition-all duration-500 ease-in-out ${isMobileCartOpen ? 'translate-y-20 scale-0' : 'translate-y-0 scale-100'}`}>
-        <button
-          title="AI Assistant"
-          className="relative group bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-600 p-4 rounded-[2rem] text-white shadow-[0_15px_30px_rgba(37,99,235,0.4)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.6)] hover:-translate-y-2 transition-all duration-500 active:scale-90"
-        >
-          <div className="absolute inset-0 bg-white/20 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-[2rem] blur opacity-30 group-hover:opacity-60 transition-opacity"></div>
-          <div className="relative flex items-center gap-3">
-            <Sparkles size={24} className="animate-pulse" />
-            <span className="hidden md:inline font-black text-xs uppercase tracking-widest border-l border-white/30 pl-3">{t('assistant')}</span>
-          </div>
-        </button>
-      </div>
 
     </div>
   );
