@@ -1732,35 +1732,7 @@ export default function App() {
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
 
-  // Barcode Scanner State
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const scannerRef = useRef(null);
 
-  const onScanSuccess = useCallback((decodedText) => {
-    const item = inventory.find(i => i.barcode === decodedText);
-    if (item) {
-      if (item.quantity > 0) {
-        addToCart(item);
-        setIsScannerOpen(false); // Close after find to be cleaner for user
-      } else {
-        alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
-      }
-    } else {
-      console.log("Barcode not found:", decodedText);
-    }
-  }, [inventory, addToCart, t]);
-
-  const onScanError = useCallback((err) => {
-    // console.warn(err);
-  }, []);
-
-  useEffect(() => {
-    if (isScannerOpen) {
-      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
-      scanner.render(onScanSuccess, onScanError);
-      return () => scanner.clear();
-    }
-  }, [isScannerOpen, onScanSuccess, onScanError]);
 
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
   useEffect(() => { localStorage.setItem('language', language); }, [language]);
@@ -2799,6 +2771,36 @@ export default function App() {
       return [...prev, { ...item, quantity: 1, price: item.sellPrice || 0, barcode: item.barcode || '' }];
     });
   };
+
+  // Barcode Scanner State (Moved here to avoid TDZ error)
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const scannerRef = useRef(null);
+
+  const onScanSuccess = useCallback((decodedText) => {
+    const item = inventory.find(i => i.barcode === decodedText);
+    if (item) {
+      if (item.quantity > 0) {
+        addToCart(item);
+        setIsScannerOpen(false); // Close after find to be cleaner for user
+      } else {
+        alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
+      }
+    } else {
+      console.log("Barcode not found:", decodedText);
+    }
+  }, [inventory, addToCart, t]);
+
+  const onScanError = useCallback((err) => {
+    // console.warn(err);
+  }, []);
+
+  useEffect(() => {
+    if (isScannerOpen) {
+      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+      scanner.render(onScanSuccess, onScanError);
+      return () => scanner.clear();
+    }
+  }, [isScannerOpen, onScanSuccess, onScanError]);
 
   const removeFromCart = (itemId) => {
     setCart(prev => prev.filter(i => i.id !== itemId));
