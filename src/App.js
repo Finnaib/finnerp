@@ -1736,15 +1736,7 @@ export default function App() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const scannerRef = useRef(null);
 
-  useEffect(() => {
-    if (isScannerOpen) {
-      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
-      scanner.render(onScanSuccess, onScanError);
-      return () => scanner.clear();
-    }
-  }, [isScannerOpen]);
-
-  const onScanSuccess = (decodedText) => {
+  const onScanSuccess = useCallback((decodedText) => {
     const item = inventory.find(i => i.barcode === decodedText);
     if (item) {
       if (item.quantity > 0) {
@@ -1756,11 +1748,19 @@ export default function App() {
     } else {
       console.log("Barcode not found:", decodedText);
     }
-  };
+  }, [inventory, addToCart, t]);
 
-  const onScanError = (err) => {
+  const onScanError = useCallback((err) => {
     // console.warn(err);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isScannerOpen) {
+      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+      scanner.render(onScanSuccess, onScanError);
+      return () => scanner.clear();
+    }
+  }, [isScannerOpen, onScanSuccess, onScanError]);
 
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
   useEffect(() => { localStorage.setItem('language', language); }, [language]);
