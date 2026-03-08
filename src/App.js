@@ -1800,38 +1800,9 @@ export default function App() {
   const [reportLocationFilter, setReportLocationFilter] = useState('');
   const [historyFilter, setHistoryFilter] = useState('All');
 
-  // Keyboard Shortcuts for Speed
-  useEffect(() => {
-    const handleShortcuts = (e) => {
-      if (activeTab === 'sales_purchases') {
-        if (e.key === 'F1') {
-          e.preventDefault();
-          document.getElementById('pos-search')?.focus();
-        }
-        if (e.key === 'F2') {
-          e.preventDefault();
-          handleCheckout();
-        }
-        if (e.key === 'F4') {
-          e.preventDefault();
-          handleHoldCart();
-        }
-      }
-    };
-    window.addEventListener('keydown', handleShortcuts);
-    return () => window.removeEventListener('keydown', handleShortcuts);
-  }, [activeTab, cart, calculateTotal, handleCheckout, handleHoldCart]);
 
-  // UPI QR Auto-hide logic (15 sec)
-  useEffect(() => {
-    if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
-      setShowUpiQr(true);
-      const timer = setTimeout(() => setShowUpiQr(false), 15000);
-      return () => clearTimeout(timer);
-    } else {
-      setShowUpiQr(false);
-    }
-  }, [paymentMethod, cart.length, activeTab]);
+
+
 
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
 
@@ -2819,81 +2790,9 @@ export default function App() {
     });
   };
 
-  const handleHoldCart = () => {
-    if (cart.length === 0) return;
-    setHeldCarts(prev => [...prev, {
-      id: Date.now(),
-      cart: [...cart],
-      cartDiscount,
-      salesEmployee,
-      customer: newSaleForm.customer,
-      orderType,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }]);
-    setCart([]);
-    setCartDiscount(0);
-    setSalesEmployee(null);
-  };
 
-  const handleResumeCart = (heldId) => {
-    const held = heldCarts.find(h => h.id === heldId);
-    if (!held) return;
-    if (cart.length > 0) {
-      // Hold current before resuming if not empty? 
-      // Manual choice is better. Assuming users clear or hold first.
-      if (!window.confirm(t('resumeWarning') || 'Resuming will overwrite current cart. Continue?')) return;
-    }
-    setCart(held.cart);
-    setCartDiscount(held.cartDiscount);
-    setSalesEmployee(held.salesEmployee);
-    setNewSaleForm(prev => ({ ...prev, customer: held.customer }));
-    setOrderType(held.orderType);
-    setHeldCarts(prev => prev.filter(h => h.id !== heldId));
-  };
 
-  // Barcode Scanner State (Moved here to avoid TDZ error)
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const scannerRef = useRef(null);
 
-  const onScanSuccess = useCallback(async (decodedText) => {
-    const item = inventory.find(i => i.barcode === decodedText);
-    if (!item) {
-      console.log("Barcode not found:", decodedText);
-      return;
-    }
-
-    if (scannerMode === 'sell') {
-      if (item.quantity > 0) {
-        addToCart(item);
-        setIsScannerOpen(false);
-      } else {
-        alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
-      }
-    } else if (scannerMode === 'buy') {
-      const moreStock = prompt(`${t('quickStockIn') || 'Quick Stock In'}: ${item.name}\n${t('currentQuantity') || 'Current'}: ${item.quantity}\n${t('enterAddedQty') || 'Enter added quantity'}:`, "1");
-      if (moreStock !== null && !isNaN(moreStock) && Number(moreStock) > 0) {
-        try {
-          const itemRef = doc(db, 'inventory', item.id);
-          await updateDoc(itemRef, { quantity: Number(item.quantity) + Number(moreStock) });
-          // Optional: Add to history
-        } catch (err) {
-          alert("Error updating stock: " + err.message);
-        }
-      }
-    }
-  }, [inventory, addToCart, t, scannerMode]);
-
-  const onScanError = useCallback((err) => {
-    // console.warn(err);
-  }, []);
-
-  useEffect(() => {
-    if (isScannerOpen) {
-      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
-      scanner.render(onScanSuccess, onScanError);
-      return () => scanner.clear();
-    }
-  }, [isScannerOpen, onScanSuccess, onScanError]);
 
   const removeFromCart = (itemId) => {
     setCart(prev => prev.filter(i => i.id !== itemId));
@@ -4085,6 +3984,100 @@ export default function App() {
     }
     generateExcel(headers, data, filename, extraMetadata);
   };
+
+  // --- High-Speed POS & Scanner Features (Grouped here to avoid TDZ) ---
+
+  const handleHoldCart = () => {
+    if (cart.length === 0) return;
+    setHeldCarts(prev => [...prev, {
+      id: Date.now(),
+      cart: [...cart],
+      cartDiscount,
+      salesEmployee,
+      customer: newSaleForm.customer,
+      orderType,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }]);
+    setCart([]);
+    setCartDiscount(0);
+    setSalesEmployee(null);
+  };
+
+  const handleResumeCart = (heldId) => {
+    const held = heldCarts.find(h => h.id === heldId);
+    if (!held) return;
+    if (cart.length > 0) {
+      if (!window.confirm(t('resumeWarning') || 'Resuming will overwrite current cart. Continue?')) return;
+    }
+    setCart(held.cart);
+    setCartDiscount(held.cartDiscount);
+    setSalesEmployee(held.salesEmployee);
+    setNewSaleForm(prev => ({ ...prev, customer: held.customer }));
+    setOrderType(held.orderType);
+    setHeldCarts(prev => prev.filter(h => h.id !== heldId));
+  };
+
+  // Barcode Scanner
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const scannerRef = useRef(null);
+
+  const onScanSuccess = useCallback(async (decodedText) => {
+    const item = inventory.find(i => i.barcode === decodedText);
+    if (!item) return;
+
+    if (scannerMode === 'sell') {
+      if (item.quantity > 0) {
+        addToCart(item);
+        setIsScannerOpen(false);
+      } else {
+        alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
+      }
+    } else if (scannerMode === 'buy') {
+      const moreStock = prompt(`${t('quickStockIn') || 'Quick Stock In'}: ${item.name}\n${t('currentQuantity') || 'Current'}: ${item.quantity}\n${t('enterAddedQty') || 'Enter added quantity'}:`, "1");
+      if (moreStock !== null && !isNaN(moreStock) && Number(moreStock) > 0) {
+        try {
+          const itemRef = doc(db, 'inventory', item.id);
+          await updateDoc(itemRef, { quantity: Number(item.quantity) + Number(moreStock) });
+        } catch (err) {
+          alert("Error updating stock: " + err.message);
+        }
+      }
+    }
+  }, [inventory, addToCart, t, scannerMode]);
+
+  const onScanError = useCallback((err) => { }, []);
+
+  useEffect(() => {
+    if (isScannerOpen) {
+      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+      scanner.render(onScanSuccess, onScanError);
+      return () => scanner.clear();
+    }
+  }, [isScannerOpen, onScanSuccess, onScanError]);
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleShortcuts = (e) => {
+      if (activeTab === 'sales_purchases') {
+        if (e.key === 'F1') { e.preventDefault(); document.getElementById('pos-search')?.focus(); }
+        if (e.key === 'F2') { e.preventDefault(); handleCheckout(); }
+        if (e.key === 'F4') { e.preventDefault(); handleHoldCart(); }
+      }
+    };
+    window.addEventListener('keydown', handleShortcuts);
+    return () => window.removeEventListener('keydown', handleShortcuts);
+  }, [activeTab, cart, calculateTotal, handleHoldCart, handleCheckout]);
+
+  // UPI QR Auto-hide logic (15 sec)
+  useEffect(() => {
+    if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
+      setShowUpiQr(true);
+      const timer = setTimeout(() => setShowUpiQr(false), 15000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowUpiQr(false);
+    }
+  }, [paymentMethod, cart.length, activeTab]);
 
 
 
