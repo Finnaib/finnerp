@@ -1742,6 +1742,7 @@ export default function App() {
   const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890', upiId: '' });
   const [heldCarts, setHeldCarts] = useState([]); // Multiple selling sessions
   const [scannerMode, setScannerMode] = useState('sell'); // 'sell' or 'buy'
+  const [showUpiQr, setShowUpiQr] = useState(false);
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
 
@@ -1820,6 +1821,17 @@ export default function App() {
     window.addEventListener('keydown', handleShortcuts);
     return () => window.removeEventListener('keydown', handleShortcuts);
   }, [activeTab, cart, calculateTotal, handleCheckout, handleHoldCart]);
+
+  // UPI QR Auto-hide logic (15 sec)
+  useEffect(() => {
+    if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
+      setShowUpiQr(true);
+      const timer = setTimeout(() => setShowUpiQr(false), 15000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowUpiQr(false);
+    }
+  }, [paymentMethod, cart.length, activeTab]);
 
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
 
@@ -7004,12 +7016,19 @@ export default function App() {
         </div>
       )}
 
-      {/* UPI QR Payment Modal (Inside handleCheckout flow ideally, or as summary) */}
-      {/* For now, show in Checkout Summary or when Online is selected */}
-      {activeTab === 'sales_purchases' && !showSettings && paymentMethod === 'Online' && cart.length > 0 && shopSettings.upiId && (
-        <div className="fixed bottom-24 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] bg-white rounded-2xl shadow-2xl border border-blue-100 p-4 animate-in slide-in-from-bottom-5 duration-300 z-50">
-          <div className="flex items-center gap-2 mb-3 text-blue-700">
-            <QrCode size={20} /> <span className="font-bold text-sm tracking-tight">{t('payWithUPI')}</span>
+      {/* UPI QR Payment Modal (Improved with Close and Overlap fix) */}
+      {activeTab === 'sales_purchases' && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && cart.length > 0 && shopSettings.upiId && (
+        <div className="fixed bottom-24 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] bg-white rounded-2xl shadow-2xl border border-blue-100 p-4 animate-in slide-in-from-bottom-5 duration-300 z-[60]">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2 text-blue-700">
+              <QrCode size={20} /> <span className="font-bold text-sm tracking-tight">{t('payWithUPI')}</span>
+            </div>
+            <button
+              onClick={() => setShowUpiQr(false)}
+              className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={16} />
+            </button>
           </div>
           <div className="flex justify-center bg-gray-50 p-4 rounded-xl mb-3">
             <QRCodeSVG
@@ -7020,6 +7039,9 @@ export default function App() {
             />
           </div>
           <p className="text-[10px] text-center text-gray-400 uppercase font-bold tracking-widest">{shopSettings.upiId}</p>
+          <div className="mt-2 text-center">
+            <span className="text-[8px] text-blue-500 font-bold uppercase tracking-tighter opacity-70">Auto-closing in 15s</span>
+          </div>
         </div>
       )}
 
