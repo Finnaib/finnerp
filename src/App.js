@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import { QRCodeSVG } from 'qrcode.react';
 
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
@@ -43,7 +45,9 @@ import {
   Package, // Warehouses
   FileText as InvoiceIcon, // Electronic Invoice
   CreditCard,
-  Printer
+  Printer,
+  Scan,
+  QrCode
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
@@ -248,6 +252,13 @@ const translations = {
     itemName: 'Item Name',
     buyPrice: 'Buy Price',
     sellPrice: 'Sell Price',
+    barcode: 'Barcode',
+    scanBarcode: 'Scan Barcode',
+    digitalPayment: 'Digital Payment (QR)',
+    upiId: 'UPI ID',
+    payWithUPI: 'Pay with UPI',
+    confirmCheckout: 'Confirm Checkout',
+    totalWithDiscount: 'Total after discount',
     quantity: 'Quantity',
     refinement: 'Refinement',
     noInventory: 'No inventory items found',
@@ -1717,9 +1728,39 @@ export default function App() {
   const [pinInput, setPinInput] = useState('');
   const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-  const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890' });
+  const [shopSettings, setShopSettings] = useState({ name: 'Finn ERP', address: '123 Business St', phone: '+1 234 567 890', upiId: '' });
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
+
+  // Barcode Scanner State
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const scannerRef = useRef(null);
+
+  useEffect(() => {
+    if (isScannerOpen) {
+      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+      scanner.render(onScanSuccess, onScanError);
+      return () => scanner.clear();
+    }
+  }, [isScannerOpen]);
+
+  const onScanSuccess = (decodedText) => {
+    const item = inventory.find(i => i.barcode === decodedText);
+    if (item) {
+      if (item.quantity > 0) {
+        addToCart(item);
+        setIsScannerOpen(false); // Close after find to be cleaner for user
+      } else {
+        alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
+      }
+    } else {
+      console.log("Barcode not found:", decodedText);
+    }
+  };
+
+  const onScanError = (err) => {
+    // console.warn(err);
+  };
 
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
   useEffect(() => { localStorage.setItem('language', language); }, [language]);
@@ -2585,7 +2626,7 @@ export default function App() {
 
   // --- Inventory Logic ---
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
-  const [newItemForm, setNewItemForm] = useState({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0, photo: '' }); // SKU removed
+  const [newItemForm, setNewItemForm] = useState({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0, photo: '', barcode: '' });
   const [inventorySearch, setInventorySearch] = useState('');
 
   const [editingItem, setEditingItem] = useState(null); // For Edit Flow
@@ -2643,7 +2684,7 @@ export default function App() {
       }
 
       setIsAddItemModalOpen(false);
-      setNewItemForm({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0, photo: '' });
+      setNewItemForm({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0, photo: '', barcode: '' });
     } catch (err) {
       console.error(err);
       alert(t('addItemError') + err.message);
@@ -2677,6 +2718,7 @@ export default function App() {
         category: editingItem.category,
         buyPrice: Number(editingItem.buyPrice),
         sellPrice: Number(editingItem.sellPrice),
+        barcode: editingItem.barcode || '',
         photo: editingItem.photo || '',
         updatedAt: serverTimestamp()
       });
@@ -2754,7 +2796,7 @@ export default function App() {
       if (existing) {
         return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { ...item, quantity: 1, price: item.sellPrice || 0 }];
+      return [...prev, { ...item, quantity: 1, price: item.sellPrice || 0, barcode: item.barcode || '' }];
     });
   };
 
@@ -3110,6 +3152,13 @@ export default function App() {
         <div class="footer">
           <p>${t('thankYou')}</p>
         </div>
+
+        ${(invoiceData.paymentMethod === 'Online' && shopSettings.upiId) ? `
+        <div style="text-align: center; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`)}" style="width: 120px; height: 120px;" />
+          <p style="font-size: 0.6em; margin-top: 5px; font-weight: bold;">${t('payWithUPI') || 'Scan to Pay'}</p>
+        </div>
+        ` : ''}
       </div>
         `;
       } else {
@@ -3200,6 +3249,13 @@ export default function App() {
           <p>${shopSettings.name}, ${t('phone')}: ${shopSettings.phone}</p>
           <p class="thank-you">${t('thankYou')}</p>
         </div>
+
+          ${(invoiceData.paymentMethod === 'Online' && shopSettings.upiId) ? `
+          <div style="position: absolute; bottom: 50px; left: 50px; text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`)}" style="width: 100px; height: 100px;" />
+            <p style="font-size: 9px; margin-top: 5px; font-weight: bold; color: #4a5f8f;">${t('payWithUPI') || 'Digital Payment'}</p>
+          </div>
+          ` : ''}
       </div>
         `;
       }
@@ -4930,6 +4986,12 @@ export default function App() {
                         >
                           2x
                         </button>
+                        <button
+                          onClick={() => setIsScannerOpen(true)}
+                          className="flex items-center gap-1 text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 text-xs font-bold transition-all ml-2"
+                        >
+                          <Scan size={16} /> {t('scanBarcode')}
+                        </button>
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto">
                         <select
@@ -4959,7 +5021,8 @@ export default function App() {
                       {inventory
                         .filter(item =>
                           (!posLocationFilter || item.location === posLocationFilter) &&
-                          (item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase())
+                          ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                            (item.barcode || '').includes(inventorySearch))
                         )
                         .map(item => (
                           <button
@@ -5228,6 +5291,7 @@ export default function App() {
                       <tr>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('image') || 'Image'}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('itemName')}</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900">{t('barcode') || 'Barcode'}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('location')}</th>
                         <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('buyPrice')}</th>
                         <th className="px-6 py-4 font-semibold text-right text-gray-900">{t('sellPrice')}</th>
@@ -5243,7 +5307,7 @@ export default function App() {
                           .filter(item =>
                             (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
                             ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
-                              (item.sku?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                              (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
                           )
                           .map(item => (
                             <tr key={item.id} className="hover:bg-gray-50">
@@ -5257,6 +5321,7 @@ export default function App() {
                                 </div>
                               </td>
                               <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
+                              <td className="px-6 py-4 text-xs font-mono text-gray-400">{item.barcode || '-'}</td>
                               <td className="px-6 py-4 text-gray-500">{item.location}</td>
                               <td className="px-6 py-4 text-right font-mono text-gray-500">
                                 {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
@@ -5976,6 +6041,15 @@ export default function App() {
                             onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
                           />
                         </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('upiId') || 'UPI ID'} (for QR Payments)</label>
+                          <input
+                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                            placeholder="example@upi"
+                            value={shopSettings.upiId || ''}
+                            onChange={(e) => setShopSettings({ ...shopSettings, upiId: e.target.value })}
+                          />
+                        </div>
                         <button
                           onClick={async () => {
                             if (!user) return;
@@ -6357,6 +6431,14 @@ export default function App() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1">Quantity</label>
                   <input type="number" className="input-field" placeholder="0" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Barcode</label>
+                  <div className="flex gap-2">
+                    <input className="input-field flex-1" placeholder="Scanned or manual barcode" value={editingItem ? (editingItem.barcode || '') : (newItemForm.barcode || '')} onChange={e => editingItem ? setEditingItem({ ...editingItem, barcode: e.target.value }) : setNewItemForm({ ...newItemForm, barcode: e.target.value })} />
+                    <button type="button" onClick={() => setIsScannerOpen(true)} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"><Scan size={20} /></button>
+                  </div>
                 </div>
 
                 <div className="pt-2 flex gap-3">
@@ -6777,7 +6859,42 @@ export default function App() {
 
 
 
-    </div >
+      {/* Scanner Modal */}
+      {isScannerOpen && (
+        <div className="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden relative shadow-2xl">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="font-bold flex items-center gap-2"><Scan size={20} /> {t('scanBarcode')}</h3>
+              <button onClick={() => setIsScannerOpen(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={24} /></button>
+            </div>
+            <div id="reader" className="w-full h-[400px]"></div>
+            <div className="p-4 bg-gray-50 text-center text-sm text-gray-500">
+              Center the barcode inside the box to scan automatically.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* UPI QR Payment Modal (Inside handleCheckout flow ideally, or as summary) */}
+      {/* For now, show in Checkout Summary or when Online is selected */}
+      {paymentMethod === 'Online' && cart.length > 0 && shopSettings.upiId && (
+        <div className="fixed bottom-24 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] bg-white rounded-2xl shadow-2xl border border-blue-100 p-4 animate-in slide-in-from-bottom-5 duration-300 z-50">
+          <div className="flex items-center gap-2 mb-3 text-blue-700">
+            <QrCode size={20} /> <span className="font-bold text-sm tracking-tight">{t('payWithUPI')}</span>
+          </div>
+          <div className="flex justify-center bg-gray-50 p-4 rounded-xl mb-3">
+            <QRCodeSVG
+              value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(calculateTotal() - cartDiscount).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
+              size={180}
+              level="H"
+              includeMargin={true}
+            />
+          </div>
+          <p className="text-[10px] text-center text-gray-400 uppercase font-bold tracking-widest">{shopSettings.upiId}</p>
+        </div>
+      )}
+
+    </div>
   );
 }
 
