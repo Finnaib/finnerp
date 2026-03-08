@@ -47,7 +47,10 @@ import {
   CreditCard,
   Printer,
   Scan,
-  QrCode
+  QrCode,
+  Sparkles,
+  Zap,
+  ArrowLeft
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
@@ -88,10 +91,18 @@ window.onerror = function (message, source, lineno, colno, error) {
 // --- Subcomponents ---
 function SidebarItem({ icon, label, active, onClick }) {
   return (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${active ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
-      <div>{icon}</div>
-      <span className="font-medium text-sm">{label}</span>
-      {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-sm"></div>}
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all duration-300 group ${active
+        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 -translate-y-0.5'
+        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+        }`}
+    >
+      <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>{icon}</div>
+      <span className={`font-bold text-sm tracking-wide transition-all ${active ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>{label}</span>
+      {active && (
+        <div className="ml-auto w-1 h-4 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] animate-pulse"></div>
+      )}
     </button>
   );
 }
@@ -251,6 +262,11 @@ const translations = {
     currentQuantity: 'Current Quantity',
     enterAddedQty: 'Enter added quantity to add',
     payWithUPI: 'Pay with UPI',
+    assistant: 'Assistant',
+    reviewOrder: 'Review Order',
+    products: 'Products',
+    scanner: 'Scanner',
+    cart: 'Cart',
 
     inventorySubtitle: 'Inventory levels and stock movements',
     searchInventory: 'Search inventory by name ...',
@@ -587,6 +603,11 @@ const translations = {
     noHistory: 'कोई इतिहास रिकॉर्ड नहीं मिला।',
     sold: 'बेचा',
     to: 'को',
+    assistant: 'सहायक',
+    reviewOrder: 'ऑर्डर समीक्षा',
+    products: 'उत्पाद',
+    scanner: 'स्कैनर',
+    cart: 'कार्ट',
     units: 'इकाइयाँ',
     stockCheck: 'स्टॉक चेक',
     items: 'वस्तुएं',
@@ -1743,6 +1764,8 @@ export default function App() {
   const [heldCarts, setHeldCarts] = useState([]); // Multiple selling sessions
   const [scannerMode, setScannerMode] = useState('sell'); // 'sell' or 'buy'
   const [showUpiQr, setShowUpiQr] = useState(false);
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+  const [upiQrTimer, setUpiQrTimer] = useState(15);
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
 
@@ -4070,10 +4093,19 @@ export default function App() {
 
   // UPI QR Auto-hide logic (15 sec)
   useEffect(() => {
+    let timer;
+    let interval;
     if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
       setShowUpiQr(true);
-      const timer = setTimeout(() => setShowUpiQr(false), 15000);
-      return () => clearTimeout(timer);
+      setUpiQrTimer(15);
+      timer = setTimeout(() => setShowUpiQr(false), 15000);
+      interval = setInterval(() => {
+        setUpiQrTimer(prev => Math.max(0, prev - 1));
+      }, 1000);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(interval);
+      };
     } else {
       setShowUpiQr(false);
     }
@@ -4271,21 +4303,23 @@ export default function App() {
         {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>}
 
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm z-10">
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center justify-between px-4 md:px-8 sticky top-0 z-50 transition-all">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-600 hover:text-gray-900"><Menu size={24} /></button>
-            <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-              {activeTab === 'dashboard' && <LayoutDashboard className="text-sky-600" />}
-              {activeTab === 'employees' && <Users className="text-blue-600" />}
-              {activeTab === 'sites' && <MapPin className="text-emerald-600" />}
-              {activeTab === 'attendance' && <Clock className="text-orange-600" />}
-              {activeTab === 'payroll' && <DollarSign className="text-purple-600" />}
-              {activeTab === 'reports' && <BarChart3 className="text-indigo-600" />}
-              {activeTab === 'accounts' && <Calculator className="text-emerald-600" />}
-              {activeTab === 'sales_purchases' && <ShoppingCart className="text-blue-600" />}
-              {activeTab === 'warehouses' && <Package className="text-orange-600" />}
-              {activeTab === 'invoices' && <InvoiceIcon className="text-indigo-600" />}
-              <span>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all md:hidden"><Menu size={24} /></button>
+            <h2 className="text-lg font-black text-gray-900 flex items-center gap-2.5 tracking-tight">
+              <span className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                {activeTab === 'dashboard' && <LayoutDashboard size={20} />}
+                {activeTab === 'employees' && <Users size={20} />}
+                {activeTab === 'sites' && <MapPin size={20} />}
+                {activeTab === 'attendance' && <Clock size={20} />}
+                {activeTab === 'payroll' && <DollarSign size={20} />}
+                {activeTab === 'reports' && <BarChart3 size={20} />}
+                {activeTab === 'accounts' && <Calculator size={20} />}
+                {activeTab === 'sales_purchases' && <ShoppingCart size={20} />}
+                {activeTab === 'warehouses' && <Package size={20} />}
+                {activeTab === 'invoices' && <InvoiceIcon size={20} />}
+              </span>
+              <span className="hidden sm:inline">
                 {activeTab === 'dashboard' && t('menuDashboard')}
                 {activeTab === 'employees' && t('menuEmployees')}
                 {activeTab === 'sites' && t('menuSites')}
@@ -4300,9 +4334,8 @@ export default function App() {
             </h2>
           </div>
 
-          <div className="hidden sm:flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              {/* Currency Selector */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="hidden md:flex items-center bg-gray-100 p-1 rounded-xl">
               <select
                 value={currency}
                 onChange={(e) => {
@@ -4310,23 +4343,16 @@ export default function App() {
                   setCurrency(newCurrency);
                   saveUserSettings({ currency: newCurrency });
                 }}
-                className="bg-gray-100 border-none text-sm font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
+                className="bg-transparent border-none text-[10px] font-black uppercase text-gray-600 px-2 py-1 cursor-pointer focus:ring-0"
               >
                 <option value="EGP">EGP</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
+                <option value="INR">INR</option>
                 <option value="SAR">SAR</option>
                 <option value="AED">AED</option>
-                <option value="INR">INR</option>
-                <option value="CNY">CNY</option>
-                <option value="JPY">JPY</option>
-                <option value="CAD">CAD</option>
-                <option value="AUD">AUD</option>
               </select>
-
-
-              {/* Language Selector */}
+              <div className="w-px h-3 bg-gray-300 mx-1"></div>
               <select
                 value={language}
                 onChange={(e) => {
@@ -4334,14 +4360,26 @@ export default function App() {
                   setLanguage(newLang);
                   saveUserSettings({ language: newLang });
                 }}
-                className="bg-gray-100 border-none text-sm font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor-pointer focus:ring-0"
+                className="bg-transparent border-none text-[10px] font-black uppercase text-gray-600 px-2 py-1 cursor-pointer focus:ring-0"
               >
-                <option value="en">English</option>
-                <option value="hi">हिंदी</option>
-                <option value="ar">العربية</option>
-                <option value="zh">中文</option>
+                <option value="en">EN</option>
+                <option value="hi">HI</option>
+                <option value="ar">AR</option>
               </select>
             </div>
+
+            <button
+              onClick={() => setShowSettings(true)}
+              className="flex items-center gap-2 pl-2 pr-1 py-1 bg-white border border-gray-100 rounded-2xl hover:border-blue-200 transition-all shadow-sm group"
+            >
+              <div className="hidden sm:block text-right mr-1">
+                <div className="text-[10px] font-black text-gray-900 uppercase tracking-tighter leading-none">Admin User</div>
+                <div className="text-[8px] text-gray-400 font-bold tracking-tight lowercase truncate max-w-[80px]">{user.email}</div>
+              </div>
+              <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform duration-300">
+                <User size={20} />
+              </div>
+            </button>
           </div>
         </header>
 
@@ -4365,99 +4403,125 @@ export default function App() {
         )}
 
         {/* Views */}
-        <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 bg-gray-50">
+        <div className={`flex-1 overflow-auto bg-gray-50 ${activeTab === 'sales_purchases' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
 
           {activeTab === 'dashboard' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="flex justify-end mb-4">
-                <select
-                  className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-                  value={homeLocationFilter}
-                  onChange={e => setHomeLocationFilter(e.target.value)}
-                >
-                  <option value="">{t('filterAll') || 'All Locations'}</option>
-                  {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                </select>
+            <div className="space-y-8 animate-in fade-in duration-700 max-w-7xl mx-auto">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('menuDashboard')}</h1>
+                  <p className="text-sm text-gray-500 font-medium">{t('welcome')}, Admin</p>
+                </div>
+                <div className="relative group w-full sm:w-auto">
+                  <select
+                    className="w-full sm:w-auto appearance-none bg-white border border-gray-100 rounded-2xl px-5 py-3 pr-10 text-sm font-bold text-gray-700 shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 hover:border-blue-200 transition-all cursor-pointer"
+                    value={homeLocationFilter}
+                    onChange={e => setHomeLocationFilter(e.target.value)}
+                  >
+                    <option value="">{t('filterAll') || 'All Locations'}</option>
+                    {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-blue-500 transition-colors" size={16} />
+                </div>
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-200">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-2 bg-white/20 rounded-lg"><Users size={24} /></div>
-                    <span className="bg-white/20 px-2 py-1 rounded text-xs font-medium">{t('dashboardTotal')}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-[2rem] p-7 text-white shadow-2xl shadow-blue-200 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="flex justify-between items-start mb-6 relative z-10">
+                    <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl"><Users size={28} /></div>
+                    <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{t('dashboardTotal')}</span>
                   </div>
-                  <h3 className="text-3xl font-bold">
+                  <h3 className="text-4xl font-black tracking-tight mb-1 relative z-10">
                     {employees.filter(e => !homeLocationFilter || e.location === homeLocationFilter).length}
                   </h3>
-                  <p className="text-blue-100 text-sm mt-1">{t('activeGuards')}</p>
+                  <p className="text-blue-100/80 text-xs font-bold uppercase tracking-widest relative z-10">{t('activeGuards')}</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-200">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-2 bg-white/20 rounded-lg"><MapPin size={24} /></div>
-                    <span className="bg-white/20 px-2 py-1 rounded text-xs font-medium">{t('active')}</span>
+                <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 rounded-[2rem] p-7 text-white shadow-2xl shadow-emerald-200 relative overflow-hidden group">
+                  <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="flex justify-between items-start mb-6 relative z-10">
+                    <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl"><MapPin size={28} /></div>
+                    <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{t('active')}</span>
                   </div>
-                  <h3 className="text-3xl font-bold">
+                  <h3 className="text-4xl font-black tracking-tight mb-1 relative z-10">
                     {sites.filter(s => (!homeLocationFilter || s.name === homeLocationFilter) && s.status === 'Operational').length}
                   </h3>
-                  <p className="text-emerald-100 text-sm mt-1">{t('operationalSites')}</p>
+                  <p className="text-emerald-100/80 text-xs font-bold uppercase tracking-widest relative z-10">{t('operationalSites')}</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><Clock size={24} /></div>
-                    <span className="text-gray-400 text-xs">{t('today')}</span>
+                <div className="bg-white rounded-[2rem] p-7 shadow-xl shadow-gray-200/50 border border-gray-100/50 relative overflow-hidden group">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl group-hover:scale-110 transition-transform duration-500"><Clock size={28} /></div>
+                    <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{t('today')}</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-800">
+                  <h3 className="text-4xl font-black text-gray-900 tracking-tight mb-1">
                     {attendance.filter(a =>
                       a.date === new Date().toISOString().split('T')[0] &&
                       (!homeLocationFilter || getEmployeeLocation(a.name) === homeLocationFilter)
                     ).length}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1">{t('checkedInToday')}</p>
+                  <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('checkedInToday')}</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-2 bg-red-100 text-red-600 rounded-lg"><AlertCircle size={24} /></div>
-                    <span className="text-gray-400 text-xs">{t('lateAbsent')}</span>
+                <div className="bg-white rounded-[2rem] p-7 shadow-xl shadow-gray-200/50 border border-gray-100/50 relative overflow-hidden group">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl group-hover:scale-110 transition-transform duration-500"><AlertCircle size={28} /></div>
+                    <span className="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{t('lateAbsent')}</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-800">
+                  <h3 className="text-4xl font-black text-gray-900 tracking-tight mb-1">
                     {attendance.filter(a =>
                       (a.status === 'Late' || a.status === 'Absent') &&
                       a.date === new Date().toISOString().split('T')[0] &&
                       (!homeLocationFilter || getEmployeeLocation(a.name) === homeLocationFilter)
                     ).length}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1">{t('issuesToday')}</p>
+                  <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('issuesToday')}</p>
                 </div>
               </div>
 
-              {/* Quick Links */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-lg mb-4 text-gray-800">{t('quickActions')}</h3>
-                  <div className="flex gap-4">
-                    <button onClick={() => { setActiveTab('employees'); setIsAddModalOpen(true); }} className="flex-1 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium hover:bg-blue-100 transition-colors flex flex-col items-center gap-2">
-                      <Users size={20} /> {t('addStaff')}
+              {/* Quick Links & Status */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100/50">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-black text-xl text-gray-900 uppercase tracking-tight">{t('quickActions')}</h3>
+                    <div className="w-12 h-1 bg-blue-100 rounded-full"></div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <button onClick={() => { setActiveTab('employees'); setIsAddModalOpen(true); }} className="p-4 bg-blue-50/50 text-blue-600 rounded-[2rem] font-bold hover:bg-blue-600 hover:text-white transition-all duration-300 flex flex-col items-center gap-3 active:scale-95 group">
+                      <div className="p-3 bg-white rounded-2xl shadow-sm group-hover:bg-blue-500"><Users size={24} /></div>
+                      <span className="text-xs uppercase tracking-tighter">{t('addStaff')}</span>
                     </button>
-                    <button onClick={() => { setActiveTab('sites'); setIsAddSiteModalOpen(true); }} className="flex-1 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-medium hover:bg-emerald-100 transition-colors flex flex-col items-center gap-2">
-                      <MapPin size={20} /> {t('addSite')}
+                    <button onClick={() => { setActiveTab('sites'); setIsAddSiteModalOpen(true); }} className="p-4 bg-emerald-50/50 text-emerald-600 rounded-[2rem] font-bold hover:bg-emerald-600 hover:text-white transition-all duration-300 flex flex-col items-center gap-3 active:scale-95 group">
+                      <div className="p-3 bg-white rounded-2xl shadow-sm group-hover:bg-emerald-500"><MapPin size={24} /></div>
+                      <span className="text-xs uppercase tracking-tighter">{t('addSite')}</span>
+                    </button>
+                    <button onClick={() => { setActiveTab('sales_purchases'); }} className="p-4 bg-indigo-50/50 text-indigo-600 rounded-[2rem] font-bold hover:bg-indigo-600 hover:text-white transition-all duration-300 flex flex-col items-center gap-3 active:scale-95 group">
+                      <div className="p-3 bg-white rounded-2xl shadow-sm group-hover:bg-indigo-500"><ShoppingCart size={24} /></div>
+                      <span className="text-xs uppercase tracking-tighter">{t('menuSalesPurchases')}</span>
+                    </button>
+                    <button onClick={() => setShowSettings(true)} className="p-4 bg-gray-50 text-gray-600 rounded-[2rem] font-bold hover:bg-gray-800 hover:text-white transition-all duration-300 flex flex-col items-center gap-3 active:scale-95 group">
+                      <div className="p-3 bg-white rounded-2xl shadow-sm group-hover:bg-gray-700"><Settings size={24} /></div>
+                      <span className="text-xs uppercase tracking-tighter">{t('settings')}</span>
                     </button>
                   </div>
                 </div>
-                <div className="bg-slate-900 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-32 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                  <h3 className="font-bold text-lg mb-2 relative z-10">{t('systemStatus')}</h3>
-                  <p className="text-slate-400 text-sm mb-4 relative z-10">{t('systemOperational')}</p>
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-mono relative z-10">
-                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                    {t('online')}
+
+                <div className="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden flex flex-col justify-center">
+                  <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-600 rounded-full blur-[80px] opacity-40"></div>
+                  <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-indigo-600 rounded-full blur-[80px] opacity-30"></div>
+
+                  <div className="relative z-10">
+                    <h3 className="font-black text-2xl mb-2 uppercase tracking-tight">{t('systemStatus')}</h3>
+                    <p className="text-slate-400 text-sm mb-6 font-medium">{t('systemOperational')}</p>
+                    <div className="inline-flex items-center gap-3 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 font-black text-xs uppercase tracking-widest">
+                      <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+                      {t('online')}
+                    </div>
                   </div>
                 </div>
               </div>
-
             </div>
           )}
           {activeTab === 'employees' && (
@@ -5050,9 +5114,40 @@ export default function App() {
 
           {
             activeTab === 'sales_purchases' && (
-              <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-80px)] overflow-hidden">
+              <div className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-gray-50">
+                {/* Mobile Bottom Navigation (Only visible on small screens) */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center z-[60] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+                  <div className="flex gap-8">
+                    <button
+                      onClick={() => setIsMobileCartOpen(false)}
+                      className={`flex flex-col items-center gap-1 ${!isMobileCartOpen ? 'text-blue-600' : 'text-gray-400'}`}
+                    >
+                      <Package size={20} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{t('products')}</span>
+                    </button>
+                    <button
+                      onClick={() => setIsScannerOpen(true)}
+                      className="flex flex-col items-center gap-1 text-gray-400"
+                    >
+                      <Scan size={20} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{t('scanner')}</span>
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setIsMobileCartOpen(true)}
+                    className="relative bg-blue-600 text-white p-3 rounded-2xl shadow-lg shadow-blue-200 transform active:scale-95 transition-all"
+                  >
+                    <ShoppingCart size={24} />
+                    {cart.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white animate-bounce">
+                        {cart.reduce((a, b) => a + b.quantity, 0)}
+                      </span>
+                    )}
+                  </button>
+                </div>
+
                 {/* Left: Product Grid */}
-                <div className="flex-1 flex flex-col h-full overflow-hidden bg-gray-50/50">
+                <div className={`flex-1 flex flex-col h-full overflow-hidden ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
                   <div className="p-4 flex-shrink-0 bg-white border-b border-gray-200">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                       <div className="flex items-center gap-3">
@@ -5118,8 +5213,8 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+                  <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-24 lg:pb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                       {inventory
                         .filter(item =>
                           (!posLocationFilter || item.location === posLocationFilter) &&
@@ -5131,25 +5226,35 @@ export default function App() {
                             key={item.id}
                             onClick={() => addToCart(item)}
                             disabled={item.quantity <= 0}
-                            className={`flex flex-col h-[200px] bg-white rounded-xl border border-gray-200 overflow-hidden transition-all hover:shadow-md hover:border-blue-300 relative group text-left ${item.quantity <= 0 ? 'opacity-60 cursor-not-allowed' : ''}`}
+                            className={`flex flex-col h-[210px] sm:h-[230px] bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all active:scale-95 lg:hover:shadow-xl lg:hover:border-blue-200 lg:hover:-translate-y-1 relative group text-left ${item.quantity <= 0 ? 'opacity-50 grayscale' : 'shadow-sm'}`}
                           >
-                            <div className="h-28 w-full bg-gray-100 relative overflow-hidden">
+                            <div className="h-28 sm:h-32 w-full bg-gray-100 relative overflow-hidden">
                               {item.photo ? (
-                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                  <Package size={24} />
+                                  <Package size={28} />
                                 </div>
                               )}
                               <div className="absolute top-2 right-2">
-                                <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                                <span className={`backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-lg ${item.quantity <= 5 ? 'bg-red-500/80' : 'bg-black/40'}`}>
                                   {item.quantity}
                                 </span>
                               </div>
+                              {item.quantity <= 0 && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                  <span className="text-white text-[10px] font-black uppercase tracking-widest bg-red-600 px-2 py-1 rounded">Out of Stock</span>
+                                </div>
+                              )}
                             </div>
-                            <div className="p-3 flex flex-col flex-1 justify-between">
-                              <h4 className="font-semibold text-gray-800 text-sm line-clamp-2 leading-tight">{item.name}</h4>
-                              <div className="text-blue-600 font-bold font-mono text-base">{formatCurrency(item.sellPrice || 0)}</div>
+                            <div className="p-3 flex flex-col flex-1 justify-between bg-white">
+                              <h4 className="font-bold text-gray-800 text-xs sm:text-sm line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{item.name}</h4>
+                              <div className="flex justify-between items-end mt-1">
+                                <div className="text-blue-600 font-black font-mono text-base sm:text-lg">{formatCurrency(item.sellPrice || 0)}</div>
+                                <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                  <Plus size={14} />
+                                </div>
+                              </div>
                             </div>
                           </button>
                         ))}
@@ -5181,23 +5286,26 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Right: Cart Sidebar */}
-                <div className="w-full lg:w-[400px] bg-white border-l border-gray-200 flex flex-col h-full shadow-2xl z-20">
+                {/* Right: Cart Sidebar (Mobile Drawer) */}
+                <div className={`fixed inset-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[70] lg:z-20 transition-transform duration-300 ease-in-out transform ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
                   <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white">
-                    <div className="flex items-center gap-2 text-gray-800">
-                      <ShoppingCart size={20} className="text-blue-600" />
-                      <h3 className="font-bold text-lg">{t('currentBill')}</h3>
+                    <div className="flex items-center gap-3 text-gray-800">
+                      <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <ArrowLeft size={20} />
+                      </button>
+                      <ShoppingCart size={22} className="text-blue-600" />
+                      <h3 className="font-bold text-xl tracking-tight">{t('currentBill')}</h3>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handleHoldCart}
                         disabled={cart.length === 0}
-                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-amber-100 disabled:opacity-30"
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-xl transition-colors border border-amber-100 disabled:opacity-30"
                         title={t('hold') || 'Hold Cart'}
                       >
-                        <Clock size={18} />
+                        <Clock size={20} />
                       </button>
-                      <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">{cart.reduce((a, b) => a + b.quantity, 0)} {t('items')}</span>
+                      <span className="bg-blue-600 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-lg shadow-blue-200">{cart.reduce((a, b) => a + b.quantity, 0)}</span>
                     </div>
                   </div>
 
@@ -7011,19 +7119,20 @@ export default function App() {
 
       {/* UPI QR Payment Modal (Improved with Close and Overlap fix) */}
       {activeTab === 'sales_purchases' && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && cart.length > 0 && shopSettings.upiId && (
-        <div className="fixed bottom-24 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] bg-white rounded-2xl shadow-2xl border border-blue-100 p-4 animate-in slide-in-from-bottom-5 duration-300 z-[60]">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2 text-blue-700">
-              <QrCode size={20} /> <span className="font-bold text-sm tracking-tight">{t('payWithUPI')}</span>
+        <div className="fixed bottom-24 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,.1)] border border-blue-50 p-6 animate-in slide-in-from-bottom-10 duration-500 z-[60]">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-3 text-blue-800">
+              <div className="p-2 bg-blue-50 rounded-xl"><QrCode size={20} /></div>
+              <span className="font-black text-xs uppercase tracking-widest">{t('payWithUPI')}</span>
             </div>
             <button
               onClick={() => setShowUpiQr(false)}
-              className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all"
             >
-              <X size={16} />
+              <X size={20} />
             </button>
           </div>
-          <div className="flex justify-center bg-gray-50 p-4 rounded-xl mb-3">
+          <div className="flex justify-center bg-gray-50 p-5 rounded-3xl mb-4 border border-gray-100 shadow-inner">
             <QRCodeSVG
               value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(calculateTotal() - cartDiscount).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
               size={180}
@@ -7031,12 +7140,40 @@ export default function App() {
               includeMargin={true}
             />
           </div>
-          <p className="text-[10px] text-center text-gray-400 uppercase font-bold tracking-widest">{shopSettings.upiId}</p>
-          <div className="mt-2 text-center">
-            <span className="text-[8px] text-blue-500 font-bold uppercase tracking-tighter opacity-70">Auto-closing in 15s</span>
+          <div className="text-center mb-6">
+            <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">{shopSettings.upiId}</p>
+            <p className="text-lg font-black text-gray-900 font-mono tracking-tight">{formatCurrency(calculateTotal() - cartDiscount)}</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 transition-all duration-1000 ease-linear rounded-full"
+                style={{ width: `${(upiQrTimer / 15) * 100}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+              <span className="text-blue-600">Auto-hide</span>
+              <span className="text-gray-400">{upiQrTimer}s</span>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Floating AI Assistant Button (Premium Feel) */}
+      <div className={`fixed bottom-0 right-0 z-[100] p-6 transition-all duration-500 ease-in-out ${isMobileCartOpen ? 'translate-y-20 scale-0' : 'translate-y-0 scale-100'}`}>
+        <button
+          title="AI Assistant"
+          className="relative group bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-600 p-4 rounded-[2rem] text-white shadow-[0_15px_30px_rgba(37,99,235,0.4)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.6)] hover:-translate-y-2 transition-all duration-500 active:scale-90"
+        >
+          <div className="absolute inset-0 bg-white/20 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-[2rem] blur opacity-30 group-hover:opacity-60 transition-opacity"></div>
+          <div className="relative flex items-center gap-3">
+            <Sparkles size={24} className="animate-pulse" />
+            <span className="hidden md:inline font-black text-xs uppercase tracking-widest border-l border-white/30 pl-3">{t('assistant')}</span>
+          </div>
+        </button>
+      </div>
 
     </div>
   );
