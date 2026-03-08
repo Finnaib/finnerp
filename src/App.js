@@ -6879,7 +6879,7 @@ export default function App() {
 
       {/* UPI QR Payment Modal (Inside handleCheckout flow ideally, or as summary) */}
       {/* For now, show in Checkout Summary or when Online is selected */}
-      {paymentMethod === 'Online' && cart.length > 0 && shopSettings.upiId && (
+      {activeTab === 'sales_purchases' && !showSettings && paymentMethod === 'Online' && cart.length > 0 && shopSettings.upiId && (
         <div className="fixed bottom-24 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] bg-white rounded-2xl shadow-2xl border border-blue-100 p-4 animate-in slide-in-from-bottom-5 duration-300 z-50">
           <div className="flex items-center gap-2 mb-3 text-blue-700">
             <QrCode size={20} /> <span className="font-bold text-sm tracking-tight">{t('payWithUPI')}</span>
