@@ -272,6 +272,8 @@ const translations = {
     linkExpiredDetail: 'This payment link was valid for 10 minutes only. Please ask the merchant for a new QR code.',
     payNow: 'Pay Now',
     secureUpi: 'Secure UPI Payment',
+    securePayment: 'Secure Digital Payment',
+    totalLabel: 'Total Amount',
     goBackToApp: 'Go back to App',
 
     inventorySubtitle: 'Inventory levels and stock movements',
@@ -642,6 +644,8 @@ const translations = {
     linkExpiredDetail: 'यह भुगतान लिंक केवल 10 मिनट के लिए मान्य था। कृपया नया क्यूआर कोड मांगें।',
     payNow: 'अभी भुगतान करें',
     secureUpi: 'सुरक्षित UPI भुगतान',
+    securePayment: 'सुरक्षित डिजिटल भुगतान',
+    totalLabel: 'कुल राशि',
     goBackToApp: 'ऐप पर वापस जाएं',
     units: 'इकाइयाँ',
     stockCheck: 'स्टॉक चेक',
@@ -1290,6 +1294,11 @@ const translations = {
     posTerminal: 'محطة نقطة البيع',
     searchProducts: 'بحث عن المنتجات...',
     amount: 'المبلغ',
+    payNow: 'ادفع الآن',
+    secureUpi: 'دفع UPI آمن',
+    securePayment: 'دفع رقمي آمن',
+    totalLabel: 'المبلغ الإجمالي',
+    goBackToApp: 'العودة إلى التطبيق',
     items: 'العناصر',
     receipt: 'إيصال',
     currentBill: 'الفاتورة الحالية',
@@ -1668,6 +1677,14 @@ const translations = {
     securityPin: '安全密码',
     close: '关闭',
 
+    digitalPayment: '数字支付',
+    linkExpired: '链接已过期',
+    linkExpiredDetail: '此支付链接有效期仅为 10 分钟。请向商家索取新的二维码。',
+    payNow: '立即支付',
+    secureUpi: '安全 UPI 支付',
+    securePayment: '安全数字支付',
+    goBackToApp: '返回应用',
+
     // Invoice Print
     retailInvoice: '零售发票',
     invoice: '发票',
@@ -1822,7 +1839,8 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const payId = params.get('pay');
     const amt = params.get('amt');
-    const upi = params.get('upi');
+    const upi = params.get('upi') || params.get('id'); // Support both legacy and new 'id'
+    const method = params.get('method') || 'UPI'; // Default to UPI for legacy
     const pn = params.get('pn');
     const exp = params.get('exp');
 
@@ -1834,6 +1852,7 @@ export default function App() {
           invoiceId: payId,
           amount: parseFloat(amt),
           upiId: upi,
+          paymentMethod: method,
           merchantName: pn || 'Merchant',
           expiry: expiryTime,
           expired: false
@@ -2955,6 +2974,7 @@ export default function App() {
         invoiceId: uniqueId,
         orderType: orderType,
         paymentMethod: paymentMethod,
+        digitalSubMethod: paymentMethod === 'Online' ? digitalSubMethod : null,
         customer: newSaleForm.customer || (orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')),
         status: 'Completed',
         items: cart.map(i => ({
@@ -3247,13 +3267,28 @@ export default function App() {
           <p>${t('thankYou')}</p>
         </div>
 
-        ${(invoiceData.paymentMethod === 'Online' && shopSettings.upiId) ? (() => {
-            const expiryTime = Date.now() + 600000; // 10 minutes in ms
-            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&upi=${shopSettings.upiId}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
+        ${(invoiceData.paymentMethod === 'Online') ? (() => {
+            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
+            const payId = subMethod === 'UPI' ? shopSettings.upiId :
+              subMethod === 'PayPal' ? shopSettings.paypalEmail :
+                subMethod === 'Alipay' ? shopSettings.alipayId :
+                  subMethod === 'WeChat' ? shopSettings.wechatId :
+                    subMethod === 'InstaPay' ? shopSettings.instapayId : null;
+
+            if (!payId) return '';
+
+            const expiryTime = Date.now() + 600000; // 10 minutes
+            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&id=${payId}&method=${subMethod}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
+            const label = subMethod === 'UPI' ? t('payWithUPI') :
+              subMethod === 'PayPal' ? t('payWithPaypal') :
+                subMethod === 'Alipay' ? t('payWithAlipay') :
+                  subMethod === 'WeChat' ? t('payWithWechat') :
+                    t('payWithInstapay');
+
             return `
           <div style="text-align: center; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(payUrl)}" style="width: 120px; height: 120px;" />
-            <p style="font-size: 0.6em; margin-top: 5px; font-weight: bold;">${t('payWithUPI') || 'Scan to Pay'}</p>
+            <p style="font-size: 0.6em; margin-top: 5px; font-weight: bold;">${label || 'Scan to Pay'}</p>
             <p style="font-size: 0.5em; color: #666; margin-top: 2px;">(Valid for 10 minutes)</p>
           </div>
           `;
@@ -3349,13 +3384,28 @@ export default function App() {
           <p class="thank-you">${t('thankYou')}</p>
         </div>
 
-          ${(invoiceData.paymentMethod === 'Online' && shopSettings.upiId) ? (() => {
+          ${(invoiceData.paymentMethod === 'Online') ? (() => {
+            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
+            const payId = subMethod === 'UPI' ? shopSettings.upiId :
+              subMethod === 'PayPal' ? shopSettings.paypalEmail :
+                subMethod === 'Alipay' ? shopSettings.alipayId :
+                  subMethod === 'WeChat' ? shopSettings.wechatId :
+                    subMethod === 'InstaPay' ? shopSettings.instapayId : null;
+
+            if (!payId) return '';
+
             const expiryTime = Date.now() + 600000;
-            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&upi=${shopSettings.upiId}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
+            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&id=${payId}&method=${subMethod}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
+            const label = subMethod === 'UPI' ? t('payWithUPI') :
+              subMethod === 'PayPal' ? t('payWithPaypal') :
+                subMethod === 'Alipay' ? t('payWithAlipay') :
+                  subMethod === 'WeChat' ? t('payWithWechat') :
+                    t('payWithInstapay');
+
             return `
             <div style="position: absolute; bottom: 50px; left: 50px; text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
               <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(payUrl)}" style="width: 100px; height: 100px;" />
-              <p style="font-size: 9px; margin-top: 5px; font-weight: bold; color: #4a5f8f;">${t('payWithUPI') || 'Digital Payment'}</p>
+              <p style="font-size: 9px; margin-top: 5px; font-weight: bold; color: #4a5f8f;">${label || 'Digital Payment'}</p>
               <p style="font-size: 8px; color: #666; margin-top: 2px;">Valid for 10 mins</p>
             </div>
             `;
@@ -4258,16 +4308,37 @@ export default function App() {
               <div className="bg-blue-50/50 p-6 rounded-3xl mb-8 border border-blue-100/50">
                 <p className="text-xs text-blue-600 font-black uppercase tracking-[0.2em] mb-2">{t('totalLabel') || 'Total Amount'}</p>
                 <p className="text-4xl font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(externalPayment.amount)}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase mt-2 tracking-widest">{externalPayment.paymentMethod} Payment</p>
               </div>
 
-              <a
-                href={`upi://pay?pa=${externalPayment.upiId}&pn=${encodeURIComponent(externalPayment.merchantName)}&am=${externalPayment.amount}&cu=INR`}
-                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-[2rem] shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-1 active:scale-95 text-lg uppercase tracking-widest"
-              >
-                {t('payNow')}
-              </a>
+              {externalPayment.paymentMethod === 'UPI' ? (
+                <a
+                  href={`upi://pay?pa=${externalPayment.upiId}&pn=${encodeURIComponent(externalPayment.merchantName)}&am=${externalPayment.amount}&cu=INR`}
+                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-[2rem] shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-1 active:scale-95 text-lg uppercase tracking-widest"
+                >
+                  {t('payNow')}
+                </a>
+              ) : externalPayment.paymentMethod === 'PayPal' ? (
+                <a
+                  href={`https://www.paypal.com/paypalme/${externalPayment.upiId}/${externalPayment.amount}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-black py-5 rounded-[2rem] shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-1 active:scale-95 text-lg uppercase tracking-widest"
+                >
+                  {t('payNow')} (PayPal)
+                </a>
+              ) : (
+                <div className="bg-white border-2 border-dashed border-gray-200 p-6 rounded-[2rem]">
+                  <p className="text-xs text-gray-500 font-bold uppercase mb-2 tracking-widest">Pay to ID:</p>
+                  <p className="text-xl font-black text-blue-600 break-all">{externalPayment.upiId}</p>
+                  <p className="text-[10px] text-gray-400 mt-4 leading-relaxed font-bold uppercase tracking-tighter">
+                    Please use your {externalPayment.paymentMethod} app to pay {formatCurrency(externalPayment.amount)} to this ID.
+                  </p>
+                </div>
+              )}
+
               <p className="mt-6 text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                <Shield size={12} /> {t('secureUpi')}
+                <Shield size={12} /> {t('securePayment') || 'Secure Digital Payment'}
               </p>
             </>
           )}
