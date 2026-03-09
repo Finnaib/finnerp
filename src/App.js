@@ -1831,6 +1831,8 @@ export default function App() {
   const [upiQrTimer, setUpiQrTimer] = useState(15);
   const [digitalSubMethod, setDigitalSubMethod] = useState('UPI');
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
+  const [barcodePrintMode, setBarcodePrintMode] = useState('sticker'); // 'sticker' or 'a4'
+  const [selectedInventoryItems, setSelectedInventoryItems] = useState([]);
   const [externalPayment, setExternalPayment] = useState(null); // { invoiceId, amount, upiId, expiry }
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
 
@@ -3661,10 +3663,12 @@ export default function App() {
     }
   };
 
-  const handlePrintBarcode = (item) => {
+  const handlePrintBarcode = (item, mode = 'sticker') => {
     if (!item.barcode) return;
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
+
+    const isSticker = mode === 'sticker';
 
     const content = `
       <html>
@@ -3672,15 +3676,29 @@ export default function App() {
           <title>Barcode - ${item.name}</title>
           <style>
             body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
-            .label { text-align: center; padding: 20px; border: 1px solid #eee; }
-            .name { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
-            .price { font-size: 12px; margin-top: 5px; }
+            .label { 
+              text-align: center; 
+              padding: 10px; 
+              border: 1px dashed #eee; 
+              width: 50mm; 
+              height: 30mm; 
+              display: flex; 
+              flex-direction: column; 
+              justify-content: center; 
+              align-items: center;
+            }
+            @media print {
+              .label { border: none; }
+              body { height: auto; }
+            }
+            .name { font-size: 10px; font-weight: bold; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+            .price { font-size: 9px; font-weight: bold; margin-top: 2px; }
             #barcode { max-width: 100%; height: auto; }
           </style>
         </head>
         <body>
           <div class="label">
-            <div style="font-size: 10px; font-weight: bold; color: #666; margin-bottom: 2px; text-transform: uppercase;">${shopSettings.name || 'FINN ERP'}</div>
+            <div style="font-size: 7px; font-weight: bold; color: #888; margin-bottom: 1px; text-transform: uppercase;">${shopSettings.name || 'FINN ERP'}</div>
             <div class="name">${item.name}</div>
             <svg id="barcode"></svg>
             <div class="price">${formatCurrency(item.sellPrice)}</div>
@@ -3690,11 +3708,11 @@ export default function App() {
             setTimeout(() => {
               JsBarcode("#barcode", "${item.barcode}", {
                 format: "CODE128",
-                width: 2,
-                height: 60,
+                width: 1.5,
+                height: 35,
                 displayValue: true,
-                fontSize: 14,
-                margin: 10
+                fontSize: 10,
+                margin: 2
               });
               window.print();
               setTimeout(() => window.close(), 500);
@@ -3707,7 +3725,7 @@ export default function App() {
     printWindow.document.close();
   };
 
-  const handlePrintBatchBarcodes = (items) => {
+  const handlePrintBatchBarcodes = (items, mode = barcodePrintMode) => {
     const itemsToPrint = items.filter(i => i.barcode);
     if (itemsToPrint.length === 0) {
       alert("No items with barcodes to print.");
@@ -3717,27 +3735,43 @@ export default function App() {
     const printWindow = window.open('', '', 'width=800,height=600');
     if (!printWindow) return;
 
+    const isSticker = mode === 'sticker';
+
     const content = `
       <html>
         <head>
-          <title>Batch Barcodes</title>
+          <title>Batch Barcodes - ${mode.toUpperCase()}</title>
           <style>
-            body { margin: 20px; font-family: sans-serif; }
-            .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-            .label { text-align: center; padding: 15px; border: 1px solid #eee; break-inside: avoid; }
-            .name { font-size: 12px; font-weight: bold; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .price { font-size: 10px; margin-top: 5px; }
-            #barcode { max-width: 100%; height: auto; }
-            @media print {
-              .label { border: 1px solid #ddd; }
+            body { margin: 0; padding: ${isSticker ? '0' : '20px'}; font-family: sans-serif; }
+            .grid { 
+              display: ${isSticker ? 'block' : 'grid'}; 
+              grid-template-columns: ${isSticker ? 'none' : 'repeat(3, 1fr)'}; 
+              gap: ${isSticker ? '0' : '20px'}; 
             }
+            .label { 
+              text-align: center; 
+              padding: ${isSticker ? '10px' : '15px'}; 
+              border: ${isSticker ? 'none' : '1px solid #eee'}; 
+              break-inside: avoid;
+              ${isSticker ? 'width: 50mm; height: 30mm; display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 1px dashed #ccc;' : ''}
+            }
+            @media print {
+              .label { 
+                border: ${isSticker ? 'none' : '1px solid #ddd'}; 
+                ${isSticker ? 'page-break-after: always; border-bottom: none;' : ''}
+              }
+              body { margin: 0; padding: ${isSticker ? '0' : '10mm'}; }
+            }
+            .name { font-size: ${isSticker ? '10px' : '12px'}; font-weight: bold; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+            .price { font-size: ${isSticker ? '9px' : '10px'}; font-weight: bold; margin-top: 2px; }
+            svg { max-width: 100%; height: auto; }
           </style>
         </head>
         <body>
           <div class="grid">
             ${itemsToPrint.map((item, idx) => `
               <div class="label">
-                <div style="font-size: 8px; font-weight: bold; color: #888; margin-bottom: 2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shopSettings.name || 'FINN ERP'}</div>
+                <div style="font-size: 7px; font-weight: bold; color: #888; margin-bottom: 1px; text-transform: uppercase;">${shopSettings.name || 'FINN ERP'}</div>
                 <div class="name">${item.name}</div>
                 <svg id="barcode-${idx}"></svg>
                 <div class="price">${formatCurrency(item.sellPrice)}</div>
@@ -3750,10 +3784,11 @@ export default function App() {
               ${itemsToPrint.map((item, idx) => `
                 JsBarcode("#barcode-${idx}", "${item.barcode}", {
                   format: "CODE128",
-                  width: 2,
-                  height: 50,
+                  width: ${isSticker ? '1.5' : '2'},
+                  height: ${isSticker ? '35' : '50'},
                   displayValue: true,
-                  fontSize: 12
+                  fontSize: 10,
+                  margin: 2
                 });
               `).join('')}
               window.print();
@@ -4408,7 +4443,7 @@ export default function App() {
     if (isScannerOpen) {
       // Optimized config for Barcodes (Wide box) and QR codes
       const config = {
-        fps: 30,
+        fps: 20,
         qrbox: (viewfinderWidth, viewfinderHeight) => {
           // Increase scan area relative to view for better distance scanning
           // Ensure dimensions never drop below the library's required 50px minimum
@@ -4437,13 +4472,7 @@ export default function App() {
       const startScanner = async (cameraId) => {
         try {
           await html5QrCode.start(
-            cameraId ? { deviceId: { exact: cameraId } } : {
-              facingMode: "environment",
-              // Request higher resolution for better focus capabilities
-              width: { min: 640, ideal: 1920 },
-              height: { min: 480, ideal: 1080 },
-              focusMode: { ideal: "continuous" }
-            },
+            cameraId || { facingMode: "environment" },
             config,
             onScanSuccess,
             onScanError
@@ -4486,11 +4515,6 @@ export default function App() {
             };
 
             await applyFocus();
-            // Pulse refocus every 3 seconds ONLY on mobile to ensure it doesn't get stuck
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-              focusInterval = setInterval(applyFocus, 3000);
-            }
           }
         } catch (err) {
           console.error("Scanner start error:", err);
@@ -6096,15 +6120,32 @@ export default function App() {
                     >
                       {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
                     </button>
+                    <div className="flex bg-gray-100 p-1 rounded-lg">
+                      <button
+                        onClick={() => setBarcodePrintMode('sticker')}
+                        className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'sticker' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        title="Thermal Sticker Printer"
+                      >Sticker</button>
+                      <button
+                        onClick={() => setBarcodePrintMode('a4')}
+                        className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'a4' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        title="Standard A4 Paper Printer"
+                      >A4 Sheet</button>
+                    </div>
                     <button
-                      onClick={() => handlePrintBatchBarcodes(inventory.filter(item =>
-                        (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
-                        ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
-                          (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
-                      ))}
+                      onClick={() => {
+                        const itemsToPrint = selectedInventoryItems.length > 0
+                          ? inventory.filter(item => selectedInventoryItems.includes(item.id))
+                          : inventory.filter(item =>
+                            (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                            ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                              (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                          );
+                        handlePrintBatchBarcodes(itemsToPrint);
+                      }}
                       className="bg-slate-800 text-white px-4 py-2.5 rounded-lg hover:bg-slate-900 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
                     >
-                      <Printer size={20} /> Print All
+                      <Printer size={20} /> {selectedInventoryItems.length > 0 ? `Print Selected (${selectedInventoryItems.length})` : 'Print All'}
                     </button>
                     <button
                       onClick={() => { setScannerMode('buy'); setIsScannerOpen(true); }}
@@ -6148,6 +6189,32 @@ export default function App() {
                     <table className="w-full text-left">
                       <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
+                          <th className="px-6 py-4 w-10">
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              onChange={(e) => {
+                                const filtered = inventory.filter(item =>
+                                  (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                                  ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                                    (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                                );
+                                if (e.target.checked) {
+                                  setSelectedInventoryItems(filtered.map(i => i.id));
+                                } else {
+                                  setSelectedInventoryItems([]);
+                                }
+                              }}
+                              checked={(() => {
+                                const filtered = inventory.filter(item =>
+                                  (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                                  ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                                    (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                                );
+                                return filtered.length > 0 && filtered.every(i => selectedInventoryItems.includes(i.id));
+                              })()}
+                            />
+                          </th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('image') || 'Image'}</th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('itemName')}</th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('barcode') || 'Barcode'}</th>
@@ -6166,7 +6233,21 @@ export default function App() {
                               (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
                           )
                           .map(item => (
-                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                            <tr key={item.id} className={`hover:bg-gray-50 transition-colors ${selectedInventoryItems.includes(item.id) ? 'bg-blue-50/50' : ''}`}>
+                              <td className="px-6 py-4">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  checked={selectedInventoryItems.includes(item.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedInventoryItems([...selectedInventoryItems, item.id]);
+                                    } else {
+                                      setSelectedInventoryItems(selectedInventoryItems.filter(id => id !== item.id));
+                                    }
+                                  }}
+                                />
+                              </td>
                               <td className="px-6 py-4">
                                 <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden shadow-inner">
                                   {item.photo ? (
@@ -6210,13 +6291,27 @@ export default function App() {
                           (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
                       )
                       .map(item => (
-                        <div key={item.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex gap-4 animate-in fade-in duration-300">
-                          <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 overflow-hidden shrink-0 shadow-inner">
-                            {item.photo ? (
-                              <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <Package size={24} className="text-gray-300" />
-                            )}
+                        <div key={item.id} className={`bg-white p-4 rounded-2xl border transition-all duration-300 shadow-sm flex gap-4 animate-in fade-in duration-300 ${selectedInventoryItems.includes(item.id) ? 'border-blue-500 bg-blue-50/20' : 'border-gray-100'}`}>
+                          <div className="flex flex-col items-center gap-2 shrink-0">
+                            <input
+                              type="checkbox"
+                              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              checked={selectedInventoryItems.includes(item.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedInventoryItems([...selectedInventoryItems, item.id]);
+                                } else {
+                                  setSelectedInventoryItems(selectedInventoryItems.filter(id => id !== item.id));
+                                }
+                              }}
+                            />
+                            <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 overflow-hidden shadow-inner">
+                              {item.photo ? (
+                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package size={20} className="text-gray-300" />
+                              )}
+                            </div>
                           </div>
                           <div className="flex-1 flex flex-col justify-between overflow-hidden">
                             <div>
