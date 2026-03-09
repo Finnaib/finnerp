@@ -4470,15 +4470,38 @@ export default function App() {
 
           const startScanner = async (cameraId) => {
             try {
-              // Use deviceId directly or environment mode for maximum stability
-              const constraints = cameraId ? { deviceId: cameraId } : { facingMode: "environment" };
+              // Request stable HD quality without forcing and crashing
+              const constraints = cameraId ? {
+                deviceId: cameraId,
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+              } : {
+                facingMode: "environment",
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+              };
 
               await html5QrCode.start(
                 constraints,
                 {
-                  fps: 15,
-                  qrbox: { width: 280, height: 180 },
-                  disableFlip: true
+                  fps: 25, // Much faster for movement
+                  qrbox: (viewWidth, viewHeight) => {
+                    const width = Math.min(viewWidth * 0.8, 320);
+                    const height = Math.min(viewHeight * 0.4, 160);
+                    return { width, height };
+                  },
+                  disableFlip: true,
+                  formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.DATA_MATRIX
+                  ]
                 },
                 onScanSuccess,
                 onScanError
