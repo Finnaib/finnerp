@@ -52,7 +52,10 @@ import {
   Zap,
   ArrowLeft,
   RefreshCw,
-  Coffee
+  Coffee,
+  Monitor,
+  Disc,
+  Minus
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
