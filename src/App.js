@@ -2768,6 +2768,8 @@ export default function App() {
 
   // --- Inventory Logic ---
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [isPrintBarcodeModalOpen, setIsPrintBarcodeModalOpen] = useState(false);
+  const [printConfigs, setPrintConfigs] = useState([]); // Array of { item, qty }
   const [newItemForm, setNewItemForm] = useState({ name: '', quantity: 0, location: '', category: '', buyPrice: 0, sellPrice: 0, photo: '', barcode: '' });
   const [inventorySearch, setInventorySearch] = useState('');
 
@@ -3732,9 +3734,24 @@ export default function App() {
     printWindow.document.close();
   };
 
-  const handlePrintBatchBarcodes = (items, mode = barcodePrintMode) => {
-    const itemsToPrint = items.filter(i => i.barcode);
-    if (itemsToPrint.length === 0) {
+  const handlePrintBatchBarcodes = (itemConfigs, mode = barcodePrintMode) => {
+    // itemConfigs can be an array of items (legacy) or an array of {item, qty}
+    const expandedItems = [];
+    itemConfigs.forEach(cfg => {
+      if (cfg.item && cfg.qty !== undefined) {
+        // New format: {item, qty}
+        if (cfg.item.barcode && cfg.qty > 0) {
+          for (let i = 0; i < cfg.qty; i++) {
+            expandedItems.push(cfg.item);
+          }
+        }
+      } else if (cfg.barcode) {
+        // Legacy format: item object
+        expandedItems.push(cfg);
+      }
+    });
+
+    if (expandedItems.length === 0) {
       alert("No items with barcodes to print.");
       return;
     }
@@ -3745,70 +3762,70 @@ export default function App() {
     const isSticker = mode === 'sticker';
 
     const content = `
-      <html>
-        <head>
-          <title>Batch Barcodes - ${mode.toUpperCase()}</title>
-          <style>
-            body { margin: 0; padding: ${isSticker ? '0' : '20px'}; font-family: sans-serif; }
-            .grid { 
-              display: ${isSticker ? 'block' : 'grid'}; 
-              grid-template-columns: ${isSticker ? 'none' : 'repeat(4, 1fr)'}; 
-              gap: ${isSticker ? '0' : '10px'}; 
-            }
+    <html>
+      <head>
+        <title>Batch Barcodes - ${mode.toUpperCase()}</title>
+        <style>
+          body { margin: 0; padding: ${isSticker ? '0' : '20px'}; font-family: sans-serif; }
+          .grid { 
+            display: ${isSticker ? 'block' : 'grid'}; 
+            grid-template-columns: ${isSticker ? 'none' : 'repeat(4, 1fr)'}; 
+            gap: ${isSticker ? '0' : '10px'}; 
+          }
+          .label { 
+            text-align: center; 
+            padding: ${isSticker ? '10px' : '15px'}; 
+            border: ${isSticker ? 'none' : '1px solid #eee'}; 
+            break-inside: avoid;
+            ${isSticker ? 'width: 50mm; height: 30mm; display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 1px dashed #ccc;' : ''}
+          }
+          @media print {
             .label { 
-              text-align: center; 
-              padding: ${isSticker ? '10px' : '15px'}; 
-              border: ${isSticker ? 'none' : '1px solid #eee'}; 
-              break-inside: avoid;
-              ${isSticker ? 'width: 50mm; height: 30mm; display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 1px dashed #ccc;' : ''}
+              border: ${isSticker ? 'none' : '1px solid #ddd'}; 
+              ${isSticker ? 'page-break-after: always; border-bottom: none;' : ''}
             }
-            @media print {
-              .label { 
-                border: ${isSticker ? 'none' : '1px solid #ddd'}; 
-                ${isSticker ? 'page-break-after: always; border-bottom: none;' : ''}
-              }
-              body { margin: 0; padding: ${isSticker ? '0' : '10mm'}; }
+            body { margin: 0; padding: ${isSticker ? '0' : '10mm'}; }
+          }
+          .name { font-size: ${isSticker ? '10px' : '12px'}; font-weight: bold; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+          .price { font-size: ${isSticker ? '9px' : '10px'}; font-weight: bold; margin-top: 2px; }
+          svg { max-width: 100%; height: auto; }
+        </style>
+      </head>
+      <body>
+        <div class="grid">
+          ${expandedItems.map((item, idx) => `
+            <div class="label">
+              <div style="font-size: 7px; font-weight: bold; color: #888; margin-bottom: 1px; text-transform: uppercase;">${shopSettings.name || 'FINN ERP'}</div>
+              <div class="name">${item.name}</div>
+              <svg id="barcode-${idx}"></svg>
+              <div class="price">${formatCurrency(item.sellPrice)}</div>
+            </div>
+          `).join('')}
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+        <script>
+          window.onload = function() {
+            if (window.JsBarcode) {
+              ${expandedItems.map((item, idx) => `
+                JsBarcode("#barcode-${idx}", "${item.barcode}", {
+                  format: "CODE128",
+                  width: ${isSticker ? '1.5' : '1.4'},
+                  height: ${isSticker ? '35' : '40'},
+                  displayValue: true,
+                  fontSize: 8,
+                  margin: 2
+                });
+              `).join('')}
+              window.focus();
+              window.print();
+            } else {
+              setTimeout(window.onload, 100);
             }
-            .name { font-size: ${isSticker ? '10px' : '12px'}; font-weight: bold; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-            .price { font-size: ${isSticker ? '9px' : '10px'}; font-weight: bold; margin-top: 2px; }
-            svg { max-width: 100%; height: auto; }
-          </style>
-        </head>
-        <body>
-          <div class="grid">
-            ${itemsToPrint.map((item, idx) => `
-              <div class="label">
-                <div style="font-size: 7px; font-weight: bold; color: #888; margin-bottom: 1px; text-transform: uppercase;">${shopSettings.name || 'FINN ERP'}</div>
-                <div class="name">${item.name}</div>
-                <svg id="barcode-${idx}"></svg>
-                <div class="price">${formatCurrency(item.sellPrice)}</div>
-              </div>
-            `).join('')}
-          </div>
-          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-          <script>
-            window.onload = function() {
-              if (window.JsBarcode) {
-                ${itemsToPrint.map((item, idx) => `
-                  JsBarcode("#barcode-${idx}", "${item.barcode}", {
-                    format: "CODE128",
-                    width: ${isSticker ? '1.5' : '1.4'},
-                    height: ${isSticker ? '35' : '40'},
-                    displayValue: true,
-                    fontSize: 8,
-                    margin: 2
-                  });
-                `).join('')}
-                window.focus();
-                window.print();
-              } else {
-                setTimeout(window.onload, 100);
-              }
-            };
-          </script>
-        </body>
-      </html>
-    `;
+          };
+        </script>
+      </body>
+    </html>
+  `;
     printWindow.document.open();
     printWindow.document.write(content);
     printWindow.document.close();
@@ -6219,14 +6236,15 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => {
-                        const itemsToPrint = selectedInventoryItems.length > 0
+                        const itemsToConfig = selectedInventoryItems.length > 0
                           ? inventory.filter(item => selectedInventoryItems.includes(item.id))
                           : inventory.filter(item =>
                             (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
                             ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
                               (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
                           );
-                        handlePrintBatchBarcodes(itemsToPrint);
+                        setPrintConfigs(itemsToConfig.map(item => ({ item, qty: 1 })));
+                        setIsPrintBarcodeModalOpen(true);
                       }}
                       className="bg-slate-800 text-white px-4 py-2.5 rounded-lg hover:bg-slate-900 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
                     >
@@ -6356,7 +6374,7 @@ export default function App() {
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex justify-end gap-2">
-                                  <button onClick={() => handlePrintBarcode(item)} disabled={!item.barcode} className="p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100 disabled:opacity-30" title="Print Barcode"><Printer size={16} /></button>
+                                  <button onClick={() => { setPrintConfigs([{ item, qty: 1 }]); setIsPrintBarcodeModalOpen(true); }} disabled={!item.barcode} className="p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100 disabled:opacity-30" title="Print Barcode"><Printer size={16} /></button>
                                   <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Edit size={16} /></button>
                                   <button onClick={() => handleDeleteWarehouseItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Trash2 size={16} /></button>
                                 </div>
@@ -6403,7 +6421,7 @@ export default function App() {
                               <div className="flex justify-between items-start">
                                 <h4 className="font-black text-gray-900 text-sm truncate uppercase tracking-tight pr-2">{item.name}</h4>
                                 <div className="flex gap-2">
-                                  <button onClick={() => handlePrintBarcode(item)} disabled={!item.barcode} className="text-slate-400 p-1 disabled:opacity-0"><Printer size={16} /></button>
+                                  <button onClick={() => { setPrintConfigs([{ item, qty: 1 }]); setIsPrintBarcodeModalOpen(true); }} disabled={!item.barcode} className="text-slate-400 p-1 disabled:opacity-0"><Printer size={16} /></button>
                                   <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="text-blue-500 p-1"><Edit size={16} /></button>
                                   <button onClick={() => handleDeleteWarehouseItem(item.id)} className="text-red-400 p-1"><Trash2 size={16} /></button>
                                 </div>
@@ -6639,6 +6657,101 @@ export default function App() {
       </main >
 
       {/* --- Modals --- */}
+
+      {/* Barcode Print Configuration Modal */}
+      {isPrintBarcodeModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[200] backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-lg text-gray-900">Print Barcodes Wizard</h3>
+              <button onClick={() => setIsPrintBarcodeModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="max-h-[50vh] overflow-y-auto space-y-2 pr-2">
+                {printConfigs.map((cfg, idx) => (
+                  <div key={cfg.item.id} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden">
+                      {cfg.item.photo ? <img src={cfg.item.photo} alt="" className="w-full h-full object-cover" /> : <Package size={20} className="text-gray-300" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm text-gray-900 truncate">{cfg.item.name}</p>
+                      <p className="text-[10px] font-mono text-gray-400">{cfg.item.barcode || 'No Barcode'}</p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newConfigs = [...printConfigs];
+                          newConfigs[idx].qty = Math.max(0, (newConfigs[idx].qty || 0) - 1);
+                          setPrintConfigs(newConfigs);
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded text-gray-500"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                      <input
+                        type="number"
+                        className="w-12 text-center text-sm font-bold bg-transparent outline-none"
+                        value={cfg.qty}
+                        onChange={(e) => {
+                          const newConfigs = [...printConfigs];
+                          newConfigs[idx].qty = parseInt(e.target.value) || 0;
+                          setPrintConfigs(newConfigs);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newConfigs = [...printConfigs];
+                          newConfigs[idx].qty = (newConfigs[idx].qty || 0) + 1;
+                          setPrintConfigs(newConfigs);
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded text-gray-500"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-600 text-white rounded-lg">
+                    <Printer size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Total Labels</p>
+                    <p className="text-xl font-black text-blue-900">{printConfigs.reduce((sum, c) => sum + (c.qty || 0), 0)}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Layout Mode</p>
+                  <p className="text-sm font-bold text-blue-900 uppercase">{barcodePrintMode}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsPrintBarcodeModalOpen(false)}
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-all"
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  onClick={() => {
+                    handlePrintBatchBarcodes(printConfigs);
+                    setIsPrintBarcodeModalOpen(false);
+                  }}
+                  className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-xl hover:bg-black font-bold shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2"
+                >
+                  <Printer size={20} /> Print Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Employee Modal (Premium) */}
       {
