@@ -8976,64 +8976,69 @@ export default function App() {
 
       {/* Start Session Modal */}
       {isStartSessionModalOpen && pendingRoom && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
-          <div className="bg-[#111] text-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/10 flex flex-col p-8">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-[#111] text-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/5 flex flex-col p-8">
             <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
-                  <Plus size={20} className="text-white" />
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-900/40">
+                  <Plus size={24} className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold">Start session</h3>
+                <h3 className="text-2xl font-bold tracking-tight">Start session</h3>
               </div>
-              <button onClick={() => setIsStartSessionModalOpen(false)} className="text-gray-500 hover:text-white transition-all"><X size={24} /></button>
+              <button onClick={() => setIsStartSessionModalOpen(false)} className="p-2 text-gray-500 hover:text-white transition-all hover:bg-white/5 rounded-full"><X size={28} /></button>
             </div>
 
             <form onSubmit={handleConfirmStartSession} className="space-y-6">
               <div>
-                <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-2 block">The room</label>
-                <div className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl px-6 py-4 font-bold text-gray-300 flex justify-between items-center">
-                  <span>{pendingRoom.name}</span>
-                  <span className="text-[10px] text-gray-500">{formatCurrency(pendingRoom.hourlyPrice)} /hr</span>
+                <label className="text-[10px] uppercase font-black tracking-[0.15em] text-gray-500 mb-2.5 block px-1">THE ROOM</label>
+                <div className="w-full bg-[#1a1a1a] rounded-2xl px-6 py-5 font-bold flex justify-between items-center border border-white/[0.03]">
+                  <span className="text-gray-200 text-lg">{pendingRoom.name}</span>
+                  <span className="text-[10px] text-gray-500 font-black opacity-80">{formatCurrency(pendingRoom.hourlyPrice)} /hr</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-2 block">Session type</label>
-                <select
-                  value={sessionStartForm.sessionType}
-                  onChange={e => setSessionStartForm({ ...sessionStartForm, sessionType: e.target.value })}
-                  className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl px-6 py-4 font-bold text-white focus:border-green-500 outline-none transition-all appearance-none"
-                >
-                  <option value="Open">Open (by the hour)</option>
-                  <option value="Fixed">Fixed Time</option>
-                </select>
+                <label className="text-[10px] uppercase font-black tracking-[0.15em] text-gray-500 mb-2.5 block px-1">SESSION TYPE</label>
+                <div className="relative group">
+                  <select
+                    value={sessionStartForm.sessionType}
+                    onChange={e => setSessionStartForm({ ...sessionStartForm, sessionType: e.target.value })}
+                    className="w-full bg-[#1a1a1a] rounded-2xl px-6 py-5 font-bold text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all appearance-none cursor-pointer border border-white/[0.03]"
+                  >
+                    <option value="Open">Open (by the hour)</option>
+                    <option value="Fixed">Fixed Time</option>
+                  </select>
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                    <ChevronDown size={18} />
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-2 block">Customer number *</label>
+                <label className="text-[10px] uppercase font-black tracking-[0.15em] text-gray-500 mb-2.5 block px-1">CUSTOMER NUMBER *</label>
                 <input
                   type="text"
                   value={sessionStartForm.customerPhone}
                   onChange={e => setSessionStartForm({ ...sessionStartForm, customerPhone: e.target.value })}
-                  className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl px-6 py-4 font-bold text-white focus:border-green-500 outline-none transition-all"
+                  className="w-full bg-[#1a1a1a] rounded-2xl px-6 py-5 font-bold text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all placeholder:text-gray-700 border border-white/[0.03]"
                   placeholder="Enter phone number"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-2 block">The name</label>
+                <label className="text-[10px] uppercase font-black tracking-[0.15em] text-gray-500 mb-2.5 block px-1">THE NAME</label>
                 <input
                   type="text"
                   value={sessionStartForm.customerName}
                   onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
-                  className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl px-6 py-4 font-bold text-white focus:border-green-500 outline-none transition-all"
+                  className="w-full bg-[#1a1a1a] rounded-2xl px-6 py-5 font-bold text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all placeholder:text-gray-700 border border-white/[0.03]"
                   placeholder="Enter customer name"
                 />
               </div>
 
-              <button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl shadow-green-900/20 flex items-center justify-center gap-2 mt-4">
-                <Plus size={20} /> Start
+              <button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white py-5 rounded-[1.5rem] font-bold uppercase tracking-[0.15em] text-sm transition-all shadow-2xl shadow-green-900/30 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
+                <Plus size={22} strokeWidth={3} /> START
               </button>
             </form>
           </div>
