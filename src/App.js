@@ -4470,31 +4470,30 @@ export default function App() {
 
           const startScanner = async (cameraId) => {
             try {
-              // Request High Quality focusing on Sharpness
+              // Request 480p for maximum compatibility and stability
               const constraints = cameraId ? {
                 deviceId: { exact: cameraId },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
+                width: { ideal: 640 },
+                height: { ideal: 480 },
                 focusMode: { ideal: "continuous" }
               } : {
                 facingMode: "environment",
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
+                width: { ideal: 640 },
+                height: { ideal: 480 },
                 focusMode: { ideal: "continuous" }
               };
 
               await html5QrCode.start(
                 constraints,
                 {
-                  fps: 20, // Faster tracking
+                  fps: 20,
                   qrbox: (viewWidth, viewHeight) => {
-                    // Larger box encourages user to move back, helping focus
-                    const width = Math.min(viewWidth * 0.8, 350);
-                    const height = Math.min(viewHeight * 0.5, 200);
+                    const width = Math.min(viewWidth * 0.8, 300);
+                    const height = Math.min(viewHeight * 0.6, 180);
                     return { width, height };
                   },
                   disableFlip: true,
-                  aspectRatio: 1.777778 // Standard HD aspect ratio
+                  aspectRatio: 1.333333 // 4:3 ratio for stable 480p
                 },
                 onScanSuccess,
                 onScanError
