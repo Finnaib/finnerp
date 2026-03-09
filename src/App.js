@@ -1818,6 +1818,11 @@ export default function App() {
   const [externalPayment, setExternalPayment] = useState(null); // { invoiceId, amount, upiId, expiry }
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
 
+  // --- Barcode / Scanner Buffering (Hardware Scanners) ---
+  const barcodeBuffer = useRef('');
+  const lastKeyTime = useRef(0);
+
+
   // Handle Incoming Payment QR Codes from Prints
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1857,61 +1862,6 @@ export default function App() {
   // Sync Settings from Firestore
   useEffect(() => {
     if (user) {
-      // --- Barcode / Scanner Buffering (Hardware Scanners) ---
-      const barcodeBuffer = useRef('');
-      const lastKeyTime = useRef(0);
-
-      useEffect(() => {
-        const handleGlobalKeyDown = (e) => {
-          // If we're typing in a search field, we might still want to catch barcodes
-          // but if the user is in a modal or editing another field, maybe not.
-          // However, hardware scanners usually act as a keyboard.
-          // A common pattern is to only buffer if keys are typed very fast (<50ms apart).
-
-          const currentTime = Date.now();
-          const timeDiff = currentTime - lastKeyTime.current;
-          lastKeyTime.current = currentTime;
-
-          // Handle Enter (Common suffix for POS scanners)
-          if (e.key === 'Enter') {
-            if (barcodeBuffer.current.length >= 3) {
-              // It looks like a barcode was scanned
-              const scanned = barcodeBuffer.current;
-              barcodeBuffer.current = '';
-
-              // If we are in the Sales tab, try to add to cart
-              if (activeTab === 'sales_purchases') {
-                onScanSuccess(scanned);
-                e.preventDefault();
-                return;
-              }
-
-              // If we are in warehouse and scanning for something
-              if (activeTab === 'warehouses' && scannerMode === 'buy') {
-                onScanSuccess(scanned);
-                e.preventDefault();
-                return;
-              }
-            }
-            barcodeBuffer.current = '';
-            return;
-          }
-
-          // Buffer characters
-          if (e.key.length === 1) {
-            // If the gap between keys is too long, it's probably manual typing
-            if (timeDiff > 50) {
-              barcodeBuffer.current = e.key;
-            } else {
-              barcodeBuffer.current += e.key;
-            }
-          }
-        };
-
-        window.addEventListener('keydown', handleGlobalKeyDown);
-        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-      }, [activeTab, inventory, scannerMode]); // Re-bind when tab or inventory changes
-
       const fetchSettings = async () => {
         try {
           const docRef = doc(db, 'settings', 'user_prefs_' + user.uid);
@@ -4230,6 +4180,58 @@ export default function App() {
   }, [inventory, addToCart, t, scannerMode]);
 
   const onScanError = useCallback((err) => { }, []);
+
+  // --- Barcode / Scanner Buffering (Hardware Scanners) ---
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // If we're typing in a search field, we might still want to catch barcodes
+      // but if the user is in a modal or editing another field, maybe not.
+      // However, hardware scanners usually act as a keyboard.
+      // A common pattern is to only buffer if keys are typed very fast (<50ms apart).
+
+      const currentTime = Date.now();
+      const timeDiff = currentTime - lastKeyTime.current;
+      lastKeyTime.current = currentTime;
+
+      // Handle Enter (Common suffix for POS scanners)
+      if (e.key === 'Enter') {
+        if (barcodeBuffer.current.length >= 3) {
+          // It looks like a barcode was scanned
+          const scanned = barcodeBuffer.current;
+          barcodeBuffer.current = '';
+
+          // If we are in the Sales tab, try to add to cart
+          if (activeTab === 'sales_purchases') {
+            onScanSuccess(scanned);
+            e.preventDefault();
+            return;
+          }
+
+          // If we are in warehouse and scanning for something
+          if (activeTab === 'warehouses' && scannerMode === 'buy') {
+            onScanSuccess(scanned);
+            e.preventDefault();
+            return;
+          }
+        }
+        barcodeBuffer.current = '';
+        return;
+      }
+
+      // Buffer characters
+      if (e.key.length === 1) {
+        // If the gap between keys is too long, it's probably manual typing
+        if (timeDiff > 50) {
+          barcodeBuffer.current = e.key;
+        } else {
+          barcodeBuffer.current += e.key;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [activeTab, inventory, scannerMode, onScanSuccess]); // Re-bind when tab, inventory or onScanSuccess changes
 
   const [hasFlash, setHasFlash] = useState(false);
   const [isFlashOn, setIsFlashOn] = useState(false);
