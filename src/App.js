@@ -2023,13 +2023,16 @@ export default function App() {
   const [cafeSessions, setCafeSessions] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [cafeRooms, setCafeRooms] = useState([]);
+  const [isStartSessionModalOpen, setIsStartSessionModalOpen] = useState(false);
+  const [sessionStartForm, setSessionStartForm] = useState({ customerName: '', customerPhone: '', sessionType: 'Open' });
+  const [pendingRoom, setPendingRoom] = useState(null);
   const [isCafeOrderModalOpen, setIsCafeOrderModalOpen] = useState(false);
   const [activeCafeSession, setActiveCafeSession] = useState(null);
   const [activeCafeCategory, setActiveCafeCategory] = useState('Hot Drinks');
   const [cafeSubTab, setCafeSubTab] = useState('board'); // 'board' | 'rooms' | 'recipes'
 
-  const [roomForm, setRoomForm] = useState({ name: '', type: 'Cafe' });
-  const [recipeForm, setRecipeForm] = useState({ itemId: '', ingredients: [] }); // { id, name, qty }
+  const [roomForm, setRoomForm] = useState({ name: '', type: 'Cafe', hourlyPrice: 0 });
+  const [recipeForm, setRecipeForm] = useState({ name: '', category: 'Hot Drinks', sellPrice: '', ingredients: [] });
 
   useEffect(() => {
     if (user) {
@@ -3119,19 +3122,32 @@ export default function App() {
   };
 
   // --- Cafe Handlers ---
-  const handleStartCafeSession = async (room) => {
-    if (!user) return;
+  const handleStartCafeSession = (room) => {
+    setPendingRoom(room);
+    setSessionStartForm({ customerName: '', customerPhone: '', sessionType: 'Open' });
+    setIsStartSessionModalOpen(true);
+  };
+
+  const handleConfirmStartSession = async (e) => {
+    e.preventDefault();
+    if (!user || !pendingRoom) return;
     try {
       await addDoc(collection(db, 'cafeSessions'), {
-        roomId: room.id,
-        roomName: room.name,
-        roomType: room.type,
+        roomId: pendingRoom.id,
+        roomName: pendingRoom.name,
+        roomType: pendingRoom.type,
+        hourlyRate: pendingRoom.hourlyPrice || 0,
         startTime: serverTimestamp(),
         status: 'Active',
         orders: [],
+        customerName: sessionStartForm.customerName,
+        customerPhone: sessionStartForm.customerPhone,
+        sessionType: sessionStartForm.sessionType,
         userId: user.uid,
         createdAt: serverTimestamp()
       });
+      setIsStartSessionModalOpen(false);
+      setPendingRoom(null);
     } catch (err) {
       console.error(err);
     }
@@ -3146,9 +3162,7 @@ export default function App() {
       const durationMins = Math.floor(durationMs / 60000);
       const durationHours = durationMins / 60;
 
-      let rate = 30;
-      if (session.roomType === 'PlayStation') rate = 40;
-      if (session.roomType === 'Billiards') rate = 50;
+      const rate = session.hourlyRate || 30;
 
       const sessionCost = Math.ceil(durationHours * rate);
       const ordersCost = (session.orders || []).reduce((sum, o) => sum + (Number(o.sellPrice) * Number(o.quantity || 1)), 0);
@@ -3188,7 +3202,7 @@ export default function App() {
     try {
       const batch = writeBatch(db);
       for (const item of cartItems) {
-        const recipe = recipes.find(r => r.itemId === item.id);
+        const recipe = recipes.find(r => r.id === item.id);
         if (recipe && recipe.ingredients) {
           recipe.ingredients.forEach(ing => {
             const ingRef = doc(db, 'inventory', ing.id);
@@ -3227,11 +3241,19 @@ export default function App() {
     if (!user) return;
     try {
       if (roomForm.id) {
-        await updateDoc(doc(db, 'cafeRooms', roomForm.id), { name: roomForm.name, type: roomForm.type });
+        await updateDoc(doc(db, 'cafeRooms', roomForm.id), {
+          name: roomForm.name,
+          type: roomForm.type,
+          hourlyPrice: Number(roomForm.hourlyPrice)
+        });
       } else {
-        await addDoc(collection(db, 'cafeRooms'), { ...roomForm, userId: user.uid });
+        await addDoc(collection(db, 'cafeRooms'), {
+          ...roomForm,
+          hourlyPrice: Number(roomForm.hourlyPrice),
+          userId: user.uid
+        });
       }
-      setRoomForm({ name: '', type: 'Cafe' });
+      setRoomForm({ name: '', type: 'Cafe', hourlyPrice: 0 });
     } catch (err) { console.error(err); }
   };
 
@@ -3242,14 +3264,20 @@ export default function App() {
 
   const handleSaveRecipe = async (e) => {
     e.preventDefault();
-    if (!user || !recipeForm.itemId) return;
+    if (!user || !recipeForm.name) return;
     try {
       if (recipeForm.id) {
-        await updateDoc(doc(db, 'recipes', recipeForm.id), { ingredients: recipeForm.ingredients });
+        await updateDoc(doc(db, 'recipes', recipeForm.id), {
+          name: recipeForm.name,
+          category: recipeForm.category,
+          sellPrice: recipeForm.sellPrice,
+          ingredients: recipeForm.ingredients,
+          updatedAt: serverTimestamp()
+        });
       } else {
         await addDoc(collection(db, 'recipes'), { ...recipeForm, userId: user.uid, createdAt: serverTimestamp() });
       }
-      setRecipeForm({ itemId: '', ingredients: [] });
+      setRecipeForm({ name: '', category: 'Hot Drinks', sellPrice: '', ingredients: [] });
     } catch (err) { console.error(err); }
   };
 
@@ -6620,28 +6648,23 @@ export default function App() {
                             <div>
                               <div className="flex justify-between items-start">
                                 <h4 className="font-black text-gray-900 text-sm truncate uppercase tracking-tight pr-2">{item.name}</h4>
-                                <div className="flex gap-2">
-                                  <button onClick={() => { setPrintConfigs([{ item, qty: 1 }]); setIsPrintBarcodeModalOpen(true); }} disabled={!item.barcode} className="text-slate-400 p-1 disabled:opacity-0"><Printer size={16} /></button>
-                                  <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="text-blue-500 p-1"><Edit size={16} /></button>
-                                  <button onClick={() => handleDeleteWarehouseItem(item.id)} className="text-red-400 p-1"><Trash2 size={16} /></button>
-                                </div>
+                                <p className="text-[10px] text-gray-400 font-mono mt-0.5">{item.barcode || 'NO BARCODE'}</p>
                               </div>
-                              <p className="text-[10px] text-gray-400 font-mono mt-0.5">{item.barcode || 'NO BARCODE'}</p>
-                            </div>
-                            <div className="flex justify-between items-end mt-2">
-                              <div className="space-y-0.5">
-                                <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{item.location}</span>
-                                <div className="font-mono font-black text-xs text-gray-900">
-                                  {formatCurrency(item.sellPrice || 0)}
-                                  <span className="text-[10px] text-gray-400 ml-1 font-normal opacity-50">/ UNIT</span>
+                              <div className="flex justify-between items-end mt-2">
+                                <div className="space-y-0.5">
+                                  <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{item.location}</span>
+                                  <div className="font-mono font-black text-xs text-gray-900">
+                                    {formatCurrency(item.sellPrice || 0)}
+                                    <span className="text-[10px] text-gray-400 ml-1 font-normal opacity-50">/ UNIT</span>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className={`px-3 py-1 rounded-full text-[10px] font-black shadow-sm flex items-center gap-1 ${item.quantity <= 0 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-gray-900 text-white'}`}>
-                                {item.quantity <= 0 ? (
-                                  <>OUT</>
-                                ) : (
-                                  <>{item.quantity} IN STOCK</>
-                                )}
+                                <div className={`px-3 py-1 rounded-full text-[10px] font-black shadow-sm flex items-center gap-1 ${item.quantity <= 0 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-gray-900 text-white'}`}>
+                                  {item.quantity <= 0 ? (
+                                    <>OUT</>
+                                  ) : (
+                                    <>{item.quantity} IN STOCK</>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -6686,27 +6709,37 @@ export default function App() {
                       const activeSession = cafeSessions.find(s => s.roomId === room.id && s.status === 'Active');
                       const roomIcon = room.type === 'PlayStation' ? <Monitor size={20} /> : room.type === 'Billiards' ? <Disc size={20} /> : <Coffee size={20} />;
                       return (
-                        <div key={room.id} className={`p-6 rounded-[2rem] border transition-all duration-300 shadow-sm flex flex-col justify-between h-48 ${activeSession ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-gray-900 border-gray-100 hover:border-blue-200'}`}>
+                        <div key={room.id} className={`p-6 rounded-[2rem] border-2 transition-all duration-300 shadow-sm flex flex-col justify-between h-52 group ${activeSession ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-200' : 'bg-white text-gray-900 border-green-500 hover:shadow-lg'}`}>
                           <div className="flex justify-between items-start">
-                            <div className={`p-3 rounded-2xl ${activeSession ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
+                            <div className={`p-3 rounded-2xl ${activeSession ? 'bg-white/20' : 'bg-green-50 text-green-600'}`}>
                               {roomIcon}
                             </div>
-                            {activeSession && (
-                              <div className="flex flex-col items-end">
-                                <span className="text-[10px] uppercase font-black tracking-widest opacity-80">Active since</span>
-                                <span className="text-xs font-bold">{activeSession.startTime?.seconds ? new Date(activeSession.startTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}</span>
-                              </div>
-                            )}
+                            <div className="flex flex-col items-end">
+                              {activeSession ? (
+                                <>
+                                  <span className="text-[10px] uppercase font-black tracking-widest opacity-80 text-blue-400">Active</span>
+                                  <span className="text-xs font-bold">{activeSession.startTime?.seconds ? new Date(activeSession.startTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="flex items-center gap-1.5 text-green-600">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                    <span className="text-[10px] uppercase font-black tracking-widest">Available</span>
+                                  </div>
+                                  <span className="text-[10px] font-bold text-gray-400 mt-1">{formatCurrency(room.hourlyPrice || 0)} / hour</span>
+                                </>
+                              )}
+                            </div>
                           </div>
 
                           <div>
                             <h3 className="text-lg font-black uppercase tracking-tight">{room.name}</h3>
-                            <p className={`text-[10px] font-bold uppercase tracking-widest ${activeSession ? 'text-white/70' : 'text-gray-400'}`}>{room.type}</p>
+                            <p className={`text-[10px] font-bold uppercase tracking-widest ${activeSession ? 'text-gray-400' : 'text-gray-400'}`}>{room.type}</p>
                           </div>
 
                           <div className="flex gap-2 mt-4">
                             {!activeSession ? (
-                              <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase hover:bg-blue-700 transition-all shadow-md">Start Session</button>
+                              <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-2 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase hover:bg-green-700 transition-all shadow-md">Start Session</button>
                             ) : (
                               <>
                                 <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-2 bg-white/20 text-white rounded-xl text-[10px] font-black uppercase hover:bg-white/30 transition-all flex items-center justify-center gap-1"><Plus size={12} /> Add Order</button>
@@ -6729,13 +6762,19 @@ export default function App() {
                           <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Name</label>
                           <input type="text" value={roomForm.name} onChange={e => setRoomForm({ ...roomForm, name: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all" placeholder="e.g. PlayStation Room 5" required />
                         </div>
-                        <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Type</label>
-                          <select value={roomForm.type} onChange={e => setRoomForm({ ...roomForm, type: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all">
-                            <option value="Cafe">Cafe Table</option>
-                            <option value="PlayStation">PlayStation Room</option>
-                            <option value="Billiards">Billiards Table</option>
-                          </select>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Type</label>
+                            <select value={roomForm.type} onChange={e => setRoomForm({ ...roomForm, type: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all">
+                              <option value="Cafe">Cafe Table</option>
+                              <option value="PlayStation">PlayStation Room</option>
+                              <option value="Billiards">Billiards Table</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Hourly Price</label>
+                            <input type="number" value={roomForm.hourlyPrice} onChange={e => setRoomForm({ ...roomForm, hourlyPrice: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all" placeholder="0.00" required />
+                          </div>
                         </div>
                         <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2">
                           <Plus size={18} /> Save Room
@@ -6752,10 +6791,16 @@ export default function App() {
                             </div>
                             <div>
                               <p className="font-black uppercase tracking-tight">{room.name}</p>
-                              <p className="text-[10px] font-bold text-gray-400 uppercase">{room.type}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">{room.type}</span>
+                                <span className="text-[10px] font-black text-blue-600">{formatCurrency(room.hourlyPrice || 0)} / hr</span>
+                              </div>
                             </div>
                           </div>
-                          <button onClick={() => handleDeleteRoom(room.id)} className="p-3 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"><Trash2 size={18} /></button>
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                            <button onClick={() => setRoomForm(room)} className="p-3 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"><Edit size={18} /></button>
+                            <button onClick={() => handleDeleteRoom(room.id)} className="p-3 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -6765,27 +6810,50 @@ export default function App() {
                 {cafeSubTab === 'recipes' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-6">Create Recipe</h3>
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-6">Create Menu Item</h3>
                       <form onSubmit={handleSaveRecipe} className="space-y-6">
                         <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Menu Item (What you sell)</label>
-                          <p className="text-[10px] text-gray-400 mb-2 italic">Select the product that customers order in the cafe.</p>
-                          <select
-                            value={recipeForm.itemId}
-                            onChange={e => setRecipeForm({ ...recipeForm, itemId: e.target.value })}
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">1. Item Name</label>
+                          <input
+                            type="text"
+                            value={recipeForm.name}
+                            onChange={e => setRecipeForm({ ...recipeForm, name: e.target.value })}
                             className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all"
+                            placeholder="e.g. Cappuccino"
                             required
-                          >
-                            <option value="">Select Item...</option>
-                            {inventory.map(item => (
-                              <option key={item.id} value={item.id}>{item.name} ({item.category || 'No Category'})</option>
-                            ))}
-                          </select>
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">2. Category</label>
+                            <select
+                              value={recipeForm.category}
+                              onChange={e => setRecipeForm({ ...recipeForm, category: e.target.value })}
+                              className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all"
+                              required
+                            >
+                              <option value="Hot Drinks">Hot Drinks</option>
+                              <option value="Cold Drinks">Cold Drinks</option>
+                              <option value="Snacks">Snacks</option>
+                              <option value="Meals">Meals</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">3. Sell Price</label>
+                            <input
+                              type="number"
+                              value={recipeForm.sellPrice}
+                              onChange={e => setRecipeForm({ ...recipeForm, sellPrice: e.target.value })}
+                              className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all"
+                              placeholder="0.00"
+                              required
+                            />
+                          </div>
                         </div>
 
                         <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Ingredients (What gets used up)</label>
-                          <p className="text-[10px] text-gray-400 mb-2 italic">Select items to deduct from stock when this menu item is sold.</p>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">4. Ingredients (Stock Deduction)</label>
                           <div className="space-y-3 mb-4">
                             {recipeForm.ingredients.map((ing, idx) => (
                               <div key={idx} className="flex gap-2 items-center bg-gray-50 p-3 rounded-2xl">
@@ -6818,36 +6886,39 @@ export default function App() {
                             }}
                             className="w-full bg-blue-50 border-dashed border-2 border-blue-200 rounded-2xl px-6 py-4 text-xs font-black text-blue-600 text-center cursor-pointer hover:bg-blue-100 transition-all"
                           >
-                            <option value="">+ ADD INGREDIENT</option>
-                            {inventory.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                            <option value="">+ ADD COMPONENT FROM WAREHOUSE</option>
+                            {inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({i.location})</option>)}
                           </select>
                         </div>
 
                         <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-slate-200">
-                          Save Recipe
+                          {recipeForm.id ? 'Update Menu Item' : 'Create Menu Item'}
                         </button>
                       </form>
                     </div>
 
                     <div className="space-y-4">
-                      {recipes.map(recipe => {
-                        const mainItem = inventory.find(i => i.id === recipe.itemId);
-                        return (
-                          <div key={recipe.id} className="bg-white p-6 rounded-3xl border border-gray-100 flex justify-between items-start group hover:border-blue-200 transition-all">
-                            <div>
-                              <p className="font-black uppercase tracking-tight">{mainItem?.name || 'Unknown Item'}</p>
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {(recipe.ingredients || []).map((ing, idx) => (
-                                  <span key={idx} className="bg-gray-100 text-[9px] font-black px-2 py-1 rounded-lg uppercase text-gray-500">
-                                    {ing.qty}x {ing.name}
-                                  </span>
-                                ))}
-                              </div>
+                      {recipes.map(recipe => (
+                        <div key={recipe.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 flex justify-between items-start group hover:border-blue-200 transition-all cursor-pointer" onClick={() => setRecipeForm(recipe)}>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="bg-blue-50 text-blue-600 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">{recipe.category}</span>
+                              <span className="text-[10px] font-black text-gray-300">#{recipe.id.slice(0, 4)}</span>
                             </div>
-                            <button onClick={() => handleDeleteRecipe(recipe.id)} className="p-3 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+                            <p className="font-black uppercase tracking-tight text-lg text-gray-900">{recipe.name}</p>
+                            <p className="text-xs font-black text-blue-600 mt-0.5">{formatCurrency(recipe.sellPrice)}</p>
+
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              {(recipe.ingredients || []).map((ing, idx) => (
+                                <span key={idx} className="bg-gray-50 text-[9px] font-black px-2 py-1 rounded-lg uppercase text-gray-400 border border-gray-100">
+                                  {ing.qty}x {ing.name}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        );
-                      })}
+                          <button onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }} className="p-3 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -8767,8 +8838,8 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {inventory
-                    .filter(i => activeCafeCategory === 'All' || i.category === activeCafeCategory)
+                  {recipes
+                    .filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory)
                     .map(item => (
                       <button
                         key={item.id}
@@ -8791,11 +8862,11 @@ export default function App() {
                     ))}
                 </div>
 
-                {inventory.filter(i => activeCafeCategory === 'All' || i.category === activeCafeCategory).length === 0 && (
+                {recipes.filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory).length === 0 && (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-8 opacity-40">
                     <Package size={48} className="mb-4 text-gray-300" />
                     <p className="text-sm font-black uppercase tracking-widest text-gray-400">No items found</p>
-                    <p className="text-[10px] font-bold text-gray-400 mt-2">Go to "Warehouses" to add items or change their category to "{activeCafeCategory}"</p>
+                    <p className="text-[10px] font-bold text-gray-400 mt-2">Go to "Recipes" tab to create your menu items first.</p>
                   </div>
                 )}
               </div>
@@ -8844,6 +8915,72 @@ export default function App() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Start Session Modal */}
+      {isStartSessionModalOpen && pendingRoom && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-[#111] text-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/10 flex flex-col p-8">
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-600 rounded-lg">
+                  <Plus size={20} className="text-white" />
+                </div>
+                <h3 className="text-xl font-bold">Start session</h3>
+              </div>
+              <button onClick={() => setIsStartSessionModalOpen(false)} className="text-gray-500 hover:text-white transition-all"><X size={24} /></button>
+            </div>
+
+            <form onSubmit={handleConfirmStartSession} className="space-y-6">
+              <div>
+                <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-2 block">The room</label>
+                <div className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl px-6 py-4 font-bold text-gray-300 flex justify-between items-center">
+                  <span>{pendingRoom.name}</span>
+                  <span className="text-[10px] text-gray-500">{formatCurrency(pendingRoom.hourlyPrice)} /hr</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-2 block">Session type</label>
+                <select
+                  value={sessionStartForm.sessionType}
+                  onChange={e => setSessionStartForm({ ...sessionStartForm, sessionType: e.target.value })}
+                  className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl px-6 py-4 font-bold text-white focus:border-green-500 outline-none transition-all appearance-none"
+                >
+                  <option value="Open">Open (by the hour)</option>
+                  <option value="Fixed">Fixed Time</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-2 block">Customer number *</label>
+                <input
+                  type="text"
+                  value={sessionStartForm.customerPhone}
+                  onChange={e => setSessionStartForm({ ...sessionStartForm, customerPhone: e.target.value })}
+                  className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl px-6 py-4 font-bold text-white focus:border-green-500 outline-none transition-all"
+                  placeholder="Enter phone number"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-2 block">The name</label>
+                <input
+                  type="text"
+                  value={sessionStartForm.customerName}
+                  onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
+                  className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl px-6 py-4 font-bold text-white focus:border-green-500 outline-none transition-all"
+                  placeholder="Enter customer name"
+                />
+              </div>
+
+              <button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl shadow-green-900/20 flex items-center justify-center gap-2 mt-4">
+                <Plus size={20} /> Start
+              </button>
+            </form>
           </div>
         </div>
       )}
