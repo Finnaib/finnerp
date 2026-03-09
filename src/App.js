@@ -4448,116 +4448,104 @@ export default function App() {
   const [currentZoom, setCurrentZoom] = useState(1);
 
   useEffect(() => {
-    let html5QrCode;
-
     if (isScannerOpen) {
-      // Use a generous delay to ensure React modal is fully rendered and visible
+      // Small safety delay for React modal render
       const initTimeout = setTimeout(() => {
+        startScannerLogic();
+      }, 500);
+
+      async function startScannerLogic() {
         const element = document.getElementById("reader");
         if (!element) return;
 
-        // Ensure element is visible
-        if (element.offsetWidth === 0) {
-          // If still hidden, try again once more after a tiny bit
-          setTimeout(() => startScannerLogic(), 200);
-          return;
+        // Cleanup any existing instance first
+        if (scannerRef.current) {
+          try {
+            await scannerRef.current.stop();
+            scannerRef.current.clear();
+          } catch (e) { }
         }
 
-        startScannerLogic();
+        scannerRef.current = new Html5Qrcode("reader");
 
-        function startScannerLogic() {
-          html5QrCode = new Html5Qrcode("reader");
+        const startScanner = async (cameraId) => {
+          try {
+            // Flexible Constraints: Ideal for quality, but allows browser fallback
+            const constraints = cameraId ? {
+              deviceId: cameraId,
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            } : {
+              facingMode: "environment"
+            };
 
-          const startScanner = async (cameraId) => {
-            try {
-              // Request stable HD quality without forcing and crashing
-              const constraints = cameraId ? {
-                deviceId: cameraId,
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-              } : {
-                facingMode: "environment",
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-              };
+            await scannerRef.current.start(
+              constraints,
+              {
+                fps: 20,
+                qrbox: { width: 300, height: 180 },
+                disableFlip: true,
+                formatsToSupport: [
+                  Html5QrcodeSupportedFormats.QR_CODE,
+                  Html5QrcodeSupportedFormats.UPC_A,
+                  Html5QrcodeSupportedFormats.UPC_E,
+                  Html5QrcodeSupportedFormats.EAN_13,
+                  Html5QrcodeSupportedFormats.EAN_8,
+                  Html5QrcodeSupportedFormats.CODE_39,
+                  Html5QrcodeSupportedFormats.CODE_128,
+                  Html5QrcodeSupportedFormats.ITF,
+                  Html5QrcodeSupportedFormats.DATA_MATRIX
+                ]
+              },
+              onScanSuccess,
+              onScanError
+            );
 
-              await html5QrCode.start(
-                constraints,
-                {
-                  fps: 25, // Much faster for movement
-                  qrbox: (viewWidth, viewHeight) => {
-                    const width = Math.min(viewWidth * 0.8, 320);
-                    const height = Math.min(viewHeight * 0.4, 160);
-                    return { width, height };
-                  },
-                  disableFlip: true,
-                  formatsToSupport: [
-                    Html5QrcodeSupportedFormats.QR_CODE,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.ITF,
-                    Html5QrcodeSupportedFormats.DATA_MATRIX
-                  ]
-                },
-                onScanSuccess,
-                onScanError
-              );
-
-              const track = html5QrCode.getRunningTrack();
-              if (track) {
-                const capabilities = track.getCapabilities();
-                if (capabilities.torch) setHasFlash(true);
-                if (capabilities.zoom) {
-                  setHasZoom(true);
-                  setZoomRange({
-                    min: capabilities.zoom.min || 1,
-                    max: capabilities.zoom.max || 1,
-                    step: capabilities.zoom.step || 0.1
-                  });
-                  setCurrentZoom(track.getSettings().zoom || 1);
-                }
+            const track = scannerRef.current.getRunningTrack();
+            if (track) {
+              const capabilities = track.getCapabilities();
+              if (capabilities.torch) setHasFlash(true);
+              if (capabilities.zoom) {
+                setHasZoom(true);
+                setZoomRange({
+                  min: capabilities.zoom.min || 1,
+                  max: capabilities.zoom.max || 1,
+                  step: capabilities.zoom.step || 0.1
+                });
+                setCurrentZoom(track.getSettings().zoom || 1);
               }
-            } catch (err) {
-              console.error("Scanner startup error:", err);
-              try {
-                await html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, onScanSuccess, onScanError);
-              } catch (e) { }
             }
-          };
+          } catch (err) {
+            console.error("Scanner startup error:", err);
+            // Universal Fallback: Bare defaults
+            try {
+              await scannerRef.current.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, onScanSuccess, onScanError);
+            } catch (e) { }
+          }
+        };
 
-          Html5Qrcode.getCameras().then(devices => {
-            if (devices && devices.length > 0) {
-              setCameras(devices);
-              const backCamera = devices.find(d =>
-                (d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear')) &&
-                !d.label?.toLowerCase().includes('wide') &&
-                !d.label?.toLowerCase().includes('0') &&
-                !d.label?.toLowerCase().includes('2') // Ignore Camera 2 if it's the secondary lens
-              ) || devices.find(d =>
-                (d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear')) &&
-                !d.label?.toLowerCase().includes('wide')
-              ) || devices.find(d => d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear'));
-              const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
-              setActiveCameraId(selectedId);
-              startScanner(selectedId);
-            } else {
-              startScanner();
-            }
-          }).catch(() => startScanner());
-        }
-      }, 600);
+        Html5Qrcode.getCameras().then(devices => {
+          if (devices && devices.length > 0) {
+            setCameras(devices);
+            const backCamera = devices.find(d =>
+              (d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear')) &&
+              !d.label?.toLowerCase().includes('wide') && !d.label?.toLowerCase().includes('2')
+            ) || devices.find(d => d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear')) || devices[0];
+
+            const selectedId = activeCameraId || backCamera.id;
+            setActiveCameraId(selectedId);
+            startScanner(selectedId);
+          } else {
+            startScanner();
+          }
+        }).catch(() => startScanner());
+      }
 
       const refocusInterval = setInterval(async () => {
-        if (html5QrCode?.isScanning) {
+        if (scannerRef.current?.isScanning) {
           try {
-            const track = html5QrCode.getRunningTrack();
-            if (track) {
-              await track.applyConstraints({ focusMode: "continuous" });
-            }
+            const track = scannerRef.current.getRunningTrack();
+            if (track) await track.applyConstraints({ focusMode: "continuous" });
           } catch (e) { }
         }
       }, 3000);
@@ -4565,8 +4553,8 @@ export default function App() {
       return () => {
         clearTimeout(initTimeout);
         clearInterval(refocusInterval);
-        if (html5QrCode?.isScanning) {
-          html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.error(e));
+        if (scannerRef.current?.isScanning) {
+          scannerRef.current.stop().then(() => scannerRef.current.clear()).catch(e => console.error(e));
         }
       };
     } else {
@@ -8019,7 +8007,25 @@ export default function App() {
                     )}
                   </div>
                 </div>
-                <button onClick={() => setIsScannerOpen(false)} className="p-3 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-600 transition-all ml-2 bg-gray-100/50"><X size={24} /></button>
+                <button
+                  onClick={() => setIsScannerOpen(false)}
+                  className="p-3 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-600 transition-all ml-2 bg-gray-100/50"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Retry Overlay if black screen */}
+              <div className="absolute top-24 right-6 z-[60]">
+                <button
+                  onClick={() => {
+                    setIsScannerOpen(false);
+                    setTimeout(() => setIsScannerOpen(true), 100);
+                  }}
+                  className="px-3 py-1.5 bg-blue-600/80 backdrop-blur-md text-white text-[10px] font-black uppercase rounded-full shadow-lg border border-white/20 hover:bg-blue-700 transition-all flex items-center gap-2"
+                >
+                  <RefreshCw size={12} className="animate-spin-slow" /> Retry Camera
+                </button>
               </div>
 
               <div className="relative overflow-hidden bg-black aspect-square sm:aspect-video flex items-center justify-center">
