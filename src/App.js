@@ -6163,7 +6163,10 @@ export default function App() {
                         {['Cash', 'Visa', 'Online'].map(method => (
                           <button
                             key={method}
-                            onClick={() => setPaymentMethod(method)}
+                            onClick={() => {
+                              setPaymentMethod(method);
+                              if (method === 'Online') setShowUpiQr(true);
+                            }}
                             className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-[1.02]' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
                           >
                             {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
@@ -6176,7 +6179,7 @@ export default function App() {
                           {['UPI', 'InstaPay'].map(sub => (
                             <button
                               key={sub}
-                              onClick={() => setDigitalSubMethod(sub)}
+                              onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
                               className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-tight rounded-lg transition-all ${digitalSubMethod === sub ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 hover:text-gray-600'}`}
                             >
                               {sub}
@@ -8285,7 +8288,7 @@ export default function App() {
       {/* UPI QR Payment Modal (Improved with Close and Overlap fix) */}
       {
         activeTab === 'sales_purchases' && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && cart.length > 0 && (
-          <div className="fixed bottom-24 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,.1)] border border-blue-50 p-6 animate-in slide-in-from-bottom-10 duration-500 z-[60]">
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[280px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,.1)] border border-blue-50 p-6 animate-in slide-in-from-bottom-10 duration-500 z-[100]">
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-3 text-blue-800">
                 <div className="p-2 bg-blue-50 rounded-xl"><QrCode size={20} /></div>
