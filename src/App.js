@@ -4452,8 +4452,9 @@ export default function App() {
 
     if (isScannerOpen) {
       const config = {
-        fps: 10, // Lowest stable FPS to avoid flickering
-        qrbox: { width: 250, height: 150 }, // Use fixed object instead of function for max stability
+        fps: 25,
+        qrbox: { width: 300, height: 200 }, // Larger box so user stays further back
+        aspectRatio: 1.777778, // 16:9 is the native sharpest mode for most sensors
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
           Html5QrcodeSupportedFormats.UPC_A,
@@ -4464,7 +4465,8 @@ export default function App() {
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.ITF,
           Html5QrcodeSupportedFormats.DATA_MATRIX
-        ]
+        ],
+        disableFlip: true
       };
 
       // Use a small delay to ensure React has rendered the #reader element
@@ -4477,7 +4479,17 @@ export default function App() {
         const startScanner = async (cameraId) => {
           try {
             await html5QrCode.start(
-              cameraId || { facingMode: "environment" },
+              cameraId ? {
+                deviceId: { exact: cameraId },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                focusMode: { ideal: "continuous" }
+              } : {
+                facingMode: "environment",
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                focusMode: { ideal: "continuous" }
+              },
               config,
               onScanSuccess,
               onScanError
