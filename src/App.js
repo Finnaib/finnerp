@@ -591,6 +591,93 @@ const translations = {
     na: 'N/A',
     totalCost: 'Total Cost',
     profit: 'Profit',
+    liveBoard: 'Live Board',
+    manageUnits: 'Rooms & Tables',
+    menuRecipes: 'Menu & Recipes',
+    activeSessions: 'Active Sessions',
+    unitsMonitoring: 'Live monitoring for {0} units',
+    inSession: 'In-Session',
+    available: 'Available',
+    startSession: 'Start Session',
+    addOrder: 'Add Order',
+    stop: 'Stop',
+    recipeBuilder: 'Recipe Builder',
+    manageUnitsTitle: 'Manage Units',
+    roomName: 'Room Name',
+    unitType: 'Unit Type',
+    hourlyRate: 'Hourly Rate',
+    saveUnit: 'Save Unit',
+    cafeTable: 'Cafe Table',
+    playStationRoom: 'PlayStation Room',
+    billiardsTable: 'Billiards Table',
+    category: 'Category',
+    offerPrice: 'Price',
+    composition: 'Composition',
+    linkStock: '+ Link warehouse stock',
+    hotDrinks: 'Hot Drinks',
+    coldDrinks: 'Cold Drinks',
+    snacks: 'Snacks',
+    meals: 'Meals',
+    updateItem: 'Update Item',
+    addToMenu: 'Add to Menu',
+    appendSession: 'Append items to session',
+    orderHistory: 'Order History',
+    newSelection: 'New Selection',
+    trayEmpty: 'Tray is Empty',
+    trayTotal: 'Tray Total',
+    confirmOrder: 'Confirm Order',
+    menuItemsMissingTitle: 'Menu items missing',
+    all: 'All',
+    customerPhone: 'Customer Phone *',
+    customerName: 'Customer Name',
+    sessionType: 'Session Type',
+    openSession: 'Open (No Limit)',
+    fixedDuration: 'Fixed Duration',
+    startSessionTitle: 'Start Session',
+    managePayroll: 'Manage Payroll',
+    advanceTaken: 'Advance Taken',
+    manualDeductions: 'Manual Deductions',
+    lateAbsentAuto: 'Late/Absent (Auto)',
+    grossEarnings: 'Gross Earnings',
+    netPayable: 'Net Payable',
+    reset: 'Reset',
+    saveRecord: 'Save Record',
+    hourlyRateLabel: 'HOURLY RATE',
+    sessionTypeLabel: 'SESSION TYPE',
+    phonePlaceholder: 'e.g. 050 123 4567',
+    guestName: 'Guest Name',
+    subtotalLabel: 'SUBTOTAL',
+    retryCamera: 'Retry Camera',
+    scanFocusInfo: 'Pinch or use slider to focus.',
+    tapToFocus: 'Tap screen to force focus.',
+    centerCodeFrame: 'Center the code inside the blue frame',
+    holdAwayTap: 'Hold 20cm away & Tap to sharpen',
+    selectMonthInfo: 'Select month to view salary details',
+    manageEditMonth: 'Manage/Edit for this Month',
+    viewManageLocations: 'View and manage all your physical locations',
+    addAccount: 'Add Account',
+    accountName: 'Account Name',
+    initialBalance: 'Initial Balance',
+    createAccount: 'Create Account',
+    editItem: 'Edit Item',
+    addInventoryItem: 'Add Inventory Item',
+    printBarcodeLabel: 'Print Barcode Label',
+    newSale: 'New Sale',
+    totalAmount: 'Total Amount',
+    completed: 'Completed',
+    shipped: 'Shipped',
+    itemsSummaryLabel: 'Items (Summary)',
+    connectionError: 'Connection Error:',
+    dismiss: 'Dismiss',
+    adminUser: 'Admin User',
+    optional: 'Optional',
+    onTimeLabel: 'On Time',
+    lateLabel: 'Late',
+    absentLabel: 'Absent',
+    pendingLabel: 'Pending',
+    createSale: 'Create Sale',
+    newPurchase: 'New Purchase',
+    supplierName: 'Supplier Name',
   },
   hi: {
     appName: 'Finn ERP',
@@ -1020,7 +1107,93 @@ const translations = {
     netMargin: 'शुद्ध मार्जिन',
     deptExpenses: 'विभाग व्यय',
     invPurchases: 'इन्वेंटरी खरीद',
-
+    liveBoard: 'लाइव बोर्ड',
+    manageUnits: 'कमरे और मेज',
+    menuRecipes: 'मेन्यू और रेसिपी',
+    activeSessions: 'सक्रिय सत्र',
+    unitsMonitoring: '{0} इकाइयों की लाइव निगरानी',
+    inSession: 'सत्र में',
+    available: 'उपलब्ध',
+    startSession: 'सत्र शुरू करें',
+    addOrder: 'ऑर्डर जोड़ें',
+    stop: 'रोकें',
+    recipeBuilder: 'रेसिपी बिल्डर',
+    manageUnitsTitle: 'इकाइयों का प्रबंधन',
+    roomName: 'कमरे का नाम',
+    unitType: 'इकाई प्रकार',
+    hourlyRate: 'प्रति घंटा दर',
+    saveUnit: 'इकाई सहेजें',
+    cafeTable: 'कैफे मेज',
+    playStationRoom: 'प्लेस्टेशन कमरा',
+    billiardsTable: 'बिलियर्ड्स मेज',
+    category: 'श्रेणी',
+    offerPrice: 'कीमत',
+    composition: 'संरचना',
+    linkStock: '+ गोदाम स्टॉक लिंक करें',
+    hotDrinks: 'गर्म पेय',
+    coldDrinks: 'ठंडे पेय',
+    snacks: 'नाश्ता',
+    meals: 'भोजन',
+    updateItem: 'आइटम अपडेट करें',
+    addToMenu: 'मेन्यू में जोड़ें',
+    appendSession: 'सत्र में आइटम जोड़ें',
+    orderHistory: 'ऑर्डर इतिहास',
+    newSelection: 'नया चयन',
+    trayEmpty: 'ट्रे खाली है',
+    trayTotal: 'ट्रे कुल',
+    confirmOrder: 'ऑर्डर की पुष्टि करें',
+    menuItemsMissingTitle: 'कोई मेन्यू आइटम नहीं',
+    all: 'सभी',
+    customerPhone: 'ग्राहक फोन *',
+    customerName: 'ग्राहक का नाम',
+    sessionType: 'सत्र का प्रकार',
+    openSession: 'खुला (कोई सीमा नहीं)',
+    fixedDuration: 'निश्चित अवधि',
+    startSessionTitle: 'सत्र शुरू करें',
+    managePayroll: 'पेरोल प्रबंधित करें',
+    advanceTaken: 'अग्रिम लिया गया',
+    manualDeductions: 'मैनुअल कटौती',
+    lateAbsentAuto: 'देरी/अनुपस्थित (ऑटो)',
+    grossEarnings: 'कुल कमाई',
+    netPayable: 'शुद्ध देय',
+    reset: 'रीसेट',
+    saveRecord: 'रिकॉर्ड सहेजें',
+    hourlyRateLabel: 'प्रति घंटा दर',
+    sessionTypeLabel: 'सत्र प्रकार',
+    phonePlaceholder: 'उदाहरण: 050 123 4567',
+    guestName: 'अतिथि का नाम',
+    subtotalLabel: 'उप-योग',
+    retryCamera: 'कैमरा पुनः प्रयास करें',
+    scanFocusInfo: 'फोकस करने के लिए पिंच करें या स्लाइडर का उपयोग करें।',
+    tapToFocus: 'जबरन फोकस करने के लिए स्क्रीन पर टैप करें।',
+    centerCodeFrame: 'कोड को नीले फ्रेम के अंदर केंद्रित करें',
+    holdAwayTap: '20 सेमी दूर रखें और स्पष्ट करने के लिए टैप करें',
+    selectMonthInfo: 'वेतन विवरण देखने के लिए महीना चुनें',
+    manageEditMonth: 'इस महीने के लिए प्रबंधित/संपादित करें',
+    viewManageLocations: 'अपने सभी भौतिक स्थानों को देखें और प्रबंधित करें',
+    addAccount: 'खाता जोड़ें',
+    accountName: 'खाता नाम',
+    initialBalance: 'प्रारंभिक शेष',
+    createAccount: 'खाता बनाएं',
+    editItem: 'आइटम संपादित करें',
+    addInventoryItem: 'इन्वेंट्री आइटम जोड़ें',
+    printBarcodeLabel: 'बारकोड लेबल प्रिंट करें',
+    newSale: 'नई बिक्री',
+    totalAmount: 'कुल राशि',
+    completed: 'पूरा हुआ',
+    shipped: 'भेजा गया',
+    itemsSummaryLabel: 'वस्तु सारांश',
+    connectionError: 'कनेक्शन त्रुटि:',
+    dismiss: 'खारिज करें',
+    adminUser: 'व्यवस्थापक उपयोगकर्ता',
+    optional: 'वैकल्पिक',
+    onTimeLabel: 'समय पर',
+    lateLabel: 'देर से',
+    absentLabel: 'अनुपस्थित',
+    pendingLabel: 'लंबित',
+    createSale: 'बिक्री बनाएं',
+    newPurchase: 'नई खरीद',
+    supplierName: 'आपूर्तिकर्ता का नाम',
   },
 
   ar: {
@@ -1420,6 +1593,93 @@ const translations = {
     netMargin: 'هامش الربح الصافي',
     deptExpenses: 'مصاريف الأقسام',
     invPurchases: 'مشتريات المخزون',
+    liveBoard: 'اللوحة المباشرة',
+    manageUnits: 'الغرف والطاولات',
+    menuRecipes: 'المنيو والوصفات',
+    activeSessions: 'الجلسات النشطة',
+    unitsMonitoring: 'مراقبة مباشرة لـ {0} وحدات',
+    inSession: 'في جلسة',
+    available: 'متاح',
+    startSession: 'بدء الجلسة',
+    addOrder: 'إضافة طلب',
+    stop: 'إيقاف',
+    recipeBuilder: 'منشئ الوصفات',
+    manageUnitsTitle: 'إدارة الوحدات',
+    roomName: 'اسم الغرفة',
+    unitType: 'نوع الوحدة',
+    hourlyRate: 'السعر بالساعة',
+    saveUnit: 'حفظ الوحدة',
+    cafeTable: 'طاولة كافيه',
+    playStationRoom: 'غرفة بلايستيشن',
+    billiardsTable: 'طاولة بلياردو',
+    category: 'الفئة',
+    offerPrice: 'السعر',
+    composition: 'المكونات',
+    linkStock: '+ ربط مخزون المستودع',
+    hotDrinks: 'مشروبات ساخنة',
+    coldDrinks: 'مشروبات باردة',
+    snacks: 'سناكس',
+    meals: 'وجبات',
+    updateItem: 'تحديث الصنف',
+    addToMenu: 'إضافة للمنيو',
+    appendSession: 'إضافة أصناف للجلسة',
+    orderHistory: 'سجل الطلبات',
+    newSelection: 'اختيار جديد',
+    trayEmpty: 'الصينية فارغة',
+    trayTotal: 'إجمالي الصينية',
+    confirmOrder: 'تأكيد الطلب',
+    menuItemsMissingTitle: 'لا توجد أصناف في المنيو',
+    all: 'الكل',
+    customerPhone: 'هاتف العميل *',
+    customerName: 'اسم العميل',
+    sessionType: 'نوع الجلسة',
+    openSession: 'مفتوحة (بدون حد)',
+    fixedDuration: 'مدة محددة',
+    startSessionTitle: 'بدء الجلسة',
+    managePayroll: 'إدارة الرواتب',
+    advanceTaken: 'سلفة مأخوذة',
+    manualDeductions: 'خصومات يدوية',
+    lateAbsentAuto: 'تأخير/غياب (تلقائي)',
+    grossEarnings: 'إجمالي الأرباح',
+    netPayable: 'صافي المستحق',
+    reset: 'إعادة ضبط',
+    saveRecord: 'حفظ السجل',
+    hourlyRateLabel: 'السعر بالساعة',
+    sessionTypeLabel: 'نوع الجلسة',
+    phonePlaceholder: 'مثال: 050 123 4567',
+    guestName: 'اسم الضيف',
+    subtotalLabel: 'المجموع الفرعي',
+    retryCamera: 'إعادة محاولة الكاميرا',
+    scanFocusInfo: 'استخدم القرص أو المنزلق للتركيز.',
+    tapToFocus: 'اضغط على الشاشة للتركيز القسري.',
+    centerCodeFrame: 'ضع الرمز داخل الإطار الأزرق',
+    holdAwayTap: 'أبقه على بعد 20 سم واضغط للتوضيح',
+    selectMonthInfo: 'اختر الشهر لعرض تفاصيل الراتب',
+    manageEditMonth: 'إدارة/تعديل لهذا الشهر',
+    viewManageLocations: 'عرض وإدارة جميع مواقعك الفعلية',
+    addAccount: 'إضافة حساب',
+    accountName: 'اسم الحساب',
+    initialBalance: 'الرصيد الافتتاحي',
+    createAccount: 'إنشاء حساب',
+    editItem: 'تعديل الصنف',
+    addInventoryItem: 'إضافة صنف للمخزون',
+    printBarcodeLabel: 'طباعة ملصق الباركود',
+    newSale: 'بيع جديد',
+    totalAmount: 'المبلغ الإجمالي',
+    completed: 'مكتمل',
+    shipped: 'تم الشحن',
+    itemsSummaryLabel: 'ملخص العناصر',
+    connectionError: 'خطأ في الاتصال:',
+    dismiss: 'تجاهل',
+    adminUser: 'مستخدم مسؤول',
+    optional: 'اختياري',
+    onTimeLabel: 'في الوقت',
+    lateLabel: 'متأخر',
+    absentLabel: 'غائب',
+    pendingLabel: 'قيد الانتظار',
+    createSale: 'إنشاء عملية بيع',
+    newPurchase: 'شراء جديد',
+    supplierName: 'اسم المورد',
   },
   zh: {
     appName: 'Finn ERP',
@@ -1801,6 +2061,93 @@ const translations = {
     deptExpenses: '部门费用',
     invPurchases: '库存采购',
     discount: '折扣',
+    liveBoard: '现场看板',
+    manageUnits: '房间与桌台',
+    menuRecipes: '菜单与配方',
+    activeSessions: '活跃会话',
+    unitsMonitoring: '{0}个单元的实时监控',
+    inSession: '会话中',
+    available: '空闲',
+    startSession: '开始会话',
+    addOrder: '添加订单',
+    stop: '停止',
+    recipeBuilder: '配方构建器',
+    manageUnitsTitle: '管理单元',
+    roomName: '房间名称',
+    unitType: '单元类型',
+    hourlyRate: '时薪',
+    saveUnit: '保存单元',
+    cafeTable: '咖啡桌',
+    playStationRoom: 'PlayStation 房间',
+    billiardsTable: '台球桌',
+    category: '类别',
+    offerPrice: '价格',
+    composition: '成分',
+    linkStock: '+ 链接仓库库存',
+    hotDrinks: '热饮',
+    coldDrinks: '冷饮',
+    snacks: '小吃',
+    meals: '正餐',
+    updateItem: '更新项目',
+    addToMenu: '添加到菜单',
+    appendSession: '将项目追加到会话',
+    orderHistory: '订单历史',
+    newSelection: '新选择',
+    trayEmpty: '托盘是空的',
+    trayTotal: '托盘总额',
+    confirmOrder: '确认订单',
+    menuItemsMissingTitle: '没有菜单项目',
+    all: '全部',
+    customerPhone: '客户电话 *',
+    customerName: '客户姓名',
+    sessionType: '会话类型',
+    openSession: '开放（无限制）',
+    fixedDuration: '固定时长',
+    startSessionTitle: '开始会话',
+    managePayroll: '管理薪资',
+    advanceTaken: '预支金额',
+    manualDeductions: '手动扣款',
+    lateAbsentAuto: '迟到/缺席 (自动)',
+    grossEarnings: '总收入',
+    netPayable: '实付工资',
+    reset: '重置',
+    saveRecord: '保存记录',
+    hourlyRateLabel: '时薪',
+    sessionTypeLabel: '会话类型',
+    phonePlaceholder: '例如：050 123 4567',
+    guestName: '访客姓名',
+    subtotalLabel: '小计',
+    retryCamera: '重试摄像头',
+    scanFocusInfo: '缩放或使用滑块对焦。',
+    tapToFocus: '点击屏幕强制对焦。',
+    centerCodeFrame: '将代码居中在蓝色框内',
+    holdAwayTap: '保持20厘米距离并点击对焦',
+    selectMonthInfo: '选择月份查看工资详情',
+    manageEditMonth: '管理/编辑本月',
+    viewManageLocations: '查看和管理所有物理地点',
+    addAccount: '添加帐户',
+    accountName: '帐户名称',
+    initialBalance: '初始余额',
+    createAccount: '创建帐户',
+    editItem: '编辑项目',
+    addInventoryItem: '添加库项目',
+    printBarcodeLabel: '打印条形码标签',
+    newSale: '新销售',
+    totalAmount: '总计金额',
+    completed: '已完成',
+    shipped: '已发货',
+    itemsSummaryLabel: '项目摘要',
+    connectionError: '连接错误:',
+    dismiss: '关闭',
+    adminUser: '管理员用户',
+    optional: '可选',
+    onTimeLabel: '按时',
+    lateLabel: '迟到',
+    absentLabel: '缺勤',
+    pendingLabel: '等候中',
+    createSale: '创建销售',
+    newPurchase: '新采购',
+    supplierName: '供应商名称',
   }
 };
 
@@ -5292,7 +5639,7 @@ export default function App() {
               className="flex items-center gap-2 pl-2 pr-1 py-1 bg-white border border-gray-100 rounded-2xl hover:border-blue-200 transition-all shadow-sm group"
             >
               <div className="hidden sm:block text-right mr-1">
-                <div className="text-[10px] font-black text-gray-900 uppercase tracking-tighter leading-none">Admin User</div>
+                <div className="text-[10px] font-black text-gray-900 uppercase tracking-tighter leading-none">{t('adminUser')}</div>
                 <div className="text-[8px] text-gray-400 font-bold tracking-tight lowercase truncate max-w-[80px]">{user.email}</div>
               </div>
               <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform duration-300">
@@ -5311,10 +5658,10 @@ export default function App() {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-red-700 font-bold">
-                  Connection Error:
+                  {t('connectionError')}
                 </p>
                 <p className="text-sm text-red-700">
-                  {globalError} <button onClick={() => setGlobalError(null)} className="underline ml-2">Dismiss</button>
+                  {globalError} <button onClick={() => setGlobalError(null)} className="underline ml-2">{t('dismiss')}</button>
                 </p>
               </div>
             </div>
@@ -5329,7 +5676,7 @@ export default function App() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('menuDashboard')}</h1>
-                  <p className="text-sm text-gray-500 font-medium">{t('welcome')}, Admin</p>
+                  <p className="text-sm text-gray-500 font-medium">{t('welcome')}, {t('admin')}</p>
                 </div>
                 <div className="relative group w-full sm:w-auto">
                   <select
@@ -5464,7 +5811,7 @@ export default function App() {
                     className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
                     value={employeeMonthFilter}
                     onChange={e => setEmployeeMonthFilter(e.target.value)}
-                    title="Select month to view salary details"
+                    title={t('selectMonthInfo')}
                   />
                   <button onClick={() => setIsAddModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all w-full sm:w-auto">
                     <Plus size={18} /> {t('addEmployee')}
@@ -5506,7 +5853,7 @@ export default function App() {
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{t('filterAll')}</h3>
-                  <p className="text-sm text-gray-500">{t('manageLocations') || 'View and manage all your physical locations'}</p>
+                  <p className="text-sm text-gray-500">{t('viewManageLocations')}</p>
                 </div>
                 <button onClick={() => setIsAddSiteModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all w-full sm:w-auto">
                   <Plus size={18} /> {t('addLocation')}
@@ -5717,7 +6064,7 @@ export default function App() {
                         <th className="px-6 py-3 text-right">{t('salary')}</th>
                         <th className="px-6 py-3 text-right">{t('bonus')}</th>
                         <th className="px-6 py-4 font-semibold text-gray-900">{t('overtime')}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900 text-red-600">{t('advance') || 'Advance'}</th>
+                        <th className="px-6 py-4 font-semibold text-gray-900 text-red-600">{t('advance')}</th>
                         <th className="px-6 py-4 font-semibold text-right text-amber-600">{t('late')}</th>
                         <th className="px-6 py-3 text-right text-red-600">{t('absent')}</th>
                         <th className="px-6 py-3 text-right text-red-800">{t('deductions')}</th>
@@ -5840,9 +6187,9 @@ export default function App() {
                                   <button
                                     onClick={() => handleManagePayroll(emp, payrollMonthFilter, lateDeduction, absentDeduction)}
                                     className={`p-2 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium ${storedRecord ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'text-gray-600 hover:bg-gray-100'}`}
-                                    title="Manage/Edit for this Month"
+                                    title={t('manageEditMonth')}
                                   >
-                                    <Edit size={16} /> {storedRecord ? 'Edit' : 'Manage'}
+                                    <Edit size={16} /> {storedRecord ? t('edit') : t('management')}
                                   </button>
                                   <button
                                     onClick={() => handlePrintPayrollSlip(emp, {
@@ -5857,7 +6204,7 @@ export default function App() {
                                       netPay
                                     }, payrollMonthFilter)}
                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium"
-                                    title="Print Payroll Slip"
+                                    title={t('printPayrollSlip')}
                                   >
                                     <Printer size={16} />
                                   </button>
@@ -6700,9 +7047,9 @@ export default function App() {
                 {/* Sub-tab Navigation - ERP Style */}
                 <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-fit border border-gray-200 mb-8 overflow-x-auto shadow-sm">
                   {[
-                    { id: 'board', label: t('liveBoard') || 'LIVE BOARD', icon: <LayoutDashboard size={14} /> },
-                    { id: 'rooms', label: t('manageUnits') || 'ROOMS & TABLES', icon: <Plus size={14} /> },
-                    { id: 'recipes', label: t('menuRecipes') || 'MENU & RECIPES', icon: <Database size={14} /> }
+                    { id: 'board', label: t('liveBoard'), icon: <LayoutDashboard size={14} /> },
+                    { id: 'rooms', label: t('manageUnits'), icon: <Plus size={14} /> },
+                    { id: 'recipes', label: t('menuRecipes'), icon: <Database size={14} /> }
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -6718,12 +7065,12 @@ export default function App() {
                   <div className="animate-in fade-in zoom-in-95 duration-700">
                     <div className="flex justify-between items-end mb-8">
                       <div>
-                        <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('activeSessions') || 'Active Sessions'}</h2>
-                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.1em] mt-1">LIVE MONITORING FOR {cafeRooms.length} UNITS</p>
+                        <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('activeSessions')}</h2>
+                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.1em] mt-1">{t('unitsMonitoring').replace('{0}', cafeRooms.length)}</p>
                       </div>
                       <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-gray-100 shadow-sm">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{t('online') || 'SYSTEM ONLINE'}</span>
+                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{t('online')}</span>
                       </div>
                     </div>
 
@@ -6743,7 +7090,7 @@ export default function App() {
                                 {activeSession ? (
                                   <div className="animate-in fade-in slide-in-from-top-2 duration-700">
                                     <div className="flex items-center justify-end gap-2 mb-1">
-                                      <span className="text-[10px] uppercase font-bold tracking-widest text-blue-600/60">IN-SESSION</span>
+                                      <span className="text-[10px] uppercase font-bold tracking-widest text-blue-600/60">{t('inSession')}</span>
                                       <span className="flex h-2 w-2">
                                         <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-blue-400 opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
@@ -6762,7 +7109,7 @@ export default function App() {
                                   </div>
                                 ) : (
                                   <div className="animate-in fade-in duration-700">
-                                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-500 block mb-1">AVAILABLE</span>
+                                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-500 block mb-1">{t('available')}</span>
                                     <span className="text-lg font-black text-slate-900/10 group-hover:text-slate-900/30 transition-colors">{formatCurrency(room.hourlyPrice || 0)}/HR</span>
                                   </div>
                                 )}
@@ -6776,11 +7123,11 @@ export default function App() {
 
                             <div className="flex gap-2 mt-6">
                               {!activeSession ? (
-                                <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-3.5 bg-slate-900 hover:bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 active:scale-95">START SESSION</button>
+                                <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-3.5 bg-slate-900 hover:bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 active:scale-95">{t('startSession')}</button>
                               ) : (
                                 <>
-                                  <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 border border-blue-100 italic">ADD ORDER</button>
-                                  <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 border border-rose-100 italic">STOP</button>
+                                  <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 border border-blue-100 italic">{t('addOrder')}</button>
+                                  <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 border border-rose-100 italic">{t('stop')}</button>
                                 </>
                               )}
                             </div>
@@ -6796,29 +7143,29 @@ export default function App() {
                     <div className="lg:col-span-4 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50">
                       <h3 className="text-lg font-black uppercase tracking-tight mb-6 text-slate-800 flex items-center gap-2">
                         <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
-                        MANAGE UNITS
+                        {t('manageUnitsTitle')}
                       </h3>
                       <form onSubmit={handleSaveRoom} className="space-y-5">
                         <div className="flex flex-col gap-1">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('roomName') || 'ROOM NAME'}</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('roomName')}</label>
                           <input type="text" value={roomForm.name} onChange={e => setRoomForm({ ...roomForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300" placeholder="e.g. PS5 VIP 1" required />
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('unitType') || 'UNIT TYPE'}</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('unitType')}</label>
                           <select value={roomForm.type} onChange={e => setRoomForm({ ...roomForm, type: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer">
-                            <option value="Cafe">Cafe Table</option>
-                            <option value="PlayStation">PlayStation Room</option>
-                            <option value="Billiards">Billiards Table</option>
+                            <option value="Cafe">{t('cafeTable')}</option>
+                            <option value="PlayStation">{t('playStationRoom')}</option>
+                            <option value="Billiards">{t('billiardsTable')}</option>
                           </select>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('hourlyRate') || 'HOURLY RATE'}</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('hourlyRate')}</label>
                           <input type="number" value={roomForm.hourlyPrice} onChange={e => setRoomForm({ ...roomForm, hourlyPrice: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300" placeholder="0.00" required />
                         </div>
                         <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 mt-2">
-                          <Plus size={18} strokeWidth={3} /> {roomForm.id ? 'UPDATE UNIT' : 'SAVE UNIT'}
+                          <Plus size={18} strokeWidth={3} /> {roomForm.id ? t('updateItem') : t('saveUnit')}
                         </button>
-                        {roomForm.id && <button type="button" onClick={() => setRoomForm({ name: '', type: 'Cafe', hourlyPrice: 0 })} className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Cancel Edit</button>}
+                        {roomForm.id && <button type="button" onClick={() => setRoomForm({ name: '', type: 'Cafe', hourlyPrice: 0 })} className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">{t('cancel')}</button>}
                       </form>
                     </div>
 
@@ -6855,31 +7202,31 @@ export default function App() {
                     <div className="lg:col-span-4 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50">
                       <h3 className="text-lg font-black uppercase tracking-tight mb-6 text-slate-800 flex items-center gap-2">
                         <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
-                        MENU BUILDER
+                        {t('recipeBuilder')}
                       </h3>
                       <form onSubmit={handleSaveRecipe} className="space-y-5">
                         <div className="flex flex-col gap-1">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('itemName') || 'ITEM NAME'}</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('itemName')}</label>
                           <input type="text" value={recipeForm.name} onChange={e => setRecipeForm({ ...recipeForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300" placeholder="e.g. Mocha Premium" required />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="flex flex-col gap-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('category') || 'CATEGORY'}</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('category')}</label>
                             <select value={recipeForm.category} onChange={e => setRecipeForm({ ...recipeForm, category: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer">
-                              <option value="Hot Drinks">Hot Drinks</option>
-                              <option value="Cold Drinks">Cold Drinks</option>
-                              <option value="Snacks">Snacks</option>
-                              <option value="Meals">Meals</option>
+                              <option value="Hot Drinks">{t('hotDrinks')}</option>
+                              <option value="Cold Drinks">{t('coldDrinks')}</option>
+                              <option value="Snacks">{t('snacks')}</option>
+                              <option value="Meals">{t('meals')}</option>
                             </select>
                           </div>
                           <div className="flex flex-col gap-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('offerPrice') || 'PRICE'}</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('offerPrice')}</label>
                             <input type="number" value={recipeForm.sellPrice} onChange={e => setRecipeForm({ ...recipeForm, sellPrice: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300" placeholder="0.00" required />
                           </div>
                         </div>
 
                         <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('composition') || 'COMPOSITION'}</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">{t('composition')}</label>
                           <div className="space-y-2">
                             {recipeForm.ingredients.map((ing, idx) => (
                               <div key={idx} className="flex gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-100 group/ing">
@@ -6910,13 +7257,13 @@ export default function App() {
                             }}
                             className="w-full bg-white border border-dashed border-slate-200 rounded-2xl px-6 py-4 text-[10px] font-black text-slate-400 text-center cursor-pointer hover:border-indigo-300 hover:text-indigo-400 transition-all font-mono"
                           >
-                            <option value="">+ LINK WAREHOUSE STOCK</option>
+                            <option value="">{t('linkStock')}</option>
                             {inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({i.location})</option>)}
                           </select>
                         </div>
 
                         <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4">
-                          {recipeForm.id ? 'UPDATE ITEM' : 'ADD TO MENU'}
+                          {recipeForm.id ? t('updateItem') : t('addToMenu')}
                         </button>
                       </form>
                     </div>
@@ -7996,7 +8343,7 @@ export default function App() {
                 {/* Daily Replacement Dropdown */}
                 {newAttendanceForm.employeeId && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('replacementFor')} ({t('optional') || 'Optional'})</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('replacementFor')} ({t('optional')})</label>
                     <select
                       className="input-field"
                       value={newAttendanceForm.replacementFor || ''}
@@ -8052,9 +8399,9 @@ export default function App() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectStatus')}</label>
                   <select className="input-field" value={editingAttendance.status} onChange={e => setEditingAttendance({ ...editingAttendance, status: e.target.value })}>
-                    <option value="On Time">On Time</option>
-                    <option value="Late">Late</option>
-                    <option value="Absent">Absent</option>
+                    <option value="On Time">{t('onTimeLabel')}</option>
+                    <option value="Late">{t('lateLabel')}</option>
+                    <option value="Absent">{t('absentLabel')}</option>
                   </select>
                 </div>
 
@@ -8114,11 +8461,11 @@ export default function App() {
           <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">Add Account</h3>
+                <h3 className="font-bold text-lg text-gray-900">{t('addAccount')}</h3>
                 <button onClick={() => setIsAddAccountModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
               <form onSubmit={handleAddAccount} className="p-6 space-y-4">
-                <input className="input-field" placeholder="Account Name" value={newAccountForm.name} onChange={e => setNewAccountForm({ ...newAccountForm, name: e.target.value })} required />
+                <input className="input-field" placeholder={t('accountName')} value={newAccountForm.name} onChange={e => setNewAccountForm({ ...newAccountForm, name: e.target.value })} required />
 
                 <select className="input-field" value={newAccountForm.type} onChange={e => setNewAccountForm({ ...newAccountForm, type: e.target.value })}>
                   <option value="Asset">Asset</option>
@@ -8128,7 +8475,7 @@ export default function App() {
                   <option value="Expense">Expense</option>
                 </select>
 
-                <input type="number" className="input-field" placeholder="Initial Balance" value={newAccountForm.balance} onChange={e => setNewAccountForm({ ...newAccountForm, balance: Number(e.target.value) })} />
+                <input type="number" className="input-field" placeholder={t('initialBalance')} value={newAccountForm.balance} onChange={e => setNewAccountForm({ ...newAccountForm, balance: Number(e.target.value) })} />
 
                 <div className="pt-2 flex gap-3">
                   <button type="button" onClick={() => setIsAddAccountModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
@@ -8145,7 +8492,7 @@ export default function App() {
           <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">{editingItem ? 'Edit Item' : 'Add Inventory Item'}</h3>
+                <h3 className="font-bold text-lg text-gray-900">{editingItem ? t('editItem') : t('addInventoryItem')}</h3>
                 <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
               <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4">
@@ -8206,7 +8553,7 @@ export default function App() {
                         onClick={() => handlePrintBarcode(editingItem || newItemForm)}
                         className="w-full flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-100 transition-colors border border-blue-100"
                       >
-                        <Printer size={16} /> Print Barcode Label
+                        <Printer size={16} /> {t('printBarcodeLabel')}
                       </button>
                     )}
                   </div>
@@ -8228,18 +8575,18 @@ export default function App() {
           <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">New Sale</h3>
+                <h3 className="font-bold text-lg text-gray-900">{t('newSale')}</h3>
                 <button onClick={() => setIsAddSaleModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
               <form onSubmit={handleAddSale} className="p-6 space-y-4">
-                <input className="input-field" placeholder="Customer Name" value={newSaleForm.customer} onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })} required />
-                <input type="number" className="input-field" placeholder="Total Amount" value={newSaleForm.amount} onChange={e => setNewSaleForm({ ...newSaleForm, amount: Number(e.target.value) })} required />
+                <input className="input-field" placeholder={t('customerName')} value={newSaleForm.customer} onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })} required />
+                <input type="number" className="input-field" placeholder={t('totalAmount')} value={newSaleForm.amount} onChange={e => setNewSaleForm({ ...newSaleForm, amount: Number(e.target.value) })} required />
                 <select className="input-field" value={newSaleForm.status} onChange={e => setNewSaleForm({ ...newSaleForm, status: e.target.value })}>
-                  <option value="Pending">Pending</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Shipped">Shipped</option>
+                  <option value="Pending">{t('pendingLabel')}</option>
+                  <option value="Completed">{t('completed')}</option>
+                  <option value="Shipped">{t('shipped')}</option>
                 </select>
-                <input className="input-field" placeholder="Items (Summary)" value={newSaleForm.items} onChange={e => setNewSaleForm({ ...newSaleForm, items: e.target.value })} />
+                <input className="input-field" placeholder={t('itemsSummaryLabel')} value={newSaleForm.items} onChange={e => setNewSaleForm({ ...newSaleForm, items: e.target.value })} />
 
                 <div className="pt-2 flex gap-3">
                   <button type="button" onClick={() => setIsAddSaleModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
@@ -8257,12 +8604,12 @@ export default function App() {
           <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">New Purchase</h3>
+                <h3 className="font-bold text-lg text-gray-900">{t('newPurchase')}</h3>
                 <button onClick={() => setIsAddPurchaseModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
               <form onSubmit={handleAddPurchase} className="p-6 space-y-4">
-                <input className="input-field" placeholder="Supplier Name" value={newPurchaseForm.supplier} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, supplier: e.target.value })} required />
-                <input type="number" className="input-field" placeholder="Total Cost" value={newPurchaseForm.amount} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, amount: Number(e.target.value) })} required />
+                <input className="input-field" placeholder={t('supplierName')} value={newPurchaseForm.supplier} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, supplier: e.target.value })} required />
+                <input type="number" className="input-field" placeholder={t('totalCost')} value={newPurchaseForm.amount} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, amount: Number(e.target.value) })} required />
                 <select className="input-field" value={newPurchaseForm.status} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, status: e.target.value })}>
                   <option value="Ordered">Ordered</option>
                   <option value="Received">Received</option>
@@ -8427,7 +8774,7 @@ export default function App() {
             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <div>
-                  <h3 className="font-bold text-lg text-gray-900">Manage Payroll</h3>
+                  <h3 className="font-bold text-lg text-gray-900">{t('managePayroll')}</h3>
                   <p className="text-xs text-slate-500">{currentPayrollForm.name} • {currentPayrollForm.month}</p>
                 </div>
                 <button onClick={() => setIsManagePayrollModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
@@ -8437,34 +8784,34 @@ export default function App() {
                 {/* Fixed Fields */}
                 <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Base Salary</label>
-                    <input type="number" className="input-field bg-white" value={currentPayrollForm.salary} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, salary: e.target.value })} required title="Monthly Base Salary" />
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('basicSalary')}</label>
+                    <input type="number" className="input-field bg-white" value={currentPayrollForm.salary} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, salary: e.target.value })} required title={t('basicSalary')} />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Advance Taken</label>
-                    <input type="number" className="input-field bg-white text-red-600" value={currentPayrollForm.advance} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, advance: e.target.value })} title="Advance Salary Taken" />
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('advanceTaken')}</label>
+                    <input type="number" className="input-field bg-white text-red-600" value={currentPayrollForm.advance} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, advance: e.target.value })} title={t('advance')} />
                   </div>
                 </div>
 
                 {/* Variable Fields */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Bonus (+)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('bonus')} (+)</label>
                     <input type="number" className="input-field text-green-600 font-bold" value={currentPayrollForm.bonus} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, bonus: e.target.value })} />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Overtime (+)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('overtime')} (+)</label>
                     <input type="number" className="input-field text-orange-600 font-bold" value={currentPayrollForm.overtime} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, overtime: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Manual Deductions (-)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('manualDeductions')} (-)</label>
                     <input type="number" className="input-field text-red-600 font-bold" value={currentPayrollForm.deductions} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, deductions: e.target.value })} />
                   </div>
                   <div className="opacity-70 pointer-events-none">
-                    <label className="text-xs font-semibold text-gray-400 block mb-1">Late/Absent (Auto)</label>
+                    <label className="text-xs font-semibold text-gray-400 block mb-1">{t('lateAbsentAuto')}</label>
                     <input type="number" className="input-field bg-gray-100 text-gray-500" value={(currentPayrollForm.lateDeduction + currentPayrollForm.absentDeduction).toFixed(2)} readOnly />
                   </div>
                 </div>
@@ -8472,16 +8819,16 @@ export default function App() {
                 {/* Summary Box */}
                 <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-2">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-blue-800">Gross Earnings:</span>
+                    <span className="text-sm font-medium text-blue-800">{t('grossEarnings')}:</span>
                     <span className="font-mono font-bold text-blue-900">{formatCurrency(Number(currentPayrollForm.salary) + Number(currentPayrollForm.bonus) + Number(currentPayrollForm.overtime))}</span>
                   </div>
                   <div className="flex justify-between items-center mb-1 text-red-700">
-                    <span className="text-sm font-medium">Total Deductions:</span>
+                    <span className="text-sm font-medium">{t('totalDeductions')}:</span>
                     <span className="font-mono font-bold">-{formatCurrency(Number(currentPayrollForm.advance) + Number(currentPayrollForm.deductions) + Number(currentPayrollForm.lateDeduction) + Number(currentPayrollForm.absentDeduction))}</span>
                   </div>
                   <div className="h-px bg-blue-200 my-2"></div>
                   <div className="flex justify-between items-center">
-                    <span className="text-base font-bold text-blue-900">Net Payable:</span>
+                    <span className="text-base font-bold text-blue-900">{t('netPayable')}:</span>
                     <span className="text-xl font-bold text-blue-700 font-mono">
                       {formatCurrency(
                         (Number(currentPayrollForm.salary) + Number(currentPayrollForm.bonus) + Number(currentPayrollForm.overtime)) -
@@ -8500,11 +8847,11 @@ export default function App() {
                       className="flex-1 px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 font-bold transition-all flex items-center justify-center gap-2 border border-red-200"
                       title="Delete custom record and reset to employee defaults"
                     >
-                      <X size={18} /> Reset
+                      <X size={18} /> {t('reset')}
                     </button>
                   )}
                   <button type="submit" className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
-                    <Save size={18} /> Save Record
+                    <Save size={18} /> {t('saveRecord')}
                   </button>
                 </div>
 
@@ -8707,7 +9054,7 @@ export default function App() {
                   }}
                   className="px-3 py-1.5 bg-blue-600/80 backdrop-blur-md text-white text-[10px] font-black uppercase rounded-full shadow-lg border border-white/20 hover:bg-blue-700 transition-all flex items-center gap-2"
                 >
-                  <RefreshCw size={12} className="animate-spin-slow" /> Retry Camera
+                  <RefreshCw size={12} className="animate-spin-slow" /> {t('retryCamera')}
                 </button>
               </div>
 
@@ -8765,11 +9112,11 @@ export default function App() {
 
               <div className="p-6 bg-white text-center">
                 <p className="text-gray-900 font-bold text-sm tracking-tight mb-1">
-                  {hasZoom ? "Pinch or use slider to focus." : "Tap screen to force focus."}
+                  {hasZoom ? t('scanFocusInfo') : t('tapToFocus')}
                 </p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black leading-relaxed">
-                  Center the code inside the blue frame<br />
-                  <span className="text-blue-500">Hold 20cm away & Tap to sharpen</span>
+                  {t('centerCodeFrame')}<br />
+                  <span className="text-blue-500">{t('holdAwayTap')}</span>
                 </p>
               </div>
             </div>
@@ -8848,9 +9195,9 @@ export default function App() {
                 <div>
                   <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
                     <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
-                    ADD ORDER <span className="text-slate-300 font-normal">/</span> {activeCafeSession.roomName}
+                    {t('addOrder')} <span className="text-slate-300 font-normal">/</span> {activeCafeSession.roomName}
                   </h3>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Select items to append to session</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{t('appendSession')}</p>
                 </div>
                 <button
                   onClick={() => { setIsCafeOrderModalOpen(false); setCart([]); }}
@@ -8870,7 +9217,7 @@ export default function App() {
                         onClick={() => setActiveCafeCategory(cat)}
                         className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${activeCafeCategory === cat ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' : 'bg-white text-slate-400 border-gray-100 hover:border-blue-500/30 hover:text-blue-600'}`}
                       >
-                        {cat}
+                        {cat === 'All' ? t('all') : cat === 'Hot Drinks' ? t('hotDrinks') : cat === 'Cold Drinks' ? t('coldDrinks') : cat === 'Snacks' ? t('snacks') : t('meals')}
                       </button>
                     ))}
                   </div>
@@ -8905,7 +9252,7 @@ export default function App() {
                   {recipes.filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory).length === 0 && (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-30">
                       <Package size={48} className="mb-4 text-slate-300" />
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Menu items missing</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('menuItemsMissingTitle')}</p>
                     </div>
                   )}
                 </div>
@@ -8920,7 +9267,7 @@ export default function App() {
                       return (
                         <div className="bg-slate-50 p-6 rounded-3xl border border-gray-100/50">
                           <h4 className="font-black text-[9px] uppercase tracking-widest text-blue-600 mb-4 flex items-center gap-2">
-                            <History size={14} /> ORDER HISTORY
+                            <History size={14} /> {t('orderHistory')}
                           </h4>
                           <div className="space-y-3">
                             {history.map((item, idx) => (
@@ -8934,7 +9281,7 @@ export default function App() {
                             ))}
                           </div>
                           <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">SUBTOTAL</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t('subtotalLabel')}</span>
                             <span className="text-sm font-black text-slate-900">{formatCurrency(history.reduce((sum, h) => sum + (Number(h.sellPrice) * Number(h.quantity)), 0))}</span>
                           </div>
                         </div>
@@ -8942,12 +9289,12 @@ export default function App() {
                     })()}
 
                     <div>
-                      <h4 className="font-black text-[9px] uppercase tracking-widest text-slate-400 mb-4 px-1">NEW SELECTION</h4>
+                      <h4 className="font-black text-[9px] uppercase tracking-widest text-slate-400 mb-4 px-1">{t('newSelection')}</h4>
                       <div className="space-y-3">
                         {cart.length === 0 ? (
                           <div className="py-8 flex flex-col items-center justify-center opacity-20">
                             <ShoppingCart size={32} className="mb-2 text-slate-400" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tray is Empty</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('trayEmpty')}</p>
                           </div>
                         ) : (
                           cart.map((item, idx) => (
@@ -8970,7 +9317,7 @@ export default function App() {
 
                   <div className="pt-8 border-t border-gray-100 mt-auto">
                     <div className="flex justify-between items-end mb-6">
-                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Tray Total</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('trayTotal')}</span>
                       <span className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(cart.reduce((sum, i) => sum + (Number(i.sellPrice) * Number(i.quantity)), 0))}</span>
                     </div>
                     <button
@@ -8981,7 +9328,7 @@ export default function App() {
                       }}
                       className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-slate-200 disabled:opacity-20 flex items-center justify-center gap-2 transform active:scale-95"
                     >
-                      <CheckCircle size={18} strokeWidth={3} /> CONFIRM ORDER
+                      <CheckCircle size={18} strokeWidth={3} /> {t('confirmOrder')}
                     </button>
                   </div>
                 </div>
@@ -9002,7 +9349,7 @@ export default function App() {
                     <Play size={24} fill="currentColor" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase">Start Session</h3>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase">{t('startSessionTitle')}</h3>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{pendingRoom.name}</p>
                   </div>
                 </div>
@@ -9012,7 +9359,7 @@ export default function App() {
               <form onSubmit={handleConfirmStartSession} className="space-y-5">
                 <div className="bg-slate-50 p-6 rounded-2xl border border-gray-100 flex justify-between items-center group transition-all">
                   <div>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">HOURLY RATE</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('hourlyRateLabel')}</span>
                     <span className="text-xl font-black text-slate-900 tabular-nums">{formatCurrency(pendingRoom.hourlyPrice)}</span>
                   </div>
                   <div className="p-3 bg-white rounded-xl shadow-sm border border-gray-100 group-hover:bg-blue-600 group-hover:text-white transition-all text-slate-400">
@@ -9021,42 +9368,42 @@ export default function App() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">SESSION TYPE</label>
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('sessionTypeLabel')}</label>
                   <select
                     value={sessionStartForm.sessionType}
                     onChange={e => setSessionStartForm({ ...sessionStartForm, sessionType: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer"
                   >
-                    <option value="Open">Open (No Limit)</option>
-                    <option value="Fixed">Fixed Duration</option>
+                    <option value="Open">{t('openSession')}</option>
+                    <option value="Fixed">{t('fixedDuration')}</option>
                   </select>
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">CUSTOMER PHONE *</label>
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerPhone')}</label>
                   <input
                     type="text"
                     value={sessionStartForm.customerPhone}
                     onChange={e => setSessionStartForm({ ...sessionStartForm, customerPhone: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
-                    placeholder="e.g. 050 123 4567"
+                    placeholder={t('phonePlaceholder')}
                     required
                   />
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">CUSTOMER NAME</label>
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
                   <input
                     type="text"
                     value={sessionStartForm.customerName}
                     onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
-                    placeholder="Guest Name"
+                    placeholder={t('guestName')}
                   />
                 </div>
 
                 <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
-                  <Play size={18} fill="currentColor" /> START SESSION
+                  <Play size={18} fill="currentColor" /> {t('startSession')}
                 </button>
               </form>
             </div>
