@@ -4470,22 +4470,31 @@ export default function App() {
 
           const startScanner = async (cameraId) => {
             try {
+              // Request High Quality focusing on Sharpness
               const constraints = cameraId ? {
-                deviceId: cameraId
+                deviceId: { exact: cameraId },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                focusMode: { ideal: "continuous" }
               } : {
-                facingMode: "environment"
+                facingMode: "environment",
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                focusMode: { ideal: "continuous" }
               };
 
               await html5QrCode.start(
                 constraints,
                 {
-                  fps: 15,
+                  fps: 20, // Faster tracking
                   qrbox: (viewWidth, viewHeight) => {
-                    const minEdge = Math.min(viewWidth, viewHeight);
-                    const size = Math.floor(minEdge * 0.7);
-                    return { width: size, height: Math.floor(size * 0.6) };
+                    // Larger box encourages user to move back, helping focus
+                    const width = Math.min(viewWidth * 0.8, 350);
+                    const height = Math.min(viewHeight * 0.5, 200);
+                    return { width, height };
                   },
-                  disableFlip: true
+                  disableFlip: true,
+                  aspectRatio: 1.777778 // Standard HD aspect ratio
                 },
                 onScanSuccess,
                 onScanError
@@ -4517,10 +4526,14 @@ export default function App() {
             if (devices && devices.length > 0) {
               setCameras(devices);
               const backCamera = devices.find(d =>
-                d.name?.toLowerCase().includes('back') ||
-                d.label?.toLowerCase().includes('back') ||
-                d.label?.toLowerCase().includes('rear')
-              );
+                (d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear')) &&
+                !d.label?.toLowerCase().includes('wide') &&
+                !d.label?.toLowerCase().includes('0') &&
+                !d.label?.toLowerCase().includes('2') // Ignore Camera 2 if it's the secondary lens
+              ) || devices.find(d =>
+                (d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear')) &&
+                !d.label?.toLowerCase().includes('wide')
+              ) || devices.find(d => d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear'));
               const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
               setActiveCameraId(selectedId);
               startScanner(selectedId);
@@ -4531,8 +4544,20 @@ export default function App() {
         }
       }, 600);
 
+      const refocusInterval = setInterval(async () => {
+        if (html5QrCode?.isScanning) {
+          try {
+            const track = html5QrCode.getRunningTrack();
+            if (track) {
+              await track.applyConstraints({ focusMode: "continuous" });
+            }
+          } catch (e) { }
+        }
+      }, 3000);
+
       return () => {
         clearTimeout(initTimeout);
+        clearInterval(refocusInterval);
         if (html5QrCode?.isScanning) {
           html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.error(e));
         }
@@ -8026,7 +8051,8 @@ export default function App() {
                   {hasZoom ? "Pinch or use slider to focus." : "Point at barcode."}
                 </p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black leading-relaxed">
-                  Center the code inside the blue frame<br />Stay back to keep focus sharp
+                  Center the code inside the blue frame<br />
+                  <span className="text-blue-500">Hold 15-20cm away for sharpest focus</span>
                 </p>
               </div>
             </div>
