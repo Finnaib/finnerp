@@ -4471,20 +4471,14 @@ export default function App() {
 
         const startScanner = async (cameraId) => {
           try {
-            // Flexible Constraints: Ideal for quality, but allows browser fallback
-            const constraints = cameraId ? {
-              deviceId: cameraId,
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            } : {
-              facingMode: "environment"
-            };
+            // Simplified constraints for maximum compatibility
+            const constraints = cameraId ? { deviceId: cameraId } : { facingMode: "environment" };
 
             await scannerRef.current.start(
               constraints,
               {
-                fps: 20,
-                qrbox: { width: 300, height: 180 },
+                fps: 25,
+                qrbox: { width: 280, height: 160 },
                 disableFlip: true,
                 formatsToSupport: [
                   Html5QrcodeSupportedFormats.QR_CODE,
@@ -4495,17 +4489,20 @@ export default function App() {
                   Html5QrcodeSupportedFormats.CODE_39,
                   Html5QrcodeSupportedFormats.CODE_128,
                   Html5QrcodeSupportedFormats.ITF,
-                  Html5QrcodeSupportedFormats.DATA_MATRIX
                 ]
               },
               onScanSuccess,
               onScanError
             );
 
+            // Force initial focus
             const track = scannerRef.current.getRunningTrack();
             if (track) {
               const capabilities = track.getCapabilities();
-              if (capabilities.torch) setHasFlash(true);
+              if (capabilities.focusMode?.includes("continuous")) {
+                await track.applyConstraints({ focusMode: "continuous" });
+              }
+              // Zoom support
               if (capabilities.zoom) {
                 setHasZoom(true);
                 setZoomRange({
@@ -4515,10 +4512,11 @@ export default function App() {
                 });
                 setCurrentZoom(track.getSettings().zoom || 1);
               }
+              if (capabilities.torch) setHasFlash(true);
             }
           } catch (err) {
             console.error("Scanner startup error:", err);
-            // Universal Fallback: Bare defaults
+            // Deep Fallback: No constraints
             try {
               await scannerRef.current.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, onScanSuccess, onScanError);
             } catch (e) { }
@@ -8032,6 +8030,27 @@ export default function App() {
               <div className="relative overflow-hidden bg-black aspect-square sm:aspect-video flex items-center justify-center">
                 <div id="reader" className="w-full h-full"></div>
 
+                {/* Manual Focus Trigger Overlay */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const track = scannerRef.current?.getRunningTrack();
+                      if (track) {
+                        await track.applyConstraints({ focusMode: "continuous" });
+                        // Visual focus pulse animation
+                        const focusUI = document.getElementById('focus-pulse');
+                        if (focusUI) {
+                          focusUI.classList.remove('hidden');
+                          setTimeout(() => focusUI.classList.add('hidden'), 500);
+                        }
+                      }
+                    } catch (e) { }
+                  }}
+                  className="absolute inset-0 z-40 cursor-crosshair flex items-center justify-center"
+                >
+                  <div id="focus-pulse" className="hidden w-20 h-20 border border-blue-400 rounded-full animate-ping"></div>
+                </button>
+
                 {/* Visual Scanning Effects */}
                 <div className="scanner-overlay"></div>
                 <div className="scanning-line"></div>
@@ -8062,11 +8081,11 @@ export default function App() {
 
               <div className="p-6 bg-white text-center">
                 <p className="text-gray-900 font-bold text-sm tracking-tight mb-1">
-                  {hasZoom ? "Pinch or use slider to focus." : "Point at barcode."}
+                  {hasZoom ? "Pinch or use slider to focus." : "Tap screen to force focus."}
                 </p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black leading-relaxed">
                   Center the code inside the blue frame<br />
-                  <span className="text-blue-500">Hold 15-20cm away for sharpest focus</span>
+                  <span className="text-blue-500">Hold 20cm away & Tap to sharpen</span>
                 </p>
               </div>
             </div>
