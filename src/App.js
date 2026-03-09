@@ -4451,90 +4451,85 @@ export default function App() {
     let html5QrCode;
 
     if (isScannerOpen) {
-      const config = {
-        fps: 25,
-        qrbox: { width: 300, height: 200 }, // Larger box so user stays further back
-        aspectRatio: 1.777778, // 16:9 is the native sharpest mode for most sensors
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.ITF,
-          Html5QrcodeSupportedFormats.DATA_MATRIX
-        ],
-        disableFlip: true
-      };
-
-      // Use a small delay to ensure React has rendered the #reader element
+      // Use a generous delay to ensure React modal is fully rendered and visible
       const initTimeout = setTimeout(() => {
         const element = document.getElementById("reader");
         if (!element) return;
 
-        html5QrCode = new Html5Qrcode("reader");
+        // Ensure element is visible
+        if (element.offsetWidth === 0) {
+          // If still hidden, try again once more after a tiny bit
+          setTimeout(() => startScannerLogic(), 200);
+          return;
+        }
 
-        const startScanner = async (cameraId) => {
-          try {
-            // Flexible Handshake: Use the specific device if selected, otherwise environment
-            const constraints = cameraId ? {
-              deviceId: { exact: cameraId },
-              // Use ideal to suggest quality without forcing and crashing
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-              focusMode: { ideal: "continuous" }
-            } : {
-              facingMode: "environment",
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-              focusMode: { ideal: "continuous" }
-            };
+        startScannerLogic();
 
-            await html5QrCode.start(constraints, config, onScanSuccess, onScanError);
+        function startScannerLogic() {
+          html5QrCode = new Html5Qrcode("reader");
 
-            const track = html5QrCode.getRunningTrack();
-            if (track) {
-              const capabilities = track.getCapabilities();
-              if (capabilities.torch) setHasFlash(true);
-              if (capabilities.zoom) {
-                setHasZoom(true);
-                setZoomRange({
-                  min: capabilities.zoom.min || 1,
-                  max: capabilities.zoom.max || 1,
-                  step: capabilities.zoom.step || 0.1
-                });
-                setCurrentZoom(track.getSettings().zoom || 1);
-              }
-            }
-          } catch (err) {
-            console.error("Scanner startup error:", err);
-            // Fallback to absolute defaults if strict mode fails
+          const startScanner = async (cameraId) => {
             try {
-              await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanError);
-            } catch (fallbackErr) {
-              console.error("Critical scanner failure:", fallbackErr);
-            }
-          }
-        };
+              const constraints = cameraId ? {
+                deviceId: cameraId
+              } : {
+                facingMode: "environment"
+              };
 
-        Html5Qrcode.getCameras().then(devices => {
-          if (devices && devices.length > 0) {
-            setCameras(devices);
-            const backCamera = devices.find(d =>
-              d.name?.toLowerCase().includes('back') ||
-              d.label?.toLowerCase().includes('back') ||
-              d.label?.toLowerCase().includes('rear')
-            );
-            const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
-            setActiveCameraId(selectedId);
-            startScanner(selectedId);
-          } else {
-            startScanner();
-          }
-        }).catch(() => startScanner());
-      }, 400);
+              await html5QrCode.start(
+                constraints,
+                {
+                  fps: 15,
+                  qrbox: (viewWidth, viewHeight) => {
+                    const minEdge = Math.min(viewWidth, viewHeight);
+                    const size = Math.floor(minEdge * 0.7);
+                    return { width: size, height: Math.floor(size * 0.6) };
+                  },
+                  disableFlip: true
+                },
+                onScanSuccess,
+                onScanError
+              );
+
+              const track = html5QrCode.getRunningTrack();
+              if (track) {
+                const capabilities = track.getCapabilities();
+                if (capabilities.torch) setHasFlash(true);
+                if (capabilities.zoom) {
+                  setHasZoom(true);
+                  setZoomRange({
+                    min: capabilities.zoom.min || 1,
+                    max: capabilities.zoom.max || 1,
+                    step: capabilities.zoom.step || 0.1
+                  });
+                  setCurrentZoom(track.getSettings().zoom || 1);
+                }
+              }
+            } catch (err) {
+              console.error("Scanner startup error:", err);
+              try {
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 10 }, onScanSuccess, onScanError);
+              } catch (e) { }
+            }
+          };
+
+          Html5Qrcode.getCameras().then(devices => {
+            if (devices && devices.length > 0) {
+              setCameras(devices);
+              const backCamera = devices.find(d =>
+                d.name?.toLowerCase().includes('back') ||
+                d.label?.toLowerCase().includes('back') ||
+                d.label?.toLowerCase().includes('rear')
+              );
+              const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
+              setActiveCameraId(selectedId);
+              startScanner(selectedId);
+            } else {
+              startScanner();
+            }
+          }).catch(() => startScanner());
+        }
+      }, 600);
 
       return () => {
         clearTimeout(initTimeout);
