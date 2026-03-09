@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { QRCodeSVG } from 'qrcode.react';
 
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -1857,6 +1857,61 @@ export default function App() {
   // Sync Settings from Firestore
   useEffect(() => {
     if (user) {
+      // --- Barcode / Scanner Buffering (Hardware Scanners) ---
+      const barcodeBuffer = useRef('');
+      const lastKeyTime = useRef(0);
+
+      useEffect(() => {
+        const handleGlobalKeyDown = (e) => {
+          // If we're typing in a search field, we might still want to catch barcodes
+          // but if the user is in a modal or editing another field, maybe not.
+          // However, hardware scanners usually act as a keyboard.
+          // A common pattern is to only buffer if keys are typed very fast (<50ms apart).
+
+          const currentTime = Date.now();
+          const timeDiff = currentTime - lastKeyTime.current;
+          lastKeyTime.current = currentTime;
+
+          // Handle Enter (Common suffix for POS scanners)
+          if (e.key === 'Enter') {
+            if (barcodeBuffer.current.length >= 3) {
+              // It looks like a barcode was scanned
+              const scanned = barcodeBuffer.current;
+              barcodeBuffer.current = '';
+
+              // If we are in the Sales tab, try to add to cart
+              if (activeTab === 'sales_purchases') {
+                onScanSuccess(scanned);
+                e.preventDefault();
+                return;
+              }
+
+              // If we are in warehouse and scanning for something
+              if (activeTab === 'warehouses' && scannerMode === 'buy') {
+                onScanSuccess(scanned);
+                e.preventDefault();
+                return;
+              }
+            }
+            barcodeBuffer.current = '';
+            return;
+          }
+
+          // Buffer characters
+          if (e.key.length === 1) {
+            // If the gap between keys is too long, it's probably manual typing
+            if (timeDiff > 50) {
+              barcodeBuffer.current = e.key;
+            } else {
+              barcodeBuffer.current += e.key;
+            }
+          }
+        };
+
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+      }, [activeTab, inventory, scannerMode]); // Re-bind when tab or inventory changes
+
       const fetchSettings = async () => {
         try {
           const docRef = doc(db, 'settings', 'user_prefs_' + user.uid);
@@ -4150,7 +4205,8 @@ export default function App() {
   const scannerRef = useRef(null);
 
   const onScanSuccess = useCallback(async (decodedText) => {
-    const item = inventory.find(i => i.barcode === decodedText);
+    const code = decodedText.trim();
+    const item = inventory.find(i => i.barcode === code);
     if (!item) return;
 
     if (scannerMode === 'sell') {
@@ -4175,10 +4231,33 @@ export default function App() {
 
   const onScanError = useCallback((err) => { }, []);
 
+  const [hasFlash, setHasFlash] = useState(false);
+  const [isFlashOn, setIsFlashOn] = useState(false);
+
   useEffect(() => {
     let html5QrCode;
     if (isScannerOpen) {
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      // Optimized config for Barcodes (Wide box) and QR codes
+      const config = {
+        fps: 20,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          // wider than it is tall for barcodes
+          return { width: Math.min(viewfinderWidth * 0.8, 300), height: Math.min(viewfinderHeight * 0.4, 150) };
+        },
+        aspectRatio: 1.0,
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.ITF,
+          Html5QrcodeSupportedFormats.DATA_MATRIX
+        ]
+      };
+
       html5QrCode = new Html5Qrcode("reader");
 
       const startScanner = async (cameraId) => {
@@ -4189,6 +4268,15 @@ export default function App() {
             onScanSuccess,
             onScanError
           );
+
+          // Check for flash capability
+          const track = html5QrCode.getRunningTrack();
+          if (track) {
+            const capabilities = track.getCapabilities();
+            if (capabilities.torch) {
+              setHasFlash(true);
+            }
+          }
         } catch (err) {
           console.error("Scanner start error:", err);
         }
@@ -4197,7 +4285,12 @@ export default function App() {
       Html5Qrcode.getCameras().then(devices => {
         if (devices && devices.length > 0) {
           setCameras(devices);
-          const backCamera = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear'));
+          // Prefer back camera
+          const backCamera = devices.find(d =>
+            d.label.toLowerCase().includes('back') ||
+            d.label.toLowerCase().includes('rear') ||
+            d.label.toLowerCase().includes('environment')
+          );
           const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
           setActiveCameraId(selectedId);
           startScanner(selectedId);
@@ -4210,12 +4303,35 @@ export default function App() {
       });
 
       return () => {
-        if (html5QrCode.isScanning) {
+        if (html5QrCode && html5QrCode.isScanning) {
           html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => console.error(err));
         }
       };
+    } else {
+      setIsFlashOn(false);
+      setHasFlash(false);
     }
   }, [isScannerOpen, onScanSuccess, onScanError, activeCameraId]);
+
+  const toggleFlash = async () => {
+    try {
+      // Note: html5-qrcode doesn't expose a clean toggle for torch yet in all versions
+      // so we use the underlying track if possible
+      const video = document.querySelector('#reader video');
+      if (video && video.srcObject) {
+        const track = video.srcObject.getVideoTracks()[0];
+        if (track) {
+          const newState = !isFlashOn;
+          await track.applyConstraints({
+            advanced: [{ torch: newState }]
+          });
+          setIsFlashOn(newState);
+        }
+      }
+    } catch (err) {
+      console.error("Torch error:", err);
+    }
+  };
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -7472,23 +7588,34 @@ export default function App() {
           <div className="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[100] p-4">
             <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden relative shadow-2xl">
               <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1">
                   <h3 className="font-bold flex items-center gap-2"><Scan size={20} className="text-blue-600" /> {t('scanBarcode')}</h3>
-                  {cameras.length > 1 && (
-                    <select
-                      className="text-[10px] mt-1 bg-white border border-gray-200 rounded px-2 py-1 outline-none font-bold text-gray-500 uppercase tracking-tighter"
-                      value={activeCameraId || ''}
-                      onChange={(e) => setActiveCameraId(e.target.value)}
-                    >
-                      {cameras.map(cam => (
-                        <option key={cam.id} value={cam.id}>{cam.label || `Camera ${cam.id}`}</option>
-                      ))}
-                    </select>
-                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    {cameras.length > 1 && (
+                      <select
+                        className="text-[10px] bg-white border border-gray-200 rounded px-2 py-1 outline-none font-bold text-gray-500 uppercase tracking-tighter"
+                        value={activeCameraId || ''}
+                        onChange={(e) => setActiveCameraId(e.target.value)}
+                      >
+                        {cameras.map(cam => (
+                          <option key={cam.id} value={cam.id}>{cam.label || `Camera ${cam.id}`}</option>
+                        ))}
+                      </select>
+                    )}
+                    {hasFlash && (
+                      <button
+                        onClick={toggleFlash}
+                        className={`p-1.5 rounded-lg border transition-all ${isFlashOn ? 'bg-amber-100 border-amber-300 text-amber-600' : 'bg-white border-gray-200 text-gray-400'}`}
+                        title="Toggle Flash"
+                      >
+                        <Zap size={14} fill={isFlashOn ? "currentColor" : "none"} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <button onClick={() => setIsScannerOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all"><X size={24} /></button>
+                <button onClick={() => setIsScannerOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all ml-2"><X size={24} /></button>
               </div>
-              <div id="reader" className="w-full h-[400px]"></div>
+              <div id="reader" className="w-full h-[350px] sm:h-[400px]"></div>
               <div className="p-4 bg-gray-50 text-center text-sm text-gray-500">
                 Center the barcode inside the box to scan automatically.
               </div>
