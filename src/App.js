@@ -51,7 +51,8 @@ import {
   Sparkles,
   Zap,
   ArrowLeft,
-  RefreshCw
+  RefreshCw,
+  Coffee
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
@@ -200,6 +201,7 @@ const translations = {
     menuAccounts: 'Accounts',
     menuSalesPurchases: 'Sell', // Renamed
     menuWarehouses: 'Warehouses',
+    menuCafe: 'Cafe',
     menuInvoices: 'History',
     weeklySales: 'Weekly Sales Report',
     weeklyBuy: 'Weekly Buy/Inventory Report',
@@ -380,6 +382,7 @@ const translations = {
     bar: 'Bar',
     retail: 'Retail',
     warehouse: 'Warehouse',
+    cafe: 'Cafe',
     inventory: 'Inventory',
     accounts: 'Accounts',
     management: 'Management',
@@ -2014,6 +2017,40 @@ export default function App() {
     return () => unsubscribe();
   }, [auth]);
 
+  const [cafeSessions, setCafeSessions] = useState([]);
+  const [recipes, setRecipes] = useState([]);
+  const [isCafeOrderModalOpen, setIsCafeOrderModalOpen] = useState(false);
+  const [activeCafeSession, setActiveCafeSession] = useState(null);
+  const [activeCafeCategory, setActiveCafeCategory] = useState('Hot Drinks');
+  const [cafeRooms] = useState([
+    { id: 'R1', name: 'Room 1', type: 'PlayStation', icon: <Monitor size={20} /> },
+    { id: 'R2', name: 'Room 2', type: 'PlayStation', icon: <Monitor size={20} /> },
+    { id: 'R3', name: 'Room 3', type: 'PlayStation', icon: <Monitor size={20} /> },
+    { id: 'R4', name: 'Room 4', type: 'PlayStation', icon: <Monitor size={20} /> },
+    { id: 'T1', name: 'Table 1', type: 'Billiards', icon: <Disc size={20} /> },
+    { id: 'T2', name: 'Table 2', type: 'Billiards', icon: <Disc size={20} /> },
+    { id: 'L1', name: 'Lounge 1', type: 'Cafe', icon: <Coffee size={20} /> },
+    { id: 'L2', name: 'Lounge 2', type: 'Cafe', icon: <Coffee size={20} /> },
+  ]);
+
+  useEffect(() => {
+    if (user) {
+      const q = query(collection(db, 'cafeSessions'), where('userId', '==', user.uid));
+      return onSnapshot(q, (snapshot) => {
+        setCafeSessions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const q = query(collection(db, 'recipes'), where('userId', '==', user.uid));
+      return onSnapshot(q, (snapshot) => {
+        setRecipes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+    }
+  }, [user]);
+
   // --- PIN Modal Keyboard Support ---
   useEffect(() => {
     if (!isPinModalOpen) return;
@@ -3061,6 +3098,110 @@ export default function App() {
     } catch (err) {
       console.error(err);
       alert("Checkout Error: " + err.message);
+    }
+  };
+
+  // --- Cafe Handlers ---
+  const handleStartCafeSession = async (room) => {
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'cafeSessions'), {
+        roomId: room.id,
+        roomName: room.name,
+        roomType: room.type,
+        startTime: serverTimestamp(),
+        status: 'Active',
+        orders: [],
+        userId: user.uid,
+        createdAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleStopCafeSession = async (session) => {
+    if (!user) return;
+    try {
+      const end = new Date();
+      const start = session.startTime?.seconds ? new Date(session.startTime.seconds * 1000) : new Date();
+      const durationMs = Math.max(1, end - start);
+      const durationMins = Math.floor(durationMs / 60000);
+      const durationHours = durationMins / 60;
+
+      let rate = 30;
+      if (session.roomType === 'PlayStation') rate = 40;
+      if (session.roomType === 'Billiards') rate = 50;
+
+      const sessionCost = Math.ceil(durationHours * rate);
+      const ordersCost = (session.orders || []).reduce((sum, o) => sum + (Number(o.sellPrice) * Number(o.quantity || 1)), 0);
+      const totalAmount = sessionCost + ordersCost;
+
+      await updateDoc(doc(db, 'cafeSessions', session.id), {
+        status: 'Completed',
+        endTime: serverTimestamp(),
+        totalCost: totalAmount
+      });
+
+      const saleData = {
+        invoiceId: 'CAFE-' + Date.now().toString().slice(-6),
+        orderType: 'Dine-in',
+        paymentMethod: 'Cash',
+        customer: session.roomName,
+        status: 'Completed',
+        items: [
+          { name: `Session Time (${durationMins}m)`, price: sessionCost, qty: 1 },
+          ...(session.orders || []).map(o => ({ id: o.id, name: o.name, price: o.sellPrice, qty: o.quantity }))
+        ],
+        amount: totalAmount,
+        location: 'Cafe',
+        userId: user.uid,
+        date: new Date().toISOString().split('T')[0],
+        createdAt: serverTimestamp()
+      };
+      await addDoc(collection(db, 'sales'), saleData);
+      handlePrintInvoice(saleData, 'Cafe Receipt');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCheckoutCafeOrder = async (sessionId, cartItems) => {
+    if (!user) return;
+    try {
+      const batch = writeBatch(db);
+      for (const item of cartItems) {
+        const recipe = recipes.find(r => r.itemId === item.id);
+        if (recipe && recipe.ingredients) {
+          recipe.ingredients.forEach(ing => {
+            const ingRef = doc(db, 'inventory', ing.id);
+            const invItem = inventory.find(i => i.id === ing.id);
+            if (invItem) {
+              const consumption = Number(ing.qty) * (Number(item.quantity) || 1);
+              batch.update(ingRef, { quantity: Number(invItem.quantity) - consumption });
+            }
+          });
+        } else {
+          const itemRef = doc(db, 'inventory', item.id);
+          const invItem = inventory.find(i => i.id === item.id);
+          if (invItem) {
+            batch.update(itemRef, { quantity: Number(invItem.quantity) - (Number(item.quantity) || 1) });
+          }
+        }
+      }
+
+      if (sessionId) {
+        const session = cafeSessions.find(s => s.id === sessionId);
+        const updatedOrders = [...(session.orders || []), ...cartItems];
+        batch.update(doc(db, 'cafeSessions', sessionId), {
+          orders: updatedOrders,
+          updatedAt: serverTimestamp()
+        });
+      }
+      await batch.commit();
+      setCart([]);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -4960,6 +5101,7 @@ export default function App() {
           <div className="my-2 border-t border-slate-700/50"></div>
 
           <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Coffee size={20} />} label={t('menuCafe')} active={activeTab === 'cafe'} onClick={() => { setActiveTab('cafe'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Package size={20} />} label={t('menuWarehouses')} active={activeTab === 'warehouses'} onClick={() => { setActiveTab('warehouses'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Clock size={20} />} label={t('menuInvoices')} active={activeTab === 'history'} onClick={() => { setActiveTab('history'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
         </nav>
@@ -4998,6 +5140,7 @@ export default function App() {
                 {activeTab === 'payroll' && <DollarSign size={20} />}
                 {activeTab === 'reports' && <BarChart3 size={20} />}
                 {activeTab === 'accounts' && <Calculator size={20} />}
+                {activeTab === 'cafe' && <Coffee size={20} />}
                 {activeTab === 'sales_purchases' && <ShoppingCart size={20} />}
                 {activeTab === 'warehouses' && <Package size={20} />}
                 {activeTab === 'invoices' && <InvoiceIcon size={20} />}
@@ -5010,6 +5153,7 @@ export default function App() {
                 {activeTab === 'payroll' && t('menuPayroll')}
                 {activeTab === 'reports' && t('menuReports')}
                 {activeTab === 'accounts' && t('menuAccounts')}
+                {activeTab === 'cafe' && t('menuCafe')}
                 {activeTab === 'sales_purchases' && t('menuSalesPurchases')}
                 {activeTab === 'warehouses' && t('menuWarehouses')}
                 {activeTab === 'invoices' && t('menuInvoices')}
@@ -6458,6 +6602,49 @@ export default function App() {
                       <p className="text-gray-500 font-bold">{t('noInventory')}</p>
                     </div>
                   )}
+                </div>
+              </div>
+            )
+          }
+
+          {
+            activeTab === 'cafe' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {cafeRooms.map(room => {
+                    const activeSession = cafeSessions.find(s => s.roomId === room.id && s.status === 'Active');
+                    return (
+                      <div key={room.id} className={`p-6 rounded-[2rem] border transition-all duration-300 shadow-sm flex flex-col justify-between h-48 ${activeSession ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-gray-900 border-gray-100 hover:border-blue-200'}`}>
+                        <div className="flex justify-between items-start">
+                          <div className={`p-3 rounded-2xl ${activeSession ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
+                            {room.icon}
+                          </div>
+                          {activeSession && (
+                            <div className="flex flex-col items-end">
+                              <span className="text-[10px] uppercase font-black tracking-widest opacity-80">Active since</span>
+                              <span className="text-xs font-bold">{activeSession.startTime?.seconds ? new Date(activeSession.startTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-black uppercase tracking-tight">{room.name}</h3>
+                          <p className={`text-[10px] font-bold uppercase tracking-widest ${activeSession ? 'text-white/70' : 'text-gray-400'}`}>{room.type}</p>
+                        </div>
+
+                        <div className="flex gap-2 mt-4">
+                          {!activeSession ? (
+                            <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase hover:bg-blue-700 transition-all shadow-md">Start Session</button>
+                          ) : (
+                            <>
+                              <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-2 bg-white/20 text-white rounded-xl text-[10px] font-black uppercase hover:bg-white/30 transition-all flex items-center justify-center gap-1"><Plus size={12} /> Add Order</button>
+                              <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-2 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 transition-all">Finish</button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )
@@ -8346,6 +8533,107 @@ export default function App() {
           </div>
         )
       }
+
+      {/* Cafe Order Modal */}
+      {isCafeOrderModalOpen && activeCafeSession && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20 flex flex-col">
+            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div>
+                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Add Order - {activeCafeSession.roomName}</h3>
+                <p className="text-xs text-gray-500 font-medium">Select items to add to this session</p>
+              </div>
+              <button onClick={() => { setIsCafeOrderModalOpen(false); setCart([]); }} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-all"><X size={24} /></button>
+            </div>
+
+            <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+              {/* Left: Menu */}
+              <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-6">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {['Hot Drinks', 'Cold Drinks', 'Snacks', 'Meals'].map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCafeCategory(cat)}
+                      className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCafeCategory === cat ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-400 border border-gray-100 hover:border-gray-200'}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {inventory
+                    .filter(i => i.category === activeCafeCategory)
+                    .map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          const existing = cart.find(c => c.id === item.id);
+                          if (existing) {
+                            setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
+                          } else {
+                            setCart([...cart, { ...item, quantity: 1 }]);
+                          }
+                        }}
+                        className="p-4 bg-gray-50 rounded-[2rem] border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all group relative overflow-hidden text-left"
+                      >
+                        <p className="font-black text-gray-900 text-sm mb-1 uppercase tracking-tight text-wrap">{item.name}</p>
+                        <p className="text-blue-600 font-black text-xs">{formatCurrency(item.sellPrice)}</p>
+                        <div className="absolute right-4 bottom-4 p-2 bg-white rounded-xl shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all">
+                          <Plus size={16} />
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </div>
+
+              {/* Right: Cart */}
+              <div className="w-full md:w-80 bg-gray-50 border-l border-gray-100 p-6 flex flex-col">
+                <h4 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-4">Current Selection</h4>
+                <div className="flex-1 overflow-y-auto space-y-3 mb-6">
+                  {cart.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center opacity-30">
+                      <ShoppingCart size={40} className="mb-2" />
+                      <p className="text-[10px] font-black uppercase">Cart is Empty</p>
+                    </div>
+                  ) : (
+                    cart.map(item => (
+                      <div key={item.id} className="bg-white p-3 rounded-2xl border border-gray-100 flex items-center gap-3">
+                        <div className="flex-1 overflow-hidden">
+                          <p className="font-bold text-xs text-gray-900 truncate uppercase">{item.name}</p>
+                          <p className="text-[10px] text-gray-400 font-bold">{formatCurrency(item.sellPrice)}</p>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
+                          <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Math.max(0, Number(c.quantity) - 1) } : c).filter(c => c.quantity > 0))} className="p-1 hover:bg-white rounded text-gray-400"><Minus size={12} /></button>
+                          <span className="text-xs font-black">{item.quantity}</span>
+                          <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c))} className="p-1 hover:bg-white rounded text-gray-400"><Plus size={12} /></button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Subtotal</span>
+                    <span className="text-xl font-black text-gray-900 tracking-tight">{formatCurrency(cart.reduce((sum, i) => sum + (Number(i.sellPrice) * Number(i.quantity)), 0))}</span>
+                  </div>
+                  <button
+                    disabled={cart.length === 0}
+                    onClick={() => {
+                      handleCheckoutCafeOrder(activeCafeSession.id, cart);
+                      setIsCafeOrderModalOpen(false);
+                    }}
+                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-slate-200 disabled:opacity-30 flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle size={20} /> Add to Session
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div >
   );
