@@ -4458,6 +4458,24 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
     let html5QrCode = null;
+    const originalGetUserMedia = navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices);
+
+    // Intercept all camera requests to ensure we can kill tracks even if the library hangs
+    if (navigator.mediaDevices && originalGetUserMedia) {
+      navigator.mediaDevices.getUserMedia = async (constraints) => {
+        try {
+          const stream = await originalGetUserMedia(constraints);
+          if (!isMounted) {
+            stream.getTracks().forEach(t => t.stop());
+          } else {
+            activeTracksRef.current = [...activeTracksRef.current, ...stream.getTracks()];
+          }
+          return stream;
+        } catch (err) {
+          throw err;
+        }
+      };
+    }
 
     if (isScannerOpen) {
       // Small safety delay for React modal render
@@ -4570,6 +4588,11 @@ export default function App() {
       return () => {
         isMounted = false;
         clearTimeout(initTimeout);
+
+        // Restore original getUserMedia
+        if (originalGetUserMedia) {
+          navigator.mediaDevices.getUserMedia = originalGetUserMedia;
+        }
 
         // Immediate hardware kill - doesn't rely on the DOM or library status
         const forceKillHardware = () => {
