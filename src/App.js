@@ -4440,8 +4440,8 @@ export default function App() {
             cameraId ? { deviceId: { exact: cameraId } } : {
               facingMode: "environment",
               // Request higher resolution for better focus capabilities
-              width: { min: 1024, ideal: 1920 },
-              height: { min: 768, ideal: 1080 },
+              width: { min: 640, ideal: 1920 },
+              height: { min: 480, ideal: 1080 },
               focusMode: { ideal: "continuous" }
             },
             config,
@@ -4486,8 +4486,11 @@ export default function App() {
             };
 
             await applyFocus();
-            // Pulse refocus every 3 seconds to ensure it doesn't get stuck
-            focusInterval = setInterval(applyFocus, 3000);
+            // Pulse refocus every 3 seconds ONLY on mobile to ensure it doesn't get stuck
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+              focusInterval = setInterval(applyFocus, 3000);
+            }
           }
         } catch (err) {
           console.error("Scanner start error:", err);
