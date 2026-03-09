@@ -6768,7 +6768,8 @@ export default function App() {
                       <h3 className="text-xl font-black uppercase tracking-tight mb-6">Create Recipe</h3>
                       <form onSubmit={handleSaveRecipe} className="space-y-6">
                         <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Menu Item (From Warehouse)</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Menu Item (What you sell)</label>
+                          <p className="text-[10px] text-gray-400 mb-2 italic">Select the product that customers order in the cafe.</p>
                           <select
                             value={recipeForm.itemId}
                             onChange={e => setRecipeForm({ ...recipeForm, itemId: e.target.value })}
@@ -6776,14 +6777,15 @@ export default function App() {
                             required
                           >
                             <option value="">Select Item...</option>
-                            {inventory.filter(i => ['Hot Drinks', 'Cold Drinks', 'Snacks', 'Meals'].includes(i.category)).map(item => (
-                              <option key={item.id} value={item.id}>{item.name}</option>
+                            {inventory.map(item => (
+                              <option key={item.id} value={item.id}>{item.name} ({item.category || 'No Category'})</option>
                             ))}
                           </select>
                         </div>
 
                         <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Ingredients</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Ingredients (What gets used up)</label>
+                          <p className="text-[10px] text-gray-400 mb-2 italic">Select items to deduct from stock when this menu item is sold.</p>
                           <div className="space-y-3 mb-4">
                             {recipeForm.ingredients.map((ing, idx) => (
                               <div key={idx} className="flex gap-2 items-center bg-gray-50 p-3 rounded-2xl">
