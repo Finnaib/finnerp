@@ -299,6 +299,10 @@ const translations = {
     securityCheck: 'Security Check',
     addItem: 'Add Item',
     edit: 'Edit',
+    itemNotFound: 'Product not found in inventory. Please check or add it.',
+    generate: 'Generate',
+    print: 'Print',
+    printAll: 'Print All Barcodes',
 
     // Settings
     shopSettings: 'Shop Settings',
@@ -886,6 +890,10 @@ const translations = {
     securityCheck: 'सुरक्षा जाँच',
     addItem: 'आइटम जोड़ें',
     edit: 'संपादित करें',
+    itemNotFound: 'इन्वेंट्री में उत्पाद नहीं मिला। कृपया जाँचें या जोड़ें।',
+    generate: 'उत्पन्न करें',
+    print: 'प्रिंट करें',
+    printAll: 'सभी बारकोड प्रिंट करें',
     shopSettings: 'दुकान सेटिंग्स',
     shopName: 'दुकान का नाम',
     shopAddress: 'दुकान का पता',
@@ -1306,6 +1314,10 @@ const translations = {
     securityCheck: 'فحص أمني',
     addItem: 'إضافة عنصر',
     edit: 'تعديل',
+    itemNotFound: 'المنتج غير موجود في المخزن. يرجى التحقق أو الإضافة.',
+    generate: 'توليد',
+    print: 'طباعة',
+    printAll: 'طباعة جميع الباركودات',
     shopSettings: 'إعدادات المتجر',
     shopName: 'اسم المتجر',
     shopAddress: 'عنوان المتجر',
@@ -1656,6 +1668,10 @@ const translations = {
     securityCheck: '安全检查',
     addItem: '添加项目',
     edit: '编辑',
+    itemNotFound: '库存中未找到产品。请检查或添加。',
+    generate: '生成',
+    print: '打印',
+    printAll: '打印所有条形码',
     shopSettings: '店铺设置',
     shopName: '店铺名称',
     shopAddress: '店铺地址',
@@ -3634,6 +3650,124 @@ export default function App() {
 
 
 
+  // --- Barcode Generation & Printing ---
+  const generateBarcode = () => {
+    const random = Math.floor(10000000 + Math.random() * 90000000); // 8 digit random
+    const code = `ITEM-${random}`;
+    if (editingItem) {
+      setEditingItem({ ...editingItem, barcode: code });
+    } else {
+      setNewItemForm({ ...newItemForm, barcode: code });
+    }
+  };
+
+  const handlePrintBarcode = (item) => {
+    if (!item.barcode) return;
+    const printWindow = window.open('', '', 'width=400,height=400');
+    if (!printWindow) return;
+
+    const content = `
+      <html>
+        <head>
+          <title>Barcode - ${item.name}</title>
+          <style>
+            body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+            .label { text-align: center; padding: 20px; border: 1px solid #eee; }
+            .name { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+            .price { font-size: 12px; margin-top: 5px; }
+            #barcode { max-width: 100%; height: auto; }
+          </style>
+        </head>
+        <body>
+          <div class="label">
+            <div style="font-size: 10px; font-weight: bold; color: #666; margin-bottom: 2px; text-transform: uppercase;">${shopSettings.name || 'FINN ERP'}</div>
+            <div class="name">${item.name}</div>
+            <svg id="barcode"></svg>
+            <div class="price">${formatCurrency(item.sellPrice)}</div>
+          </div>
+          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+          <script>
+            setTimeout(() => {
+              JsBarcode("#barcode", "${item.barcode}", {
+                format: "CODE128",
+                width: 2,
+                height: 60,
+                displayValue: true,
+                fontSize: 14,
+                margin: 10
+              });
+              window.print();
+              setTimeout(() => window.close(), 500);
+            }, 500);
+          </script>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
+  const handlePrintBatchBarcodes = (items) => {
+    const itemsToPrint = items.filter(i => i.barcode);
+    if (itemsToPrint.length === 0) {
+      alert("No items with barcodes to print.");
+      return;
+    }
+
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+
+    const content = `
+      <html>
+        <head>
+          <title>Batch Barcodes</title>
+          <style>
+            body { margin: 20px; font-family: sans-serif; }
+            .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+            .label { text-align: center; padding: 15px; border: 1px solid #eee; break-inside: avoid; }
+            .name { font-size: 12px; font-weight: bold; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .price { font-size: 10px; margin-top: 5px; }
+            #barcode { max-width: 100%; height: auto; }
+            @media print {
+              .label { border: 1px solid #ddd; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="grid">
+            ${itemsToPrint.map((item, idx) => `
+              <div class="label">
+                <div style="font-size: 8px; font-weight: bold; color: #888; margin-bottom: 2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shopSettings.name || 'FINN ERP'}</div>
+                <div class="name">${item.name}</div>
+                <svg id="barcode-${idx}"></svg>
+                <div class="price">${formatCurrency(item.sellPrice)}</div>
+              </div>
+            `).join('')}
+          </div>
+          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+          <script>
+            setTimeout(() => {
+              ${itemsToPrint.map((item, idx) => `
+                JsBarcode("#barcode-${idx}", "${item.barcode}", {
+                  format: "CODE128",
+                  width: 2,
+                  height: 50,
+                  displayValue: true,
+                  fontSize: 12
+                });
+              `).join('')}
+              window.print();
+              setTimeout(() => window.close(), 500);
+            }, 800);
+          </script>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
+
   // --- Image Handling Handlers ---
   const handleNewEmployeeImage = (e) => {
     const file = e.target.files[0];
@@ -4182,7 +4316,10 @@ export default function App() {
   const onScanSuccess = useCallback(async (decodedText) => {
     const code = decodedText.trim();
     const item = inventory.find(i => i.barcode === code);
-    if (!item) return;
+    if (!item) {
+      alert(t('itemNotFound') || 'Item with barcode: ' + code + ' not found in inventory.');
+      return;
+    }
 
     if (scannerMode === 'sell') {
       if (item.quantity > 0) {
@@ -4266,15 +4403,20 @@ export default function App() {
 
   useEffect(() => {
     let html5QrCode;
+    let focusInterval;
+
     if (isScannerOpen) {
       // Optimized config for Barcodes (Wide box) and QR codes
       const config = {
-        fps: 20,
+        fps: 30,
         qrbox: (viewfinderWidth, viewfinderHeight) => {
-          // wider than it is tall for barcodes
-          return { width: Math.min(viewfinderWidth * 0.8, 300), height: Math.min(viewfinderHeight * 0.4, 150) };
+          // Increase scan area relative to view for better distance scanning
+          // Ensure dimensions never drop below the library's required 50px minimum
+          const width = Math.max(50, Math.min(viewfinderWidth * 0.85, 450));
+          const height = Math.max(50, Math.min(viewfinderHeight * 0.5, 200));
+          return { width, height };
         },
-        aspectRatio: 1.0,
+        // Removed strict 1.0 aspectRatio to allow native resolution/focus performance
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
           Html5QrcodeSupportedFormats.UPC_A,
@@ -4285,7 +4427,9 @@ export default function App() {
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.ITF,
           Html5QrcodeSupportedFormats.DATA_MATRIX
-        ]
+        ],
+        showTorchButtonIfSupported: false, // We use our own UI
+        disableFlip: true
       };
 
       html5QrCode = new Html5Qrcode("reader");
@@ -4293,7 +4437,13 @@ export default function App() {
       const startScanner = async (cameraId) => {
         try {
           await html5QrCode.start(
-            cameraId || { facingMode: "environment" },
+            cameraId ? { deviceId: { exact: cameraId } } : {
+              facingMode: "environment",
+              // Request higher resolution for better focus capabilities
+              width: { min: 1024, ideal: 1920 },
+              height: { min: 768, ideal: 1080 },
+              focusMode: { ideal: "continuous" }
+            },
             config,
             onScanSuccess,
             onScanError
@@ -4315,12 +4465,29 @@ export default function App() {
               setCurrentZoom(track.getSettings().zoom || 1);
             }
 
-            // Try to force continuous focus if available
-            if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-              await track.applyConstraints({
-                advanced: [{ focusMode: 'continuous' }]
-              });
-            }
+            // Aggressive Focus Strategy
+            const applyFocus = async () => {
+              try {
+                const constraints = { advanced: [] };
+                if (capabilities.focusMode?.includes('continuous')) {
+                  constraints.advanced.push({ focusMode: 'continuous' });
+                }
+                // Try to enable macro mode for close-up barcodes if supported
+                if (capabilities.focusMode?.includes('macro')) {
+                  constraints.advanced.push({ focusMode: 'macro' });
+                }
+
+                if (constraints.advanced.length > 0) {
+                  await track.applyConstraints(constraints);
+                }
+              } catch (e) {
+                console.warn("Focus optimization failed:", e);
+              }
+            };
+
+            await applyFocus();
+            // Pulse refocus every 3 seconds to ensure it doesn't get stuck
+            focusInterval = setInterval(applyFocus, 3000);
           }
         } catch (err) {
           console.error("Scanner start error:", err);
@@ -4351,6 +4518,7 @@ export default function App() {
         if (html5QrCode && html5QrCode.isScanning) {
           html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => console.error(err));
         }
+        if (focusInterval) clearInterval(focusInterval);
       };
     } else {
       setIsFlashOn(false);
@@ -4644,9 +4812,9 @@ export default function App() {
             <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg ring-4 ring-blue-500/10">
               <Shield size={22} className="text-white" />
             </div>
-            <div>
-              <h1 className="font-black text-sm uppercase tracking-widest">{t('appName')}</h1>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{t('appSubtitle')}</p>
+            <div className="overflow-hidden">
+              <h1 className="font-black text-sm uppercase tracking-widest truncate">{shopSettings.name || t('appName')}</h1>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter truncate">{shopSettings.address || t('appSubtitle')}</p>
             </div>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-all bg-slate-800/50"><X size={18} /></button>
@@ -5926,6 +6094,16 @@ export default function App() {
                       {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
                     </button>
                     <button
+                      onClick={() => handlePrintBatchBarcodes(inventory.filter(item =>
+                        (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                        ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                          (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                      ))}
+                      className="bg-slate-800 text-white px-4 py-2.5 rounded-lg hover:bg-slate-900 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
+                    >
+                      <Printer size={20} /> Print All
+                    </button>
+                    <button
                       onClick={() => { setScannerMode('buy'); setIsScannerOpen(true); }}
                       className="bg-emerald-600 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-700 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
                     >
@@ -6009,6 +6187,7 @@ export default function App() {
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex justify-end gap-2">
+                                  <button onClick={() => handlePrintBarcode(item)} disabled={!item.barcode} className="p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100 disabled:opacity-30" title="Print Barcode"><Printer size={16} /></button>
                                   <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Edit size={16} /></button>
                                   <button onClick={() => handleDeleteWarehouseItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Trash2 size={16} /></button>
                                 </div>
@@ -6041,6 +6220,7 @@ export default function App() {
                               <div className="flex justify-between items-start">
                                 <h4 className="font-black text-gray-900 text-sm truncate uppercase tracking-tight pr-2">{item.name}</h4>
                                 <div className="flex gap-2">
+                                  <button onClick={() => handlePrintBarcode(item)} disabled={!item.barcode} className="text-slate-400 p-1 disabled:opacity-0"><Printer size={16} /></button>
                                   <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="text-blue-500 p-1"><Edit size={16} /></button>
                                   <button onClick={() => handleDeleteWarehouseItem(item.id)} className="text-red-400 p-1"><Trash2 size={16} /></button>
                                 </div>
@@ -7193,45 +7373,57 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Item Name</label>
-                  <input className="input-field" placeholder="Item Name" value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">{t('itemName')}</label>
+                  <input className="input-field" placeholder={t('itemName')} value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Location</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">{t('location')}</label>
                   <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })} required>
-                    <option value="">Select Location</option>
+                    <option value="">{t('selectLocation')}</option>
                     {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1">Buy Price</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">{t('buyPrice')}</label>
                     <input type="number" className="input-field" placeholder="0.00" value={editingItem ? editingItem.buyPrice : newItemForm.buyPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, buyPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1">Sell Price</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">{t('sellPrice')}</label>
                     <input type="number" className="input-field" placeholder="0.00" value={editingItem ? editingItem.sellPrice : newItemForm.sellPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, sellPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Quantity</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">{t('quantity')}</label>
                   <input type="number" className="input-field" placeholder="0" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Barcode</label>
-                  <div className="flex gap-2">
-                    <input className="input-field flex-1" placeholder="Scanned or manual barcode" value={editingItem ? (editingItem.barcode || '') : (newItemForm.barcode || '')} onChange={e => editingItem ? setEditingItem({ ...editingItem, barcode: e.target.value }) : setNewItemForm({ ...newItemForm, barcode: e.target.value })} />
-                    <button type="button" onClick={() => setIsScannerOpen(true)} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"><Scan size={20} /></button>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">{t('barcode')}</label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <input className="input-field flex-1" placeholder={t('barcode')} value={editingItem ? (editingItem.barcode || '') : (newItemForm.barcode || '')} onChange={e => editingItem ? setEditingItem({ ...editingItem, barcode: e.target.value }) : setNewItemForm({ ...newItemForm, barcode: e.target.value })} />
+                      <button type="button" onClick={() => setIsScannerOpen(true)} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600"><Scan size={20} /></button>
+                      <button type="button" onClick={generateBarcode} className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 text-xs font-bold uppercase tracking-tighter" title={t('generate')}>{t('generate')}</button>
+                    </div>
+                    {(editingItem?.barcode || newItemForm.barcode) && (
+                      <button
+                        type="button"
+                        onClick={() => handlePrintBarcode(editingItem || newItemForm)}
+                        className="w-full flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-100 transition-colors border border-blue-100"
+                      >
+                        <Printer size={16} /> Print Barcode Label
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 <div className="pt-2 flex gap-3">
                   <button type="button" onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{editingItem ? 'Update' : 'Add Item'}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{editingItem ? t('update') || 'Update' : t('addItem')}</button>
                 </div>
               </form>
             </div>
