@@ -4478,18 +4478,17 @@ export default function App() {
 
         const startScanner = async (cameraId) => {
           try {
-            // Flexible Handshake: Request HD but don't crash if it's not possible
+            // Flexible Handshake: Use the specific device if selected, otherwise environment
             const constraints = cameraId ? {
-              deviceId: cameraId,
-              width: { ideal: 1920, min: 640 },
-              height: { ideal: 1080, min: 480 },
-              aspectRatio: { ideal: 1.777778 },
+              deviceId: { exact: cameraId },
+              // Use ideal to suggest quality without forcing and crashing
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
               focusMode: { ideal: "continuous" }
             } : {
               facingMode: "environment",
-              width: { ideal: 1920, min: 640 },
-              height: { ideal: 1080, min: 480 },
-              aspectRatio: { ideal: 1.777778 },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
               focusMode: { ideal: "continuous" }
             };
 
@@ -4535,7 +4534,7 @@ export default function App() {
             startScanner();
           }
         }).catch(() => startScanner());
-      }, 200);
+      }, 400);
 
       return () => {
         clearTimeout(initTimeout);
@@ -7945,9 +7944,14 @@ export default function App() {
               .scanner-overlay {
                 position: absolute;
                 inset: 0;
-                background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.4));
+                background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3));
                 pointer-events: none;
-                z-index: 10;
+                z-index: 5;
+              }
+              #reader video {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
               }
               .scanning-line {
                 position: absolute;
