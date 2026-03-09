@@ -6734,14 +6734,6 @@ export default function App() {
 
                         return (
                           <div key={room.id} className={`p-6 rounded-[2.5rem] border transition-all duration-500 flex flex-col justify-between h-[300px] relative overflow-hidden group ${activeSession ? 'bg-white border-blue-200 shadow-xl shadow-blue-500/5' : 'bg-white border-gray-100 hover:border-blue-500/30 shadow-sm'}`}>
-                            {activeSession && (
-                              <div className="absolute top-6 right-6">
-                                <span className="flex h-3 w-3">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
-                                </span>
-                              </div>
-                            )}
 
                             <div className="flex justify-between items-start">
                               <div className={`p-4 rounded-2xl transition-all duration-500 ${activeSession ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600'}`}>
@@ -6750,8 +6742,14 @@ export default function App() {
                               <div className="text-right">
                                 {activeSession ? (
                                   <div className="animate-in fade-in slide-in-from-top-2 duration-700">
-                                    <span className="text-[10px] uppercase font-bold tracking-widest text-blue-600/60 block mb-1">IN-SESSION</span>
-                                    <span className="text-3xl font-black text-slate-900 tabular-nums tracking-tighter">
+                                    <div className="flex items-center justify-end gap-2 mb-1">
+                                      <span className="text-[10px] uppercase font-bold tracking-widest text-blue-600/60">IN-SESSION</span>
+                                      <span className="flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-blue-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                                      </span>
+                                    </div>
+                                    <span className="text-3xl font-black text-slate-900 tabular-nums tracking-tighter leading-none">
                                       {activeSession.startTime?.seconds ? (() => {
                                         const now = currentTime;
                                         const start = new Date(activeSession.startTime.seconds * 1000);
