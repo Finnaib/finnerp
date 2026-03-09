@@ -2040,7 +2040,7 @@ export default function App() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 10000); // Update every 10 seconds
+    }, 1000); // Update every second for a real running clock
     return () => clearInterval(timer);
   }, []);
 
@@ -6697,16 +6697,16 @@ export default function App() {
             activeTab === 'cafe' && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 {/* Sub-tab Navigation */}
-                <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl w-fit">
+                <div className="flex gap-4 bg-[#050505] p-2.5 rounded-full w-fit border border-white/5 mb-10 overflow-x-auto shadow-2xl backdrop-blur-3xl">
                   {[
-                    { id: 'board', label: 'Live Board', icon: <LayoutDashboard size={14} /> },
-                    { id: 'rooms', label: 'Rooms & Tables', icon: <Plus size={14} /> },
-                    { id: 'recipes', label: 'Recipes', icon: <Database size={14} /> }
+                    { id: 'board', label: 'LIVE BOARD', icon: <LayoutDashboard size={16} /> },
+                    { id: 'rooms', label: 'ROOMS & TABLES', icon: <Plus size={16} /> },
+                    { id: 'recipes', label: 'MENU & RECIPES', icon: <Database size={16} /> }
                   ].map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setCafeSubTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${cafeSubTab === tab.id ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`flex items-center gap-3 px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border-2 ${cafeSubTab === tab.id ? 'bg-blue-600 text-white border-blue-500 shadow-[0_15px_40px_rgba(37,99,235,0.4)] scale-[1.05]' : 'bg-transparent text-gray-500 border-transparent hover:text-white hover:border-white/5'}`}
                     >
                       {tab.icon} {tab.label}
                     </button>
@@ -6714,34 +6714,46 @@ export default function App() {
                 </div>
 
                 {cafeSubTab === 'board' && (
-                  <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 animate-in fade-in duration-500 min-h-[500px]">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                  <div className="bg-[#050505] p-10 rounded-[4rem] shadow-2xl relative overflow-hidden min-h-[600px] border border-white/5 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[150px] -z-10 animate-pulse"></div>
+                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/5 blur-[150px] -z-10 animate-pulse"></div>
+
+                    <div className="flex justify-between items-center mb-12">
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Active Sessions</h2>
-                        <p className="text-sm text-gray-500 font-medium">Monitor live status of your {cafeRooms.length} rooms and tables</p>
+                        <h2 className="text-white text-3xl font-black uppercase tracking-tight">Active Sessions</h2>
+                        <p className="text-gray-500 text-[11px] font-black uppercase tracking-[0.2em] mt-2 opacity-60">LIVE MONITORING FOR {cafeRooms.length} ROOMS</p>
                       </div>
-                      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-xl border border-green-100">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                        <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">System Online</span>
+                      <div className="flex items-center gap-3 px-6 py-3 bg-white/[0.04] rounded-2xl border border-white/10 backdrop-blur-xl">
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_15px_rgba(34,197,94,0.6)]"></div>
+                        <span className="text-[10px] font-black text-white uppercase tracking-[0.1em]">SYSTEM ONLINE</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                       {cafeRooms.map(room => {
                         const activeSession = cafeSessions.find(s => s.roomId === room.id && s.status === 'Active');
-                        const roomIcon = room.type === 'PlayStation' ? <Monitor size={22} /> : room.type === 'Billiards' ? <Disc size={22} /> : <Coffee size={22} />;
+                        const roomIcon = room.type === 'PlayStation' ? <Monitor size={24} /> : room.type === 'Billiards' ? <Disc size={24} /> : <Coffee size={24} />;
 
                         return (
-                          <div key={room.id} className={`p-6 rounded-3xl border transition-all duration-300 flex flex-col justify-between h-56 group ${activeSession ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-100' : 'bg-white text-gray-900 border-gray-100 hover:border-blue-500 hover:shadow-md'}`}>
+                          <div key={room.id} className={`p-10 rounded-[4rem] border-2 transition-all duration-700 flex flex-col justify-between h-[340px] relative overflow-hidden group shadow-2xl ${activeSession ? 'bg-[#0f0f0f] border-blue-600/50 shadow-[0_30px_70px_rgba(37,99,235,0.25)]' : 'bg-[#050505] border-white/5 hover:border-green-500/50 shadow-black/80'}`}>
+                            {activeSession && (
+                              <div className="absolute top-10 right-10">
+                                <span className="flex h-4 w-4">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-4 w-4 bg-blue-600 shadow-[0_0_25px_rgba(37,99,235,1)]"></span>
+                                </span>
+                              </div>
+                            )}
+
                             <div className="flex justify-between items-start">
-                              <div className={`p-3.5 rounded-2xl transition-all duration-300 ${activeSession ? 'bg-white/20 text-white' : 'bg-gray-50 text-blue-600 group-hover:bg-blue-50'}`}>
+                              <div className={`p-6 rounded-[2.5rem] transition-all duration-700 ${activeSession ? 'bg-blue-600/20 text-blue-400 shadow-[inset_0_0_20px_rgba(37,99,235,0.2)]' : 'bg-white/[0.03] text-gray-700 group-hover:bg-green-600/20 group-hover:text-green-500'}`}>
                                 {roomIcon}
                               </div>
                               <div className="text-right">
                                 {activeSession ? (
-                                  <>
-                                    <span className="text-[10px] uppercase font-black tracking-widest opacity-80 mb-1 block">In-Session</span>
-                                    <span className="text-lg font-black tabular-nums">
+                                  <div className="animate-in fade-in slide-in-from-top-4 duration-1000">
+                                    <span className="text-[10px] uppercase font-black tracking-[0.3em] text-blue-500/80 block mb-2">ON-AIR</span>
+                                    <span className="text-5xl font-black text-white tabular-nums tracking-tighter drop-shadow-2xl">
                                       {activeSession.startTime?.seconds ? (() => {
                                         const now = currentTime;
                                         const start = new Date(activeSession.startTime.seconds * 1000);
@@ -6751,31 +6763,31 @@ export default function App() {
                                         return `${h}h ${m}m`;
                                       })() : '...'}
                                     </span>
-                                  </>
+                                  </div>
                                 ) : (
-                                  <>
-                                    <div className="flex items-center gap-1.5 text-green-600 justify-end mb-1">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                                      <span className="text-[10px] uppercase font-black tracking-widest">Ready</span>
-                                    </div>
-                                    <span className="text-xs font-black text-gray-400">{formatCurrency(room.hourlyPrice || 0)}/hr</span>
-                                  </>
+                                  <div className="animate-in fade-in duration-1000">
+                                    <span className="text-[10px] uppercase font-black tracking-[0.2em] text-green-500/80 block mb-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">VACANT</span>
+                                    <span className="text-xl font-black text-white/20 px-3">{formatCurrency(room.hourlyPrice || 0)} / H</span>
+                                  </div>
                                 )}
                               </div>
                             </div>
 
-                            <div className="mt-4">
-                              <h3 className="text-lg font-bold uppercase tracking-tight leading-none mb-1">{room.name}</h3>
-                              <p className={`text-[10px] font-black uppercase tracking-widest ${activeSession ? 'text-white/60' : 'text-gray-400'}`}>{room.type}</p>
+                            <div>
+                              <h3 className="text-3xl font-black uppercase tracking-tighter text-white mb-2 leading-none group-hover:text-blue-400 transition-colors">{room.name}</h3>
+                              <p className="text-[11px] font-black uppercase tracking-[0.25em] text-gray-500 opacity-80 flex items-center gap-2">
+                                <div className="w-1 h-1 rounded-full bg-blue-500/40"></div>
+                                {room.type}
+                              </p>
                             </div>
 
-                            <div className="flex gap-2 mt-6">
+                            <div className="flex gap-3 mt-8">
                               {!activeSession ? (
-                                <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md active:scale-95">Start Session</button>
+                                <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-4.5 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-green-900/40 active:scale-95">START SESSION</button>
                               ) : (
                                 <>
-                                  <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-2.5 bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/30 transition-all flex items-center justify-center gap-2 active:scale-95"><Plus size={14} /> Order</button>
-                                  <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-2.5 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-md active:scale-95">Finish</button>
+                                  <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-4.5 bg-white/[0.05] hover:bg-white/[0.1] text-white rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border border-white/5 active:scale-95">ADD ORDER</button>
+                                  <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-4.5 bg-rose-600 hover:bg-rose-500 text-white rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all shadow-xl shadow-rose-900/40 active:scale-95">FINISH</button>
                                 </>
                               )}
                             </div>
@@ -6787,52 +6799,60 @@ export default function App() {
                 )}
 
                 {cafeSubTab === 'rooms' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-6">Add New Room/Table</h3>
-                      <form onSubmit={handleSaveRoom} className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="lg:col-span-4 bg-[#050505] p-10 rounded-[4rem] border border-white/5 shadow-2xl relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 blur-[60px] rounded-full"></div>
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-white relative flex items-center gap-3">
+                        <div className="w-2 h-6 bg-blue-600 rounded-full"></div>
+                        MANAGE UNIT
+                      </h3>
+                      <form onSubmit={handleSaveRoom} className="space-y-6 relative">
                         <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Name</label>
-                          <input type="text" value={roomForm.name} onChange={e => setRoomForm({ ...roomForm, name: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all" placeholder="e.g. PlayStation Room 5" required />
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2.5 block px-2">ROOM NAME</label>
+                          <input type="text" value={roomForm.name} onChange={e => setRoomForm({ ...roomForm, name: e.target.value })} className="w-full bg-white/[0.03] border border-white/5 rounded-full px-8 py-5 text-sm font-black text-white focus:ring-2 focus:ring-blue-500/20 outline-none transition-all placeholder:text-gray-800" placeholder="e.g. PS5 VIP 1" required />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-6">
                           <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Type</label>
-                            <select value={roomForm.type} onChange={e => setRoomForm({ ...roomForm, type: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all">
-                              <option value="Cafe">Cafe Table</option>
-                              <option value="PlayStation">PlayStation Room</option>
-                              <option value="Billiards">Billiards Table</option>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2.5 block px-2">UNIT TYPE</label>
+                            <select value={roomForm.type} onChange={e => setRoomForm({ ...roomForm, type: e.target.value })} className="w-full bg-white/[0.03] border border-white/5 rounded-full px-8 py-5 text-sm font-black text-white focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none cursor-pointer">
+                              <option value="Cafe" className="bg-[#111]">Cafe Table</option>
+                              <option value="PlayStation" className="bg-[#111]">PlayStation Room</option>
+                              <option value="Billiards" className="bg-[#111]">Billiards Table</option>
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Hourly Price</label>
-                            <input type="number" value={roomForm.hourlyPrice} onChange={e => setRoomForm({ ...roomForm, hourlyPrice: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all" placeholder="0.00" required />
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2.5 block px-2">HOURLY RATE (AED)</label>
+                            <input type="number" value={roomForm.hourlyPrice} onChange={e => setRoomForm({ ...roomForm, hourlyPrice: e.target.value })} className="w-full bg-white/[0.03] border border-white/5 rounded-full px-8 py-5 text-sm font-black text-white focus:ring-2 focus:ring-blue-500/20 outline-none transition-all placeholder:text-gray-800" placeholder="0.00" required />
                           </div>
                         </div>
-                        <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2">
-                          <Plus size={18} /> Save Room
+                        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-full font-black uppercase tracking-[0.2em] text-xs transition-all shadow-2xl shadow-blue-900/40 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
+                          <Plus size={20} strokeWidth={3} /> {roomForm.id ? 'UPDATE UNIT' : 'SAVE UNIT'}
                         </button>
+                        {roomForm.id && <button type="button" onClick={() => setRoomForm({ name: '', type: 'Cafe', hourlyPrice: 0 })} className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Cancel Edit</button>}
                       </form>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {cafeRooms.map(room => (
-                        <div key={room.id} className="bg-white p-6 rounded-3xl border border-gray-100 flex justify-between items-center group hover:border-blue-200 transition-all">
-                          <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
-                              {room.type === 'PlayStation' ? <Monitor size={20} /> : room.type === 'Billiards' ? <Disc size={20} /> : <Coffee size={20} />}
-                            </div>
-                            <div>
-                              <p className="font-black uppercase tracking-tight">{room.name}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase">{room.type}</span>
-                                <span className="text-[10px] font-black text-blue-600">{formatCurrency(room.hourlyPrice || 0)} / hr</span>
+                        <div key={room.id} className="bg-[#050505] p-8 rounded-[3.5rem] border border-white/5 hover:border-blue-500/30 transition-all group relative overflow-hidden flex flex-col justify-between shadow-2xl min-h-[180px]">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-5">
+                              <div className="p-5 bg-white/[0.03] text-blue-400 rounded-3xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-inner">
+                                {room.type === 'PlayStation' ? <Monitor size={24} /> : room.type === 'Billiards' ? <Disc size={24} /> : <Coffee size={24} />}
+                              </div>
+                              <div>
+                                <h4 className="font-black uppercase tracking-tight text-xl text-white leading-none mb-1.5">{room.name}</h4>
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{room.type}</span>
+                                  <div className="w-1 h-1 rounded-full bg-gray-700"></div>
+                                  <span className="text-[10px] font-black text-green-500/80 uppercase tracking-widest">{formatCurrency(room.hourlyPrice || 0)} / HR</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                            <button onClick={() => setRoomForm(room)} className="p-3 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"><Edit size={18} /></button>
-                            <button onClick={() => handleDeleteRoom(room.id)} className="p-3 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-2 group-hover:translate-x-0">
+                              <button onClick={() => setRoomForm(room)} className="p-3.5 bg-white/5 text-gray-400 hover:text-white hover:bg-blue-600 rounded-2xl transition-all shadow-lg active:scale-90"><Edit size={18} /></button>
+                              <button onClick={() => handleDeleteRoom(room.id)} className="p-3.5 bg-white/5 text-gray-400 hover:text-white hover:bg-rose-600 rounded-2xl transition-all shadow-lg active:scale-90"><Trash2 size={18} /></button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -6841,56 +6861,60 @@ export default function App() {
                 )}
 
                 {cafeSubTab === 'recipes' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-6">Create Menu Item</h3>
-                      <form onSubmit={handleSaveRecipe} className="space-y-6">
-                        <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">1. Item Name</label>
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="lg:col-span-4 bg-[#050505] p-10 rounded-[4rem] border border-white/5 shadow-2xl relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 blur-[60px] rounded-full"></div>
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-white relative flex items-center gap-3">
+                        <div className="w-2 h-6 bg-purple-600 rounded-full"></div>
+                        MENU BUILDER
+                      </h3>
+                      <form onSubmit={handleSaveRecipe} className="space-y-6 relative">
+                        <div className="bg-white/[0.02] p-6 rounded-[2.5rem] border border-white/5">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 block px-2">1. ITEM IDENTITY</label>
                           <input
                             type="text"
                             value={recipeForm.name}
                             onChange={e => setRecipeForm({ ...recipeForm, name: e.target.value })}
-                            className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all"
-                            placeholder="e.g. Cappuccino"
+                            className="w-full bg-white/[0.03] border border-white/5 rounded-full px-8 py-5 text-sm font-black text-white focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-gray-800"
+                            placeholder="e.g. Mocha Premium"
                             required
                           />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">2. Category</label>
+                        <div className="grid grid-cols-1 gap-6">
+                          <div className="bg-white/[0.02] p-6 rounded-[2.5rem] border border-white/5">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 block px-2">2. CATEGORY</label>
                             <select
                               value={recipeForm.category}
                               onChange={e => setRecipeForm({ ...recipeForm, category: e.target.value })}
-                              className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all"
+                              className="w-full bg-white/[0.03] border border-white/5 rounded-full px-8 py-5 text-sm font-black text-white focus:ring-2 focus:ring-purple-500/20 outline-none transition-all appearance-none cursor-pointer"
                               required
                             >
-                              <option value="Hot Drinks">Hot Drinks</option>
-                              <option value="Cold Drinks">Cold Drinks</option>
-                              <option value="Snacks">Snacks</option>
-                              <option value="Meals">Meals</option>
+                              <option value="Hot Drinks" className="bg-[#111]">Hot Drinks</option>
+                              <option value="Cold Drinks" className="bg-[#111]">Cold Drinks</option>
+                              <option value="Snacks" className="bg-[#111]">Snacks</option>
+                              <option value="Meals" className="bg-[#111]">Meals</option>
                             </select>
                           </div>
-                          <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">3. Sell Price</label>
+                          <div className="bg-white/[0.02] p-6 rounded-[2.5rem] border border-white/5">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 block px-2">3. PRICE (AED)</label>
                             <input
                               type="number"
                               value={recipeForm.sellPrice}
                               onChange={e => setRecipeForm({ ...recipeForm, sellPrice: e.target.value })}
-                              className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all"
+                              className="w-full bg-white/[0.03] border border-white/5 rounded-full px-8 py-5 text-sm font-black text-white focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-gray-800"
                               placeholder="0.00"
                               required
                             />
                           </div>
                         </div>
 
-                        <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">4. Ingredients (Stock Deduction)</label>
-                          <div className="space-y-3 mb-4">
+                        <div className="bg-white/[0.02] p-6 rounded-[2.5rem] border border-white/5">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-4 block px-2">4. COMPOSITION</label>
+                          <div className="space-y-3 mb-6">
                             {recipeForm.ingredients.map((ing, idx) => (
-                              <div key={idx} className="flex gap-2 items-center bg-gray-50 p-3 rounded-2xl">
-                                <span className="flex-1 text-xs font-bold truncate">{ing.name}</span>
+                              <div key={idx} className="flex gap-3 items-center bg-white/[0.03] p-4 rounded-3xl border border-white/5">
+                                <span className="flex-1 text-[11px] font-black text-gray-300 truncate uppercase">{ing.name}</span>
                                 <input
                                   type="number"
                                   value={ing.qty}
@@ -6899,11 +6923,11 @@ export default function App() {
                                     news[idx].qty = e.target.value;
                                     setRecipeForm({ ...recipeForm, ingredients: news });
                                   }}
-                                  className="w-20 bg-white border-none rounded-lg px-2 py-1 text-xs font-bold text-center"
-                                  placeholder="Qty"
+                                  className="w-16 bg-black/40 border-none rounded-xl px-2 py-2 text-xs font-black text-white text-center"
+                                  placeholder="1"
                                 />
-                                <button type="button" onClick={() => setRecipeForm({ ...recipeForm, ingredients: recipeForm.ingredients.filter((_, i) => i !== idx) })} className="text-rose-500 hover:bg-rose-50 p-2 rounded-lg">
-                                  <Minus size={14} />
+                                <button type="button" onClick={() => setRecipeForm({ ...recipeForm, ingredients: recipeForm.ingredients.filter((_, i) => i !== idx) })} className="text-rose-500 hover:bg-rose-600/10 p-2.5 rounded-xl transition-all">
+                                  <Minus size={16} strokeWidth={3} />
                                 </button>
                               </div>
                             ))}
@@ -6917,39 +6941,42 @@ export default function App() {
                               }
                               e.target.value = "";
                             }}
-                            className="w-full bg-blue-50 border-dashed border-2 border-blue-200 rounded-2xl px-6 py-4 text-xs font-black text-blue-600 text-center cursor-pointer hover:bg-blue-100 transition-all"
+                            className="w-full bg-white/[0.01] border-dashed border-2 border-white/10 rounded-full px-8 py-5 text-[10px] font-black text-gray-400 text-center cursor-pointer hover:border-purple-500/30 hover:text-purple-400 transition-all"
                           >
-                            <option value="">+ ADD COMPONENT FROM WAREHOUSE</option>
-                            {inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({i.location})</option>)}
+                            <option value="" className="bg-[#111]">+ LINK WAREHOUSE STOCK</option>
+                            {inventory.map(i => <option key={i.id} value={i.id} className="bg-[#111]">{i.name} ({i.location})</option>)}
                           </select>
                         </div>
 
-                        <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-slate-200">
-                          {recipeForm.id ? 'Update Menu Item' : 'Create Menu Item'}
+                        <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white py-6 rounded-full font-black uppercase tracking-[0.2em] text-xs transition-all shadow-2xl shadow-purple-900/40 transform active:scale-[0.98] mt-4">
+                          {recipeForm.id ? 'UPDATE MENU ITEM' : 'ADD TO MENU'}
                         </button>
                       </form>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {recipes.map(recipe => (
-                        <div key={recipe.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 flex justify-between items-start group hover:border-blue-200 transition-all cursor-pointer" onClick={() => setRecipeForm(recipe)}>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="bg-blue-50 text-blue-600 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">{recipe.category}</span>
-                              <span className="text-[10px] font-black text-gray-300">#{recipe.id.slice(0, 4)}</span>
-                            </div>
-                            <p className="font-black uppercase tracking-tight text-lg text-gray-900">{recipe.name}</p>
-                            <p className="text-xs font-black text-blue-600 mt-0.5">{formatCurrency(recipe.sellPrice)}</p>
+                        <div key={recipe.id} className="bg-[#050505] p-10 rounded-[3.5rem] border border-white/5 hover:border-purple-500/30 transition-all group relative overflow-hidden flex flex-col justify-between shadow-2xl cursor-pointer" onClick={() => setRecipeForm(recipe)}>
+                          <div className="absolute top-0 right-0 p-8">
+                            <span className="bg-purple-600/10 text-purple-400 text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border border-purple-500/20">{recipe.category}</span>
+                          </div>
 
-                            <div className="mt-4 flex flex-wrap gap-2">
+                          <div>
+                            <h4 className="font-black uppercase tracking-tighter text-2xl text-white mb-2 leading-none">{recipe.name}</h4>
+                            <p className="text-lg font-black text-purple-400 tracking-widest">{formatCurrency(recipe.sellPrice)}</p>
+
+                            <div className="mt-8 flex flex-wrap gap-2.5">
                               {(recipe.ingredients || []).map((ing, idx) => (
-                                <span key={idx} className="bg-gray-50 text-[9px] font-black px-2 py-1 rounded-lg uppercase text-gray-400 border border-gray-100">
-                                  {ing.qty}x {ing.name}
+                                <span key={idx} className="bg-white/[0.03] text-[9px] font-black px-4 py-2 rounded-2xl uppercase text-gray-500 border border-white/5">
+                                  {ing.qty}× {ing.name}
                                 </span>
                               ))}
                             </div>
                           </div>
-                          <button onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }} className="p-3 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+
+                          <div className="flex justify-end mt-8 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }} className="p-4 bg-rose-600/10 text-rose-500 hover:bg-rose-600 hover:text-white rounded-2xl transition-all"><Trash2 size={20} /></button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -8845,32 +8872,44 @@ export default function App() {
 
       {/* Cafe Order Modal */}
       {isCafeOrderModalOpen && activeCafeSession && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20 flex flex-col">
-            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-[100] p-4 animate-in fade-in duration-500">
+          <div className="bg-[#050505] rounded-[4rem] w-full max-w-5xl max-h-[90vh] shadow-[0_0_100px_rgba(37,99,235,0.15)] overflow-hidden animate-in zoom-in-95 duration-500 border border-white/10 flex flex-col relative">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-600 to-transparent"></div>
+
+            <div className="px-12 py-10 border-b border-white/[0.03] flex justify-between items-center relative z-10">
               <div>
-                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Add Order - {activeCafeSession.roomName}</h3>
-                <p className="text-xs text-gray-500 font-medium">Select items to add to this session</p>
+                <h3 className="text-3xl font-black text-white uppercase tracking-tighter shadow-blue-500/20 drop-shadow-lg">
+                  ADD ORDER <span className="text-blue-500 mx-2">/</span> {activeCafeSession.roomName}
+                </h3>
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                  Select items to append to session
+                </p>
               </div>
-              <button onClick={() => { setIsCafeOrderModalOpen(false); setCart([]); }} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-all"><X size={24} /></button>
+              <button
+                onClick={() => { setIsCafeOrderModalOpen(false); setCart([]); }}
+                className="p-4 hover:bg-white/5 rounded-full text-gray-500 hover:text-white transition-all transform active:scale-95 border border-transparent hover:border-white/10"
+              >
+                <X size={32} />
+              </button>
             </div>
 
-            <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+            <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative z-10">
               {/* Left: Menu */}
-              <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-6">
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex-1 p-10 overflow-y-auto flex flex-col gap-10">
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
                   {['All', 'Hot Drinks', 'Cold Drinks', 'Snacks', 'Meals'].map(cat => (
                     <button
                       key={cat}
                       onClick={() => setActiveCafeCategory(cat)}
-                      className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCafeCategory === cat ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-400 border border-gray-100 hover:border-gray-200'}`}
+                      className={`px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${activeCafeCategory === cat ? 'bg-blue-600 text-white border-blue-500 shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-white/[0.03] text-gray-500 border-white/5 hover:border-white/20'}`}
                     >
                       {cat}
                     </button>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                   {recipes
                     .filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory)
                     .map(item => (
@@ -8884,66 +8923,79 @@ export default function App() {
                             setCart([...cart, { ...item, quantity: 1 }]);
                           }
                         }}
-                        className="p-4 bg-gray-50 rounded-[2rem] border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all group relative overflow-hidden text-left"
+                        className="p-6 bg-white/[0.02] rounded-[2.5rem] border border-white/5 hover:border-blue-500/50 hover:bg-blue-600/5 transition-all group relative overflow-hidden text-left min-h-[140px] flex flex-col justify-between"
                       >
-                        <p className="font-black text-gray-900 text-sm mb-1 uppercase tracking-tight text-wrap">{item.name}</p>
-                        <p className="text-blue-600 font-black text-xs">{formatCurrency(item.sellPrice)}</p>
-                        <div className="absolute right-4 bottom-4 p-2 bg-white rounded-xl shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all">
-                          <Plus size={16} />
+                        <div>
+                          <p className="font-black text-white text-lg mb-1.5 uppercase tracking-tighter leading-tight">{item.name}</p>
+                          <p className="text-blue-400 font-black text-sm tracking-widest">{formatCurrency(item.sellPrice)}</p>
+                        </div>
+                        <div className="w-10 h-10 bg-white/[0.03] rounded-2xl flex items-center justify-center text-gray-600 group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:rotate-12">
+                          <Plus size={20} strokeWidth={3} />
                         </div>
                       </button>
                     ))}
                 </div>
 
                 {recipes.filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory).length === 0 && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 opacity-40">
-                    <Package size={48} className="mb-4 text-gray-300" />
-                    <p className="text-sm font-black uppercase tracking-widest text-gray-400">No items found</p>
-                    <p className="text-[10px] font-bold text-gray-400 mt-2">Go to "Recipes" tab to create your menu items first.</p>
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-30">
+                    <Package size={64} className="mb-6 text-gray-700" />
+                    <p className="text-sm font-black uppercase tracking-[0.2em] text-gray-500">Menu items missing</p>
+                    <p className="text-[10px] font-bold text-gray-600 mt-4 leading-relaxed max-w-[200px]">Head over to the "Recipes" tab to design your signature menu.</p>
                   </div>
                 )}
               </div>
 
               {/* Right: Cart & History */}
-              <div className="w-full md:w-80 bg-gray-50 border-l border-gray-100 p-6 flex flex-col h-full overflow-hidden">
-                <div className="flex-1 overflow-y-auto space-y-6">
-                  {/* History Section */}
-                  {(activeCafeSession.orders || []).length > 0 && (
-                    <div>
-                      <h4 className="font-black text-[10px] uppercase tracking-widest text-blue-600 mb-3 flex items-center gap-2">
-                        <History size={14} /> Already Ordered
-                      </h4>
-                      <div className="space-y-2">
-                        {activeCafeSession.orders.map((item, idx) => (
-                          <div key={idx} className="flex justify-between items-center opacity-60">
-                            <span className="text-[11px] font-bold text-gray-600 truncate uppercase">{item.name}</span>
-                            <span className="text-[11px] font-black text-gray-400">x{item.quantity}</span>
-                          </div>
-                        ))}
+              <div className="w-full md:w-[400px] bg-white/[0.01] border-l border-white/[0.03] p-10 flex flex-col h-full overflow-hidden backdrop-blur-md">
+                <div className="flex-1 overflow-y-auto space-y-10 pr-2 custom-scrollbar">
+                  {/* History Section - Updated to ensure persistence */}
+                  {(() => {
+                    const currentSession = cafeSessions.find(s => s.id === activeCafeSession.id);
+                    const history = currentSession?.orders || [];
+                    if (history.length === 0) return null;
+                    return (
+                      <div className="bg-[#111] p-6 rounded-[2.5rem] border border-white/[0.02] shadow-inner">
+                        <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-blue-400 mb-6 flex items-center gap-3">
+                          <History size={16} /> ORDER HISTORY
+                        </h4>
+                        <div className="space-y-3">
+                          {history.map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center px-2">
+                              <span className="text-xs font-black text-gray-400 uppercase tracking-tight truncate max-w-[180px]">{item.name}</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-black text-gray-600">x{item.quantity}</span>
+                                <span className="text-xs font-mono text-gray-500">{formatCurrency(Number(item.sellPrice) * Number(item.quantity))}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-white/[0.03] flex justify-between items-center text-blue-400/50">
+                          <span className="text-[9px] font-black uppercase tracking-widest">SUBTOTAL</span>
+                          <span className="text-sm font-black tabular-nums">{formatCurrency(history.reduce((sum, h) => sum + (Number(h.sellPrice) * Number(h.quantity)), 0))}</span>
+                        </div>
                       </div>
-                      <div className="h-px bg-gray-200 my-4"></div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   <div>
-                    <h4 className="font-black text-[10px] uppercase tracking-widest text-gray-400 mb-3">Current Selection</h4>
-                    <div className="space-y-3">
+                    <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-6 px-2">NEW SELECTION</h4>
+                    <div className="space-y-4">
                       {cart.length === 0 ? (
-                        <div className="py-8 flex flex-col items-center justify-center opacity-20">
-                          <ShoppingCart size={32} className="mb-2" />
-                          <p className="text-[9px] font-black uppercase">Cart is Empty</p>
+                        <div className="py-12 flex flex-col items-center justify-center opacity-10">
+                          <ShoppingCart size={48} className="mb-4" />
+                          <p className="text-[11px] font-black uppercase tracking-widest">Tray is Empty</p>
                         </div>
                       ) : (
                         cart.map((item, idx) => (
-                          <div key={idx} className="bg-white p-3 rounded-2xl border border-blue-100 shadow-sm flex items-center gap-3 animate-in slide-in-from-right-2 duration-200">
+                          <div key={idx} className="bg-white/[0.03] p-5 rounded-3xl border border-white/5 flex items-center gap-4 animate-in slide-in-from-right-4 duration-500 shadow-xl">
                             <div className="flex-1 overflow-hidden">
-                              <p className="font-bold text-xs text-gray-900 truncate uppercase">{item.name}</p>
-                              <p className="text-[10px] text-blue-600 font-black">{formatCurrency(item.sellPrice)}</p>
+                              <p className="font-black text-sm text-white truncate uppercase tracking-tight mb-1">{item.name}</p>
+                              <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">{formatCurrency(item.sellPrice)}</p>
                             </div>
-                            <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
-                              <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Math.max(0, Number(c.quantity) - 1) } : c).filter(c => c.quantity > 0))} className="p-1 hover:bg-white rounded text-gray-400"><Minus size={12} /></button>
-                              <span className="text-xs font-black">{item.quantity}</span>
-                              <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c))} className="p-1 hover:bg-white rounded text-gray-400"><Plus size={12} /></button>
+                            <div className="flex items-center gap-4 bg-black/40 rounded-2xl p-2 border border-white/5">
+                              <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Math.max(0, Number(c.quantity) - 1) } : c).filter(c => c.quantity > 0))} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-all"><Minus size={14} /></button>
+                              <span className="text-xs font-black text-white tabular-nums">{item.quantity}</span>
+                              <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c))} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-all"><Plus size={14} /></button>
                             </div>
                           </div>
                         ))
@@ -8952,10 +9004,10 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="space-y-4 pt-4 border-t border-gray-100 mt-auto">
+                <div className="space-y-6 pt-10 border-t border-white/[0.03] mt-auto relative z-10">
                   <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">New Items</span>
-                    <span className="text-xl font-black text-gray-900 tracking-tight">{formatCurrency(cart.reduce((sum, i) => sum + (Number(i.sellPrice) * Number(i.quantity)), 0))}</span>
+                    <span className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em]">Tray Total</span>
+                    <span className="text-3xl font-black text-white tracking-tighter shadow-blue-500/10 drop-shadow-md">{formatCurrency(cart.reduce((sum, i) => sum + (Number(i.sellPrice) * Number(i.quantity)), 0))}</span>
                   </div>
                   <button
                     disabled={cart.length === 0}
@@ -8963,9 +9015,9 @@ export default function App() {
                       handleCheckoutCafeOrder(activeCafeSession.id, cart);
                       setIsCafeOrderModalOpen(false);
                     }}
-                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-slate-200 disabled:opacity-30 flex items-center justify-center gap-2"
+                    className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-black uppercase tracking-[0.2em] text-xs transition-all shadow-2xl shadow-blue-900/50 disabled:opacity-20 flex items-center justify-center gap-3 transform active:scale-95"
                   >
-                    <CheckCircle size={20} /> Add to Session
+                    <CheckCircle size={24} strokeWidth={3} /> CONFIRM ORDER
                   </button>
                 </div>
               </div>
@@ -8977,68 +9029,68 @@ export default function App() {
       {/* Start Session Modal */}
       {isStartSessionModalOpen && pendingRoom && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
-          <div className="bg-[#111] text-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/5 flex flex-col p-8">
-            <div className="flex justify-between items-center mb-8">
+          <div className="bg-[#111] text-white rounded-[3rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/5 flex flex-col p-10">
+            <div className="flex justify-between items-center mb-10">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-900/40">
+                <div className="p-3 bg-blue-600 rounded-2xl shadow-[0_0_20px_rgba(37,99,235,0.3)]">
                   <Plus size={24} className="text-white" />
                 </div>
-                <h3 className="text-2xl font-bold tracking-tight">Start session</h3>
+                <h3 className="text-2xl font-black tracking-tight">Start session</h3>
               </div>
-              <button onClick={() => setIsStartSessionModalOpen(false)} className="p-2 text-gray-500 hover:text-white transition-all hover:bg-white/5 rounded-full"><X size={28} /></button>
+              <button onClick={() => setIsStartSessionModalOpen(false)} className="p-2 text-gray-600 hover:text-white transition-all hover:bg-white/5 rounded-full"><X size={32} /></button>
             </div>
 
             <form onSubmit={handleConfirmStartSession} className="space-y-6">
               <div>
-                <label className="text-[10px] uppercase font-black tracking-[0.15em] text-gray-500 mb-2.5 block px-1">THE ROOM</label>
-                <div className="w-full bg-[#1a1a1a] rounded-2xl px-6 py-5 font-bold flex justify-between items-center border border-white/[0.03]">
+                <label className="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-2 block px-2">THE ROOM</label>
+                <div className="w-full bg-[#1a1a1a] rounded-full px-8 py-5 font-black flex justify-between items-center border border-white/[0.03]">
                   <span className="text-gray-200 text-lg">{pendingRoom.name}</span>
-                  <span className="text-[10px] text-gray-500 font-black opacity-80">{formatCurrency(pendingRoom.hourlyPrice)} /hr</span>
+                  <span className="text-[10px] text-gray-500 uppercase tracking-widest">{formatCurrency(pendingRoom.hourlyPrice)} /hr</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-black tracking-[0.15em] text-gray-500 mb-2.5 block px-1">SESSION TYPE</label>
+                <label className="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-2 block px-2">SESSION TYPE</label>
                 <div className="relative group">
                   <select
                     value={sessionStartForm.sessionType}
                     onChange={e => setSessionStartForm({ ...sessionStartForm, sessionType: e.target.value })}
-                    className="w-full bg-[#1a1a1a] rounded-2xl px-6 py-5 font-bold text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all appearance-none cursor-pointer border border-white/[0.03]"
+                    className="w-full bg-[#1a1a1a] rounded-full px-8 py-5 font-black text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all appearance-none cursor-pointer border border-white/[0.03]"
                   >
                     <option value="Open">Open (by the hour)</option>
                     <option value="Fixed">Fixed Time</option>
                   </select>
-                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                    <ChevronDown size={18} />
+                  <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                    <ChevronDown size={20} />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-black tracking-[0.15em] text-gray-500 mb-2.5 block px-1">CUSTOMER NUMBER *</label>
+                <label className="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-2 block px-2">CUSTOMER NUMBER *</label>
                 <input
                   type="text"
                   value={sessionStartForm.customerPhone}
                   onChange={e => setSessionStartForm({ ...sessionStartForm, customerPhone: e.target.value })}
-                  className="w-full bg-[#1a1a1a] rounded-2xl px-6 py-5 font-bold text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all placeholder:text-gray-700 border border-white/[0.03]"
+                  className="w-full bg-[#1a1a1a] rounded-full px-8 py-5 font-black text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all placeholder:text-gray-800 border border-white/[0.03]"
                   placeholder="Enter phone number"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-black tracking-[0.15em] text-gray-500 mb-2.5 block px-1">THE NAME</label>
+                <label className="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-2 block px-2">THE NAME</label>
                 <input
                   type="text"
                   value={sessionStartForm.customerName}
                   onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
-                  className="w-full bg-[#1a1a1a] rounded-2xl px-6 py-5 font-bold text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all placeholder:text-gray-700 border border-white/[0.03]"
+                  className="w-full bg-[#1a1a1a] rounded-full px-8 py-5 font-black text-white focus:ring-2 focus:ring-green-500/20 outline-none transition-all placeholder:text-gray-800 border border-white/[0.03]"
                   placeholder="Enter customer name"
                 />
               </div>
 
-              <button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white py-5 rounded-[1.5rem] font-bold uppercase tracking-[0.15em] text-sm transition-all shadow-2xl shadow-green-900/30 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
-                <Plus size={22} strokeWidth={3} /> START
+              <button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white py-5 rounded-full font-black uppercase tracking-[0.2em] text-sm transition-all shadow-2xl shadow-green-900/40 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
+                <Plus size={24} strokeWidth={4} /> START
               </button>
             </form>
           </div>
