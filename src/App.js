@@ -84,9 +84,9 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 
-// DEBUG: Global Error Handler to catch white screen cause
+// SILENCED: Global Error Handler no longer interrupts user
 window.onerror = function (message, source, lineno, colno, error) {
-  alert('App Error: ' + message + '\nLine: ' + lineno);
+  console.error('App Error:', message, 'Line:', lineno);
 };
 
 // --- Subcomponents ---
@@ -4589,12 +4589,21 @@ export default function App() {
         };
 
         if (html5QrCode) {
-          html5QrCode.stop()
-            .then(() => {
-              html5QrCode.clear();
+          try {
+            // Only stop if actually running to avoid "Cannot stop" error
+            if (html5QrCode.isScanning) {
+              html5QrCode.stop()
+                .then(() => {
+                  try { html5QrCode.clear(); } catch (e) { }
+                  forceKillHardware();
+                })
+                .catch(() => forceKillHardware());
+            } else {
               forceKillHardware();
-            })
-            .catch(() => forceKillHardware());
+            }
+          } catch (e) {
+            forceKillHardware();
+          }
         } else {
           forceKillHardware();
         }
