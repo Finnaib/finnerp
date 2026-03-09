@@ -2022,19 +2022,14 @@ export default function App() {
 
   const [cafeSessions, setCafeSessions] = useState([]);
   const [recipes, setRecipes] = useState([]);
+  const [cafeRooms, setCafeRooms] = useState([]);
   const [isCafeOrderModalOpen, setIsCafeOrderModalOpen] = useState(false);
   const [activeCafeSession, setActiveCafeSession] = useState(null);
   const [activeCafeCategory, setActiveCafeCategory] = useState('Hot Drinks');
-  const [cafeRooms] = useState([
-    { id: 'R1', name: 'Room 1', type: 'PlayStation', icon: <Monitor size={20} /> },
-    { id: 'R2', name: 'Room 2', type: 'PlayStation', icon: <Monitor size={20} /> },
-    { id: 'R3', name: 'Room 3', type: 'PlayStation', icon: <Monitor size={20} /> },
-    { id: 'R4', name: 'Room 4', type: 'PlayStation', icon: <Monitor size={20} /> },
-    { id: 'T1', name: 'Table 1', type: 'Billiards', icon: <Disc size={20} /> },
-    { id: 'T2', name: 'Table 2', type: 'Billiards', icon: <Disc size={20} /> },
-    { id: 'L1', name: 'Lounge 1', type: 'Cafe', icon: <Coffee size={20} /> },
-    { id: 'L2', name: 'Lounge 2', type: 'Cafe', icon: <Coffee size={20} /> },
-  ]);
+  const [cafeSubTab, setCafeSubTab] = useState('board'); // 'board' | 'rooms' | 'recipes'
+
+  const [roomForm, setRoomForm] = useState({ name: '', type: 'Cafe' });
+  const [recipeForm, setRecipeForm] = useState({ itemId: '', ingredients: [] }); // { id, name, qty }
 
   useEffect(() => {
     if (user) {
@@ -2050,6 +2045,25 @@ export default function App() {
       const q = query(collection(db, 'recipes'), where('userId', '==', user.uid));
       return onSnapshot(q, (snapshot) => {
         setRecipes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const q = query(collection(db, 'cafeRooms'), where('userId', '==', user.uid));
+      return onSnapshot(q, (snapshot) => {
+        const rooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (rooms.length === 0) {
+          // One-time seed for new users
+          const defaults = [
+            { name: 'Room 1', type: 'PlayStation', userId: user.uid },
+            { name: 'Table 1', type: 'Billiards', userId: user.uid },
+            { name: 'Lounge 1', type: 'Cafe', userId: user.uid },
+          ];
+          defaults.forEach(d => addDoc(collection(db, 'cafeRooms'), d));
+        }
+        setCafeRooms(rooms);
       });
     }
   }, [user]);
@@ -3206,6 +3220,42 @@ export default function App() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleSaveRoom = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      if (roomForm.id) {
+        await updateDoc(doc(db, 'cafeRooms', roomForm.id), { name: roomForm.name, type: roomForm.type });
+      } else {
+        await addDoc(collection(db, 'cafeRooms'), { ...roomForm, userId: user.uid });
+      }
+      setRoomForm({ name: '', type: 'Cafe' });
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteRoom = async (id) => {
+    if (!user || !window.confirm(t('confirmDelete'))) return;
+    try { await deleteDoc(doc(db, 'cafeRooms', id)); } catch (err) { console.error(err); }
+  };
+
+  const handleSaveRecipe = async (e) => {
+    e.preventDefault();
+    if (!user || !recipeForm.itemId) return;
+    try {
+      if (recipeForm.id) {
+        await updateDoc(doc(db, 'recipes', recipeForm.id), { ingredients: recipeForm.ingredients });
+      } else {
+        await addDoc(collection(db, 'recipes'), { ...recipeForm, userId: user.uid, createdAt: serverTimestamp() });
+      }
+      setRecipeForm({ itemId: '', ingredients: [] });
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteRecipe = async (id) => {
+    if (!user || !window.confirm(t('confirmDelete'))) return;
+    try { await deleteDoc(doc(db, 'recipes', id)); } catch (err) { console.error(err); }
   };
 
   // Legacy function kept for compatibility if needed, but replaced by handleCheckout
@@ -6613,42 +6663,192 @@ export default function App() {
           {
             activeTab === 'cafe' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {cafeRooms.map(room => {
-                    const activeSession = cafeSessions.find(s => s.roomId === room.id && s.status === 'Active');
-                    return (
-                      <div key={room.id} className={`p-6 rounded-[2rem] border transition-all duration-300 shadow-sm flex flex-col justify-between h-48 ${activeSession ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-gray-900 border-gray-100 hover:border-blue-200'}`}>
-                        <div className="flex justify-between items-start">
-                          <div className={`p-3 rounded-2xl ${activeSession ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
-                            {room.icon}
-                          </div>
-                          {activeSession && (
-                            <div className="flex flex-col items-end">
-                              <span className="text-[10px] uppercase font-black tracking-widest opacity-80">Active since</span>
-                              <span className="text-xs font-bold">{activeSession.startTime?.seconds ? new Date(activeSession.startTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}</span>
+                {/* Sub-tab Navigation */}
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl w-fit">
+                  {[
+                    { id: 'board', label: 'Live Board', icon: <LayoutDashboard size={14} /> },
+                    { id: 'rooms', label: 'Rooms & Tables', icon: <Plus size={14} /> },
+                    { id: 'recipes', label: 'Recipes', icon: <Database size={14} /> }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setCafeSubTab(tab.id)}
+                      className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${cafeSubTab === tab.id ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      {tab.icon} {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {cafeSubTab === 'board' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {cafeRooms.map(room => {
+                      const activeSession = cafeSessions.find(s => s.roomId === room.id && s.status === 'Active');
+                      const roomIcon = room.type === 'PlayStation' ? <Monitor size={20} /> : room.type === 'Billiards' ? <Disc size={20} /> : <Coffee size={20} />;
+                      return (
+                        <div key={room.id} className={`p-6 rounded-[2rem] border transition-all duration-300 shadow-sm flex flex-col justify-between h-48 ${activeSession ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-gray-900 border-gray-100 hover:border-blue-200'}`}>
+                          <div className="flex justify-between items-start">
+                            <div className={`p-3 rounded-2xl ${activeSession ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
+                              {roomIcon}
                             </div>
-                          )}
+                            {activeSession && (
+                              <div className="flex flex-col items-end">
+                                <span className="text-[10px] uppercase font-black tracking-widest opacity-80">Active since</span>
+                                <span className="text-xs font-bold">{activeSession.startTime?.seconds ? new Date(activeSession.startTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div>
+                            <h3 className="text-lg font-black uppercase tracking-tight">{room.name}</h3>
+                            <p className={`text-[10px] font-bold uppercase tracking-widest ${activeSession ? 'text-white/70' : 'text-gray-400'}`}>{room.type}</p>
+                          </div>
+
+                          <div className="flex gap-2 mt-4">
+                            {!activeSession ? (
+                              <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase hover:bg-blue-700 transition-all shadow-md">Start Session</button>
+                            ) : (
+                              <>
+                                <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-2 bg-white/20 text-white rounded-xl text-[10px] font-black uppercase hover:bg-white/30 transition-all flex items-center justify-center gap-1"><Plus size={12} /> Add Order</button>
+                                <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-2 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 transition-all">Finish</button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {cafeSubTab === 'rooms' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-6">Add New Room/Table</h3>
+                      <form onSubmit={handleSaveRoom} className="space-y-4">
+                        <div>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Name</label>
+                          <input type="text" value={roomForm.name} onChange={e => setRoomForm({ ...roomForm, name: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all" placeholder="e.g. PlayStation Room 5" required />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Type</label>
+                          <select value={roomForm.type} onChange={e => setRoomForm({ ...roomForm, type: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all">
+                            <option value="Cafe">Cafe Table</option>
+                            <option value="PlayStation">PlayStation Room</option>
+                            <option value="Billiards">Billiards Table</option>
+                          </select>
+                        </div>
+                        <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2">
+                          <Plus size={18} /> Save Room
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="space-y-4">
+                      {cafeRooms.map(room => (
+                        <div key={room.id} className="bg-white p-6 rounded-3xl border border-gray-100 flex justify-between items-center group hover:border-blue-200 transition-all">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                              {room.type === 'PlayStation' ? <Monitor size={20} /> : room.type === 'Billiards' ? <Disc size={20} /> : <Coffee size={20} />}
+                            </div>
+                            <div>
+                              <p className="font-black uppercase tracking-tight">{room.name}</p>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase">{room.type}</p>
+                            </div>
+                          </div>
+                          <button onClick={() => handleDeleteRoom(room.id)} className="p-3 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"><Trash2 size={18} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {cafeSubTab === 'recipes' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-6">Create Recipe</h3>
+                      <form onSubmit={handleSaveRecipe} className="space-y-6">
+                        <div>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Menu Item (From Warehouse)</label>
+                          <select
+                            value={recipeForm.itemId}
+                            onChange={e => setRecipeForm({ ...recipeForm, itemId: e.target.value })}
+                            className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all"
+                            required
+                          >
+                            <option value="">Select Item...</option>
+                            {inventory.filter(i => ['Hot Drinks', 'Cold Drinks', 'Snacks', 'Meals'].includes(i.category)).map(item => (
+                              <option key={item.id} value={item.id}>{item.name}</option>
+                            ))}
+                          </select>
                         </div>
 
                         <div>
-                          <h3 className="text-lg font-black uppercase tracking-tight">{room.name}</h3>
-                          <p className={`text-[10px] font-bold uppercase tracking-widest ${activeSession ? 'text-white/70' : 'text-gray-400'}`}>{room.type}</p>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Ingredients</label>
+                          <div className="space-y-3 mb-4">
+                            {recipeForm.ingredients.map((ing, idx) => (
+                              <div key={idx} className="flex gap-2 items-center bg-gray-50 p-3 rounded-2xl">
+                                <span className="flex-1 text-xs font-bold truncate">{ing.name}</span>
+                                <input
+                                  type="number"
+                                  value={ing.qty}
+                                  onChange={e => {
+                                    const news = [...recipeForm.ingredients];
+                                    news[idx].qty = e.target.value;
+                                    setRecipeForm({ ...recipeForm, ingredients: news });
+                                  }}
+                                  className="w-20 bg-white border-none rounded-lg px-2 py-1 text-xs font-bold text-center"
+                                  placeholder="Qty"
+                                />
+                                <button type="button" onClick={() => setRecipeForm({ ...recipeForm, ingredients: recipeForm.ingredients.filter((_, i) => i !== idx) })} className="text-rose-500 hover:bg-rose-50 p-2 rounded-lg">
+                                  <Minus size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          <select
+                            onChange={e => {
+                              const item = inventory.find(i => i.id === e.target.value);
+                              if (item && !recipeForm.ingredients.find(ing => ing.id === item.id)) {
+                                setRecipeForm({ ...recipeForm, ingredients: [...recipeForm.ingredients, { id: item.id, name: item.name, qty: 1 }] });
+                              }
+                              e.target.value = "";
+                            }}
+                            className="w-full bg-blue-50 border-dashed border-2 border-blue-200 rounded-2xl px-6 py-4 text-xs font-black text-blue-600 text-center cursor-pointer hover:bg-blue-100 transition-all"
+                          >
+                            <option value="">+ ADD INGREDIENT</option>
+                            {inventory.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                          </select>
                         </div>
 
-                        <div className="flex gap-2 mt-4">
-                          {!activeSession ? (
-                            <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase hover:bg-blue-700 transition-all shadow-md">Start Session</button>
-                          ) : (
-                            <>
-                              <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-2 bg-white/20 text-white rounded-xl text-[10px] font-black uppercase hover:bg-white/30 transition-all flex items-center justify-center gap-1"><Plus size={12} /> Add Order</button>
-                              <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-2 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 transition-all">Finish</button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                        <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-slate-200">
+                          Save Recipe
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="space-y-4">
+                      {recipes.map(recipe => {
+                        const mainItem = inventory.find(i => i.id === recipe.itemId);
+                        return (
+                          <div key={recipe.id} className="bg-white p-6 rounded-3xl border border-gray-100 flex justify-between items-start group hover:border-blue-200 transition-all">
+                            <div>
+                              <p className="font-black uppercase tracking-tight">{mainItem?.name || 'Unknown Item'}</p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {(recipe.ingredients || []).map((ing, idx) => (
+                                  <span key={idx} className="bg-gray-100 text-[9px] font-black px-2 py-1 rounded-lg uppercase text-gray-500">
+                                    {ing.qty}x {ing.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <button onClick={() => handleDeleteRecipe(recipe.id)} className="p-3 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           }
