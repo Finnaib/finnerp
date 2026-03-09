@@ -50,7 +50,8 @@ import {
   QrCode,
   Sparkles,
   Zap,
-  ArrowLeft
+  ArrowLeft,
+  RefreshCw
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
