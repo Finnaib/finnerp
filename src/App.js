@@ -4359,10 +4359,16 @@ export default function App() {
   // Barcode Scanner
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const scannerRef = useRef(null);
+  const inventoryRef = useRef(inventory);
+
+  // Keep inventoryRef updated without triggering re-renders of stable callbacks
+  useEffect(() => {
+    inventoryRef.current = inventory;
+  }, [inventory]);
 
   const onScanSuccess = useCallback(async (decodedText) => {
     const code = decodedText.trim();
-    const item = inventory.find(i => i.barcode === code);
+    const item = inventoryRef.current.find(i => i.barcode === code);
     if (!item) {
       alert(t('itemNotFound') || 'Item with barcode: ' + code + ' not found in inventory.');
       return;
@@ -4386,7 +4392,7 @@ export default function App() {
         }
       }
     }
-  }, [inventory, addToCart, t, scannerMode]);
+  }, [addToCart, t, scannerMode]); // Removed inventory dependency to stop re-creation and flickering
 
   const onScanError = useCallback((err) => { }, []);
 
@@ -4540,18 +4546,8 @@ export default function App() {
         }).catch(() => startScanner());
       }
 
-      const refocusInterval = setInterval(async () => {
-        if (scannerRef.current?.isScanning) {
-          try {
-            const track = scannerRef.current.getRunningTrack();
-            if (track) await track.applyConstraints({ focusMode: "continuous" });
-          } catch (e) { }
-        }
-      }, 3000);
-
       return () => {
         clearTimeout(initTimeout);
-        clearInterval(refocusInterval);
         if (scannerRef.current?.isScanning) {
           scannerRef.current.stop().then(() => scannerRef.current.clear()).catch(e => console.error(e));
         }
@@ -4562,7 +4558,7 @@ export default function App() {
       setHasZoom(false);
       setCurrentZoom(1);
     }
-  }, [isScannerOpen, activeCameraId, onScanSuccess, onScanError]);
+  }, [isScannerOpen, activeCameraId]); // Only restart if camera ID or Open state changes explicitly
 
   const handleZoomChange = async (e) => {
     const value = parseFloat(e.target.value);
