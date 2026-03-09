@@ -4470,30 +4470,15 @@ export default function App() {
 
           const startScanner = async (cameraId) => {
             try {
-              // Request 480p for maximum compatibility and stability
-              const constraints = cameraId ? {
-                deviceId: { exact: cameraId },
-                width: { ideal: 640 },
-                height: { ideal: 480 },
-                focusMode: { ideal: "continuous" }
-              } : {
-                facingMode: "environment",
-                width: { ideal: 640 },
-                height: { ideal: 480 },
-                focusMode: { ideal: "continuous" }
-              };
+              // Use deviceId directly or environment mode for maximum stability
+              const constraints = cameraId ? { deviceId: cameraId } : { facingMode: "environment" };
 
               await html5QrCode.start(
                 constraints,
                 {
-                  fps: 20,
-                  qrbox: (viewWidth, viewHeight) => {
-                    const width = Math.min(viewWidth * 0.8, 300);
-                    const height = Math.min(viewHeight * 0.6, 180);
-                    return { width, height };
-                  },
-                  disableFlip: true,
-                  aspectRatio: 1.333333 // 4:3 ratio for stable 480p
+                  fps: 15,
+                  qrbox: { width: 280, height: 180 },
+                  disableFlip: true
                 },
                 onScanSuccess,
                 onScanError
@@ -4516,7 +4501,7 @@ export default function App() {
             } catch (err) {
               console.error("Scanner startup error:", err);
               try {
-                await html5QrCode.start({ facingMode: "environment" }, { fps: 10 }, onScanSuccess, onScanError);
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, onScanSuccess, onScanError);
               } catch (e) { }
             }
           };
@@ -7968,9 +7953,9 @@ export default function App() {
                 z-index: 5;
               }
               #reader video {
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: cover !important;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
               }
               .scanning-line {
                 position: absolute;
