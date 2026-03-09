@@ -4478,22 +4478,22 @@ export default function App() {
 
         const startScanner = async (cameraId) => {
           try {
-            await html5QrCode.start(
-              cameraId ? {
-                deviceId: { exact: cameraId },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-                focusMode: { ideal: "continuous" }
-              } : {
-                facingMode: "environment",
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-                focusMode: { ideal: "continuous" }
-              },
-              config,
-              onScanSuccess,
-              onScanError
-            );
+            // Flexible Handshake: Request HD but don't crash if it's not possible
+            const constraints = cameraId ? {
+              deviceId: cameraId,
+              width: { ideal: 1920, min: 640 },
+              height: { ideal: 1080, min: 480 },
+              aspectRatio: { ideal: 1.777778 },
+              focusMode: { ideal: "continuous" }
+            } : {
+              facingMode: "environment",
+              width: { ideal: 1920, min: 640 },
+              height: { ideal: 1080, min: 480 },
+              aspectRatio: { ideal: 1.777778 },
+              focusMode: { ideal: "continuous" }
+            };
+
+            await html5QrCode.start(constraints, config, onScanSuccess, onScanError);
 
             const track = html5QrCode.getRunningTrack();
             if (track) {
@@ -4511,6 +4511,12 @@ export default function App() {
             }
           } catch (err) {
             console.error("Scanner startup error:", err);
+            // Fallback to absolute defaults if strict mode fails
+            try {
+              await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanError);
+            } catch (fallbackErr) {
+              console.error("Critical scanner failure:", fallbackErr);
+            }
           }
         };
 
@@ -7930,15 +7936,39 @@ export default function App() {
       {/* Scanner Modal */}
       {
         isScannerOpen && (
-          <div className="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[100] p-4">
-            <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden relative shadow-2xl">
-              <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                <div className="flex flex-col flex-1">
-                  <h3 className="font-bold flex items-center gap-2"><Scan size={20} className="text-blue-600" /> {t('scanBarcode')}</h3>
-                  <div className="flex items-center gap-2 mt-1">
+          <div className="fixed inset-0 bg-slate-950/90 flex flex-col items-center justify-center z-[150] p-4 backdrop-blur-sm">
+            <style>{`
+              @keyframes scan {
+                0% { top: 10%; }
+                100% { top: 90%; }
+              }
+              .scanner-overlay {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.4));
+                pointer-events: none;
+                z-index: 10;
+              }
+              .scanning-line {
+                position: absolute;
+                left: 10%;
+                right: 10%;
+                height: 2px;
+                background: #ef4444;
+                box-shadow: 0 0 15px #ef4444, 0 0 5px #ef4444;
+                animation: scan 2s linear infinite;
+                z-index: 20;
+              }
+            `}</style>
+
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden relative shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
+              <div className="p-5 border-b flex justify-between items-center bg-gray-50/50 backdrop-blur-xl">
+                <div className="flex flex-col flex-1 text-left">
+                  <h3 className="font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight text-sm"><Scan size={18} className="text-blue-600" /> {t('scanBarcode')}</h3>
+                  <div className="flex items-center gap-2 mt-2">
                     {cameras.length > 1 && (
                       <select
-                        className="text-[10px] bg-white border border-gray-200 rounded px-2 py-1 outline-none font-bold text-gray-500 uppercase tracking-tighter"
+                        className="text-[10px] bg-white border border-gray-100 rounded-full px-3 py-1.5 outline-none font-black text-gray-400 hover:text-blue-600 transition-colors uppercase tracking-widest shadow-sm"
                         value={activeCameraId || ''}
                         onChange={(e) => setActiveCameraId(e.target.value)}
                       >
@@ -7950,37 +7980,55 @@ export default function App() {
                     {hasFlash && (
                       <button
                         onClick={toggleFlash}
-                        className={`p-1.5 rounded-lg border transition-all ${isFlashOn ? 'bg-amber-100 border-amber-300 text-amber-600' : 'bg-white border-gray-200 text-gray-400'}`}
+                        className={`p-2 rounded-full border transition-all shadow-sm ${isFlashOn ? 'bg-amber-100 border-amber-300 text-amber-600' : 'bg-white border-gray-100 text-gray-400'}`}
                         title="Toggle Flash"
                       >
-                        <Zap size={14} fill={isFlashOn ? "currentColor" : "none"} />
+                        <Zap size={16} fill={isFlashOn ? "currentColor" : "none"} />
                       </button>
                     )}
                   </div>
                 </div>
-                <button onClick={() => setIsScannerOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all ml-2"><X size={24} /></button>
+                <button onClick={() => setIsScannerOpen(false)} className="p-3 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-600 transition-all ml-2 bg-gray-100/50"><X size={24} /></button>
               </div>
-              <div id="reader" className="w-full h-[350px] sm:h-[400px]"></div>
 
-              {/* Zoom Control UI */}
-              {hasZoom && zoomRange.max > zoomRange.min && (
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-4/5 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-3 z-50 border border-white/20">
-                  <span className="text-white text-[10px] font-bold">1x</span>
-                  <input
-                    type="range"
-                    min={zoomRange.min}
-                    max={zoomRange.max}
-                    step={zoomRange.step}
-                    value={currentZoom}
-                    onChange={handleZoomChange}
-                    className="flex-1 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                  />
-                  <span className="text-white text-[10px] font-bold">{Math.round(zoomRange.max)}x</span>
-                </div>
-              )}
+              <div className="relative overflow-hidden bg-black aspect-square sm:aspect-video flex items-center justify-center">
+                <div id="reader" className="w-full h-full"></div>
 
-              <div className="p-4 bg-gray-50 text-center text-sm text-gray-500">
-                {hasZoom ? "Pinch or use slider to zoom. Stay back to keep focus sharp." : "Center the barcode inside the box to scan automatically."}
+                {/* Visual Scanning Effects */}
+                <div className="scanner-overlay"></div>
+                <div className="scanning-line"></div>
+
+                {/* Corner Frame */}
+                <div className="absolute top-10 left-10 w-10 h-10 border-t-4 border-l-4 border-blue-500 rounded-tl-xl z-30"></div>
+                <div className="absolute top-10 right-10 w-10 h-10 border-t-4 border-r-4 border-blue-500 rounded-tr-xl z-30"></div>
+                <div className="absolute bottom-10 left-10 w-10 h-10 border-b-4 border-l-4 border-blue-500 rounded-bl-xl z-30"></div>
+                <div className="absolute bottom-10 right-10 w-10 h-10 border-b-4 border-r-4 border-blue-500 rounded-br-xl z-30"></div>
+
+                {/* Zoom Control UI overlayed on video */}
+                {hasZoom && zoomRange.max > zoomRange.min && (
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3/4 bg-black/60 backdrop-blur-xl px-4 py-3 rounded-full flex items-center gap-4 z-50 border border-white/20 shadow-lg">
+                    <span className="text-white text-[10px] font-black opacity-50 uppercase">1x</span>
+                    <input
+                      type="range"
+                      min={zoomRange.min}
+                      max={zoomRange.max}
+                      step={zoomRange.step}
+                      value={currentZoom}
+                      onChange={handleZoomChange}
+                      className="flex-1 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                    <span className="text-white text-[10px] font-black opacity-50 uppercase">{Math.round(zoomRange.max)}x</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 bg-white text-center">
+                <p className="text-gray-900 font-bold text-sm tracking-tight mb-1">
+                  {hasZoom ? "Pinch or use slider to focus." : "Point at barcode."}
+                </p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black leading-relaxed">
+                  Center the code inside the blue frame<br />Stay back to keep focus sharp
+                </p>
               </div>
             </div>
           </div>
