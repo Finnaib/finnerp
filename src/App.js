@@ -8755,7 +8755,7 @@ export default function App() {
               {/* Left: Menu */}
               <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-6">
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {['Hot Drinks', 'Cold Drinks', 'Snacks', 'Meals'].map(cat => (
+                  {['All', 'Hot Drinks', 'Cold Drinks', 'Snacks', 'Meals'].map(cat => (
                     <button
                       key={cat}
                       onClick={() => setActiveCafeCategory(cat)}
@@ -8768,7 +8768,7 @@ export default function App() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {inventory
-                    .filter(i => i.category === activeCafeCategory)
+                    .filter(i => activeCafeCategory === 'All' || i.category === activeCafeCategory)
                     .map(item => (
                       <button
                         key={item.id}
@@ -8790,6 +8790,14 @@ export default function App() {
                       </button>
                     ))}
                 </div>
+
+                {inventory.filter(i => activeCafeCategory === 'All' || i.category === activeCafeCategory).length === 0 && (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 opacity-40">
+                    <Package size={48} className="mb-4 text-gray-300" />
+                    <p className="text-sm font-black uppercase tracking-widest text-gray-400">No items found</p>
+                    <p className="text-[10px] font-bold text-gray-400 mt-2">Go to "Warehouses" to add items or change their category to "{activeCafeCategory}"</p>
+                  </div>
+                )}
               </div>
 
               {/* Right: Cart */}
