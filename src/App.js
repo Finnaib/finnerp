@@ -4548,8 +4548,29 @@ export default function App() {
 
       return () => {
         clearTimeout(initTimeout);
-        if (scannerRef.current?.isScanning) {
-          scannerRef.current.stop().then(() => scannerRef.current.clear()).catch(e => console.error(e));
+        const forceKillCamera = () => {
+          const video = document.querySelector('#reader video');
+          if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+          }
+        };
+
+        if (scannerRef.current) {
+          if (scannerRef.current.isScanning) {
+            scannerRef.current.stop()
+              .then(() => {
+                scannerRef.current.clear();
+                scannerRef.current = null;
+              })
+              .catch(e => {
+                console.error("Scanner stop fail:", e);
+                forceKillCamera();
+              });
+          } else {
+            forceKillCamera();
+            scannerRef.current = null;
+          }
         }
       };
     } else {
