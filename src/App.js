@@ -4438,20 +4438,12 @@ export default function App() {
 
   useEffect(() => {
     let html5QrCode;
-    let focusInterval;
 
     if (isScannerOpen) {
-      // Optimized config for Barcodes (Wide box) and QR codes
       const config = {
-        fps: 20,
-        qrbox: (viewfinderWidth, viewfinderHeight) => {
-          // Increase scan area relative to view for better distance scanning
-          // Ensure dimensions never drop below the library's required 50px minimum
-          const width = Math.max(50, Math.min(viewfinderWidth * 0.85, 450));
-          const height = Math.max(50, Math.min(viewfinderHeight * 0.5, 200));
-          return { width, height };
-        },
-        // Removed strict 1.0 aspectRatio to allow native resolution/focus performance
+        fps: 15, // Ultra-stable frame rate
+        qrbox: { width: 250, height: 150 }, // Fixed size for stability
+        aspectRatio: 1.0,
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
           Html5QrcodeSupportedFormats.UPC_A,
@@ -4462,9 +4454,7 @@ export default function App() {
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.ITF,
           Html5QrcodeSupportedFormats.DATA_MATRIX
-        ],
-        showTorchButtonIfSupported: false, // We use our own UI
-        disableFlip: true
+        ]
       };
 
       html5QrCode = new Html5Qrcode("reader");
@@ -4478,12 +4468,10 @@ export default function App() {
             onScanError
           );
 
-          // Check for capabilities (Flash & Zoom)
           const track = html5QrCode.getRunningTrack();
           if (track) {
             const capabilities = track.getCapabilities();
             if (capabilities.torch) setHasFlash(true);
-
             if (capabilities.zoom) {
               setHasZoom(true);
               setZoomRange({
@@ -4493,42 +4481,18 @@ export default function App() {
               });
               setCurrentZoom(track.getSettings().zoom || 1);
             }
-
-            // Aggressive Focus Strategy
-            const applyFocus = async () => {
-              try {
-                const constraints = { advanced: [] };
-                if (capabilities.focusMode?.includes('continuous')) {
-                  constraints.advanced.push({ focusMode: 'continuous' });
-                }
-                // Try to enable macro mode for close-up barcodes if supported
-                if (capabilities.focusMode?.includes('macro')) {
-                  constraints.advanced.push({ focusMode: 'macro' });
-                }
-
-                if (constraints.advanced.length > 0) {
-                  await track.applyConstraints(constraints);
-                }
-              } catch (e) {
-                console.warn("Focus optimization failed:", e);
-              }
-            };
-
-            await applyFocus();
           }
         } catch (err) {
-          console.error("Scanner start error:", err);
+          console.error("Scanner startup error:", err);
         }
       };
 
       Html5Qrcode.getCameras().then(devices => {
         if (devices && devices.length > 0) {
           setCameras(devices);
-          // Prefer back camera
           const backCamera = devices.find(d =>
             d.label.toLowerCase().includes('back') ||
-            d.label.toLowerCase().includes('rear') ||
-            d.label.toLowerCase().includes('environment')
+            d.label.toLowerCase().includes('rear')
           );
           const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
           setActiveCameraId(selectedId);
@@ -4536,16 +4500,12 @@ export default function App() {
         } else {
           startScanner();
         }
-      }).catch(err => {
-        console.error("Get cameras error:", err);
-        startScanner();
-      });
+      }).catch(() => startScanner());
 
       return () => {
-        if (html5QrCode && html5QrCode.isScanning) {
-          html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => console.error(err));
+        if (html5QrCode?.isScanning) {
+          html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.error(e));
         }
-        if (focusInterval) clearInterval(focusInterval);
       };
     } else {
       setIsFlashOn(false);
@@ -4553,7 +4513,7 @@ export default function App() {
       setHasZoom(false);
       setCurrentZoom(1);
     }
-  }, [isScannerOpen, onScanSuccess, onScanError, activeCameraId]);
+  }, [isScannerOpen, activeCameraId, onScanSuccess, onScanError]);
 
   const handleZoomChange = async (e) => {
     const value = parseFloat(e.target.value);
