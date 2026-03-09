@@ -4441,9 +4441,12 @@ export default function App() {
 
     if (isScannerOpen) {
       const config = {
-        fps: 15, // Ultra-stable frame rate
-        qrbox: { width: 250, height: 150 }, // Fixed size for stability
-        aspectRatio: 1.0,
+        fps: 20,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const width = Math.max(50, Math.min(viewfinderWidth * 0.8, 300));
+          const height = Math.max(50, Math.min(viewfinderHeight * 0.5, 150));
+          return { width, height };
+        },
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
           Html5QrcodeSupportedFormats.UPC_A,
@@ -4457,52 +4460,60 @@ export default function App() {
         ]
       };
 
-      html5QrCode = new Html5Qrcode("reader");
+      // Use a small delay to ensure React has rendered the #reader element
+      const initTimeout = setTimeout(() => {
+        const element = document.getElementById("reader");
+        if (!element) return;
 
-      const startScanner = async (cameraId) => {
-        try {
-          await html5QrCode.start(
-            cameraId || { facingMode: "environment" },
-            config,
-            onScanSuccess,
-            onScanError
-          );
+        html5QrCode = new Html5Qrcode("reader");
 
-          const track = html5QrCode.getRunningTrack();
-          if (track) {
-            const capabilities = track.getCapabilities();
-            if (capabilities.torch) setHasFlash(true);
-            if (capabilities.zoom) {
-              setHasZoom(true);
-              setZoomRange({
-                min: capabilities.zoom.min || 1,
-                max: capabilities.zoom.max || 1,
-                step: capabilities.zoom.step || 0.1
-              });
-              setCurrentZoom(track.getSettings().zoom || 1);
+        const startScanner = async (cameraId) => {
+          try {
+            await html5QrCode.start(
+              cameraId || { facingMode: "environment" },
+              config,
+              onScanSuccess,
+              onScanError
+            );
+
+            const track = html5QrCode.getRunningTrack();
+            if (track) {
+              const capabilities = track.getCapabilities();
+              if (capabilities.torch) setHasFlash(true);
+              if (capabilities.zoom) {
+                setHasZoom(true);
+                setZoomRange({
+                  min: capabilities.zoom.min || 1,
+                  max: capabilities.zoom.max || 1,
+                  step: capabilities.zoom.step || 0.1
+                });
+                setCurrentZoom(track.getSettings().zoom || 1);
+              }
             }
+          } catch (err) {
+            console.error("Scanner startup error:", err);
           }
-        } catch (err) {
-          console.error("Scanner startup error:", err);
-        }
-      };
+        };
 
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length > 0) {
-          setCameras(devices);
-          const backCamera = devices.find(d =>
-            d.label.toLowerCase().includes('back') ||
-            d.label.toLowerCase().includes('rear')
-          );
-          const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
-          setActiveCameraId(selectedId);
-          startScanner(selectedId);
-        } else {
-          startScanner();
-        }
-      }).catch(() => startScanner());
+        Html5Qrcode.getCameras().then(devices => {
+          if (devices && devices.length > 0) {
+            setCameras(devices);
+            const backCamera = devices.find(d =>
+              d.name?.toLowerCase().includes('back') ||
+              d.label?.toLowerCase().includes('back') ||
+              d.label?.toLowerCase().includes('rear')
+            );
+            const selectedId = activeCameraId || (backCamera ? backCamera.id : devices[0].id);
+            setActiveCameraId(selectedId);
+            startScanner(selectedId);
+          } else {
+            startScanner();
+          }
+        }).catch(() => startScanner());
+      }, 200);
 
       return () => {
+        clearTimeout(initTimeout);
         if (html5QrCode?.isScanning) {
           html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.error(e));
         }
