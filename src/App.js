@@ -4359,6 +4359,7 @@ export default function App() {
   // Barcode Scanner
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const scannerRef = useRef(null);
+  const activeTracksRef = useRef([]); // Critical for force-killing camera
   const inventoryRef = useRef(inventory);
 
   // Keep inventoryRef updated without triggering re-renders of stable callbacks
@@ -4499,19 +4500,14 @@ export default function App() {
               onScanError
             );
 
-            if (!isMounted) {
-              html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => { });
-              return;
-            }
-
-            // Force initial focus
+            // Capture the track immediately for robust cleanup
             const track = html5QrCode.getRunningTrack();
             if (track) {
+              activeTracksRef.current = [track];
               const capabilities = track.getCapabilities();
               if (capabilities.focusMode?.includes("continuous")) {
                 await track.applyConstraints({ focusMode: "continuous" });
               }
-              // Zoom support
               if (capabilities.zoom) {
                 setHasZoom(true);
                 setZoomRange({
@@ -4523,13 +4519,29 @@ export default function App() {
               }
               if (capabilities.torch) setHasFlash(true);
             }
+
+            if (!isMounted) {
+              html5QrCode.stop().then(() => {
+                html5QrCode.clear();
+                activeTracksRef.current.forEach(t => t.stop());
+                activeTracksRef.current = [];
+              }).catch(e => { });
+              return;
+            }
           } catch (err) {
             console.error("Scanner startup error:", err);
             // Deep Fallback: No constraints
             if (isMounted) {
               try {
                 await html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, onScanSuccess, onScanError);
-                if (!isMounted) html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => { });
+                const track = html5QrCode.getRunningTrack();
+                if (track) activeTracksRef.current = [track];
+                if (!isMounted) {
+                  html5QrCode.stop().then(() => {
+                    activeTracksRef.current.forEach(t => t.stop());
+                    activeTracksRef.current = [];
+                  }).catch(e => { });
+                }
               } catch (e) { }
             }
           }
@@ -4558,29 +4570,33 @@ export default function App() {
       return () => {
         isMounted = false;
         clearTimeout(initTimeout);
-        const forceKillCamera = () => {
-          const video = document.querySelector('#reader video');
-          if (video && video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
-            video.srcObject = null;
-          }
+
+        // Immediate hardware kill - doesn't rely on the DOM or library status
+        const forceKillHardware = () => {
+          activeTracksRef.current.forEach(track => {
+            try { track.stop(); } catch (e) { }
+          });
+          activeTracksRef.current = [];
+
+          // Last resort: search for any stray video elements
+          const strayVideos = document.querySelectorAll('video');
+          strayVideos.forEach(v => {
+            if (v.srcObject) {
+              v.srcObject.getTracks().forEach(t => t.stop());
+              v.srcObject = null;
+            }
+          });
         };
 
         if (html5QrCode) {
-          if (html5QrCode.isScanning) {
-            html5QrCode.stop().then(() => {
+          html5QrCode.stop()
+            .then(() => {
               html5QrCode.clear();
-              html5QrCode = null;
-            }).catch(e => {
-              forceKillCamera();
-              html5QrCode = null;
-            });
-          } else {
-            forceKillCamera();
-            html5QrCode = null;
-          }
+              forceKillHardware();
+            })
+            .catch(() => forceKillHardware());
         } else {
-          forceKillCamera();
+          forceKillHardware();
         }
         scannerRef.current = null;
       };
