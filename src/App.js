@@ -1800,9 +1800,9 @@ export default function App() {
   const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [shopSettings, setShopSettings] = useState({
-    name: 'Finn ERP',
-    address: '123 Business St',
-    phone: '+1 234 567 890',
+    name: '',
+    address: '',
+    phone: '',
     upiId: '',
     instapayId: ''
   });
@@ -1961,14 +1961,39 @@ export default function App() {
 
 
 
-  // --- Auth Effects ---
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
+
+      if (!currentUser) {
+        // Clear all state data on logout to prevent leakage
+        setEmployees([]);
+        setSites([]);
+        setAttendance([]);
+        setPayrolls([]);
+        setAccounts([]);
+        setSales([]);
+        setPurchases([]);
+        setInventory([]);
+        setHeldCarts([]);
+        setCart([]);
+        setShopSettings({
+          name: '',
+          address: '',
+          phone: '',
+          upiId: '',
+          instapayId: ''
+        });
+        setSecurityPin('1234');
+        setSecurityQuestion('');
+        setSecurityAnswer('');
+        setShowSensitiveData(false);
+        setPinInput('');
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   // --- PIN Modal Keyboard Support ---
   useEffect(() => {
@@ -2361,7 +2386,7 @@ export default function App() {
 
     worksheet.mergeCells(`A1:${endColChar}1`);
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = (t('companyName') || 'Company') + ': Finn ERP';
+    titleCell.value = shopSettings.name || (t('companyName') || 'Company');
     titleCell.font = { name: 'Segoe UI', size: 18, bold: true, color: { argb: 'FF0F172A' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
@@ -4235,6 +4260,9 @@ export default function App() {
 
   const [hasFlash, setHasFlash] = useState(false);
   const [isFlashOn, setIsFlashOn] = useState(false);
+  const [hasZoom, setHasZoom] = useState(false);
+  const [zoomRange, setZoomRange] = useState({ min: 1, max: 1, step: 0.1 });
+  const [currentZoom, setCurrentZoom] = useState(1);
 
   useEffect(() => {
     let html5QrCode;
@@ -4271,12 +4299,27 @@ export default function App() {
             onScanError
           );
 
-          // Check for flash capability
+          // Check for capabilities (Flash & Zoom)
           const track = html5QrCode.getRunningTrack();
           if (track) {
             const capabilities = track.getCapabilities();
-            if (capabilities.torch) {
-              setHasFlash(true);
+            if (capabilities.torch) setHasFlash(true);
+
+            if (capabilities.zoom) {
+              setHasZoom(true);
+              setZoomRange({
+                min: capabilities.zoom.min || 1,
+                max: capabilities.zoom.max || 1,
+                step: capabilities.zoom.step || 0.1
+              });
+              setCurrentZoom(track.getSettings().zoom || 1);
+            }
+
+            // Try to force continuous focus if available
+            if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+              await track.applyConstraints({
+                advanced: [{ focusMode: 'continuous' }]
+              });
             }
           }
         } catch (err) {
@@ -4312,8 +4355,28 @@ export default function App() {
     } else {
       setIsFlashOn(false);
       setHasFlash(false);
+      setHasZoom(false);
+      setCurrentZoom(1);
     }
   }, [isScannerOpen, onScanSuccess, onScanError, activeCameraId]);
+
+  const handleZoomChange = async (e) => {
+    const value = parseFloat(e.target.value);
+    setCurrentZoom(value);
+    try {
+      const video = document.querySelector('#reader video');
+      if (video && video.srcObject) {
+        const track = video.srcObject.getVideoTracks()[0];
+        if (track) {
+          await track.applyConstraints({
+            advanced: [{ zoom: value }]
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Zoom error:", err);
+    }
+  };
 
   const toggleFlash = async () => {
     try {
@@ -7618,8 +7681,26 @@ export default function App() {
                 <button onClick={() => setIsScannerOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all ml-2"><X size={24} /></button>
               </div>
               <div id="reader" className="w-full h-[350px] sm:h-[400px]"></div>
+
+              {/* Zoom Control UI */}
+              {hasZoom && zoomRange.max > zoomRange.min && (
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-4/5 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-3 z-50 border border-white/20">
+                  <span className="text-white text-[10px] font-bold">1x</span>
+                  <input
+                    type="range"
+                    min={zoomRange.min}
+                    max={zoomRange.max}
+                    step={zoomRange.step}
+                    value={currentZoom}
+                    onChange={handleZoomChange}
+                    className="flex-1 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                  <span className="text-white text-[10px] font-bold">{Math.round(zoomRange.max)}x</span>
+                </div>
+              )}
+
               <div className="p-4 bg-gray-50 text-center text-sm text-gray-500">
-                Center the barcode inside the box to scan automatically.
+                {hasZoom ? "Pinch or use slider to zoom. Stay back to keep focus sharp." : "Center the barcode inside the box to scan automatically."}
               </div>
             </div>
           </div>
