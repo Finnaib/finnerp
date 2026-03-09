@@ -55,7 +55,8 @@ import {
   Coffee,
   Monitor,
   Disc,
-  Minus
+  Minus,
+  History
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
@@ -6704,52 +6705,86 @@ export default function App() {
                 </div>
 
                 {cafeSubTab === 'board' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {cafeRooms.map(room => {
-                      const activeSession = cafeSessions.find(s => s.roomId === room.id && s.status === 'Active');
-                      const roomIcon = room.type === 'PlayStation' ? <Monitor size={20} /> : room.type === 'Billiards' ? <Disc size={20} /> : <Coffee size={20} />;
-                      return (
-                        <div key={room.id} className={`p-6 rounded-[2rem] border-2 transition-all duration-300 shadow-sm flex flex-col justify-between h-52 group ${activeSession ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-200' : 'bg-white text-gray-900 border-green-500 hover:shadow-lg'}`}>
-                          <div className="flex justify-between items-start">
-                            <div className={`p-3 rounded-2xl ${activeSession ? 'bg-white/20' : 'bg-green-50 text-green-600'}`}>
-                              {roomIcon}
+                  <div className="bg-[#0a0a0a] p-8 rounded-[3rem] shadow-2xl border border-white/5 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -z-10 animate-pulse"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/10 blur-[100px] -z-10 animate-pulse"></div>
+
+                    <div className="flex justify-between items-center mb-8">
+                      <div>
+                        <h2 className="text-white text-2xl font-black uppercase tracking-tight">Active Sessions</h2>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Live monitoring for {cafeRooms.length} rooms</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                          <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">SYSTEM ONLINE</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {cafeRooms.map(room => {
+                        const activeSession = cafeSessions.find(s => s.roomId === room.id && s.status === 'Active');
+                        const roomIcon = room.type === 'PlayStation' ? <Monitor size={24} /> : room.type === 'Billiards' ? <Disc size={24} /> : <Coffee size={24} />;
+
+                        return (
+                          <div key={room.id} className={`p-6 rounded-[2.5rem] border-2 transition-all duration-500 flex flex-col justify-between h-60 relative overflow-hidden group ${activeSession ? 'bg-[#1a1a1a] border-blue-500/50 shadow-lg shadow-blue-500/10' : 'bg-[#111] border-green-500/30 hover:border-green-500 shadow-xl'}`}>
+                            {activeSession && (
+                              <div className="absolute top-0 right-0 p-4">
+                                <span className="flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                </span>
+                              </div>
+                            )}
+
+                            <div className="flex justify-between items-start">
+                              <div className={`p-4 rounded-2xl transition-all duration-500 ${activeSession ? 'bg-blue-600/20 text-blue-400' : 'bg-purple-600/20 text-purple-400 group-hover:bg-purple-600/30'}`}>
+                                {roomIcon}
+                              </div>
+                              <div className="flex flex-col items-end">
+                                {activeSession ? (
+                                  <div className="text-right">
+                                    <span className="text-[9px] uppercase font-black tracking-[0.2em] text-blue-400 mb-1 block">In-session</span>
+                                    <span className="text-xl font-black text-white tabular-nums tracking-tight">
+                                      {activeSession.startTime?.seconds ? (() => {
+                                        const now = new Date();
+                                        const start = new Date(activeSession.startTime.seconds * 1000);
+                                        const diff = Math.floor((now - start) / 60000);
+                                        const h = Math.floor(diff / 60);
+                                        const m = diff % 60;
+                                        return `${h}h ${m}m`;
+                                      })() : '...'}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="text-right">
+                                    <span className="text-[9px] uppercase font-black tracking-[0.2em] text-green-500 mb-1 block">Available</span>
+                                    <span className="text-sm font-black text-purple-400">{formatCurrency(room.hourlyPrice || 0)}/hr</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex flex-col items-end">
-                              {activeSession ? (
-                                <>
-                                  <span className="text-[10px] uppercase font-black tracking-widest opacity-80 text-blue-400">Active</span>
-                                  <span className="text-xs font-bold">{activeSession.startTime?.seconds ? new Date(activeSession.startTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}</span>
-                                </>
+
+                            <div className="mt-4">
+                              <h3 className="text-lg font-black uppercase tracking-tight text-white leading-none mb-1">{room.name}</h3>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">{room.type}</p>
+                            </div>
+
+                            <div className="flex gap-2 mt-6">
+                              {!activeSession ? (
+                                <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-3 bg-green-600 hover:bg-green-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-green-900/20 active:scale-95">Start Session</button>
                               ) : (
                                 <>
-                                  <div className="flex items-center gap-1.5 text-green-600">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                                    <span className="text-[10px] uppercase font-black tracking-widest">Available</span>
-                                  </div>
-                                  <span className="text-[10px] font-bold text-gray-400 mt-1">{formatCurrency(room.hourlyPrice || 0)} / hour</span>
+                                  <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-white/5 active:scale-95"><Plus size={14} /> Add Order</button>
+                                  <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-rose-900/20 active:scale-95">Finish</button>
                                 </>
                               )}
                             </div>
                           </div>
-
-                          <div>
-                            <h3 className="text-lg font-black uppercase tracking-tight">{room.name}</h3>
-                            <p className={`text-[10px] font-bold uppercase tracking-widest ${activeSession ? 'text-gray-400' : 'text-gray-400'}`}>{room.type}</p>
-                          </div>
-
-                          <div className="flex gap-2 mt-4">
-                            {!activeSession ? (
-                              <button onClick={() => handleStartCafeSession(room)} className="flex-1 py-2 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase hover:bg-green-700 transition-all shadow-md">Start Session</button>
-                            ) : (
-                              <>
-                                <button onClick={() => { setActiveCafeSession(activeSession); setIsCafeOrderModalOpen(true); }} className="flex-1 py-2 bg-white/20 text-white rounded-xl text-[10px] font-black uppercase hover:bg-white/30 transition-all flex items-center justify-center gap-1"><Plus size={12} /> Add Order</button>
-                                <button onClick={() => handleStopCafeSession(activeSession)} className="flex-1 py-2 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 transition-all">Finish</button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -8871,35 +8906,57 @@ export default function App() {
                 )}
               </div>
 
-              {/* Right: Cart */}
-              <div className="w-full md:w-80 bg-gray-50 border-l border-gray-100 p-6 flex flex-col">
-                <h4 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-4">Current Selection</h4>
-                <div className="flex-1 overflow-y-auto space-y-3 mb-6">
-                  {cart.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center opacity-30">
-                      <ShoppingCart size={40} className="mb-2" />
-                      <p className="text-[10px] font-black uppercase">Cart is Empty</p>
-                    </div>
-                  ) : (
-                    cart.map(item => (
-                      <div key={item.id} className="bg-white p-3 rounded-2xl border border-gray-100 flex items-center gap-3">
-                        <div className="flex-1 overflow-hidden">
-                          <p className="font-bold text-xs text-gray-900 truncate uppercase">{item.name}</p>
-                          <p className="text-[10px] text-gray-400 font-bold">{formatCurrency(item.sellPrice)}</p>
-                        </div>
-                        <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
-                          <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Math.max(0, Number(c.quantity) - 1) } : c).filter(c => c.quantity > 0))} className="p-1 hover:bg-white rounded text-gray-400"><Minus size={12} /></button>
-                          <span className="text-xs font-black">{item.quantity}</span>
-                          <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c))} className="p-1 hover:bg-white rounded text-gray-400"><Plus size={12} /></button>
-                        </div>
+              {/* Right: Cart & History */}
+              <div className="w-full md:w-80 bg-gray-50 border-l border-gray-100 p-6 flex flex-col h-full overflow-hidden">
+                <div className="flex-1 overflow-y-auto space-y-6">
+                  {/* History Section */}
+                  {(activeCafeSession.orders || []).length > 0 && (
+                    <div>
+                      <h4 className="font-black text-[10px] uppercase tracking-widest text-blue-600 mb-3 flex items-center gap-2">
+                        <History size={14} /> Already Ordered
+                      </h4>
+                      <div className="space-y-2">
+                        {activeCafeSession.orders.map((item, idx) => (
+                          <div key={idx} className="flex justify-between items-center opacity-60">
+                            <span className="text-[11px] font-bold text-gray-600 truncate uppercase">{item.name}</span>
+                            <span className="text-[11px] font-black text-gray-400">x{item.quantity}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))
+                      <div className="h-px bg-gray-200 my-4"></div>
+                    </div>
                   )}
+
+                  <div>
+                    <h4 className="font-black text-[10px] uppercase tracking-widest text-gray-400 mb-3">Current Selection</h4>
+                    <div className="space-y-3">
+                      {cart.length === 0 ? (
+                        <div className="py-8 flex flex-col items-center justify-center opacity-20">
+                          <ShoppingCart size={32} className="mb-2" />
+                          <p className="text-[9px] font-black uppercase">Cart is Empty</p>
+                        </div>
+                      ) : (
+                        cart.map((item, idx) => (
+                          <div key={idx} className="bg-white p-3 rounded-2xl border border-blue-100 shadow-sm flex items-center gap-3 animate-in slide-in-from-right-2 duration-200">
+                            <div className="flex-1 overflow-hidden">
+                              <p className="font-bold text-xs text-gray-900 truncate uppercase">{item.name}</p>
+                              <p className="text-[10px] text-blue-600 font-black">{formatCurrency(item.sellPrice)}</p>
+                            </div>
+                            <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
+                              <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Math.max(0, Number(c.quantity) - 1) } : c).filter(c => c.quantity > 0))} className="p-1 hover:bg-white rounded text-gray-400"><Minus size={12} /></button>
+                              <span className="text-xs font-black">{item.quantity}</span>
+                              <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c))} className="p-1 hover:bg-white rounded text-gray-400"><Plus size={12} /></button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-4 pt-4 border-t border-gray-100 mt-auto">
                   <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Subtotal</span>
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">New Items</span>
                     <span className="text-xl font-black text-gray-900 tracking-tight">{formatCurrency(cart.reduce((sum, i) => sum + (Number(i.sellPrice) * Number(i.quantity)), 0))}</span>
                   </div>
                   <button
