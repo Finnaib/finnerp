@@ -56,7 +56,8 @@ import {
   Monitor,
   Disc,
   Minus,
-  History
+  History,
+  Play
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import {
