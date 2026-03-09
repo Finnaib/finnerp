@@ -3705,22 +3705,28 @@ export default function App() {
           </div>
           <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
           <script>
-            setTimeout(() => {
-              JsBarcode("#barcode", "${item.barcode}", {
-                format: "CODE128",
-                width: 1.5,
-                height: 35,
-                displayValue: true,
-                fontSize: 10,
-                margin: 2
-              });
-              window.print();
-              setTimeout(() => window.close(), 500);
-            }, 500);
+            window.onload = function() {
+              if (window.JsBarcode) {
+                JsBarcode("#barcode", "${item.barcode}", {
+                  format: "CODE128",
+                  width: 1.5,
+                  height: 35,
+                  displayValue: true,
+                  fontSize: 10,
+                  margin: 2
+                });
+                window.focus();
+                window.print();
+              } else {
+                // Retry if script not yet applied
+                setTimeout(window.onload, 100);
+              }
+            };
           </script>
         </body>
       </html>
     `;
+    printWindow.document.open();
     printWindow.document.write(content);
     printWindow.document.close();
   };
@@ -3745,8 +3751,8 @@ export default function App() {
             body { margin: 0; padding: ${isSticker ? '0' : '20px'}; font-family: sans-serif; }
             .grid { 
               display: ${isSticker ? 'block' : 'grid'}; 
-              grid-template-columns: ${isSticker ? 'none' : 'repeat(3, 1fr)'}; 
-              gap: ${isSticker ? '0' : '20px'}; 
+              grid-template-columns: ${isSticker ? 'none' : 'repeat(4, 1fr)'}; 
+              gap: ${isSticker ? '0' : '10px'}; 
             }
             .label { 
               text-align: center; 
@@ -3780,24 +3786,29 @@ export default function App() {
           </div>
           <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
           <script>
-            setTimeout(() => {
-              ${itemsToPrint.map((item, idx) => `
-                JsBarcode("#barcode-${idx}", "${item.barcode}", {
-                  format: "CODE128",
-                  width: ${isSticker ? '1.5' : '2'},
-                  height: ${isSticker ? '35' : '50'},
-                  displayValue: true,
-                  fontSize: 10,
-                  margin: 2
-                });
-              `).join('')}
-              window.print();
-              setTimeout(() => window.close(), 500);
-            }, 800);
+            window.onload = function() {
+              if (window.JsBarcode) {
+                ${itemsToPrint.map((item, idx) => `
+                  JsBarcode("#barcode-${idx}", "${item.barcode}", {
+                    format: "CODE128",
+                    width: ${isSticker ? '1.5' : '1.4'},
+                    height: ${isSticker ? '35' : '40'},
+                    displayValue: true,
+                    fontSize: 8,
+                    margin: 2
+                  });
+                `).join('')}
+                window.focus();
+                window.print();
+              } else {
+                setTimeout(window.onload, 100);
+              }
+            };
           </script>
         </body>
       </html>
     `;
+    printWindow.document.open();
     printWindow.document.write(content);
     printWindow.document.close();
   };
@@ -4441,12 +4452,8 @@ export default function App() {
 
     if (isScannerOpen) {
       const config = {
-        fps: 20,
-        qrbox: (viewfinderWidth, viewfinderHeight) => {
-          const width = Math.max(50, Math.min(viewfinderWidth * 0.8, 300));
-          const height = Math.max(50, Math.min(viewfinderHeight * 0.5, 150));
-          return { width, height };
-        },
+        fps: 10, // Lowest stable FPS to avoid flickering
+        qrbox: { width: 250, height: 150 }, // Use fixed object instead of function for max stability
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
           Html5QrcodeSupportedFormats.UPC_A,
