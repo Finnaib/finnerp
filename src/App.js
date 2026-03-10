@@ -866,19 +866,30 @@ export default function App() {
       autoTable(doc, {
         head: [headers],
         body: cleanData,
-        startY: extraMetadata.length > 0 ? 45 : 40,
+        startY: extraMetadata.length > 0 ? 48 : 42,
         theme: 'striped',
-        styles: { font: 'helvetica', fontSize: 8 },
+        styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 2.5, valign: 'middle' },
         headStyles: {
           fillColor: [30, 41, 59],
           textColor: [255, 255, 255],
-          fontSize: 9,
+          fontSize: 9.5,
           fontStyle: 'bold',
-          halign: 'center'
+          halign: 'left',
+          lineWidth: 0.1,
+          lineColor: [255, 255, 255]
+        },
+        columnStyles: headers.length > 5 ? {
+          0: { cellWidth: 50 }, // Category/Name
+          2: { halign: 'center' }, // Qty
+          [headers.length - 1]: { halign: 'right', fontStyle: 'bold' } // Final Amount
+        } : {
+          0: { cellWidth: 60 },
+          2: { halign: 'right' }
         },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         didParseCell: (cellData) => {
           const rowData = cellData.row.raw;
+          const cellVal = String(cellData.cell.raw || '');
           const firstCellVal = String(rowData[0] || '').toUpperCase();
 
           // Style Totals
@@ -887,32 +898,41 @@ export default function App() {
             cellData.cell.styles.fontStyle = 'bold';
             cellData.cell.styles.fillColor = [239, 246, 255];
             cellData.cell.styles.textColor = [30, 64, 175];
+            cellData.cell.styles.fontSize = 9;
           }
 
-          // Style Section Headers (any row where exactly one of the first few columns has text and it's not a number)
-          // Also check if it's a known section like "SOLD ITEMS", "BOUGHT ITEMS" etc.
+          // Style Section Headers
           const nonEmptyCount = rowData.filter(x => x !== '' && x !== null).length;
           const isSection = nonEmptyCount === 1 && isNaN(rowData.find(x => x !== '' && x !== null));
 
           if (isSection) {
             cellData.cell.styles.fontStyle = 'bold';
             cellData.cell.styles.fillColor = [241, 245, 249];
-            cellData.cell.styles.fontSize = 10;
+            cellData.cell.styles.fontSize = 10.5;
+            cellData.cell.styles.textColor = [15, 23, 42];
+            cellData.cell.styles.cellPadding = 4;
+          }
+
+          // Indentation for sub-items (starting with space)
+          if (cellVal.startsWith('  ')) {
+            cellData.cell.styles.cellPadding = { left: 8 };
+            cellData.cell.styles.textColor = [71, 85, 105];
           }
 
           // Number alignment
-          if (typeof cellData.cell.raw === 'number') {
+          if (typeof cellData.cell.raw === 'number' || (!isNaN(cellVal) && cellVal !== '')) {
             cellData.cell.styles.halign = 'right';
-            if (cellData.cell.raw < 0) cellData.cell.styles.textColor = [220, 38, 38];
+            const numVal = parseFloat(cellVal);
+            if (numVal < 0) cellData.cell.styles.textColor = [220, 38, 38];
           }
         },
-        margin: { left: 15, right: 15, bottom: 20 },
+        margin: { left: 15, right: 15, bottom: 25 },
         didDrawPage: (pData) => {
           doc.setFontSize(7);
           doc.setTextColor(148, 163, 184);
-          doc.text(`PRODUCED BY FINN ERP SYSTEM`, 15, pageHeight - 10);
-          const pNum = `PAGE ${doc.internal.getNumberOfPages()}`;
-          doc.text(pNum, pageWidth - 15 - doc.getTextWidth(pNum), pageHeight - 10);
+          doc.text(`FINN ERP - ${filename.replace('.pdf', '')} - PRODUCED ON ${new Date().toLocaleDateString()}`, 15, pageHeight - 12);
+          const pNum = `${t('page')} ${doc.internal.getNumberOfPages()}`;
+          doc.text(pNum, pageWidth - 15 - doc.getTextWidth(pNum), pageHeight - 12);
         }
       });
 
@@ -2895,34 +2915,26 @@ export default function App() {
 
         data = [
           padRow([`${t('incomeStatement')} (${t(profitPeriod.toLowerCase())})`, '', '']),
-          padRow(['', '', '']),
-          padRow(['', '', '']),
           padRow([t('revenue').toUpperCase(), '', '']),
           ...Object.entries(revByMethod).map(([m, amt]) => padRow(['', t(m.toLowerCase()) || m, amt])),
           padRow([t('totalRevenue'), '', totalRevenue]),
-          padRow(['', '', '']),
           padRow(['', '', '']),
           padRow([t('costOfGoodsSold').toUpperCase(), '', '']),
           padRow(['', t('cogsFull'), -totalCogs]),
           padRow([t('grossProfit'), '', grossProfitVal]),
           padRow(['', t('grossMargin'), ((totalRevenue ? grossProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%']),
           padRow(['', '', '']),
-          padRow(['', '', '']),
           padRow([t('operatingExpenses').toUpperCase(), '', '']),
           padRow([t('deptExpenses'), '', '']),
           ...Object.entries(employeesByDept).flatMap(([dept, emps]) => [
-            padRow(['', `${translations[language]?.[dept.toLowerCase()] || dept} ${t('payrollReport')}`, '']),
-            ...emps.map(emp => padRow(['', `  ${emp.name}`, -emp.totalComp]))
+            padRow(['', `  ${translations[language]?.[dept.toLowerCase()] || dept} ${t('payrollReport')}`, '']),
+            ...emps.map(emp => padRow(['', `    ${emp.name}`, -emp.totalComp]))
           ]),
           padRow([t('invPurchases'), '', -totalOtherExpenses]),
           padRow([t('totalExpenses'), '', -totalOperatingExpenses]),
           padRow(['', '', '']),
-          padRow(['', '', '']),
           padRow([netProfitVal >= 0 ? t('netProfit') : t('netLoss'), '', netProfitVal]),
-          padRow(['', t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%']),
-          padRow(['', '', '']),
-          padRow(['', '', '']),
-          padRow(['', '', ''])
+          padRow(['', t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%'])
         ];
 
         // Append SOLD ITEMS Table
