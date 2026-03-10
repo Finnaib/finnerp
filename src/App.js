@@ -823,49 +823,69 @@ export default function App() {
 
     // -- STYLING CONSTANTS --
     const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; // Slate-800
-    const headerFont = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-    const subHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } }; // Slate-100
+    const headerFont = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+    const subHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }; // Slate-50
     const subHeaderFont = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF334155' } };
+    const stripeFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } }; // Slate-100 (For Zebra)
     const totalFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } }; // Blue-50
     const totalFont = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF1E40AF' } }; // Blue-800
-    const baseFont = { name: 'Segoe UI', size: 10, color: { argb: 'FF334155' } };
-    const borderStyle = { style: 'thin', color: { argb: 'FFCBD5E1' } }; // Slate-300
+    const baseFont = { name: 'Segoe UI', size: 10, color: { argb: 'FF1E293B' } };
+    const borderStyle = { style: 'thin', color: { argb: 'FFE2E8F0' } }; // Slate-200
+
+    // Helper for multi-column letters (A, B, ... Z, AA, AB...)
+    const getColumnName = (colIndex) => {
+      let name = '';
+      while (colIndex > 0) {
+        let mod = (colIndex - 1) % 26;
+        name = String.fromCharCode(65 + mod) + name;
+        colIndex = Math.floor((colIndex - mod) / 26);
+      }
+      return name || 'A';
+    };
 
     // 1. Metadata Section (Clean Professional Header)
-    // Merge first 7 columns for header
-    const lastCol = Math.max(7, headers.length || 5);
-    const endColChar = String.fromCharCode(64 + lastCol); // Simple char Calc (works for A-Z)
+    const maxDataCols = data.length > 0 ? Math.max(...data.map(r => r.length)) : 1;
+    const lastColCount = Math.max(headers?.length || 0, maxDataCols, 7);
+    const endColChar = getColumnName(lastColCount);
 
+    // Main Company Header
     worksheet.mergeCells(`A1:${endColChar}1`);
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = shopSettings.name || (t('companyName') || 'Company');
-    titleCell.font = { name: 'Segoe UI', size: 18, bold: true, color: { argb: 'FF0F172A' } };
-    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    titleCell.value = shopSettings.name || (t('companyName') || 'Finn ERP');
+    titleCell.font = { name: 'Segoe UI', size: 20, bold: true, color: { argb: 'FF0F172A' } };
+    titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
 
     worksheet.mergeCells(`A2:${endColChar}2`);
     const subTitle = worksheet.getCell('A2');
-    subTitle.value = `${filename.replace('.xlsx', '').replace(/_/g, ' ')}`;
-    subTitle.font = { name: 'Segoe UI', size: 14, color: { argb: 'FF475569' } };
-    subTitle.alignment = { horizontal: 'center' };
+    subTitle.value = filename.replace('.xlsx', '').replace(/_/g, ' ').toUpperCase();
+    subTitle.font = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FF3B82F6' } }; // Blue-500
+    subTitle.alignment = { horizontal: 'left' };
 
     worksheet.mergeCells(`A3:${endColChar}3`);
-    worksheet.getCell('A3').value = `${t('date')}: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
-    worksheet.getCell('A3').alignment = { horizontal: 'center' };
-    worksheet.getCell('A3').font = { name: 'Segoe UI', size: 10, italic: true, color: { argb: 'FF64748B' } };
+    worksheet.getCell('A3').value = `${t('date')}: ${new Date().toLocaleString()}`;
+    worksheet.getCell('A3').font = { name: 'Segoe UI', size: 9, color: { argb: 'FF64748B' } };
+    worksheet.getCell('A3').alignment = { horizontal: 'left' };
 
     if (extraMetadata.length > 0) {
       worksheet.mergeCells(`A4:${endColChar}4`);
-      worksheet.getCell('A4').value = extraMetadata.join('  |  ');
-      worksheet.getCell('A4').alignment = { horizontal: 'center' };
-      worksheet.getCell('A4').font = { name: 'Segoe UI', size: 10, color: { argb: 'FF64748B' } };
+      worksheet.getCell('A4').value = extraMetadata.join('  •  ');
+      worksheet.getCell('A4').font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: 'FF475569' } };
+      worksheet.getCell('A4').alignment = { horizontal: 'left' };
+      // --- Professional Divider ---
+      worksheet.getRow(4).border = { bottom: { style: 'medium', color: { argb: 'FFCBD5E1' } } };
+    } else {
+      worksheet.getRow(3).border = { bottom: { style: 'medium', color: { argb: 'FFCBD5E1' } } };
     }
 
+    // Add some luxury vertical space
+    worksheet.getRow(5).height = 10;
     let currentRow = 6;
 
-    // 2. Main Headers (if provided via arguments, e.g. Attendance/Payroll reports)
+    // 2. Main Headers
     if (headers && headers.length > 0) {
       const headerRow = worksheet.getRow(currentRow);
       headerRow.values = headers;
+      headerRow.height = 25;
       headerRow.eachCell((cell) => {
         cell.fill = headerFill;
         cell.font = headerFont;
@@ -876,47 +896,55 @@ export default function App() {
     }
 
     // 3. Data Rows with Smart Styling
+    let dataRowIndex = 0;
     data.forEach((rowData) => {
-      const row = worksheet.addRow(rowData);
+      // Convert values to proper types if possible
+      const processedRowData = rowData.map(val => {
+        if (typeof val === 'string' && val.trim() !== '' && !isNaN(val) && val.length < 15) return Number(val);
+        return val;
+      });
 
-      // Auto-detect row type based on content
-      const firstCellVal = rowData[0] ? String(rowData[0]) : '';
+      const row = worksheet.addRow(processedRowData);
+      row.height = 20;
 
-      // Heuristics for styling
-      const isTotalRow = firstCellVal.toUpperCase().includes('TOTAL') || firstCellVal.includes('Net Profit') || firstCellVal.includes('Gross Profit');
-      // Subheaders are typically ALL CAPS strings in first column or known section titles
-      const isSubHeader = (firstCellVal === firstCellVal.toUpperCase() && firstCellVal.length > 3 && !isTotalRow && isNaN(firstCellVal)) ||
-        firstCellVal.includes('Statement') || firstCellVal.includes('DETAIL');
+      // Type Heuristics
+      const firstCellVal = String(rowData[0] || '').toUpperCase();
+      const isTotalRow = firstCellVal.includes('TOTAL') || firstCellVal.includes('NET PROFIT') || firstCellVal.includes('GROSS PROFIT') || firstCellVal.includes('NET PAYABLE');
+      const isSectionHeader = (rowData[0] && rowData.filter(x => x !== '' && x !== null).length === 1 && isNaN(rowData[0]));
+      const isEmbeddedHeader = (rowData.includes(t('quantity') || 'Qty') || rowData.includes('Item Name') || rowData.includes('Price')) && !isTotalRow;
 
-      // Embedded Headers: Look for "Item Name", "Qty", or "Date" in the row
-      const isEmbeddedHeader = (rowData.includes(t('quantity') || 'Qty') || rowData.includes('Item Name') || rowData.includes('Quantity')) && !isTotalRow;
-
-      row.eachCell((cell, colNumber) => {
+      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         cell.font = baseFont;
         cell.border = { top: borderStyle, left: borderStyle, bottom: borderStyle, right: borderStyle };
+        cell.alignment = { vertical: 'middle', horizontal: 'left' };
 
-        // Alignment: Numbers right, Text left (default)
-        if (typeof cell.value === 'number') {
-          cell.alignment = { vertical: 'middle', horizontal: 'right' };
-          // Apply currency format if it looks like currency (heuristic: distinct values usually)
-          // or just generic number format with 2 decimals
-          cell.numFmt = '#,##0.00';
-        } else {
-          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        // Zebra Striping (only for normal rows)
+        if (!isTotalRow && !isSectionHeader && !isEmbeddedHeader && dataRowIndex % 2 === 1) {
+          cell.fill = stripeFill;
         }
 
-        // --- Conditional Styles ---
+        // Auto Data Formatting
+        if (typeof cell.value === 'number') {
+          cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          // Professional: Highlight negative numbers in Red
+          if (cell.value < 0) {
+            cell.numFmt = '#,##0.00;[Red](#,##0.00)';
+          } else {
+            cell.numFmt = '#,##0.00';
+          }
+        }
 
-        if (isSubHeader) {
+        // Conditional Styles
+        if (isSectionHeader) {
           cell.fill = subHeaderFill;
           cell.font = subHeaderFont;
-          // Merge across if it seems like a title? Let's avoid merging distinct cells for safety, just style.
+          cell.alignment = { horizontal: 'left' };
         }
 
         if (isEmbeddedHeader) {
-          cell.fill = headerFill;
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF475569' } }; // Slate-600
           cell.font = headerFont;
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.alignment = { horizontal: 'center' };
         }
 
         if (isTotalRow) {
@@ -924,32 +952,49 @@ export default function App() {
           cell.font = totalFont;
           cell.border = {
             top: { style: 'double', color: { argb: 'FF1E40AF' } },
-            bottom: { style: 'thick', color: { argb: 'FF1E40AF' } },
-            left: borderStyle,
-            right: borderStyle
+            bottom: { style: 'medium', color: { argb: 'FF1E40AF' } },
+            left: borderStyle, right: borderStyle
           };
         }
       });
 
-      // Special: If entire row is just one value in first column (Section Header typical pattern), merge it?
-      // P&L logic often puts ['', '', ''] before headers.
-      // If row has only 1 non-empty value in first col, maybe style differently?
-      // Keeping it simple with the heuristic above for now.
+      if (!isSectionHeader && !isEmbeddedHeader) dataRowIndex++;
     });
 
-    // 4. Auto-width Columns
+    // 4. Polish & Auto-width
     worksheet.columns.forEach((column) => {
       let maxLength = 0;
-      // iterating all cells in column to find max length
-      if (column && column.eachCell) {
-        column.eachCell({ includeEmpty: true }, (cell) => {
-          const val = cell.value ? cell.value.toString() : '';
-          // Don't let long titles skew the width too much
-          if (val.length > maxLength && val.length < 50) maxLength = val.length;
-        });
-      }
-      column.width = Math.max(12, maxLength + 2);
+      column.eachCell({ includeEmpty: true }, (cell) => {
+        const val = cell.value ? cell.value.toString() : '';
+        if (val.length > maxLength && val.length < 60) maxLength = val.length;
+      });
+      // Adjust width based on characters + padding
+      column.width = Math.max(12, maxLength * 1.2 + 2);
     });
+
+    // Create Freezepane
+    worksheet.views = [{ state: 'frozen', ySplit: currentRow - 1 }];
+
+    // --- A4 PRINT OPTIMIZATION ---
+    worksheet.pageSetup = {
+      paperSize: 9, // A4
+      orientation: headers && headers.length > 8 ? 'landscape' : 'portrait',
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0, // Auto number of pages
+      margins: {
+        left: 0.5, right: 0.5,
+        top: 0.75, bottom: 0.75,
+        header: 0.3, footer: 0.3
+      },
+      printTitlesRow: `${currentRow - 1}:${currentRow - 1}` // Repeat main headers on every page
+    };
+
+    // Add professional Header/Footer for printing
+    worksheet.headerFooter = {
+      oddHeader: `&L&G&"Segoe UI,Bold"&12${shopSettings.name || 'Finn ERP'}&R&"Segoe UI,Italic"&09${filename.replace('.xlsx', '').toUpperCase()}`,
+      oddFooter: `&L&"Segoe UI"&08PRODUCED BY FINN ERP&C&"Segoe UI"&08PAGE &P OF &N&R&"Segoe UI"&08&D &T`
+    };
 
     // 5. Generate and Save
     const buffer = await workbook.xlsx.writeBuffer();
