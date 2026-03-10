@@ -227,7 +227,25 @@ export default function App() {
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
   useEffect(() => { localStorage.setItem('language', language); }, [language]);
 
-  // Sync Settings from Firestore
+  // Reactive default customer names for POS (fixes untranslated defaults on language switch)
+  useEffect(() => {
+    const defaults = {
+      en: { walkIn: 'Walk-in Customer', takeaway: 'Takeaway Customer' },
+      ar: { walkIn: 'عميل محلي', takeaway: 'عميل تيك أواي' },
+      hi: { walkIn: 'कैश ग्राहक (Walk-in)', takeaway: 'ले जाने वाला ग्राहक (Takeaway)' },
+      zh: { walkIn: '回客', takeaway: '外带客户' }
+    };
+    const isCurrentDefault = Object.values(defaults).some(d => 
+       newSaleForm.customer === d.walkIn || newSaleForm.customer === d.takeaway || !newSaleForm.customer
+    );
+    if (isCurrentDefault) {
+      setNewSaleForm(prev => ({ 
+        ...prev, 
+        customer: orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer') 
+      }));
+    }
+  }, [language, orderType, t]);
+// Sync Settings from Firestore
   useEffect(() => {
     if (user) {
       const fetchSettings = async () => {
@@ -1315,7 +1333,8 @@ export default function App() {
 
   // --- Sales & Purchases (POS) Logic ---
   const [isAddSaleModalOpen, setIsAddSaleModalOpen] = useState(false);
-  const [newSaleForm, setNewSaleForm] = useState({ customer: 'Walk-in Customer', amount: 0, status: 'Completed', items: '' });
+  const [posHistoryDate, setPosHistoryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newSaleForm, setNewSaleForm] = useState({ customer: '', customerId: '', amount: 0, status: 'Completed', items: '' });
   const [orderType, setOrderType] = useState('Walk-in'); // 'Walk-in' or 'Takeaway'
   const [cart, setCart] = useState([]);
   const [cartDiscount, setCartDiscount] = useState(0);
@@ -1420,7 +1439,8 @@ export default function App() {
         paymentMethod: paymentMethod,
         digitalSubMethod: paymentMethod === 'Online' ? digitalSubMethod : null,
         customer: newSaleForm.customer || (orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')),
-        status: 'Completed',
+        customerId: newSaleForm.customerId || null,
+status: 'Completed',
         items: cart.map(i => ({
           id: i.id,
           name: i.name,
@@ -3827,13 +3847,13 @@ export default function App() {
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-900 leading-tight">{emp.name}</h4>
-                            <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mt-1 inline-block">{emp.role}</span>
+                            <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mt-1 inline-block">{t(emp.role.toLowerCase()) || emp.role}</span>
                           </div>
                         </div>
                         {emp.status === 'Active' ? <CheckCircle size={18} className="text-green-500" /> : <AlertCircle size={18} className="text-gray-400" />}
                       </div>
                       <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-2"><Briefcase size={14} className="text-gray-400" /> {translations[language]?.[(emp.dept || '').toLowerCase()] || emp.dept}</div>
+                        <div className="flex items-center gap-2"><Briefcase size={14} className="text-gray-400" /> {t(emp.dept.toLowerCase()) || emp.dept}</div>
                         <div className="flex items-center gap-2"><MapPin size={14} className="text-gray-400" /> {emp.location || t('unassigned')}</div>
                         <div className="flex items-center gap-2"><Clock size={14} className="text-gray-400" /> {emp.shift === 'Morning (12 Hours)' ? t('morning12') : emp.shift === 'Night (12 Hours)' ? t('night12') : emp.shift}</div>
                       </div>
@@ -4162,7 +4182,7 @@ export default function App() {
                                 <div className="text-xs text-gray-500">{emp.dept}</div>
                               </td>
                               <td className="px-6 py-4 text-gray-500">{emp.location}</td>
-                              <td className="px-6 py-4 text-gray-500">{emp.role}</td>
+                              <td className="px-6 py-4 text-gray-500">{t(emp.role.toLowerCase()) || emp.role}</td>
                               <td className="px-6 py-4 text-right font-mono">{formatCurrency(baseSalary)}</td>
                               <td className="px-6 py-4 text-right font-mono text-green-600">+{formatCurrency(bonus)}</td>
                               <td className="px-6 py-4 text-right font-mono text-orange-600">+{formatCurrency(overtime)}</td>
@@ -4736,7 +4756,17 @@ export default function App() {
                       onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                     />
 
-                    <div className="space-y-3 mb-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-black text-gray-400 ml-1">{t('customerId')}</label>
+                      <input
+                        className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                        placeholder={t('customerId') + " (" + t('optional') + ")"}
+                        value={newSaleForm.customerId}
+                        autoComplete="off"
+                        onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
+                      />
+                    </div>
+<div className="space-y-3 mb-4">
                       <div className="grid grid-cols-3 gap-2">
                         {['Cash', 'Visa', 'Online'].map(method => (
                           <button
@@ -5291,6 +5321,55 @@ export default function App() {
                     </div>
                   </div>
                 )}
+                {cafeSubTab === 'history' && (
+                  <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 px-2 gap-4">
+                       <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('cafeHistory')}</h2>
+                       <div className="flex items-center gap-3 w-full sm:w-auto">
+                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{t('searchByDate')}</span>
+                         <input type="date" value={posHistoryDate} onChange={(e) => setPosHistoryDate(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" />
+                       </div>
+                    </div>
+                    <div className="max-h-[600px] overflow-y-auto px-1">
+                      <div className="hidden md:block">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <tr>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')}</th>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('amount')}</th>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {(sales || []).filter(s => s.location === 'Cafe' && s.date === posHistoryDate).map(s => (
+                              <tr key={s.id} className="hover:bg-slate-50/50 transition-colors group">
+                                <td className="p-4 text-slate-500 font-bold">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
+                                <td className="p-4 font-mono text-xs text-blue-600 font-black">{s.invoiceId || '-'}</td>
+                                <td className="p-4 font-mono font-black text-slate-900">{formatCurrency(s.amount)}</td>
+                                <td className="p-4 text-right"><button onClick={() => handlePrintInvoice(s, t('receipt'))} className="p-2 border border-slate-100 text-slate-400 hover:text-blue-600 rounded-lg"><Printer size={16} /></button></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="md:hidden space-y-4">
+                        {(sales || []).filter(s => s.location === 'Cafe' && s.date === posHistoryDate).map(s => (
+                          <div key={s.id} className="p-4 border border-slate-100 rounded-3xl bg-slate-50/50 flex justify-between items-center">
+                            <div>
+                               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</div>
+                               <div className="font-mono font-black text-slate-900">{formatCurrency(s.amount)}</div>
+                            </div>
+                            <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="p-3 bg-white border border-slate-100 text-slate-600 rounded-2xl shadow-sm"><Printer size={20} /></button>
+                          </div>
+                        ))}
+                      </div>
+                      {(sales || []).filter(s => s.location === 'Cafe' && s.date === posHistoryDate).length === 0 && (
+                        <div className="p-20 text-center"><Search size={40} className="mx-auto mb-4 text-slate-200" /><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noHistory')}</p></div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           }
@@ -5707,7 +5786,7 @@ export default function App() {
                       value={selectedEmployee.name}
                       onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'name', e.target.value)}
                     />
-                    <span className="text-sm font-medium text-slate-500">{selectedEmployee.role}</span>
+                    <span className="text-sm font-medium text-slate-500">{t(selectedEmployee.role.toLowerCase()) || selectedEmployee.role}</span>
                   </div>
 
                   <div className="space-y-4">
@@ -6224,7 +6303,7 @@ export default function App() {
                           <button
                             onClick={() => {
                               if (!securityQuestion || !securityAnswer) {
-                                alert("Please select a question and answer!");
+                                alert(t(\"Please select a question and answer!\"));
                                 return;
                               }
                               saveUserSettings({ securityQuestion, securityAnswer });
@@ -6751,7 +6830,7 @@ export default function App() {
                       </div>
                       <div>
                         <div className="font-bold text-gray-900">{emp.name}</div>
-                        <div className="text-xs text-gray-500">{emp.role}</div>
+                        <div className="text-xs text-gray-500">{t(emp.role.toLowerCase()) || emp.role}</div>
                       </div>
                     </button>
                   ))}
@@ -7409,4 +7488,5 @@ export default function App() {
     </div >
   );
 }
+
 
