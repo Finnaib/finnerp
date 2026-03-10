@@ -246,6 +246,12 @@ export default function App() {
 
   const [newSaleForm, setNewSaleForm] = useState({ customer: '', customerId: '', amount: 0, status: 'Completed', items: '' });
 
+  // Sync document direction and language for RTL support (Arabic)
+  useEffect(() => {
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+  }, [language]);
+
   // Reactive default customer names for POS (fixes untranslated defaults on language switch)
   useEffect(() => {
     const defaults = {
@@ -5833,12 +5839,12 @@ export default function App() {
                 <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-fit border border-gray-200 mb-8 overflow-x-auto shadow-sm">
                   {[
                     { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
-                    { id: 'active', label: t('activeJobs') || 'Active Jobs', icon: <Wrench size={14} /> },
-                    { id: 'new', label: t('newTicket') || 'New Ticket', icon: <Plus size={14} /> },
-                    { id: 'customers', label: t('menuEmployees') || 'Customers', icon: <Users size={14} /> },
+                    { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
+                    { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
+                    { id: 'customers', label: t('customers'), icon: <Users size={14} /> },
                     { id: 'inventory', label: t('inventory'), icon: <Package size={14} /> },
                     { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
-                    { id: 'reports', label: t('menuReports') || 'Reports', icon: <BarChart3 size={14} /> }
+                    { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -6052,16 +6058,16 @@ export default function App() {
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('priority') || 'Priority'}</label>
                           <select className="input-field text-blue-600 font-bold" value={serviceForm.priority} onChange={e => setServiceForm({ ...serviceForm, priority: e.target.value })}>
-                            <option value="Low">Low</option>
-                            <option value="Normal">Normal</option>
-                            <option value="High">High ⚡</option>
-                            <option value="Urgent">Urgent 🔥</option>
+                            <option value="Low">{t('low')}</option>
+                            <option value="Normal">{t('normal')}</option>
+                            <option value="High">{t('high')} ⚡</option>
+                            <option value="Urgent">{t('urgent')} 🔥</option>
                           </select>
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('assignedTechnician') || 'Assigned Technician'}</label>
                           <select className="input-field" value={serviceForm.technician} onChange={e => setServiceForm({ ...serviceForm, technician: e.target.value })}>
-                            <option value="">{t('unassigned') || 'Unassigned'}</option>
+                            <option value="">{t('unassigned')}</option>
                             {employees.filter(e => e.dept === 'IT' || e.dept === 'Service' || e.role?.toLowerCase().includes('tech')).map(emp => (
                               <option key={emp.id} value={emp.name}>{emp.name}</option>
                             ))}
@@ -6087,15 +6093,18 @@ export default function App() {
                   <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
                     <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                       <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
-                        {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready'].map(stat => (
-                          <button
-                            key={stat}
-                            onClick={() => setServiceStatusFilter(stat === 'All' ? '' : stat)}
-                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${serviceStatusFilter === (stat === 'All' ? '' : stat) ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
-                          >
-                            {stat}
-                          </button>
-                        ))}
+                        {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready'].map(stat => {
+                          const labelMap = { 'All': t('filterAll'), 'Received': t('received'), 'In Progress': t('inProgress'), 'Waiting for Parts': t('waitingParts'), 'Ready': t('readyPickup') };
+                          return (
+                            <button
+                              key={stat}
+                              onClick={() => setServiceStatusFilter(stat === 'All' ? '' : stat)}
+                              className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${serviceStatusFilter === (stat === 'All' ? '' : stat) ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
+                            >
+                              {labelMap[stat] || stat}
+                            </button>
+                          );
+                        })}
                       </div>
                       <div className="relative w-full md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
