@@ -70,7 +70,8 @@ import {
   Hammer,
   UserPlus
 } from 'lucide-react';
-import { auth, db } from './firebase'; // Firebase
+import { auth, db, storage } from './firebase'; // Firebase
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { translations } from './i18n/translations';
 import {
   signInWithEmailAndPassword,
@@ -422,8 +423,10 @@ export default function App() {
     customerName: '', customerPhone: '', customerEmail: '', customerAddress: '',
     deviceType: 'Mobile', brand: '', model: '', serialNo: '',
     issue: '', priority: 'Normal', technician: '', estimatedCost: '', status: 'Received',
-    notes: '', diagnostics: '', partsUsed: [], paymentStatus: 'Unpaid', amountPaid: 0, paymentMethod: 'Cash', laborCost: 0
+    notes: '', diagnostics: '', partsUsed: [], paymentStatus: 'Unpaid', amountPaid: 0, paymentMethod: 'Cash', laborCost: 0,
+    photos: []
   });
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
   const [serviceSearch, setServiceSearch] = useState('');
   const [serviceStatusFilter, setServiceStatusFilter] = useState('');
@@ -6094,8 +6097,8 @@ export default function App() {
                   <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
                     <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                       <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
-                        {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready'].map(stat => {
-                          const labelMap = { 'All': t('filterAll'), 'Received': t('received'), 'In Progress': t('inProgress'), 'Waiting for Parts': t('waitingParts'), 'Ready': t('readyPickup') };
+                        {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready', 'Delivered'].map(stat => {
+                          const labelMap = { 'All': t('filterAll'), 'Received': t('received'), 'In Progress': t('inProgress'), 'Waiting for Parts': t('waitingParts'), 'Ready': t('readyPickup'), 'Delivered': t('delivered') };
                           return (
                             <button
                               key={stat}
@@ -6135,12 +6138,11 @@ export default function App() {
                                 <h3 className="font-bold text-gray-900 leading-tight mt-1">{ticket.customerName}</h3>
                                 <p className="text-xs text-blue-500 font-bold mt-0.5">{ticket.customerPhone}</p>
                               </div>
-                              <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shrink-0 ${ticket.status === 'Ready' ? 'bg-emerald-100 text-emerald-700' :
-                                ticket.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                                  ticket.status === 'Waiting for Parts' ? 'bg-orange-100 text-orange-700' :
-                                    'bg-slate-100 text-slate-600'
+                              <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shrink-0 ${ticket.status === 'Ready' || ticket.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-50' :
+                                  ticket.status === 'In Progress' || ticket.status === 'Waiting for Parts' ? 'bg-amber-100 text-amber-700 shadow-sm shadow-amber-50' :
+                                    'bg-rose-100 text-rose-700 shadow-sm shadow-rose-50'
                                 }`}>
-                                {ticket.status}
+                                {t(ticket.status.toLowerCase().replace(/ /g, '')) || ticket.status}
                               </span>
                             </div>
 
@@ -6151,7 +6153,14 @@ export default function App() {
                                     <Database size={16} className="text-slate-400" />}
                                 <p className="text-sm font-bold text-slate-700">{ticket.brand} {ticket.model}</p>
                               </div>
-                              <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">{ticket.issue}</p>
+                              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{ticket.issue}</p>
+                              {ticket.photos && ticket.photos.length > 0 && (
+                                <div className="mt-2 flex gap-1 overflow-x-auto pb-1">
+                                  {ticket.photos.map((url, i) => (
+                                    <img key={i} src={url} alt="" className="w-8 h-8 rounded-lg object-cover border border-white shadow-sm" />
+                                  ))}
+                                </div>
+                              )}
                             </div>
 
                             <div className="pt-3 border-t border-gray-50 flex items-center justify-between">
@@ -6335,7 +6344,11 @@ export default function App() {
                               <td className="py-4 text-xs font-medium text-slate-600">{ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleDateString() : '-'}</td>
                               <td className="py-4 font-bold text-sm text-gray-900">{ticket.customerName}</td>
                               <td className="py-4 text-sm font-medium text-slate-700">{ticket.brand} {ticket.model}</td>
-                              <td className="py-4"><span className="px-2 py-1 bg-green-50 text-green-600 rounded-md text-[10px] font-black uppercase tracking-widest">{ticket.status}</span></td>
+                              <td className="py-4">
+                                <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${ticket.status === 'Delivered' || ticket.status === 'Ready' ? 'bg-emerald-50 text-emerald-600' :
+                                    'bg-slate-100 text-slate-600'
+                                  }`}>{ticket.status}</span>
+                              </td>
                               <td className="py-4 pr-4 text-right font-mono font-black text-gray-900">{formatCurrency(ticket.estimatedCost || 0)}</td>
                             </tr>
                           ))}
@@ -6452,11 +6465,11 @@ export default function App() {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('status')}</label>
                     <select className="input-field font-bold" value={editingTicket.status} onChange={e => setEditingTicket({ ...editingTicket, status: e.target.value })}>
-                      <option value="Received">Received</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Waiting for Parts">Waiting for Parts</option>
-                      <option value="Ready">Ready for Pickup</option>
-                      <option value="Delivered">Delivered (Closed)</option>
+                      <option value="Received">{t('received')}</option>
+                      <option value="In Progress">{t('inProgress')}</option>
+                      <option value="Waiting for Parts">{t('waitingParts')}</option>
+                      <option value="Ready">{t('readyPickup')}</option>
+                      <option value="Delivered">{t('delivered')} ({t('closed') || 'Closed'})</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -6515,6 +6528,36 @@ export default function App() {
                   <textarea className="input-field min-h-[60px] text-xs bg-slate-50 border-dashed" placeholder="Diagnoses details, parts used, etc..." value={editingTicket.notes || ''} onChange={e => setEditingTicket({ ...editingTicket, notes: e.target.value })}></textarea>
                 </div>
 
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest flex justify-between items-center">
+                    {t('attachPhotos') || 'Device Photos'}
+                    {photoUploading && <Loader2 size={12} className="animate-spin text-blue-600" />}
+                  </label>
+                  <div className="flex flex-wrap gap-4">
+                    <label className="w-20 h-20 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-200 transition-all cursor-pointer bg-gray-50">
+                      <Camera size={20} />
+                      <span className="text-[8px] font-black uppercase mt-1">{t('add')}</span>
+                      <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const url = await handleUploadRepairPhoto(file, editingTicket.id);
+                          if (url) {
+                            setEditingTicket({ ...editingTicket, photos: [...(editingTicket.photos || []), url] });
+                          }
+                        }
+                      }} />
+                    </label>
+                    {(editingTicket.photos || []).map((url, i) => (
+                      <div key={i} className="relative w-20 h-20 rounded-2xl overflow-hidden group">
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <button onClick={() => setEditingTicket({ ...editingTicket, photos: editingTicket.photos.filter((_, idx) => idx !== i) })} className="absolute inset-0 bg-rose-600/60 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
               </div>
 
               <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-gray-50 shrink-0">
@@ -6547,8 +6590,12 @@ export default function App() {
                         </head>
                         <body>
                           <div class="header">
+                            <div style="float: right; margin-top: -10px;">
+                              <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${editingTicket.id}" width="80" height="80" />
+                            </div>
                             <h2>REPAIR SHOP RECEIPT</h2>
                             <div class="id">Ticket #${editingTicket.id.slice(0, 6)}</div>
+                            <div style="clear: both;"></div>
                           </div>
                           <div class="details">
                             <div><span class="label">Date:</span> ${new Date().toLocaleDateString()}</div>
@@ -8654,6 +8701,28 @@ export default function App() {
           </div>
         )
       }
+
+      {/* Global Mobile Bottom Navigation for Service Shop Mode */}
+      {activeTab === 'service' && (
+        <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] bg-white/95 backdrop-blur-xl border border-gray-100 px-6 py-3 flex justify-between items-center z-[130] shadow-[0_15px_35px_rgba(0,0,0,0.1)] rounded-[2.5rem]">
+          {[
+            { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
+            { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
+            { id: 'inventory', label: t('inventory'), icon: <Package size={20} /> },
+            { id: 'customers', label: t('customers'), icon: <Users size={20} /> },
+            { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={20} /> }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setServiceSubTab(tab.id)}
+              className={`flex flex-col items-center gap-1 p-2 transition-all ${serviceSubTab === tab.id ? 'text-blue-600 scale-110' : 'text-slate-400 opacity-60'}`}
+            >
+              {tab.icon}
+              <span className="text-[8px] font-black uppercase tracking-tighter">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
     </div >
   );
