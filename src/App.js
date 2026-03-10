@@ -59,7 +59,15 @@ import {
   Disc,
   Minus,
   History,
-  Play
+  Play,
+  Wrench,
+  Smartphone,
+  Laptop,
+  ClipboardList,
+  CheckSquare,
+  AlertTriangle,
+  Tag,
+  Hammer
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import { translations } from './i18n/translations';
@@ -400,6 +408,29 @@ export default function App() {
   const [activeCafeCategory, setActiveCafeCategory] = useState('Hot Drinks');
   const [cafeSubTab, setCafeSubTab] = useState('board'); // 'board' | 'rooms' | 'recipes'
 
+  // --- Service / Repair Shop State ---
+  const [serviceTickets, setServiceTickets] = useState([]);
+  const [serviceSubTab, setServiceSubTab] = useState('board'); // 'board' | 'active' | 'new' | 'history' | 'customers' | 'inventory' | 'sales' | 'reports'
+  const [serviceForm, setServiceForm] = useState({
+    customerName: '', customerPhone: '', customerEmail: '', customerAddress: '',
+    deviceType: 'Mobile', brand: '', model: '', serialNo: '',
+    issue: '', priority: 'Normal', technician: '', estimatedCost: '', status: 'Received',
+    notes: '', diagnostics: '', partsUsed: [], paymentStatus: 'Unpaid', amountPaid: 0, paymentMethod: 'Cash', laborCost: 0
+  });
+  const [editingTicket, setEditingTicket] = useState(null);
+  const [serviceSearch, setServiceSearch] = useState('');
+  const [serviceStatusFilter, setServiceStatusFilter] = useState('');
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [serviceCustomers, setServiceCustomers] = useState([]);
+  const [selectedServiceCustomer, setSelectedServiceCustomer] = useState(null);
+  const [serviceCustomerForm, setServiceCustomerForm] = useState({ name: '', phone: '', email: '', address: '', notes: '' });
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [serviceInventory, setServiceInventory] = useState([]);
+  const [isServiceInventoryModalOpen, setIsServiceInventoryModalOpen] = useState(false);
+  const [editingServiceInventory, setEditingServiceInventory] = useState(null); // Added this
+  const [serviceInventoryForm, setServiceInventoryForm] = useState({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 });
+
+
   const [roomForm, setRoomForm] = useState({ name: '', type: 'Cafe', hourlyPrice: 0 });
   const [recipeForm, setRecipeForm] = useState({ name: '', category: 'Hot Drinks', sellPrice: '', ingredients: [] });
 
@@ -447,6 +478,33 @@ export default function App() {
         setCafeRooms(rooms);
       });
     }
+  }, [user]);
+
+  // Firestore: Service Tickets (Real-time)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'serviceTickets'), where('userId', '==', user.uid));
+    return onSnapshot(q, (snapshot) => {
+      setServiceTickets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+  }, [user]);
+
+  // Firestore: Service Customers (Real-time)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'serviceCustomers'), where('userId', '==', user.uid));
+    return onSnapshot(q, (snapshot) => {
+      setServiceCustomers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+  }, [user]);
+
+  // Firestore: Service Inventory (Real-time)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'serviceInventory'), where('userId', '==', user.uid));
+    return onSnapshot(q, (snapshot) => {
+      setServiceInventory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
   }, [user]);
 
   // --- PIN Modal Keyboard Support ---
@@ -3735,6 +3793,7 @@ export default function App() {
 
           <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Coffee size={20} />} label={t('menuCafe')} active={activeTab === 'cafe'} onClick={() => { setActiveTab('cafe'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Wrench size={20} />} label={t('menuService') || 'Service'} active={activeTab === 'service'} onClick={() => { setActiveTab('service'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Package size={20} />} label={t('menuWarehouses')} active={activeTab === 'warehouses'} onClick={() => { setActiveTab('warehouses'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Clock size={20} />} label={t('menuInvoices')} active={activeTab === 'history'} onClick={() => { setActiveTab('history'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
         </nav>
@@ -3774,6 +3833,7 @@ export default function App() {
                 {activeTab === 'reports' && <BarChart3 size={20} />}
                 {activeTab === 'accounts' && <Calculator size={20} />}
                 {activeTab === 'cafe' && <Coffee size={20} />}
+                {activeTab === 'service' && <Wrench size={20} />}
                 {activeTab === 'sales_purchases' && <ShoppingCart size={20} />}
                 {activeTab === 'warehouses' && <Package size={20} />}
                 {activeTab === 'invoices' && <InvoiceIcon size={20} />}
@@ -3787,6 +3847,7 @@ export default function App() {
                 {activeTab === 'reports' && t('menuReports')}
                 {activeTab === 'accounts' && t('menuAccounts')}
                 {activeTab === 'cafe' && t('menuCafe')}
+                {activeTab === 'service' && (t('menuService') || 'Service')}
                 {activeTab === 'sales_purchases' && t('menuSalesPurchases')}
                 {activeTab === 'warehouses' && t('menuWarehouses')}
                 {activeTab === 'invoices' && t('menuInvoices')}
@@ -5762,10 +5823,894 @@ export default function App() {
               </div>
             )
           }
+
+          {/* ========================================================= */}
+          {/* ================= SERVICE / REPAIR SHOP TAB ================= */}
+          {/* ========================================================= */}
+          {
+            activeTab === 'service' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-fit border border-gray-200 mb-8 overflow-x-auto shadow-sm">
+                  {[
+                    { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
+                    { id: 'active', label: t('activeJobs') || 'Active Jobs', icon: <Wrench size={14} /> },
+                    { id: 'new', label: t('newTicket') || 'New Ticket', icon: <Plus size={14} /> },
+                    { id: 'customers', label: t('menuEmployees') || 'Customers', icon: <Users size={14} /> },
+                    { id: 'inventory', label: t('inventory'), icon: <Package size={14} /> },
+                    { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
+                    { id: 'reports', label: t('menuReports') || 'Reports', icon: <BarChart3 size={14} /> }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setServiceSubTab(tab.id)}
+                      className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
+                    >
+                      {tab.icon} {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Sub Tab: BOARD (DASHBOARD) */}
+                {serviceSubTab === 'board' && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                      {[
+                        { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <Zap className="text-amber-500" />, bg: 'bg-amber-50' },
+                        { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock className="text-orange-500" />, bg: 'bg-orange-50' },
+                        { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckSquare className="text-emerald-500" />, bg: 'bg-emerald-50' },
+                        { label: t('lowStock'), value: serviceInventory.filter(i => i.stock <= i.minStock).length, icon: <AlertTriangle className="text-rose-500" />, bg: 'bg-rose-50' },
+                        { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard className="text-blue-500" />, bg: 'bg-blue-50' }
+                      ].map((stat, i) => (
+                        <div key={i} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-5">
+                          <div className={`p-4 rounded-2xl ${stat.bg}`}>{stat.icon}</div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{stat.label}</p>
+                            <h3 className="text-lg font-black text-gray-900 leading-none mt-1">{stat.value}</h3>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Quick Actions & Recent Activity */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      <div className="lg:col-span-2 space-y-8">
+                        {/* Quick Actions Grid */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                          <h3 className="text-sm font-black uppercase text-gray-900 tracking-widest mb-6 flex items-center gap-2">
+                            <Zap size={16} className="text-amber-500" /> {t('quickActions')}
+                          </h3>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            {[
+                              { label: t('newTicket'), icon: <Wrench size={24} />, color: 'bg-blue-500', action: () => setServiceSubTab('new') },
+                              { label: t('addCustomer'), icon: <UserPlus size={24} />, color: 'bg-indigo-500', action: () => { setServiceSubTab('customers'); setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); } },
+                              { label: t('addStock'), icon: <Package size={24} />, color: 'bg-emerald-500', action: () => { setServiceSubTab('inventory'); setIsServiceInventoryModalOpen(true); } },
+                              { label: t('createInvoice'), icon: <FileText size={24} />, color: 'bg-purple-500', action: () => setActiveTab('sales_purchases') }
+                            ].map((btn, i) => (
+                              <button
+                                key={i}
+                                onClick={btn.action}
+                                className="group flex flex-col items-center gap-3 p-6 rounded-3xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100"
+                              >
+                                <div className={`w-14 h-14 rounded-2xl ${btn.color} text-white flex items-center justify-center shadow-lg transform group-hover:-translate-y-1 transition-transform`}>
+                                  {btn.icon}
+                                </div>
+                                <span className="text-[10px] font-black uppercase text-gray-600 tracking-widest text-center">{btn.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Recent Activity List */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                          <h3 className="text-sm font-black uppercase text-gray-900 tracking-widest mb-6 flex items-center gap-2">
+                            <History size={16} className="text-blue-500" /> {t('recentActivity')}
+                          </h3>
+                          <div className="space-y-4">
+                            {serviceTickets.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).slice(0, 5).map(ticket => (
+                              <div key={ticket.id} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group">
+                                <div className="p-3 bg-slate-100 rounded-xl text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                                  {ticket.deviceType === 'Mobile' ? <Smartphone size={20} /> : <Laptop size={20} />}
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-bold text-gray-900">{ticket.customerName} - {ticket.brand} {ticket.model}</h4>
+                                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-0.5">{ticket.status} • {ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleString() : 'Just now'}</p>
+                                </div>
+                                <button onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }} className="p-2 text-gray-300 hover:text-blue-600 transition-colors"><ChevronRight size={20} /></button>
+                              </div>
+                            ))}
+                            {serviceTickets.length === 0 && (
+                              <div className="text-center py-12 opacity-30">
+                                <History size={48} className="mx-auto mb-4" />
+                                <p className="text-xs font-black uppercase tracking-widest">No activities recorded yet</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Side Section: Priority & Low Stock */}
+                      <div className="space-y-8">
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-xl shadow-slate-200">
+                          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-slate-400">{t('urgent')} & {t('high')}</h3>
+                          <div className="space-y-4">
+                            {serviceTickets.filter(t => t.priority === 'Urgent' || t.priority === 'High').slice(0, 3).map(ticket => (
+                              <div key={ticket.id} className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/5 group hover:bg-white/20 transition-all cursor-pointer" onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}>
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${ticket.priority === 'Urgent' ? 'bg-red-500 text-white' : 'bg-orange-400 text-slate-900'}`}>{ticket.priority}</span>
+                                  <span className="text-[8px] font-mono text-slate-500">#{ticket.id.slice(0, 6)}</span>
+                                </div>
+                                <h4 className="text-xs font-bold truncate">{ticket.customerName}</h4>
+                                <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{ticket.issue}</p>
+                              </div>
+                            ))}
+                            {serviceTickets.filter(t => t.priority === 'Urgent' || t.priority === 'High').length === 0 && (
+                              <p className="text-[10px] text-slate-500 font-bold uppercase py-4">All high priority jobs cleared!</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-rose-100 shadow-sm border-dashed">
+                          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-rose-500 flex items-center gap-2">
+                            <AlertTriangle size={14} /> {t('lowStockAlerts')}
+                          </h3>
+                          <div className="space-y-4">
+                            {serviceInventory.filter(i => i.stock <= i.minStock).slice(0, 4).map(item => (
+                              <div key={item.id} className="flex justify-between items-center group">
+                                <div>
+                                  <h4 className="text-xs font-bold text-gray-800 uppercase tracking-tight">{item.name}</h4>
+                                  <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{item.category}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs font-black text-rose-600 tabular-nums">{item.stock} / {item.minStock}</p>
+                                  <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{t('lowStock')}</p>
+                                </div>
+                              </div>
+                            ))}
+                            {serviceInventory.filter(i => i.stock <= i.minStock).length === 0 && (
+                              <p className="text-[10px] text-slate-300 font-bold uppercase py-4">Inventory is healthy</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub Tab: NEW TICKET */}
+                {serviceSubTab === 'new' && (
+                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 animate-in fade-in zoom-in-95 duration-700">
+                    <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight mb-6">{t('createNewRepairTicket') || 'Create New Repair Ticket'}</h2>
+
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      try {
+                        await addDoc(collection(db, 'serviceTickets'), {
+                          ...serviceForm,
+                          userId: user.uid,
+                          createdAt: serverTimestamp(),
+                          statusLogs: [{ status: 'Received', date: new Date().toISOString(), by: 'System' }]
+                        });
+                        setServiceForm({ customerName: '', customerPhone: '', deviceType: 'Mobile', brand: '', model: '', serialNo: '', issue: '', priority: 'Normal', technician: '', estimatedCost: '', status: 'Received' });
+                        setServiceSubTab('active');
+                      } catch (err) { console.error(err); }
+                    }} className="space-y-6">
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('customerInfo') || 'Customer Info'}</label>
+                          <div className="relative group">
+                            <input
+                              className="input-field"
+                              placeholder={t('customerName') || 'Customer Name'}
+                              value={serviceForm.customerName}
+                              onChange={e => setServiceForm({ ...serviceForm, customerName: e.target.value })}
+                              required
+                            />
+                            {serviceForm.customerName.length > 1 && serviceCustomers.filter(c => c.name.toLowerCase().includes(serviceForm.customerName.toLowerCase())).length > 0 && (
+                              <div className="absolute top-full left-0 right-0 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 mt-1 max-h-48 overflow-y-auto">
+                                {serviceCustomers.filter(c => c.name.toLowerCase().includes(serviceForm.customerName.toLowerCase())).slice(0, 5).map(c => (
+                                  <button
+                                    key={c.id}
+                                    type="button"
+                                    onClick={() => setServiceForm({ ...serviceForm, customerName: c.name, customerPhone: c.phone })}
+                                    className="w-full text-left p-4 hover:bg-slate-50 transition-colors border-b border-gray-50 flex flex-col"
+                                  >
+                                    <span className="text-sm font-bold text-gray-900">{c.name}</span>
+                                    <span className="text-[10px] font-mono text-slate-400">{c.phone}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <input className="input-field" placeholder={t('phone') || 'Phone Number'} value={serviceForm.customerPhone} onChange={e => setServiceForm({ ...serviceForm, customerPhone: e.target.value })} required />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('deviceDetails') || 'Device Details'}</label>
+                          <select className="input-field" value={serviceForm.deviceType} onChange={e => setServiceForm({ ...serviceForm, deviceType: e.target.value })}>
+                            <option value="Mobile">{t('mobile') || 'Mobile Phone'}</option>
+                            <option value="PC">{t('pc') || 'PC / Laptop'}</option>
+                            <option value="Tablet">{t('tablet') || 'Tablet'}</option>
+                            <option value="Console">{t('console') || 'Gaming Console'}</option>
+                            <option value="Other">{t('other') || 'Other Electronics'}</option>
+                          </select>
+                          <div className="flex gap-2">
+                            <input className="input-field flex-1" placeholder={t('brand') || 'Brand'} value={serviceForm.brand} onChange={e => setServiceForm({ ...serviceForm, brand: e.target.value })} required />
+                            <input className="input-field flex-1" placeholder={t('model') || 'Model'} value={serviceForm.model} onChange={e => setServiceForm({ ...serviceForm, model: e.target.value })} required />
+                          </div>
+                          <input className="input-field shadow-none border-dashed bg-gray-50" placeholder={t('serialNo') || 'Serial / IMEI (Optional)'} value={serviceForm.serialNo} onChange={e => setServiceForm({ ...serviceForm, serialNo: e.target.value })} />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('issueDescription') || 'Issue Description'}</label>
+                        <textarea className="input-field min-h-[100px] resize-none" placeholder={t('describeIssue') || 'Describe the problem in detail...'} value={serviceForm.issue} onChange={e => setServiceForm({ ...serviceForm, issue: e.target.value })} required></textarea>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('priority') || 'Priority'}</label>
+                          <select className="input-field text-blue-600 font-bold" value={serviceForm.priority} onChange={e => setServiceForm({ ...serviceForm, priority: e.target.value })}>
+                            <option value="Low">Low</option>
+                            <option value="Normal">Normal</option>
+                            <option value="High">High ⚡</option>
+                            <option value="Urgent">Urgent 🔥</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('assignedTechnician') || 'Assigned Technician'}</label>
+                          <select className="input-field" value={serviceForm.technician} onChange={e => setServiceForm({ ...serviceForm, technician: e.target.value })}>
+                            <option value="">{t('unassigned') || 'Unassigned'}</option>
+                            {employees.filter(e => e.dept === 'IT' || e.dept === 'Service' || e.role?.toLowerCase().includes('tech')).map(emp => (
+                              <option key={emp.id} value={emp.name}>{emp.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('estimatedCost') || 'Estimated Cost'} ({currency})</label>
+                          <input type="number" className="input-field font-mono font-bold text-emerald-600" placeholder="0.00" value={serviceForm.estimatedCost} onChange={e => setServiceForm({ ...serviceForm, estimatedCost: e.target.value })} />
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-100 flex justify-end">
+                        <button type="submit" className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2">
+                          <Save size={18} /> {t('createTicket') || 'Create Repair Ticket'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* Sub Tab: ACTIVE JOBS */}
+                {serviceSubTab === 'active' && (
+                  <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                      <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
+                        {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready'].map(stat => (
+                          <button
+                            key={stat}
+                            onClick={() => setServiceStatusFilter(stat === 'All' ? '' : stat)}
+                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${serviceStatusFilter === (stat === 'All' ? '' : stat) ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
+                          >
+                            {stat}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="relative w-full md:w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <input
+                          type="text"
+                          placeholder={t('searchTickets') || 'Search customer/device...'}
+                          className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
+                          value={serviceSearch}
+                          onChange={e => setServiceSearch(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {serviceTickets
+                        .filter(t => t.status !== 'Delivered')
+                        .filter(t => !serviceStatusFilter || t.status === serviceStatusFilter)
+                        .filter(t => !serviceSearch || t.customerName.toLowerCase().includes(serviceSearch.toLowerCase()) || t.brand?.toLowerCase().includes(serviceSearch.toLowerCase()) || t.model?.toLowerCase().includes(serviceSearch.toLowerCase()))
+                        .map(ticket => (
+                          <div key={ticket.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col group relative overflow-hidden">
+                            {ticket.priority === 'Urgent' && <div className="absolute top-0 inset-x-0 h-1 bg-red-500"></div>}
+                            {ticket.priority === 'High' && <div className="absolute top-0 inset-x-0 h-1 bg-orange-400"></div>}
+
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] font-mono">#{ticket.id.slice(0, 6)}</span>
+                                <h3 className="font-bold text-gray-900 leading-tight mt-1">{ticket.customerName}</h3>
+                                <p className="text-xs text-blue-500 font-bold mt-0.5">{ticket.customerPhone}</p>
+                              </div>
+                              <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shrink-0 ${ticket.status === 'Ready' ? 'bg-emerald-100 text-emerald-700' :
+                                ticket.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                                  ticket.status === 'Waiting for Parts' ? 'bg-orange-100 text-orange-700' :
+                                    'bg-slate-100 text-slate-600'
+                                }`}>
+                                {ticket.status}
+                              </span>
+                            </div>
+
+                            <div className="bg-slate-50 rounded-xl p-3 mb-4 flex-1 border border-slate-100">
+                              <div className="flex items-center gap-2 mb-2">
+                                {ticket.deviceType === 'Mobile' ? <Smartphone size={16} className="text-slate-400" /> :
+                                  ticket.deviceType === 'PC' || ticket.deviceType === 'Tablet' ? <Laptop size={16} className="text-slate-400" /> :
+                                    <Database size={16} className="text-slate-400" />}
+                                <p className="text-sm font-bold text-slate-700">{ticket.brand} {ticket.model}</p>
+                              </div>
+                              <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">{ticket.issue}</p>
+                            </div>
+
+                            <div className="pt-3 border-t border-gray-50 flex items-center justify-between">
+                              <div className="flex flex-col">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('technician') || 'Tech'}</span>
+                                <span className="text-xs font-bold text-gray-900 truncate max-w-[100px]">{ticket.technician || '-'}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {ticket.estimatedCost && <span className="text-xs font-black text-emerald-600 font-mono">{formatCurrency(ticket.estimatedCost)}</span>}
+                                <button
+                                  onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}
+                                  className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                                >
+                                  <ChevronRight size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                      {serviceTickets.filter(t => t.status !== 'Delivered' && (!serviceStatusFilter || t.status === serviceStatusFilter)).length === 0 && (
+                        <div className="col-span-full py-20 flex flex-col items-center justify-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                          <CheckSquare size={48} className="text-gray-300 mb-4" />
+                          <h3 className="text-lg font-black text-gray-400 uppercase tracking-widest">{t('noActiveJobs') || 'No Active Repair Jobs'}</h3>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub Tab: CUSTOMERS */}
+                {serviceSubTab === 'customers' && (
+                  <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                      <div className="relative flex-1 max-w-lg">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          placeholder={t('search') || 'Search customers by name or phone...'}
+                          className="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all"
+                          onChange={e => setServiceSearch(e.target.value)}
+                        />
+                      </div>
+                      <button
+                        onClick={() => { setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); }}
+                        className="px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-200 transition-all flex items-center gap-2"
+                      >
+                        <UserPlus size={18} /> {t('addCustomer')}
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {serviceCustomers
+                        .filter(c => !serviceSearch || (c.name?.toLowerCase().includes(serviceSearch.toLowerCase())) || (c.phone?.includes(serviceSearch)))
+                        .map(customer => (
+                          <div key={customer.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 font-black text-lg uppercase">
+                                {customer.name?.slice(0, 1)}
+                              </div>
+                              <div className="flex gap-2">
+                                <button onClick={() => { setSelectedServiceCustomer(customer); setServiceCustomerForm(customer); setIsCustomerModalOpen(true); }} className="p-2 text-slate-300 hover:text-blue-600 transition-colors"><Edit size={16} /></button>
+                                <button onClick={async () => {
+                                  if (window.confirm('Delete this customer?')) {
+                                    await deleteDoc(doc(db, 'serviceCustomers', customer.id));
+                                  }
+                                }} className="p-2 text-slate-300 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
+                              </div>
+                            </div>
+                            <h3 className="text-lg font-black text-gray-900 tracking-tight">{customer.name}</h3>
+                            <div className="space-y-2 mt-4">
+                              <div className="flex items-center gap-3 text-gray-500">
+                                <Phone size={14} /> <span className="text-xs font-bold">{customer.phone}</span>
+                              </div>
+                              {customer.email && (
+                                <div className="flex items-center gap-3 text-gray-500">
+                                  <Mail size={14} /> <span className="text-xs font-bold truncate">{customer.email}</span>
+                                </div>
+                              )}
+                              {customer.address && (
+                                <div className="flex items-center gap-3 text-gray-500">
+                                  <MapPin size={14} /> <span className="text-xs font-bold truncate">{customer.address}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-6 pt-6 border-t border-gray-50 flex justify-between items-center">
+                              <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                                {serviceTickets.filter(t => t.customerPhone === customer.phone).length} {t('repairHistory')}
+                              </div>
+                              <button onClick={() => { setServiceForm({ ...serviceForm, customerName: customer.name, customerPhone: customer.phone }); setServiceSubTab('new'); }} className="text-[10px] font-black uppercase text-blue-600 hover:underline">
+                                {t('newTicket')}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub Tab: INVENTORY */}
+                {serviceSubTab === 'inventory' && (
+                  <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                      <div className="relative flex-1 max-w-lg">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          placeholder={t('searchInventory') || 'Search spare parts...'}
+                          className="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all"
+                          onChange={e => setServiceSearch(e.target.value)}
+                        />
+                      </div>
+                      <button
+                        onClick={() => setIsServiceInventoryModalOpen(true)}
+                        className="px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-200 transition-all flex items-center gap-2"
+                      >
+                        <Plus size={18} /> {t('addInventoryItem')}
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                      {serviceInventory
+                        .filter(i => !serviceSearch || i.name?.toLowerCase().includes(serviceSearch.toLowerCase()))
+                        .map(item => (
+                          <div key={item.id} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col group relative">
+                            {item.stock <= item.minStock && <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse shadow-sm shadow-rose-200"></div>}
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                <Package size={20} />
+                              </div>
+                              <div className="flex gap-1">
+                                <button onClick={() => { setEditingServiceInventory(item); setServiceInventoryForm(item); setIsServiceInventoryModalOpen(true); }} className="p-1.5 text-slate-300 hover:text-blue-600 transition-colors"><Edit size={14} /></button>
+                                <button onClick={async () => {
+                                  if (window.confirm('Delete this item?')) {
+                                    await deleteDoc(doc(db, 'serviceInventory', item.id));
+                                  }
+                                }} className="p-1.5 text-slate-300 hover:text-rose-600 transition-colors"><Trash2 size={14} /></button>
+                              </div>
+                            </div>
+                            <h4 className="text-xs font-black uppercase text-gray-900 tracking-tight line-clamp-2 min-h-[32px]">{item.name}</h4>
+                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1 mb-4">{item.category}</p>
+
+                            <div className="mt-auto space-y-3">
+                              <div className="flex justify-between items-end">
+                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('sellPrice')}</div>
+                                <div className="text-sm font-black text-blue-600 font-mono">{formatCurrency(item.sellPrice)}</div>
+                              </div>
+                              <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100/50">
+                                <span className={`text-[9px] font-black uppercase tracking-widest ${item.stock <= item.minStock ? 'text-rose-500' : 'text-slate-400'}`}>{t('units')}</span>
+                                <span className="text-xs font-black tabular-nums">{item.stock}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub Tab: HISTORY */}
+                {serviceSubTab === 'history' && (
+                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="flex justify-between items-end mb-6">
+                      <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('serviceHistory') || 'Repair History'}</h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="border-b-2 border-slate-100">
+                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest pl-4">ID</th>
+                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('date')}</th>
+                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('customer')}</th>
+                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('device')}</th>
+                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('status')}</th>
+                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right pr-4">{t('cost')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {serviceTickets.filter(t => t.status === 'Delivered').sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).map(ticket => (
+                            <tr key={ticket.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="py-4 pl-4 font-mono text-xs font-bold text-slate-400">#{ticket.id.slice(0, 6)}</td>
+                              <td className="py-4 text-xs font-medium text-slate-600">{ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleDateString() : '-'}</td>
+                              <td className="py-4 font-bold text-sm text-gray-900">{ticket.customerName}</td>
+                              <td className="py-4 text-sm font-medium text-slate-700">{ticket.brand} {ticket.model}</td>
+                              <td className="py-4"><span className="px-2 py-1 bg-green-50 text-green-600 rounded-md text-[10px] font-black uppercase tracking-widest">{ticket.status}</span></td>
+                              <td className="py-4 pr-4 text-right font-mono font-black text-gray-900">{formatCurrency(ticket.estimatedCost || 0)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub Tab: REPORTS */}
+                {serviceSubTab === 'reports' && (
+                  <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* Revenue Summary */}
+                      <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                        <h3 className="text-gray-900 text-lg font-black uppercase tracking-tight mb-6 flex items-center gap-2">
+                          <CreditCard className="text-blue-600" size={20} /> {t('monthlyServiceRevenue')}
+                        </h3>
+                        <div className="space-y-4">
+                          {[
+                            { label: t('totalRevenue') || 'Total Revenue', value: formatCurrency(serviceTickets.reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-blue-600' },
+                            { label: t('collected') || 'Collected', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Paid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-emerald-600' },
+                            { label: t('unpaid') || 'Unpaid', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Unpaid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-rose-600' }
+                          ].map((stat, i) => (
+                            <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
+                              <span className={`text-sm font-black mono ${stat.color}`}>{stat.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Top Brands */}
+                      <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                        <h3 className="text-gray-900 text-lg font-black uppercase tracking-tight mb-6 flex items-center gap-2">
+                          <Smartphone className="text-orange-600" size={20} /> {t('topRepairs')}
+                        </h3>
+                        <div className="space-y-3">
+                          {Object.entries(serviceTickets.reduce((acc, t) => {
+                            acc[t.brand] = (acc[t.brand] || 0) + 1;
+                            return acc;
+                          }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([brand, count], i) => (
+                            <div key={i} className="flex justify-between items-center group">
+                              <span className="text-xs font-bold text-slate-600">{brand || 'Unknown'}</span>
+                              <div className="flex items-center gap-3">
+                                <div className="h-1 bg-blue-100 rounded-full w-24 overflow-hidden">
+                                  <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${(count / (serviceTickets.length || 1)) * 100}%` }}></div>
+                                </div>
+                                <span className="text-xs font-black text-slate-900">{count}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Tech Performance */}
+                      <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                        <h3 className="text-gray-900 text-lg font-black uppercase tracking-tight mb-6 flex items-center gap-2">
+                          <User className="text-indigo-600" size={20} /> {t('technicianRevenue')}
+                        </h3>
+                        <div className="space-y-3">
+                          {Object.entries(serviceTickets.reduce((acc, t) => {
+                            if (t.technician) {
+                              acc[t.technician] = (acc[t.technician] || 0) + Number(t.estimatedCost || 0);
+                            }
+                            return acc;
+                          }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tech, revenue], i) => (
+                            <div key={i} className="flex justify-between items-center">
+                              <span className="text-xs font-bold text-slate-600">{tech}</span>
+                              <span className="text-xs font-black text-emerald-600 font-mono">{formatCurrency(revenue)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          }
+
         </div >
       </main >
 
       {/* --- Modals --- */}
+
+      {/* Service / Repair Ticket Edit Modal */}
+      {
+        isTicketModalOpen && editingTicket && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[200] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 flex flex-col max-h-[90vh]">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-900">{t('editTicket') || 'Edit Repair Ticket'} <span className="text-sm font-mono text-gray-400 ml-2">#{editingTicket.id.slice(0, 6)}</span></h3>
+                </div>
+                <button onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+
+              <div className="p-6 overflow-y-auto flex-1 space-y-6">
+                {/* Customer Details Head */}
+                <div className="flex justify-between items-start bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+                  <div>
+                    <h4 className="font-bold text-lg text-gray-900 leading-tight">{editingTicket.customerName}</h4>
+                    <p className="text-sm text-blue-600 font-bold mt-1">{editingTicket.customerPhone}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-slate-700">{editingTicket.brand} {editingTicket.model}</p>
+                    <p className="text-[10px] font-mono text-slate-400 mt-1">{editingTicket.serialNo || 'N/A'}</p>
+                  </div>
+                </div>
+
+                {/* Status & Assignment */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('status')}</label>
+                    <select className="input-field font-bold" value={editingTicket.status} onChange={e => setEditingTicket({ ...editingTicket, status: e.target.value })}>
+                      <option value="Received">Received</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Waiting for Parts">Waiting for Parts</option>
+                      <option value="Ready">Ready for Pickup</option>
+                      <option value="Delivered">Delivered (Closed)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('assignedTechnician') || 'Technician'}</label>
+                    <select className="input-field" value={editingTicket.technician || ''} onChange={e => setEditingTicket({ ...editingTicket, technician: e.target.value })}>
+                      <option value="">{t('unassigned') || 'Unassigned'}</option>
+                      {employees.filter(e => e.dept === 'IT' || e.dept === 'Service' || e.role?.toLowerCase().includes('tech')).map(emp => (
+                        <option key={emp.id} value={emp.name}>{emp.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('issueDescription') || 'Issue'}</label>
+                  <textarea className="input-field min-h-[80px] text-sm text-gray-700 bg-gray-50" value={editingTicket.issue} onChange={e => setEditingTicket({ ...editingTicket, issue: e.target.value })}></textarea>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('priority') || 'Priority'}</label>
+                    <select className="input-field" value={editingTicket.priority} onChange={e => setEditingTicket({ ...editingTicket, priority: e.target.value })}>
+                      <option value="Low">Low</option>
+                      <option value="Normal">Normal</option>
+                      <option value="High">High ⚡</option>
+                      <option value="Urgent">Urgent 🔥</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('estimatedCost') || 'Total Cost'} ({currency})</label>
+                    <input type="number" className="input-field font-mono font-bold text-emerald-600" value={editingTicket.estimatedCost} onChange={e => setEditingTicket({ ...editingTicket, estimatedCost: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('paymentStatus') || 'Payment Status'}</label>
+                    <select className="input-field" value={editingTicket.paymentStatus || 'Unpaid'} onChange={e => setEditingTicket({ ...editingTicket, paymentStatus: e.target.value })}>
+                      <option value="Unpaid">{t('unpaid')}</option>
+                      <option value="Partial">{t('partial')}</option>
+                      <option value="Paid">{t('paid')}</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('paymentMethod') || 'Payment Method'}</label>
+                    <select className="input-field" value={editingTicket.paymentMethod || 'Cash'} onChange={e => setEditingTicket({ ...editingTicket, paymentMethod: e.target.value })}>
+                      <option value="Cash">{t('cash')}</option>
+                      <option value="Card">{t('creditCard')}</option>
+                      <option value="Digital Wallet">Digital Wallet (Vodafone/Instapay)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('internalNotes') || 'Internal Technician Notes'}</label>
+                  <textarea className="input-field min-h-[60px] text-xs bg-slate-50 border-dashed" placeholder="Diagnoses details, parts used, etc..." value={editingTicket.notes || ''} onChange={e => setEditingTicket({ ...editingTicket, notes: e.target.value })}></textarea>
+                </div>
+
+              </div>
+
+              <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-gray-50 shrink-0">
+                <div className="flex gap-2">
+                  {editingTicket.status === 'Delivered' && (
+                    <button onClick={async () => {
+                      if (window.confirm('Delete this ticket entirely?')) {
+                        await deleteDoc(doc(db, 'serviceTickets', editingTicket.id));
+                        setIsTicketModalOpen(false); setEditingTicket(null);
+                      }
+                    }} className="px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold flex items-center gap-2">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                  <button onClick={() => {
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                      <html>
+                        <head>
+                          <title>Repair Receipt #${editingTicket.id.slice(0, 6)}</title>
+                          <style>
+                            body { font-family: 'Segoe UI', sans-serif; padding: 20px; color: #333; }
+                            .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+                            .details { margin-bottom: 20px; }
+                            .details div { margin-bottom: 5px; }
+                            .label { font-weight: bold; width: 120px; display: inline-block; }
+                            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 10px; }
+                            .id { font-family: monospace; font-weight: bold; }
+                          </style>
+                        </head>
+                        <body>
+                          <div class="header">
+                            <h2>REPAIR SHOP RECEIPT</h2>
+                            <div class="id">Ticket #${editingTicket.id.slice(0, 6)}</div>
+                          </div>
+                          <div class="details">
+                            <div><span class="label">Date:</span> ${new Date().toLocaleDateString()}</div>
+                            <div><span class="label">Customer:</span> ${editingTicket.customerName}</div>
+                            <div><span class="label">Phone:</span> ${editingTicket.customerPhone}</div>
+                            <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;" />
+                            <div><span class="label">Device:</span> ${editingTicket.brand} ${editingTicket.model}</div>
+                            <div><span class="label">Expected ID:</span> ${editingTicket.serialNo || 'N/A'}</div>
+                            <div><span class="label">Issue:</span> ${editingTicket.issue}</div>
+                            <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;" />
+                            <div><span class="label">Status:</span> ${editingTicket.status}</div>
+                            <div style="font-size: 1.2em; margin-top:10px;"><span class="label">Total Cost:</span> <strong>${formatCurrency(editingTicket.estimatedCost)}</strong></div>
+                            <div><span class="label">Payment:</span> ${editingTicket.paymentStatus} (${editingTicket.paymentMethod || 'Cash'})</div>
+                          </div>
+                          <div class="footer">
+                            <p>Thank you for choosing our service!</p>
+                            <p>For status verification, please call ${editingTicket.customerPhone}</p>
+                          </div>
+                          <script>window.print(); window.close();</script>
+                        </body>
+                      </html>
+                    `);
+                    printWindow.document.close();
+                  }} className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 font-bold border border-gray-200 transition-all flex items-center gap-2">
+                    <Printer size={16} /> {t('print')}
+                  </button>
+                </div>
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="px-6 py-2.5 bg-white text-gray-700 rounded-xl hover:bg-gray-100 font-bold border border-gray-200 transition-all">{t('cancel')}</button>
+                  <button onClick={async () => {
+                    try {
+                      // Update the status log if the status changed
+                      const origTicket = serviceTickets.find(t => t.id === editingTicket.id);
+                      let newLogs = editingTicket.statusLogs || [];
+                      if (origTicket && origTicket.status !== editingTicket.status) {
+                        newLogs = [...newLogs, { status: editingTicket.status, date: new Date().toISOString(), by: user.email || 'System' }];
+                      }
+                      await updateDoc(doc(db, 'serviceTickets', editingTicket.id), { ...editingTicket, statusLogs: newLogs });
+                      setIsTicketModalOpen(false); setEditingTicket(null);
+                    } catch (err) { console.error(err); }
+                  }} className="px-8 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2">
+                    <Save size={18} /> {t('saveChanges')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* --- Service Customer Modal --- */}
+      {isCustomerModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col p-8">
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
+                  <UserPlus size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase">{selectedServiceCustomer ? t('editCustomer') : t('addCustomer')}</h3>
+                </div>
+              </div>
+              <button onClick={() => { setIsCustomerModalOpen(false); setSelectedServiceCustomer(null); setServiceCustomerForm({ name: '', phone: '', email: '', address: '', notes: '' }); }} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                if (selectedServiceCustomer) {
+                  await updateDoc(doc(db, 'serviceCustomers', selectedServiceCustomer.id), serviceCustomerForm);
+                } else {
+                  await addDoc(collection(db, 'serviceCustomers'), { ...serviceCustomerForm, userId: user.uid, createdAt: serverTimestamp() });
+                }
+                setIsCustomerModalOpen(false);
+                setSelectedServiceCustomer(null);
+                setServiceCustomerForm({ name: '', phone: '', email: '', address: '', notes: '' });
+              } catch (err) { console.error(err); }
+            }} className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
+                <input type="text" className="input-field" value={serviceCustomerForm.name} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, name: e.target.value })} required />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('phone')}</label>
+                <input type="text" className="input-field" value={serviceCustomerForm.phone} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, phone: e.target.value })} required />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('email')}</label>
+                <input type="email" className="input-field" value={serviceCustomerForm.email} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, email: e.target.value })} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('address')}</label>
+                <textarea className="input-field min-h-[60px]" value={serviceCustomerForm.address} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, address: e.target.value })}></textarea>
+              </div>
+              <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4">
+                <Save size={18} /> {selectedServiceCustomer ? t('saveChanges') : t('addCustomer')}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- Service Inventory Modal --- */}
+      {isServiceInventoryModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col p-8">
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
+                  <Package size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase">{editingServiceInventory ? t('editItem') : t('addStock')}</h3>
+                </div>
+              </div>
+              <button onClick={() => { setIsServiceInventoryModalOpen(false); setEditingServiceInventory(null); setServiceInventoryForm({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 }); }} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                if (editingServiceInventory) {
+                  await updateDoc(doc(db, 'serviceInventory', editingServiceInventory.id), serviceInventoryForm);
+                } else {
+                  await addDoc(collection(db, 'serviceInventory'), { ...serviceInventoryForm, userId: user.uid, createdAt: serverTimestamp() });
+                }
+                setIsServiceInventoryModalOpen(false);
+                setEditingServiceInventory(null);
+                setServiceInventoryForm({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 });
+              } catch (err) { console.error(err); }
+            }} className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('itemName')}</label>
+                <input type="text" className="input-field" value={serviceInventoryForm.name} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, name: e.target.value })} required />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('category')}</label>
+                <select className="input-field" value={serviceInventoryForm.category} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, category: e.target.value })}>
+                  <option value="Phone Parts">{t('phoneParts')}</option>
+                  <option value="PC Components">{t('pcComponents')}</option>
+                  <option value="Accessories">{t('accessories')}</option>
+                  <option value="Other">{t('other')}</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('quantity')}</label>
+                  <input type="number" className="input-field font-mono" value={serviceInventoryForm.stock} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, stock: Number(e.target.value) })} required />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('minStock')}</label>
+                  <input type="number" className="input-field font-mono" value={serviceInventoryForm.minStock} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, minStock: Number(e.target.value) })} required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('buyPrice')}</label>
+                  <input type="number" step="0.01" className="input-field font-mono" value={serviceInventoryForm.buyPrice} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, buyPrice: Number(e.target.value) })} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('sellPrice')}</label>
+                  <input type="number" step="0.01" className="input-field font-mono" value={serviceInventoryForm.sellPrice} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, sellPrice: Number(e.target.value) })} required />
+                </div>
+              </div>
+              <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4">
+                <Save size={18} /> {editingServiceInventory ? t('saveChanges') : t('addStock')}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Barcode Print Configuration Modal */}
       {
