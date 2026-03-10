@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { Html5QrcodeScanner, Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
@@ -822,99 +822,105 @@ export default function App() {
   /* --- PDF Generation Handling with jsPDF & AutoTable --- */
 
   const generatePDF = (headers, data, filename, extraMetadata = []) => {
-    const doc = new jsPDF({
-      orientation: headers.length > 5 ? 'landscape' : 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
+    try {
+      const doc = new jsPDF({
+        orientation: headers.length > 7 ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
 
-    // 1. Branding Header
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24);
-    doc.setTextColor(15, 23, 42); // Slate-900
-    doc.text(shopSettings.name?.toUpperCase() || (t('companyName') || 'FINN ERP'), 15, 20);
+      // Sanitization: Ensure data is clean (no nulls/undefined)
+      const cleanData = data.map(row =>
+        row.map(cell => (cell === null || cell === undefined) ? '' : cell)
+      );
 
-    doc.setFontSize(12);
-    doc.setTextColor(59, 130, 246); // Blue-500
-    const subTitle = filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase();
-    doc.text(subTitle, 15, 28);
+      // 1. Branding Header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(15, 23, 42);
+      doc.text(shopSettings.name?.toUpperCase() || (t('companyName') || 'FINN ERP'), 15, 20);
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139); // Slate-500
-    doc.text(`${t('date')}: ${new Date().toLocaleString()}`, 15, 34);
+      doc.setFontSize(11);
+      doc.setTextColor(59, 130, 246);
+      const subTitle = filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase();
+      doc.text(subTitle, 15, 27);
 
-    if (extraMetadata.length > 0) {
-      doc.text(extraMetadata.join('  |  '), 15, 39);
-      doc.setDrawColor(30, 41, 59); // Slate-800
-      doc.setLineWidth(0.5);
-      doc.line(15, 42, pageWidth - 15, 42);
-    } else {
-      doc.setDrawColor(30, 41, 59);
-      doc.setLineWidth(0.5);
-      doc.line(15, 37, pageWidth - 15, 37);
-    }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`${t('date')}: ${new Date().toLocaleString()}`, 15, 33);
 
-    // 2. Table Implementation
-    doc.autoTable({
-      head: [headers],
-      body: data,
-      startY: extraMetadata.length > 0 ? 48 : 43,
-      theme: 'striped',
-      headStyles: {
-        fillColor: [30, 41, 59], // Slate-800
-        textColor: [255, 255, 255],
-        fontSize: 10,
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      bodyStyles: {
-        fontSize: 9,
-        cellPadding: 3,
-        textColor: [30, 41, 59]
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 252] // Slate-50
-      },
-      didParseCell: (data) => {
-        const firstCellVal = String(data.row.raw[0] || '').toUpperCase();
-        // Style Totals
-        const isTotalRow = firstCellVal.includes('TOTAL') || firstCellVal.includes('NET PROFIT') || firstCellVal.includes('GROSS PROFIT') || firstCellVal.includes('NET PAYABLE');
-        if (isTotalRow) {
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [239, 246, 255]; // Blue-50
-          data.cell.styles.textColor = [30, 64, 175]; // Blue-800
-        }
-        // Style Section Headers
-        const isSection = data.row.raw.filter(x => x !== '' && x !== null).length === 1 && isNaN(data.row.raw[0]);
-        if (isSection) {
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [241, 245, 249]; // Slate-100
-          data.cell.styles.fontSize = 10;
-        }
-        // Number alignment
-        if (!isNaN(data.cell.raw) && typeof data.cell.raw === 'number') {
-          data.cell.styles.halign = 'right';
-          if (data.cell.raw < 0) {
-            data.cell.styles.textColor = [220, 38, 38]; // Red-600
-          }
-        }
-      },
-      margin: { left: 15, right: 15, bottom: 20 },
-      didDrawPage: (data) => {
-        // Footer
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`PRODUCED BY FINN ERP SYSTEM`, 15, pageHeight - 10);
-        const pageNumber = `PAGE ${doc.internal.getNumberOfPages()}`;
-        doc.text(pageNumber, pageWidth - 15 - doc.getTextWidth(pageNumber), pageHeight - 10);
+      if (extraMetadata.length > 0) {
+        doc.text(extraMetadata.join('  |  '), 15, 38);
+        doc.setDrawColor(203, 213, 225);
+        doc.line(15, 41, pageWidth - 15, 41);
+      } else {
+        doc.setDrawColor(203, 213, 225);
+        doc.line(15, 36, pageWidth - 15, 36);
       }
-    });
 
-    doc.save(filename);
+      // 2. Table Implementation
+      autoTable(doc, {
+        head: [headers],
+        body: cleanData,
+        startY: extraMetadata.length > 0 ? 45 : 40,
+        theme: 'striped',
+        styles: { font: 'helvetica', fontSize: 8 },
+        headStyles: {
+          fillColor: [30, 41, 59],
+          textColor: [255, 255, 255],
+          fontSize: 9,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        didParseCell: (cellData) => {
+          const rowData = cellData.row.raw;
+          const firstCellVal = String(rowData[0] || '').toUpperCase();
+
+          // Style Totals
+          const isTotal = firstCellVal.includes('TOTAL') || firstCellVal.includes('NET PRO') || firstCellVal.includes('GROSS PRO') || firstCellVal.includes('NET PAYA');
+          if (isTotal) {
+            cellData.cell.styles.fontStyle = 'bold';
+            cellData.cell.styles.fillColor = [239, 246, 255];
+            cellData.cell.styles.textColor = [30, 64, 175];
+          }
+
+          // Style Section Headers (any row where exactly one of the first few columns has text and it's not a number)
+          // Also check if it's a known section like "SOLD ITEMS", "BOUGHT ITEMS" etc.
+          const nonEmptyCount = rowData.filter(x => x !== '' && x !== null).length;
+          const isSection = nonEmptyCount === 1 && isNaN(rowData.find(x => x !== '' && x !== null));
+
+          if (isSection) {
+            cellData.cell.styles.fontStyle = 'bold';
+            cellData.cell.styles.fillColor = [241, 245, 249];
+            cellData.cell.styles.fontSize = 10;
+          }
+
+          // Number alignment
+          if (typeof cellData.cell.raw === 'number') {
+            cellData.cell.styles.halign = 'right';
+            if (cellData.cell.raw < 0) cellData.cell.styles.textColor = [220, 38, 38];
+          }
+        },
+        margin: { left: 15, right: 15, bottom: 20 },
+        didDrawPage: (pData) => {
+          doc.setFontSize(7);
+          doc.setTextColor(148, 163, 184);
+          doc.text(`PRODUCED BY FINN ERP SYSTEM`, 15, pageHeight - 10);
+          const pNum = `PAGE ${doc.internal.getNumberOfPages()}`;
+          doc.text(pNum, pageWidth - 15 - doc.getTextWidth(pNum), pageHeight - 10);
+        }
+      });
+
+      doc.save(filename);
+    } catch (err) {
+      console.error("PDF Generate Error:", err);
+      alert("Error generating PDF: " + err.message);
+    }
   };
 
   const handleExportAttendance = () => {
@@ -2654,43 +2660,49 @@ export default function App() {
         data = attendance
           .filter(r => !reportLocationFilter || getEmployeeLocation(r.name) === reportLocationFilter)
           .map(r => [r.name, r.date, getEmployeeLocation(r.name), translateStatus(r.status)]);
-        filename = 'FinnERP_Attendance.xlsx';
+        filename = 'FinnERP_Attendance.pdf';
         break;
       case 'payroll':
         headers = [t('employeeName'), t('role'), t('dept'), `${t('basicSalary')} (${currency})`, `${t('bonus')} (${currency})`, `${t('overtime')} (${currency})`, `${t('total')} (${currency})`];
         const filteredEmployees = employees.filter(e => !reportLocationFilter || e.location === reportLocationFilter);
-        data = filteredEmployees.map(e => [e.name, e.role, e.dept, e.salary, e.bonus, e.overtime, e.salary + e.bonus + e.overtime]);
+        data = filteredEmployees.map(e => {
+          const salary = Number(e.salary) || 0;
+          const bonus = Number(e.bonus) || 0;
+          const overtime = Number(e.overtime) || 0;
+          const total = salary + bonus + overtime;
+          return [e.name, e.role, e.dept, salary, bonus, overtime, total];
+        });
 
         // Add Totals Row
-        const totalSalary = filteredEmployees.reduce((sum, e) => sum + (e.salary || 0), 0);
-        const totalBonus = filteredEmployees.reduce((sum, e) => sum + (e.bonus || 0), 0);
-        const totalOvertime = filteredEmployees.reduce((sum, e) => sum + (e.overtime || 0), 0);
-        const totalTotal = filteredEmployees.reduce((sum, e) => sum + (e.salary || 0) + (e.bonus || 0) + (e.overtime || 0), 0);
+        const totalSalary = filteredEmployees.reduce((sum, e) => sum + (Number(e.salary) || 0), 0);
+        const totalBonus = filteredEmployees.reduce((sum, e) => sum + (Number(e.bonus) || 0), 0);
+        const totalOvertime = filteredEmployees.reduce((sum, e) => sum + (Number(e.overtime) || 0), 0);
+        const totalTotal = totalSalary + totalBonus + totalOvertime;
 
         // Add empty row then totals
         data.push([]);
         data.push(['', '', t('dashboardTotal').toUpperCase(), totalSalary, totalBonus, totalOvertime, totalTotal]);
 
         extraMetadata = [`${t('payPeriod')}: ${payrollMonthFilter}`];
-        filename = 'FinnERP_Payroll.xlsx';
+        filename = 'FinnERP_Payroll.pdf';
         break;
       case 'turnover':
         headers = [t('employeeName'), t('role'), t('dept'), t('status'), t('location')];
         data = employees
           .filter(e => !reportLocationFilter || e.location === reportLocationFilter)
           .map(e => [e.name, e.role, e.dept, e.status, e.location]);
-        filename = 'FinnERP_Staff.xlsx';
+        filename = 'FinnERP_Staff.pdf';
         break;
       case 'tax':
         headers = [t('employeeName'), `${t('total')} (${currency})`, `${t('tax')} (20%)`, t('netPay')];
         data = employees
           .filter(e => !reportLocationFilter || e.location === reportLocationFilter)
           .map(e => {
-            const total = e.salary + e.bonus + e.overtime;
+            const total = (Number(e.salary) || 0) + (Number(e.bonus) || 0) + (Number(e.overtime) || 0);
             const tax = total * 0.2;
             return [e.name, total, tax, total - tax];
           });
-        filename = 'FinnERP_Tax.xlsx';
+        filename = 'FinnERP_Tax.pdf';
         break;
       case 'weekly_sales':
         headers = [t('date'), t('invoiceId'), t('type'), t('customer'), t('itemsSummary'), t('total')];
@@ -2718,7 +2730,7 @@ export default function App() {
               s.amount
             ];
           });
-        filename = 'Weekly_Sales_Report.xlsx';
+        filename = 'Weekly_Sales_Report.pdf';
         break;
       case 'weekly_buy':
         // For "Buy Report", we look at Inventory items updated recently
@@ -2746,7 +2758,7 @@ export default function App() {
               (i.sellPrice || 0) * i.quantity
             ];
           });
-        filename = 'Weekly_Inventory_Buy_Report.xlsx';
+        filename = 'Weekly_Inventory_Buy_Report.pdf';
         break;
       case 'profit_loss':
         headers = [t('category'), t('details'), t('amount')];
@@ -2873,37 +2885,46 @@ export default function App() {
         // Net profit = Gross Profit - Operating Expenses
         const netProfitVal = grossProfitVal - totalOperatingExpenses;
 
+        headers = [t('category'), t('details'), t('amount'), '', '', '', ''];
+        let startDate, endDate, periodLabel;
+        // ... (date logic remains)
+        // Ensure data rows are normalized to 7 columns
+        const padRow = (row) => {
+          const newRow = [...row];
+          while (newRow.length < 7) newRow.push('');
+          return newRow;
+        };
+
         data = [
-          [`${t('incomeStatement')} (${t(profitPeriod.toLowerCase())})`, '', ''],
-          ['', '', ''],
-          ['', '', ''],
-          [t('revenue').toUpperCase(), '', ''],
-          ...Object.entries(revByMethod).map(([m, amt]) => ['', t(m.toLowerCase()) || m, amt]),
-          [t('totalRevenue'), '', totalRevenue],
-          ['', '', ''],
-          ['', '', ''],
-          [t('costOfGoodsSold').toUpperCase(), '', ''],
-          ['', t('cogsFull'), -totalCogs],
-          [t('grossProfit'), '', grossProfitVal],
-          ['', t('grossMargin'), ((totalRevenue ? grossProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%'],
-          ['', '', ''],
-          ['', '', ''],
-          [t('operatingExpenses').toUpperCase(), '', ''],
-          [t('deptExpenses'), '', ''],
-          // Add employees grouped by department
+          padRow([`${t('incomeStatement')} (${t(profitPeriod.toLowerCase())})`, '', '']),
+          padRow(['', '', '']),
+          padRow(['', '', '']),
+          padRow([t('revenue').toUpperCase(), '', '']),
+          ...Object.entries(revByMethod).map(([m, amt]) => padRow(['', t(m.toLowerCase()) || m, amt])),
+          padRow([t('totalRevenue'), '', totalRevenue]),
+          padRow(['', '', '']),
+          padRow(['', '', '']),
+          padRow([t('costOfGoodsSold').toUpperCase(), '', '']),
+          padRow(['', t('cogsFull'), -totalCogs]),
+          padRow([t('grossProfit'), '', grossProfitVal]),
+          padRow(['', t('grossMargin'), ((totalRevenue ? grossProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%']),
+          padRow(['', '', '']),
+          padRow(['', '', '']),
+          padRow([t('operatingExpenses').toUpperCase(), '', '']),
+          padRow([t('deptExpenses'), '', '']),
           ...Object.entries(employeesByDept).flatMap(([dept, emps]) => [
-            ['', `${translations[language]?.[dept.toLowerCase()] || dept} ${t('payrollReport')}`, ''],
-            ...emps.map(emp => ['', `  ${emp.name}`, -emp.totalComp])
+            padRow(['', `${translations[language]?.[dept.toLowerCase()] || dept} ${t('payrollReport')}`, '']),
+            ...emps.map(emp => padRow(['', `  ${emp.name}`, -emp.totalComp]))
           ]),
-          [t('invPurchases'), '', -totalOtherExpenses],
-          [t('totalExpenses'), '', -totalOperatingExpenses],
-          ['', '', ''],
-          ['', '', ''],
-          [netProfitVal >= 0 ? t('netProfit') : t('netLoss'), '', netProfitVal],
-          ['', t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%'],
-          ['', '', ''],
-          ['', '', ''],
-          ['', '', '']
+          padRow([t('invPurchases'), '', -totalOtherExpenses]),
+          padRow([t('totalExpenses'), '', -totalOperatingExpenses]),
+          padRow(['', '', '']),
+          padRow(['', '', '']),
+          padRow([netProfitVal >= 0 ? t('netProfit') : t('netLoss'), '', netProfitVal]),
+          padRow(['', t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%']),
+          padRow(['', '', '']),
+          padRow(['', '', '']),
+          padRow(['', '', ''])
         ];
 
         // Append SOLD ITEMS Table
@@ -2941,7 +2962,7 @@ export default function App() {
               sumSoldCost += totalCost;
               sumSoldProfit += profit;
 
-              data.push([
+              data.push(padRow([
                 item.name || t('unknown'),
                 qty,
                 unitSellPrice,
@@ -2949,12 +2970,12 @@ export default function App() {
                 totalSell,
                 totalCost,
                 profit
-              ]);
+              ]));
             });
           }
         });
         // Add Sold Items Total Row
-        data.push([
+        data.push(padRow([
           t('totals'),
           sumSoldQty,
           '',
@@ -2962,18 +2983,19 @@ export default function App() {
           sumSoldSales,
           sumSoldCost,
           sumSoldProfit
-        ]);
+        ]));
 
         // Append BOUGHT ITEMS Table (Purchases)
-        data.push(['', '', '', '', '', '', '']);
-        data.push([t('boughtItemsDetail'), '', '', '', '', '', '']);
-        data.push([
+        data.push(padRow(['', '', '', '', '', '', '']));
+        data.push(padRow([t('boughtItemsDetail'), '', '', '', '', '', '']));
+        data.push(padRow([
           t('description'),
           t('date'),
           t('quantity'),
           t('unitCost'),
           t('amount')
-        ]);
+        ]));
+
 
         let sumBoughtQty = 0;
         let sumBoughtAmount = 0;
@@ -2990,16 +3012,16 @@ export default function App() {
           if (!isNaN(qtyVal)) sumBoughtQty += qtyVal;
           sumBoughtAmount += amt;
 
-          data.push([label, dateStr, qtyDisplay, unitCost, amt]);
+          data.push(padRow([label, dateStr, qtyDisplay, unitCost, amt]));
         });
         // Add Bought Items Total Row
-        data.push([
+        data.push(padRow([
           t('totals'),
           '',
           sumBoughtQty,
           '',
           sumBoughtAmount
-        ]);
+        ]));
 
         filename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.pdf`;
         extraMetadata = [`${t('period')}: ${t(profitPeriod.toLowerCase())} (${periodLabel})`, `${t('location')}: ${reportLocationFilter || t('filterAll')}`];
