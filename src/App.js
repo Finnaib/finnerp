@@ -228,6 +228,14 @@ export default function App() {
   useEffect(() => { localStorage.setItem('language', language); }, [language]);
 
   const [orderType, setOrderType] = useState('Walk-in'); // 'Walk-in' or 'Takeaway'
+
+  const t = useCallback((key) => {
+    const lang = translations[language] ? language : 'en';
+    return (translations[lang] && translations[lang][key]) || key;
+  }, [language]);
+
+  const [newSaleForm, setNewSaleForm] = useState({ customer: '', customerId: '', amount: 0, status: 'Completed', items: '' });
+
   // Reactive default customer names for POS (fixes untranslated defaults on language switch)
   useEffect(() => {
     const defaults = {
@@ -311,10 +319,7 @@ export default function App() {
 
 
 
-  const t = useCallback((key) => {
-    const lang = translations[language] ? language : 'en';
-    return (translations[lang] && translations[lang][key]) || key;
-  }, [language]);
+
 
 
 
@@ -1335,7 +1340,7 @@ export default function App() {
   // --- Sales & Purchases (POS) Logic ---
   const [isAddSaleModalOpen, setIsAddSaleModalOpen] = useState(false);
   const [posHistoryDate, setPosHistoryDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newSaleForm, setNewSaleForm] = useState({ customer: '', customerId: '', amount: 0, status: 'Completed', items: '' });
+
 
   const [cart, setCart] = useState([]);
   const [cartDiscount, setCartDiscount] = useState(0);
