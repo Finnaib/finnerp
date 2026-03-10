@@ -821,16 +821,16 @@ export default function App() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Report');
 
-    // -- STYLING CONSTANTS --
+    // -- STYLING CONSTANTS (PREMIUM A4 PRINT FOCUS) --
     const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; // Slate-800
-    const headerFont = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FFFFFFFF' } }; // Increased size
+    const headerFont = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }; // Larger Headers
     const subHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }; // Slate-50
-    const subHeaderFont = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FF334155' } };
-    const stripeFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }; // Lighter Zebra
+    const subHeaderFont = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF1E40AF' } }; // Blue-800 Subheads
+    const stripeFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } }; // Super-light Zebra
     const totalFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } }; // Blue-50
-    const totalFont = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FF1E40AF' } }; // Blue-800
-    const baseFont = { name: 'Segoe UI', size: 11, color: { argb: 'FF1E293B' } }; // Increased base size
-    const borderStyle = { style: 'thin', color: { argb: 'FFE2E8F0' } }; // Slate-200
+    const totalFont = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF1E40AF' } }; // Blue-800
+    const baseFont = { name: 'Segoe UI', size: 12, color: { argb: 'FF1E293B' } }; // Clear 12pt Base
+    const borderStyle = { style: 'thin', color: { argb: 'FFCBD5E1' } }; // Slate-400 (Slightly darker for print definition)
 
     // Helper for multi-column letters
     const getColumnName = (colIndex) => {
@@ -843,49 +843,41 @@ export default function App() {
       return name || 'A';
     };
 
-    // 1. Metadata Section
+    // 1. Metadata Section (High Impact Header)
     const maxDataCols = data.length > 0 ? Math.max(...data.map(r => r.length)) : 1;
     const lastColCount = Math.max(headers?.length || 0, maxDataCols, 6);
     const endColChar = getColumnName(lastColCount);
 
-    // Main Company Header
+    // Main Company Header (Large & Official)
     worksheet.mergeCells(`A1:${endColChar}1`);
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = shopSettings.name || (t('companyName') || 'FINN ERP');
-    titleCell.font = { name: 'Segoe UI', size: 24, bold: true, color: { argb: 'FF0F172A' } };
+    titleCell.value = shopSettings.name?.toUpperCase() || (t('companyName') || 'FINN ERP');
+    titleCell.font = { name: 'Segoe UI', size: 30, bold: true, color: { argb: 'FF0F172A' } };
     titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
-    worksheet.getRow(1).height = 40;
+    worksheet.getRow(1).height = 55;
 
     worksheet.mergeCells(`A2:${endColChar}2`);
     const subTitle = worksheet.getCell('A2');
     subTitle.value = filename.replace('.xlsx', '').replace(/_/g, ' ').toUpperCase();
-    subTitle.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF3B82F6' } };
+    subTitle.font = { name: 'Segoe UI', size: 16, bold: true, color: { argb: 'FF3B82F6' } };
     subTitle.alignment = { horizontal: 'left', vertical: 'middle' };
-    worksheet.getRow(2).height = 25;
+    worksheet.getRow(2).height = 35;
 
     worksheet.mergeCells(`A3:${endColChar}3`);
-    worksheet.getCell('A3').value = `${t('date')}: ${new Date().toLocaleString()}`;
-    worksheet.getCell('A3').font = { name: 'Segoe UI', size: 10, color: { argb: 'FF64748B' } };
+    worksheet.getCell('A3').value = `${t('date')}: ${new Date().toLocaleString()}  •  ${extraMetadata.join('  |  ')}`;
+    worksheet.getCell('A3').font = { name: 'Segoe UI', size: 11, color: { argb: 'FF64748B' } };
     worksheet.getCell('A3').alignment = { horizontal: 'left' };
+    worksheet.getRow(3).height = 25;
+    worksheet.getRow(3).border = { bottom: { style: 'medium', color: { argb: 'FF1E293B' } } };
 
-    if (extraMetadata.length > 0) {
-      worksheet.mergeCells(`A4:${endColChar}4`);
-      worksheet.getCell('A4').value = extraMetadata.join('  •  ');
-      worksheet.getCell('A4').font = { name: 'Segoe UI', size: 10, italic: true, color: { argb: 'FF475569' } };
-      worksheet.getCell('A4').alignment = { horizontal: 'left' };
-      worksheet.getRow(4).border = { bottom: { style: 'medium', color: { argb: 'FFCBD5E1' } } };
-    } else {
-      worksheet.getRow(3).border = { bottom: { style: 'medium', color: { argb: 'FFCBD5E1' } } };
-    }
-
-    worksheet.getRow(5).height = 15;
-    let currentRow = 6;
+    worksheet.getRow(4).height = 20; // Spacing
+    let currentRow = 5;
 
     // 2. Main Headers
     if (headers && headers.length > 0) {
       const headerRow = worksheet.getRow(currentRow);
       headerRow.values = headers;
-      headerRow.height = 30; // Taller headers
+      headerRow.height = 40; // Extremely visible headers
       headerRow.eachCell((cell) => {
         cell.fill = headerFill;
         cell.font = headerFont;
@@ -895,7 +887,7 @@ export default function App() {
       currentRow++;
     }
 
-    // 3. Data Rows
+    // 3. Data Rows (Airy & Professional Layout)
     let dataRowIndex = 0;
     data.forEach((rowData) => {
       const processedRowData = rowData.map(val => {
@@ -904,72 +896,70 @@ export default function App() {
       });
 
       const row = worksheet.addRow(processedRowData);
-      row.height = 25; // Taller data rows for A4 clarity
+      row.height = 32; // Double standard Excel height for A4 clarity
 
       const firstCellVal = String(rowData[0] || '').toUpperCase();
       const isTotalRow = firstCellVal.includes('TOTAL') || firstCellVal.includes('NET PROFIT') || firstCellVal.includes('GROSS PROFIT') || firstCellVal.includes('NET PAYABLE');
       const isSectionHeader = (rowData[0] && rowData.filter(x => x !== '' && x !== null).length === 1 && isNaN(rowData[0]));
-      const isEmbeddedHeader = (rowData.includes(t('quantity') || 'Qty') || rowData.includes('Item Name') || rowData.includes('Price') || rowData.includes(t('description'))) && !isTotalRow;
+      const isEmbeddedHeader = (rowData.includes(t('quantity') || 'Qty') || rowData.includes('Item Name') || rowData.includes('Price') || rowData.includes(t('description')) || rowData.includes(t('category'))) && !isTotalRow;
 
       row.eachCell({ includeEmpty: true }, (cell) => {
         cell.font = baseFont;
         cell.border = { top: borderStyle, left: borderStyle, bottom: borderStyle, right: borderStyle };
-        cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        cell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
         if (!isTotalRow && !isSectionHeader && !isEmbeddedHeader && dataRowIndex % 2 === 1) {
           cell.fill = stripeFill;
         }
 
         if (typeof cell.value === 'number') {
-          cell.alignment = { vertical: 'middle', horizontal: 'right' };
-          if (cell.value < 0) {
-            cell.numFmt = '#,##0.00;[Red](#,##0.00)';
-          } else {
-            cell.numFmt = '#,##0.00';
-          }
+          cell.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
+          if (cell.value < 0) cell.numFmt = '#,##0.00;[Red](#,##0.00)';
+          else cell.numFmt = '#,##0.00';
         }
 
         if (isSectionHeader) {
           cell.fill = subHeaderFill;
           cell.font = subHeaderFont;
-          row.height = 30;
+          row.height = 40;
         }
 
         if (isEmbeddedHeader) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF475569' } };
           cell.font = headerFont;
           cell.alignment = { horizontal: 'center' };
-          row.height = 28;
+          row.height = 36;
         }
 
         if (isTotalRow) {
           cell.fill = totalFill;
           cell.font = totalFont;
           cell.border = {
-            top: { style: 'double', color: { argb: 'FF1E40AF' } },
-            bottom: { style: 'medium', color: { argb: 'FF1E40AF' } },
+            top: { style: 'thick', color: { argb: 'FF1E40AF' } },
+            bottom: { style: 'double', color: { argb: 'FF1E40AF' } },
             left: borderStyle, right: borderStyle
           };
-          row.height = 30;
+          row.height = 40;
         }
       });
 
       if (!isSectionHeader && !isEmbeddedHeader) dataRowIndex++;
     });
 
-    // 4. Polish & Auto-width
+    // 4. Polish & Generous Auto-width
     worksheet.columns.forEach((column) => {
       let maxLength = 0;
       column.eachCell({ includeEmpty: true }, (cell) => {
         const val = cell.value ? cell.value.toString() : '';
-        if (val.length > maxLength) maxLength = Math.min(val.length, 35);
+        if (val.length > maxLength) maxLength = Math.min(val.length, 50);
       });
-      column.width = Math.max(14, maxLength * 1.2 + 2);
+      // More generous multiplier for 12pt Segoe
+      column.width = Math.max(18, maxLength * 1.4 + 3);
     });
 
     worksheet.views = [{ state: 'frozen', ySplit: currentRow - 1 }];
 
-    // --- A4 PRINT OPTIMIZATION ---
+    // --- A4 PRINT OPTIMIZATION (FULL PAGE FIT) ---
     worksheet.pageSetup = {
       paperSize: 9, // A4
       orientation: lastColCount > 5 ? 'landscape' : 'portrait',
@@ -977,16 +967,16 @@ export default function App() {
       fitToWidth: 1,
       fitToHeight: 0,
       margins: {
-        left: 0.5, right: 0.5,
-        top: 0.6, bottom: 0.6,
-        header: 0.3, footer: 0.3
+        left: 0.4, right: 0.4,
+        top: 0.5, bottom: 0.6,
+        header: 0.2, footer: 0.3
       },
       printTitlesRow: `${currentRow - 1}:${currentRow - 1}`
     };
 
     worksheet.headerFooter = {
-      oddHeader: `&L&"Segoe UI,Bold"&14${shopSettings.name || 'FINN ERP'}&R&"Segoe UI,Italic"&10${filename.replace('.xlsx', '').toUpperCase()}`,
-      oddFooter: `&L&"Segoe UI"&09PRODUCED BY FINN ERP&C&"Segoe UI"&09PAGE &P OF &N&R&"Segoe UI"&09&D`
+      oddHeader: `&L&"Segoe UI,Bold"&16${shopSettings.name || 'FINN ERP'}&R&"Segoe UI,Italic"&11DOCUMENT: ${filename.replace('.xlsx', '').toUpperCase()}`,
+      oddFooter: `&L&"Segoe UI"&10PRODUCED BY FINN ERP SYSTEM&C&"Segoe UI"&10PAGE &P OF &N&R&"Segoe UI"&10&D  &T`
     };
 
     // 5. Generate and Save
