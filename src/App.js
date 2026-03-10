@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { Html5QrcodeScanner, Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
@@ -817,172 +819,102 @@ export default function App() {
 
   /* --- Excel Import/Export Handling with exceljs --- */
 
-  const generateExcel = async (headers, data, filename, extraMetadata = []) => {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Report');
+  /* --- PDF Generation Handling with jsPDF & AutoTable --- */
 
-    // -- STYLING CONSTANTS (PREMIUM A4 PRINT FOCUS) --
-    const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; // Slate-800
-    const headerFont = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }; // Larger Headers
-    const subHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }; // Slate-50
-    const subHeaderFont = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF1E40AF' } }; // Blue-800 Subheads
-    const stripeFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } }; // Super-light Zebra
-    const totalFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } }; // Blue-50
-    const totalFont = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF1E40AF' } }; // Blue-800
-    const baseFont = { name: 'Segoe UI', size: 12, color: { argb: 'FF1E293B' } }; // Clear 12pt Base
-    const borderStyle = { style: 'thin', color: { argb: 'FFCBD5E1' } }; // Slate-400 (Slightly darker for print definition)
+  const generatePDF = (headers, data, filename, extraMetadata = []) => {
+    const doc = new jsPDF({
+      orientation: headers.length > 5 ? 'landscape' : 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
 
-    // Helper for multi-column letters
-    const getColumnName = (colIndex) => {
-      let name = '';
-      while (colIndex > 0) {
-        let mod = (colIndex - 1) % 26;
-        name = String.fromCharCode(65 + mod) + name;
-        colIndex = Math.floor((colIndex - mod) / 26);
-      }
-      return name || 'A';
-    };
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
 
-    // 1. Metadata Section (High Impact Header)
-    const maxDataCols = data.length > 0 ? Math.max(...data.map(r => r.length)) : 1;
-    const lastColCount = Math.max(headers?.length || 0, maxDataCols, 6);
-    const endColChar = getColumnName(lastColCount);
+    // 1. Branding Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.setTextColor(15, 23, 42); // Slate-900
+    doc.text(shopSettings.name?.toUpperCase() || (t('companyName') || 'FINN ERP'), 15, 20);
 
-    // Main Company Header (Large & Official)
-    worksheet.mergeCells(`A1:${endColChar}1`);
-    const titleCell = worksheet.getCell('A1');
-    titleCell.value = shopSettings.name?.toUpperCase() || (t('companyName') || 'FINN ERP');
-    titleCell.font = { name: 'Segoe UI', size: 30, bold: true, color: { argb: 'FF0F172A' } };
-    titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
-    worksheet.getRow(1).height = 55;
+    doc.setFontSize(12);
+    doc.setTextColor(59, 130, 246); // Blue-500
+    const subTitle = filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase();
+    doc.text(subTitle, 15, 28);
 
-    worksheet.mergeCells(`A2:${endColChar}2`);
-    const subTitle = worksheet.getCell('A2');
-    subTitle.value = filename.replace('.xlsx', '').replace(/_/g, ' ').toUpperCase();
-    subTitle.font = { name: 'Segoe UI', size: 16, bold: true, color: { argb: 'FF3B82F6' } };
-    subTitle.alignment = { horizontal: 'left', vertical: 'middle' };
-    worksheet.getRow(2).height = 35;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139); // Slate-500
+    doc.text(`${t('date')}: ${new Date().toLocaleString()}`, 15, 34);
 
-    worksheet.mergeCells(`A3:${endColChar}3`);
-    worksheet.getCell('A3').value = `${t('date')}: ${new Date().toLocaleString()}  •  ${extraMetadata.join('  |  ')}`;
-    worksheet.getCell('A3').font = { name: 'Segoe UI', size: 11, color: { argb: 'FF64748B' } };
-    worksheet.getCell('A3').alignment = { horizontal: 'left' };
-    worksheet.getRow(3).height = 25;
-    worksheet.getRow(3).border = { bottom: { style: 'medium', color: { argb: 'FF1E293B' } } };
-
-    worksheet.getRow(4).height = 20; // Spacing
-    let currentRow = 5;
-
-    // 2. Main Headers
-    if (headers && headers.length > 0) {
-      const headerRow = worksheet.getRow(currentRow);
-      headerRow.values = headers;
-      headerRow.height = 40; // Extremely visible headers
-      headerRow.eachCell((cell) => {
-        cell.fill = headerFill;
-        cell.font = headerFont;
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        cell.border = { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle };
-      });
-      currentRow++;
+    if (extraMetadata.length > 0) {
+      doc.text(extraMetadata.join('  |  '), 15, 39);
+      doc.setDrawColor(30, 41, 59); // Slate-800
+      doc.setLineWidth(0.5);
+      doc.line(15, 42, pageWidth - 15, 42);
+    } else {
+      doc.setDrawColor(30, 41, 59);
+      doc.setLineWidth(0.5);
+      doc.line(15, 37, pageWidth - 15, 37);
     }
 
-    // 3. Data Rows (Airy & Professional Layout)
-    let dataRowIndex = 0;
-    data.forEach((rowData) => {
-      const processedRowData = rowData.map(val => {
-        if (typeof val === 'string' && val.trim() !== '' && !isNaN(val) && val.length < 15) return Number(val);
-        return val;
-      });
-
-      const row = worksheet.addRow(processedRowData);
-      row.height = 32; // Double standard Excel height for A4 clarity
-
-      const firstCellVal = String(rowData[0] || '').toUpperCase();
-      const isTotalRow = firstCellVal.includes('TOTAL') || firstCellVal.includes('NET PROFIT') || firstCellVal.includes('GROSS PROFIT') || firstCellVal.includes('NET PAYABLE');
-      const isSectionHeader = (rowData[0] && rowData.filter(x => x !== '' && x !== null).length === 1 && isNaN(rowData[0]));
-      const isEmbeddedHeader = (rowData.includes(t('quantity') || 'Qty') || rowData.includes('Item Name') || rowData.includes('Price') || rowData.includes(t('description')) || rowData.includes(t('category'))) && !isTotalRow;
-
-      row.eachCell({ includeEmpty: true }, (cell) => {
-        cell.font = baseFont;
-        cell.border = { top: borderStyle, left: borderStyle, bottom: borderStyle, right: borderStyle };
-        cell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-
-        if (!isTotalRow && !isSectionHeader && !isEmbeddedHeader && dataRowIndex % 2 === 1) {
-          cell.fill = stripeFill;
-        }
-
-        if (typeof cell.value === 'number') {
-          cell.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
-          if (cell.value < 0) cell.numFmt = '#,##0.00;[Red](#,##0.00)';
-          else cell.numFmt = '#,##0.00';
-        }
-
-        if (isSectionHeader) {
-          cell.fill = subHeaderFill;
-          cell.font = subHeaderFont;
-          row.height = 40;
-        }
-
-        if (isEmbeddedHeader) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF475569' } };
-          cell.font = headerFont;
-          cell.alignment = { horizontal: 'center' };
-          row.height = 36;
-        }
-
-        if (isTotalRow) {
-          cell.fill = totalFill;
-          cell.font = totalFont;
-          cell.border = {
-            top: { style: 'thick', color: { argb: 'FF1E40AF' } },
-            bottom: { style: 'double', color: { argb: 'FF1E40AF' } },
-            left: borderStyle, right: borderStyle
-          };
-          row.height = 40;
-        }
-      });
-
-      if (!isSectionHeader && !isEmbeddedHeader) dataRowIndex++;
-    });
-
-    // 4. Polish & Generous Auto-width
-    worksheet.columns.forEach((column) => {
-      let maxLength = 0;
-      column.eachCell({ includeEmpty: true }, (cell) => {
-        const val = cell.value ? cell.value.toString() : '';
-        if (val.length > maxLength) maxLength = Math.min(val.length, 50);
-      });
-      // More generous multiplier for 12pt Segoe
-      column.width = Math.max(18, maxLength * 1.4 + 3);
-    });
-
-    worksheet.views = [{ state: 'frozen', ySplit: currentRow - 1 }];
-
-    // --- A4 PRINT OPTIMIZATION (FULL PAGE FIT) ---
-    worksheet.pageSetup = {
-      paperSize: 9, // A4
-      orientation: lastColCount > 5 ? 'landscape' : 'portrait',
-      fitToPage: true,
-      fitToWidth: 1,
-      fitToHeight: 0,
-      margins: {
-        left: 0.4, right: 0.4,
-        top: 0.5, bottom: 0.6,
-        header: 0.2, footer: 0.3
+    // 2. Table Implementation
+    doc.autoTable({
+      head: [headers],
+      body: data,
+      startY: extraMetadata.length > 0 ? 48 : 43,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [30, 41, 59], // Slate-800
+        textColor: [255, 255, 255],
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
       },
-      printTitlesRow: `${currentRow - 1}:${currentRow - 1}`
-    };
+      bodyStyles: {
+        fontSize: 9,
+        cellPadding: 3,
+        textColor: [30, 41, 59]
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252] // Slate-50
+      },
+      didParseCell: (data) => {
+        const firstCellVal = String(data.row.raw[0] || '').toUpperCase();
+        // Style Totals
+        const isTotalRow = firstCellVal.includes('TOTAL') || firstCellVal.includes('NET PROFIT') || firstCellVal.includes('GROSS PROFIT') || firstCellVal.includes('NET PAYABLE');
+        if (isTotalRow) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [239, 246, 255]; // Blue-50
+          data.cell.styles.textColor = [30, 64, 175]; // Blue-800
+        }
+        // Style Section Headers
+        const isSection = data.row.raw.filter(x => x !== '' && x !== null).length === 1 && isNaN(data.row.raw[0]);
+        if (isSection) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [241, 245, 249]; // Slate-100
+          data.cell.styles.fontSize = 10;
+        }
+        // Number alignment
+        if (!isNaN(data.cell.raw) && typeof data.cell.raw === 'number') {
+          data.cell.styles.halign = 'right';
+          if (data.cell.raw < 0) {
+            data.cell.styles.textColor = [220, 38, 38]; // Red-600
+          }
+        }
+      },
+      margin: { left: 15, right: 15, bottom: 20 },
+      didDrawPage: (data) => {
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`PRODUCED BY FINN ERP SYSTEM`, 15, pageHeight - 10);
+        const pageNumber = `PAGE ${doc.internal.getNumberOfPages()}`;
+        doc.text(pageNumber, pageWidth - 15 - doc.getTextWidth(pageNumber), pageHeight - 10);
+      }
+    });
 
-    worksheet.headerFooter = {
-      oddHeader: `&L&"Segoe UI,Bold"&16${shopSettings.name || 'FINN ERP'}&R&"Segoe UI,Italic"&11DOCUMENT: ${filename.replace('.xlsx', '').toUpperCase()}`,
-      oddFooter: `&L&"Segoe UI"&10PRODUCED BY FINN ERP SYSTEM&C&"Segoe UI"&10PAGE &P OF &N&R&"Segoe UI"&10&D  &T`
-    };
-
-    // 5. Generate and Save
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, filename);
+    doc.save(filename);
   };
 
   const handleExportAttendance = () => {
@@ -1001,13 +933,79 @@ export default function App() {
       `${t('location')}: ${reportLocationFilter || t('filterAll')}`
     ];
 
-    generateExcel(headers, data, 'Attendance_Report.xlsx', metadata);
+    generatePDF(headers, data, 'Attendance_Report.pdf', metadata);
   };
 
   const handleExportPayroll = () => {
-    const headers = ['Employee', 'Role', 'Base Salary', 'Bonus', 'Overtime'];
-    const data = employees.map(e => [e.name, e.role, e.salary, e.bonus, e.overtime]);
-    generateExcel(headers, data, 'Payroll_Export.xlsx');
+    const headers = [
+      t('name'), t('location'), t('role'),
+      t('salary'), t('bonus'), t('overtime'),
+      t('advance'), t('deductions'), t('netPay')
+    ];
+
+    const data = employees
+      .filter(emp => !payrollLocationFilter || emp.location === payrollLocationFilter)
+      .map(emp => {
+        let baseSalary = Number(emp.salary) || 0;
+        let bonus = Number(emp.bonus) || 0;
+        let overtime = Number(emp.overtime) || 0;
+        let deductionAmount = 0;
+
+        const empAttendance = attendance.filter(a => {
+          if (a.name !== emp.name) return false;
+          let attendanceMonth;
+          if (typeof a.date === 'string') attendanceMonth = a.date.substring(0, 7);
+          else if (a.date?.toDate) attendanceMonth = a.date.toDate().toISOString().substring(0, 7);
+          else if (a.date instanceof Date) attendanceMonth = a.date.toISOString().substring(0, 7);
+          return attendanceMonth === payrollMonthFilter;
+        });
+
+        empAttendance.forEach(record => {
+          if (record.status === 'Late') {
+            const hourlyRate = baseSalary / 360;
+            deductionAmount += (Number(record.lateHours) || 0) * hourlyRate;
+          }
+          if (record.status === 'Absent') {
+            deductionAmount += baseSalary / 30;
+          }
+        });
+
+        const hourlyRate = baseSalary / 360;
+        const manualDeduction = (Number(emp.deductionHours) || 0) * hourlyRate;
+        const storedRecord = payrolls.find(p => p.employeeId === emp.id && p.month === payrollMonthFilter);
+
+        if (storedRecord) {
+          baseSalary = Number(storedRecord.salary) || baseSalary;
+          bonus = Number(storedRecord.bonus) || 0;
+          overtime = Number(storedRecord.overtime) || 0;
+        }
+
+        const effectiveManualDeduction = storedRecord ? (Number(storedRecord.deductions) || 0) : manualDeduction;
+        const effectiveAdvance = storedRecord ? (Number(storedRecord.advance) || 0) : (Number(emp.advanceSalary) || 0);
+
+        const totalDeductions = deductionAmount + effectiveManualDeduction + effectiveAdvance;
+        const netPay = baseSalary + bonus + overtime - totalDeductions;
+
+        return [
+          emp.name,
+          emp.location,
+          emp.role,
+          baseSalary,
+          bonus,
+          overtime,
+          effectiveAdvance,
+          totalDeductions,
+          netPay
+        ];
+      });
+
+    const metadata = [
+      `${t('payPeriod')}: ${payrollMonthFilter}`,
+      `${t('location')}: ${payrollLocationFilter || t('filterAll')}`,
+      `${t('totalNetPay') || 'Total Net'}: ${data.reduce((sum, row) => sum + row[8], 0).toFixed(2)}`
+    ];
+
+    generatePDF(headers, data, 'Payroll_Report.pdf', metadata);
   };
 
   const handleImportPayroll = (event) => {
@@ -3003,12 +3001,12 @@ export default function App() {
           sumBoughtAmount
         ]);
 
-        filename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.xlsx`;
+        filename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.pdf`;
         extraMetadata = [`${t('period')}: ${t(profitPeriod.toLowerCase())} (${periodLabel})`, `${t('location')}: ${reportLocationFilter || t('filterAll')}`];
         break;
       default: return;
     }
-    generateExcel(headers, data, filename, extraMetadata);
+    generatePDF(headers, data, filename, extraMetadata);
   };
 
   // --- High-Speed POS & Scanner Features (Grouped here to avoid TDZ) ---
