@@ -4855,12 +4855,12 @@ export default function App() {
                         onClick={() => setBarcodePrintMode('sticker')}
                         className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'sticker' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                         title="Thermal Sticker Printer"
-                      >Sticker</button>
+                      > {t('sticker')} </button>
                       <button
                         onClick={() => setBarcodePrintMode('a4')}
                         className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'a4' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                         title="Standard A4 Paper Printer"
-                      >A4 Sheet</button>
+                      > {t('a4 sheet')} </button>
                     </div>
                     <button
                       onClick={() => {
@@ -4876,7 +4876,7 @@ export default function App() {
                       }}
                       className="bg-slate-800 text-white px-4 py-2.5 rounded-lg hover:bg-slate-900 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
                     >
-                      <Printer size={20} /> {selectedInventoryItems.length > 0 ? `Print Selected (${selectedInventoryItems.length})` : 'Print All'}
+                      <Printer size={20} /> {selectedInventoryItems.length > 0 ? `${t('printSelected')} (${selectedInventoryItems.length})` : t('printAll')}
                     </button>
                     <button
                       onClick={() => { setScannerMode('buy'); setIsScannerOpen(true); }}
@@ -5599,7 +5599,7 @@ export default function App() {
           <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[200] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">Print Barcodes Wizard</h3>
+                <h3 className="font-bold text-lg text-gray-900">{t('printWizard')}</h3>
                 <button onClick={() => setIsPrintBarcodeModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
               <div className="p-6 space-y-4">
@@ -5611,7 +5611,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-sm text-gray-900 truncate">{cfg.item.name}</p>
-                        <p className="text-[10px] font-mono text-gray-400">{cfg.item.barcode || 'No Barcode'}</p>
+                        <p className="text-[10px] font-mono text-gray-400">{cfg.item.barcode || t('noBarcode') || 'No Barcode'}</p>
                       </div>
                       <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
                         <button
@@ -5657,13 +5657,13 @@ export default function App() {
                       <Printer size={20} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Total Labels</p>
+                      <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{t('totalLabels')}</p>
                       <p className="text-xl font-black text-blue-900">{printConfigs.reduce((sum, c) => sum + (c.qty || 0), 0)}</p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
-                    <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Layout Mode</p>
-                    <p className="text-sm font-bold text-blue-900 uppercase">{barcodePrintMode}</p>
+                    <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{t('layoutMode')}</p>
+                    <p className="text-sm font-bold text-blue-900 uppercase">{t(barcodePrintMode.toLowerCase()) || barcodePrintMode}</p>
                   </div>
                 </div>
 
@@ -5681,7 +5681,7 @@ export default function App() {
                     }}
                     className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-xl hover:bg-black font-bold shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2"
                   >
-                    <Printer size={20} /> Print Now
+                    <Printer size={20} /> {t('printNow')}
                   </button>
                 </div>
               </div>

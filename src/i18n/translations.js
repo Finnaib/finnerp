@@ -545,7 +545,10 @@ export const translations = {
     "m": "m",
     "PlayStation": "PlayStation",
     "Billiards": "Billiards",
-    "Cafe": "Cafe"
+    "Cafe": "Cafe",
+    "sticker": "Sticker",
+    "a4 sheet": "A4 Sheet",
+    "noBarcode": "No Barcode"
   },
   "hi": {
     "appName": "Finn ERP",
@@ -1093,7 +1096,10 @@ export const translations = {
     "m": "मि",
     "PlayStation": "प्लेस्टेशन",
     "Billiards": "बिलियर्ड्स",
-    "Cafe": "कैफे"
+    "Cafe": "कैफे",
+    "sticker": "स्टिकर",
+    "a4 sheet": "A4 शीट",
+    "noBarcode": "कोई बारकोड नहीं"
   },
   "ar": {
     "appName": "Finn ERP",
@@ -1606,7 +1612,7 @@ export const translations = {
     "noAccounts": "لم يتم العثور على حسابات. أضف واحداً للبدء.",
     "outOfStock": "نفدت الكمية",
     "printWizard": "معالج طباعة الباركود",
-    "totalLabels": "इجمالي الملصقات",
+    "totalLabels": "إجمالي الملصقات",
     "layoutMode": "وضع التخطيط",
     "printNow": "اطبع الآن",
     "dailySales": "المبيعات اليومية",
@@ -1640,8 +1646,11 @@ export const translations = {
     "h": "س",
     "m": "د",
     "PlayStation": "بلاي ستيشن",
-    "Billiards": "بلياردो",
-    "Cafe": "كافيه"
+    "Billiards": "بلياردو",
+    "Cafe": "كافيه",
+    "sticker": "ملصق",
+    "a4 sheet": "ورقة A4",
+    "noBarcode": "لا يوجد باركود"
   },
   "zh": {
     "appName": "Finn ERP",
@@ -2189,6 +2198,9 @@ export const translations = {
     "m": "分",
     "PlayStation": "PlayStation",
     "Billiards": "台球",
-    "Cafe": "咖啡厅"
+    "Cafe": "咖啡厅",
+    "sticker": "贴片",
+    "a4 sheet": "A4 纸",
+    "noBarcode": "无条形码"
   }
-};
+}
