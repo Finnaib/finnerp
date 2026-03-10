@@ -2886,8 +2886,6 @@ export default function App() {
         const netProfitVal = grossProfitVal - totalOperatingExpenses;
 
         headers = [t('category'), t('details'), t('amount'), '', '', '', ''];
-        let startDate, endDate, periodLabel;
-        // ... (date logic remains)
         // Ensure data rows are normalized to 7 columns
         const padRow = (row) => {
           const newRow = [...row];
