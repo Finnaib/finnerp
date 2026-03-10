@@ -235,17 +235,17 @@ export default function App() {
       hi: { walkIn: 'कैश ग्राहक (Walk-in)', takeaway: 'ले जाने वाला ग्राहक (Takeaway)' },
       zh: { walkIn: '回客', takeaway: '外带客户' }
     };
-    const isCurrentDefault = Object.values(defaults).some(d => 
-       newSaleForm.customer === d.walkIn || newSaleForm.customer === d.takeaway || !newSaleForm.customer
+    const isCurrentDefault = Object.values(defaults).some(d =>
+      newSaleForm.customer === d.walkIn || newSaleForm.customer === d.takeaway || !newSaleForm.customer
     );
     if (isCurrentDefault) {
-      setNewSaleForm(prev => ({ 
-        ...prev, 
-        customer: orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer') 
+      setNewSaleForm(prev => ({
+        ...prev,
+        customer: orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')
       }));
     }
   }, [language, orderType, t]);
-// Sync Settings from Firestore
+  // Sync Settings from Firestore
   useEffect(() => {
     if (user) {
       const fetchSettings = async () => {
@@ -1440,7 +1440,7 @@ export default function App() {
         digitalSubMethod: paymentMethod === 'Online' ? digitalSubMethod : null,
         customer: newSaleForm.customer || (orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')),
         customerId: newSaleForm.customerId || null,
-status: 'Completed',
+        status: 'Completed',
         items: cart.map(i => ({
           id: i.id,
           name: i.name,
@@ -4766,7 +4766,7 @@ status: 'Completed',
                         onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
                       />
                     </div>
-<div className="space-y-3 mb-4">
+                    <div className="space-y-3 mb-4">
                       <div className="grid grid-cols-3 gap-2">
                         {['Cash', 'Visa', 'Online'].map(method => (
                           <button
@@ -5324,11 +5324,11 @@ status: 'Completed',
                 {cafeSubTab === 'history' && (
                   <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="flex flex-col sm:flex-row justify-between items-center mb-6 px-2 gap-4">
-                       <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('cafeHistory')}</h2>
-                       <div className="flex items-center gap-3 w-full sm:w-auto">
-                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{t('searchByDate')}</span>
-                         <input type="date" value={posHistoryDate} onChange={(e) => setPosHistoryDate(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" />
-                       </div>
+                      <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('cafeHistory')}</h2>
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{t('searchByDate')}</span>
+                        <input type="date" value={posHistoryDate} onChange={(e) => setPosHistoryDate(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" />
+                      </div>
                     </div>
                     <div className="max-h-[600px] overflow-y-auto px-1">
                       <div className="hidden md:block">
@@ -5357,8 +5357,8 @@ status: 'Completed',
                         {(sales || []).filter(s => s.location === 'Cafe' && s.date === posHistoryDate).map(s => (
                           <div key={s.id} className="p-4 border border-slate-100 rounded-3xl bg-slate-50/50 flex justify-between items-center">
                             <div>
-                               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</div>
-                               <div className="font-mono font-black text-slate-900">{formatCurrency(s.amount)}</div>
+                              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</div>
+                              <div className="font-mono font-black text-slate-900">{formatCurrency(s.amount)}</div>
                             </div>
                             <button onClick={() => handlePrintInvoice(s, t('receipt'))} className="p-3 bg-white border border-slate-100 text-slate-600 rounded-2xl shadow-sm"><Printer size={20} /></button>
                           </div>
@@ -6303,7 +6303,7 @@ status: 'Completed',
                           <button
                             onClick={() => {
                               if (!securityQuestion || !securityAnswer) {
-                                alert(t(\"Please select a question and answer!\"));
+                                alert(t('Please select a question and answer!'));
                                 return;
                               }
                               saveUserSettings({ securityQuestion, securityAnswer });
