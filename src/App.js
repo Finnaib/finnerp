@@ -67,7 +67,8 @@ import {
   CheckSquare,
   AlertTriangle,
   Tag,
-  Hammer
+  Hammer,
+  UserPlus
 } from 'lucide-react';
 import { auth, db } from './firebase'; // Firebase
 import { translations } from './i18n/translations';
