@@ -4550,7 +4550,18 @@ export default function App() {
 
                   {/* Daily History Toggle / View - Responsive Card/Table */}
                   <div className="bg-white p-4 mx-4 mb-20 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-64 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
-                    <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><Clock size={18} className="text-blue-600" /> {t('todaysSales')}</h3>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-gray-900 flex items-center gap-2 truncate">
+                        <Clock size={18} className="text-blue-600" />
+                        {posHistoryDate === new Date().toISOString().split('T')[0] ? t('todaysSales') : t('salesOn') + ' ' + posHistoryDate}
+                      </h3>
+                      <input
+                        type="date"
+                        value={posHistoryDate}
+                        onChange={(e) => setPosHistoryDate(e.target.value)}
+                        className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
 
                     {/* Desktop Table View */}
                     <div className="hidden sm:block">
@@ -4566,7 +4577,7 @@ export default function App() {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {sales
-                            .filter(s => s.date === new Date().toISOString().split('T')[0])
+                            .filter(s => s.date === posHistoryDate)
                             .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
                             .map(s => (
                               <tr key={s.id} className="hover:bg-gray-50 transition-colors">
@@ -4586,7 +4597,7 @@ export default function App() {
                     {/* Mobile Card View */}
                     <div className="sm:hidden space-y-3">
                       {sales
-                        .filter(s => s.date === new Date().toISOString().split('T')[0])
+                        .filter(s => s.date === posHistoryDate)
                         .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
                         .map(s => (
                           <div key={s.id} className="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex flex-col gap-2">
@@ -5479,15 +5490,16 @@ export default function App() {
                                 isCurrency: true,
                                 paymentMethod: s.paymentMethod
                               })),
-                            ...inventory
-                              .filter(i => !historyLocationFilter || i.location === historyLocationFilter)
-                              .map(i => ({
-                                id: 'inv-' + i.id,
+                            ...purchases
+                              .filter(p => p.type === 'Stock Increase' || p.type === 'Inventory Add')
+                              .filter(p => !historyLocationFilter || p.location === historyLocationFilter)
+                              .map(p => ({
+                                id: 'pur-' + p.id,
                                 type: t('stockUpdates'),
                                 category: 'Stock Update',
-                                date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(),
-                                desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
-                                val: `${i.quantity} ${t('units')}`,
+                                date: p.createdAt?.seconds ? new Date(p.createdAt.seconds * 1000) : (p.date ? new Date(p.date) : new Date()),
+                                desc: `${t('stockCheck')}: ${p.name.replace(' (Stock Update)', '').replace(' (Initial Stock)', '')} @ ${p.location}`,
+                                val: `${p.quantity || 0} ${t('units')}`,
                                 isCurrency: false,
                                 paymentMethod: null
                               }))
@@ -5535,16 +5547,19 @@ export default function App() {
                           isCurrency: true,
                           paymentMethod: s.paymentMethod
                         })),
-                        ...inventory.filter(i => !historyLocationFilter || i.location === historyLocationFilter).map(i => ({
-                          id: 'inv-' + i.id,
-                          type: t('stockUpdates'),
-                          category: 'Stock Update',
-                          date: i.updatedAt?.seconds ? new Date(i.updatedAt.seconds * 1000) : new Date(),
-                          desc: `${t('stockCheck')}: ${i.name} @ ${i.location}`,
-                          val: `${i.quantity} ${t('units')}`,
-                          isCurrency: false,
-                          paymentMethod: null
-                        }))
+                        ...purchases
+                          .filter(p => p.type === 'Stock Increase' || p.type === 'Inventory Add')
+                          .filter(p => !historyLocationFilter || p.location === historyLocationFilter)
+                          .map(p => ({
+                            id: 'pur-' + p.id,
+                            type: t('stockUpdates'),
+                            category: 'Stock Update',
+                            date: p.createdAt?.seconds ? new Date(p.createdAt.seconds * 1000) : (p.date ? new Date(p.date) : new Date()),
+                            desc: `${t('stockCheck')}: ${p.name.replace(' (Stock Update)', '').replace(' (Initial Stock)', '')} @ ${p.location}`,
+                            val: `${p.quantity || 0} ${t('units')}`,
+                            isCurrency: false,
+                            paymentMethod: null
+                          }))
                       ].sort((a, b) => b.date - a.date);
 
                       let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.category === historyFilter);
