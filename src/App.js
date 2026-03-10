@@ -2905,137 +2905,211 @@ export default function App() {
         // Net profit = Gross Profit - Operating Expenses
         const netProfitVal = grossProfitVal - totalOperatingExpenses;
 
-        headers = [t('category'), t('details'), t('amount'), '', '', '', ''];
-        // Ensure data rows are normalized to 7 columns
-        const padRow = (row) => {
-          const newRow = [...row];
-          while (newRow.length < 7) newRow.push('');
-          return newRow;
+        // ============================================================
+        // P&L: Build a Premium Multi-Table PDF directly (bypass generic generatePDF)
+        // ============================================================
+        const plFilename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.pdf`;
+        const plMeta = [`${t('period')}: ${t(profitPeriod.toLowerCase())} (${periodLabel})`, `${t('location')}: ${reportLocationFilter || t('filterAll')}`];
+
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+
+        const drawPageFooter = () => {
+          doc.setFontSize(7);
+          doc.setTextColor(148, 163, 184);
+          doc.text(`FINN ERP - ${plFilename.replace('.pdf', '')}`, 15, pageHeight - 8);
+          const pn = `${t('page')} ${doc.internal.getNumberOfPages()}`;
+          doc.text(pn, pageWidth - 15 - doc.getTextWidth(pn), pageHeight - 8);
         };
 
-        data = [
-          padRow([`${t('incomeStatement')} (${t(profitPeriod.toLowerCase())})`, '', '']),
-          padRow([t('revenue').toUpperCase(), '', '']),
-          ...Object.entries(revByMethod).map(([m, amt]) => padRow(['', t(m.toLowerCase()) || m, amt])),
-          padRow([t('totalRevenue'), '', totalRevenue]),
-          padRow(['', '', '']),
-          padRow([t('costOfGoodsSold').toUpperCase(), '', '']),
-          padRow(['', t('cogsFull'), -totalCogs]),
-          padRow([t('grossProfit'), '', grossProfitVal]),
-          padRow(['', t('grossMargin'), ((totalRevenue ? grossProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%']),
-          padRow(['', '', '']),
-          padRow([t('operatingExpenses').toUpperCase(), '', '']),
-          padRow([t('deptExpenses'), '', '']),
+        const tableDefaults = (startY) => ({
+          startY,
+          theme: 'striped',
+          styles: { font: 'helvetica', fontSize: 8.5, cellPadding: { top: 2, bottom: 2, left: 3, right: 3 } },
+          headStyles: { fillColor: [30, 41, 59], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          margin: { left: 15, right: 15, bottom: 18 },
+          didDrawPage: drawPageFooter,
+          didParseCell: (d) => {
+            const v = d.cell.raw;
+            if (typeof v === 'number') {
+              d.cell.styles.halign = 'right';
+              if (v < 0) d.cell.styles.textColor = [220, 38, 38];
+              else if (v > 0 && d.column.index > 0) d.cell.styles.textColor = [22, 163, 74];
+            }
+          }
+        });
+
+        // ── DRAW HEADER ─────────────────────────────────────────────
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.setTextColor(15, 23, 42);
+        doc.text((shopSettings.name?.toUpperCase() || 'FINN ERP'), 15, 18);
+        doc.setFontSize(10);
+        doc.setTextColor(59, 130, 246);
+        doc.text(`${t('profit_loss').toUpperCase()} — ${t(profitPeriod.toLowerCase()).toUpperCase()}`, 15, 25);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`${t('date')}: ${new Date().toLocaleString()}`, 15, 31);
+        doc.text(plMeta.join('   |   '), 15, 36);
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.4);
+        doc.line(15, 39, pageWidth - 15, 39);
+
+        // ── SECTION 1: INCOME STATEMENT ─────────────────────────────
+        const incomeRows = [
+          // Revenue
+          ...Object.entries(revByMethod).map(([m, amt]) => [t(m.toLowerCase()) || m, amt]),
+          [{ content: t('totalRevenue'), styles: { fontStyle: 'bold', fillColor: [239, 246, 255], textColor: [30, 64, 175] } }, { content: totalRevenue, styles: { fontStyle: 'bold', halign: 'right', fillColor: [239, 246, 255], textColor: [30, 64, 175] } }],
+          // COGS
+          [t('cogsFull'), -totalCogs],
+          [{ content: t('grossProfit'), styles: { fontStyle: 'bold' } }, { content: grossProfitVal, styles: { fontStyle: 'bold', halign: 'right', textColor: grossProfitVal >= 0 ? [22, 163, 74] : [220, 38, 38] } }],
+          [t('grossMargin'), ((totalRevenue ? grossProfitVal / totalRevenue : 0) * 100).toFixed(1) + '%'],
+          // Expenses
           ...Object.entries(employeesByDept).flatMap(([dept, emps]) => [
-            padRow(['', `  ${translations[language]?.[dept.toLowerCase()] || dept} ${t('payrollReport')}`, '']),
-            ...emps.map(emp => padRow(['', `    ${emp.name}`, -emp.totalComp]))
+            [`  ${translations[language]?.[dept.toLowerCase()] || dept}`, ''],
+            ...emps.map(emp => [`    ${emp.name}`, -emp.totalComp])
           ]),
-          padRow([t('invPurchases'), '', -totalOtherExpenses]),
-          padRow([t('totalExpenses'), '', -totalOperatingExpenses]),
-          padRow(['', '', '']),
-          padRow([netProfitVal >= 0 ? t('netProfit') : t('netLoss'), '', netProfitVal]),
-          padRow(['', t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(2) + '%'])
+          [t('invPurchases'), -totalOtherExpenses],
+          [{ content: t('totalExpenses'), styles: { fontStyle: 'bold', fillColor: [254, 242, 242], textColor: [153, 27, 27] } }, { content: -totalOperatingExpenses, styles: { fontStyle: 'bold', halign: 'right', fillColor: [254, 242, 242], textColor: [153, 27, 27] } }],
+          // Net
+          [{ content: netProfitVal >= 0 ? t('netProfit') : t('netLoss'), styles: { fontStyle: 'bold', fillColor: netProfitVal >= 0 ? [240, 253, 244] : [254, 242, 242], textColor: netProfitVal >= 0 ? [21, 128, 61] : [153, 27, 27], fontSize: 10 } }, { content: netProfitVal, styles: { fontStyle: 'bold', halign: 'right', fillColor: netProfitVal >= 0 ? [240, 253, 244] : [254, 242, 242], textColor: netProfitVal >= 0 ? [21, 128, 61] : [153, 27, 27], fontSize: 10 } }],
+          [t('netMargin'), ((totalRevenue ? netProfitVal / totalRevenue : 0) * 100).toFixed(1) + '%']
         ];
 
-        // Append SOLD ITEMS Table
-        data.push(['', '', '', '', '', '', '']);
-        data.push([t('soldItemsDetail'), '', '', '', '', '', '']);
-        data.push([
-          t('itemName'),
-          t('quantity'),
-          `${t('sellPrice')} (${t('dashboardTotal')})`,
-          `${t('buyPrice')} (${t('dashboardTotal')})`,
-          t('total'),
-          t('totalCost'),
-          t('profit')
-        ]);
+        const incomeHeadRows = [
+          [{ content: t('incomeStatement').toUpperCase() + ` (${t(profitPeriod.toLowerCase())})`, colSpan: 2, styles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold', fontSize: 10, halign: 'left' } }],
+          [t('description'), t('amount')]
+        ];
 
-        let sumSoldQty = 0;
-        let sumSoldSales = 0;
-        let sumSoldCost = 0;
-        let sumSoldProfit = 0;
+        autoTable(doc, {
+          head: incomeHeadRows,
+          body: incomeRows,
+          ...tableDefaults(44),
+          columnStyles: {
+            0: { cellWidth: 130 },
+            1: { cellWidth: 40, halign: 'right' }
+          },
+          didParseCell: (d) => {
+            if (d.row.section === 'head') return;
+            const v = d.cell.raw;
+            if (typeof v === 'number') {
+              d.cell.styles.halign = 'right';
+              if (v < 0) d.cell.styles.textColor = [220, 38, 38];
+            }
+            const t0 = String(d.row.raw[0]?.content || d.row.raw[0] || '');
+            if (t0.startsWith('    ')) { d.cell.styles.cellPadding = { left: 12 }; d.cell.styles.textColor = [100, 116, 139]; }
+            else if (t0.startsWith('  ')) { d.cell.styles.cellPadding = { left: 7 }; d.cell.styles.fontStyle = 'bold'; }
+          }
+        });
+
+        // ── SECTION 2: SOLD ITEMS ────────────────────────────────────
+        const soldRows = [];
+        let sumSoldQty2 = 0, sumSoldSales2 = 0, sumSoldCost2 = 0, sumSoldProfit2 = 0;
 
         filteredSales.forEach(sale => {
           if (Array.isArray(sale.items)) {
             sale.items.forEach(item => {
               const invItem = inventory.find(i => i.name === item.name);
-              const unitBuyPrice = invItem ? (Number(invItem.buyPrice) || 0) : 0;
-              const unitSellPrice = Number(item.price) || 0;
+              const ubp = invItem ? (Number(invItem.buyPrice) || 0) : 0;
+              const usp = Number(item.price) || 0;
               const qty = Number(item.qty) || 1;
-
-              const totalSell = unitSellPrice * qty;
-              const totalCost = unitBuyPrice * qty;
-              const profit = totalSell - totalCost;
-
-              sumSoldQty += qty;
-              sumSoldSales += totalSell;
-              sumSoldCost += totalCost;
-              sumSoldProfit += profit;
-
-              data.push(padRow([
-                item.name || t('unknown'),
-                qty,
-                unitSellPrice,
-                unitBuyPrice,
-                totalSell,
-                totalCost,
-                profit
-              ]));
+              const ts = usp * qty, tc = ubp * qty, pr = ts - tc;
+              sumSoldQty2 += qty; sumSoldSales2 += ts; sumSoldCost2 += tc; sumSoldProfit2 += pr;
+              soldRows.push([item.name || t('unknown'), qty, usp, ubp, ts, tc, pr]);
             });
           }
         });
-        // Add Sold Items Total Row
-        data.push(padRow([
-          t('totals'),
-          sumSoldQty,
-          '',
-          '',
-          sumSoldSales,
-          sumSoldCost,
-          sumSoldProfit
-        ]));
+        soldRows.push([
+          { content: t('totals').toUpperCase(), styles: { fontStyle: 'bold', fillColor: [239, 246, 255], textColor: [30, 64, 175] } },
+          { content: sumSoldQty2, styles: { fontStyle: 'bold', halign: 'right', fillColor: [239, 246, 255], textColor: [30, 64, 175] } },
+          { content: '', styles: { fillColor: [239, 246, 255] } },
+          { content: '', styles: { fillColor: [239, 246, 255] } },
+          { content: sumSoldSales2, styles: { fontStyle: 'bold', halign: 'right', fillColor: [239, 246, 255], textColor: [30, 64, 175] } },
+          { content: sumSoldCost2, styles: { fontStyle: 'bold', halign: 'right', fillColor: [239, 246, 255], textColor: [30, 64, 175] } },
+          { content: sumSoldProfit2, styles: { fontStyle: 'bold', halign: 'right', fillColor: [239, 246, 255], textColor: sumSoldProfit2 >= 0 ? [21, 128, 61] : [153, 27, 27] } }
+        ]);
 
-        // Append BOUGHT ITEMS Table (Purchases)
-        data.push(padRow(['', '', '', '', '', '', '']));
-        data.push(padRow([t('boughtItemsDetail'), '', '', '', '', '', '']));
-        data.push(padRow([
-          t('description'),
-          t('date'),
-          t('quantity'),
-          t('unitCost'),
-          t('amount')
-        ]));
+        const nextY1 = doc.lastAutoTable.finalY + 8;
+        autoTable(doc, {
+          head: [
+            [{ content: t('soldItemsDetail').toUpperCase(), colSpan: 7, styles: { fillColor: [15, 118, 110], textColor: 255, fontStyle: 'bold', fontSize: 10 } }],
+            [t('itemName'), t('quantity'), t('sellPrice'), t('buyPrice'), t('total'), t('totalCost'), t('profit')]
+          ],
+          body: soldRows,
+          ...tableDefaults(nextY1),
+          columnStyles: {
+            0: { cellWidth: 50 },
+            1: { halign: 'right' },
+            2: { halign: 'right' },
+            3: { halign: 'right' },
+            4: { halign: 'right' },
+            5: { halign: 'right' },
+            6: { halign: 'right', fontStyle: 'bold' }
+          },
+          didParseCell: (d) => {
+            if (d.row.section === 'head') return;
+            const v = d.cell.raw;
+            if (typeof v === 'number') {
+              d.cell.styles.halign = 'right';
+              if (v < 0) d.cell.styles.textColor = [220, 38, 38];
+            }
+          }
+        });
 
-
-        let sumBoughtQty = 0;
-        let sumBoughtAmount = 0;
+        // ── SECTION 3: BOUGHT ITEMS ──────────────────────────────────
+        const boughtRows = [];
+        let sumBoughtQty2 = 0, sumBoughtAmt2 = 0;
 
         periodPurchases.forEach(p => {
-          const label = p.name || p.description || p.itemName || t('boughtItemsDetail');
+          const label = p.name || p.description || p.itemName || '-';
           const dateStr = p.date ? new Date(p.date).toLocaleDateString() : '-';
           const amt = Number(p.amount) || 0;
-          const qtyVal = Number(p.quantity) || (Number(p.qty) || 1);
+          const qtyVal = Number(p.quantity) || Number(p.qty) || 1;
           const unitCost = qtyVal > 0 ? (amt / qtyVal).toFixed(2) : amt;
-
           const qtyDisplay = p.quantity ? p.quantity + (p.unit ? ' ' + p.unit : '') : (p.qty || '-');
-
-          if (!isNaN(qtyVal)) sumBoughtQty += qtyVal;
-          sumBoughtAmount += amt;
-
-          data.push(padRow([label, dateStr, qtyDisplay, unitCost, amt]));
+          if (!isNaN(qtyVal)) sumBoughtQty2 += qtyVal;
+          sumBoughtAmt2 += amt;
+          boughtRows.push([label, dateStr, qtyDisplay, unitCost, amt]);
         });
-        // Add Bought Items Total Row
-        data.push(padRow([
-          t('totals'),
+        boughtRows.push([
+          { content: t('totals').toUpperCase(), styles: { fontStyle: 'bold', fillColor: [239, 246, 255], textColor: [30, 64, 175] } },
           '',
-          sumBoughtQty,
+          { content: sumBoughtQty2, styles: { fontStyle: 'bold', halign: 'right', fillColor: [239, 246, 255] } },
           '',
-          sumBoughtAmount
-        ]));
+          { content: sumBoughtAmt2, styles: { fontStyle: 'bold', halign: 'right', fillColor: [239, 246, 255], textColor: [30, 64, 175] } }
+        ]);
 
-        filename = `Profit_Loss_${profitPeriod}_${periodLabel.replace(/\//g, '-')}.pdf`;
-        extraMetadata = [`${t('period')}: ${t(profitPeriod.toLowerCase())} (${periodLabel})`, `${t('location')}: ${reportLocationFilter || t('filterAll')}`];
-        break;
+        const nextY2 = doc.lastAutoTable.finalY + 8;
+        autoTable(doc, {
+          head: [
+            [{ content: t('boughtItemsDetail').toUpperCase(), colSpan: 5, styles: { fillColor: [124, 58, 237], textColor: 255, fontStyle: 'bold', fontSize: 10 } }],
+            [t('description'), t('date'), t('quantity'), t('unitCost'), t('amount')]
+          ],
+          body: boughtRows,
+          ...tableDefaults(nextY2),
+          columnStyles: {
+            0: { cellWidth: 60 },
+            2: { halign: 'right' },
+            3: { halign: 'right' },
+            4: { halign: 'right', fontStyle: 'bold' }
+          },
+          didParseCell: (d) => {
+            if (d.row.section === 'head') return;
+            const v = d.cell.raw;
+            if (typeof v === 'number') {
+              d.cell.styles.halign = 'right';
+              if (v < 0) d.cell.styles.textColor = [220, 38, 38];
+            }
+          }
+        });
+
+        drawPageFooter();
+        doc.save(plFilename);
+        return; // skip generic generatePDF call below
+
       default: return;
     }
     generatePDF(headers, data, filename, extraMetadata);
