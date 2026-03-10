@@ -798,7 +798,7 @@ export default function App() {
 
   // Form State
   const [newEmployeeForm, setNewEmployeeForm] = useState({
-    name: '', role: '', dept: 'Security', location: '', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: ''
+    name: '', role: '', dept: 'Security', location: '', shift: 'Morning (12 Hours)', salary: 60000, salaryMethod: 'Monthly', bonus: 0, overtime: 0, deductionHours: 0, photo: ''
   });
 
   const [newSiteForm, setNewSiteForm] = useState({
@@ -966,10 +966,11 @@ export default function App() {
       let maxLength = 0;
       column.eachCell({ includeEmpty: true }, (cell) => {
         const val = cell.value ? cell.value.toString() : '';
-        if (val.length > maxLength && val.length < 60) maxLength = val.length;
+        // CLAMP: Don't let huge strings grow columns excessively for printing
+        if (val.length > maxLength) maxLength = Math.min(val.length, 40);
       });
-      // Adjust width based on characters + padding
-      column.width = Math.max(12, maxLength * 1.2 + 2);
+      // Adjust width based on characters + reduced padding (1.1 instead of 1.2)
+      column.width = Math.max(10, maxLength * 1.1 + 1);
     });
 
     // Create Freezepane
@@ -978,22 +979,22 @@ export default function App() {
     // --- A4 PRINT OPTIMIZATION ---
     worksheet.pageSetup = {
       paperSize: 9, // A4
-      orientation: headers && headers.length > 8 ? 'landscape' : 'portrait',
+      orientation: headers && headers.length > 5 ? 'landscape' : 'portrait', // More than 5 columns usually needs Landscape
       fitToPage: true,
       fitToWidth: 1,
-      fitToHeight: 0, // Auto number of pages
+      fitToHeight: 0,
       margins: {
-        left: 0.5, right: 0.5,
-        top: 0.75, bottom: 0.75,
-        header: 0.3, footer: 0.3
+        left: 0.3, right: 0.3, // Narrower margins to fit more
+        top: 0.5, bottom: 0.5,
+        header: 0.2, footer: 0.2
       },
-      printTitlesRow: `${currentRow - 1}:${currentRow - 1}` // Repeat main headers on every page
+      printTitlesRow: `${currentRow - 1}:${currentRow - 1}`
     };
 
     // Add professional Header/Footer for printing
     worksheet.headerFooter = {
-      oddHeader: `&L&G&"Segoe UI,Bold"&12${shopSettings.name || 'Finn ERP'}&R&"Segoe UI,Italic"&09${filename.replace('.xlsx', '').toUpperCase()}`,
-      oddFooter: `&L&"Segoe UI"&08PRODUCED BY FINN ERP&C&"Segoe UI"&08PAGE &P OF &N&R&"Segoe UI"&08&D &T`
+      oddHeader: `&L&"Segoe UI,Bold"&12${shopSettings.name || 'FINN ERP'}&R&"Segoe UI,Italic"&09${filename.replace('.xlsx', '').toUpperCase()}`,
+      oddFooter: `&L&"Segoe UI"&08PRODUCED BY FINN ERP&C&"Segoe UI"&08PAGE &P OF &N&R&"Segoe UI"&08&D`
     };
 
     // 5. Generate and Save
@@ -1003,9 +1004,22 @@ export default function App() {
   };
 
   const handleExportAttendance = () => {
-    const headers = ['Employee', 'Date', 'Location', 'Status'];
-    const data = attendance.map(r => [r.name, r.date, getEmployeeLocation(r.name), r.status]);
-    generateExcel(headers, data, 'Attendance_Export.xlsx');
+    const headers = [t('name'), t('date'), t('status'), t('replacementFor'), t('shift'), t('location')];
+    const data = attendance.map(a => [
+      a.name,
+      a.date instanceof Date ? a.date.toLocaleDateString() : (a.date?.toDate ? a.date.toDate().toLocaleDateString() : String(a.date)),
+      a.status,
+      a.replacementFor || '-',
+      a.shift || '-',
+      a.location || '-'
+    ]);
+
+    const metadata = [
+      `${t('totalRecords') || 'Total Records'}: ${data.length}`,
+      `${t('location')}: ${reportLocationFilter || t('filterAll')}`
+    ];
+
+    generateExcel(headers, data, 'Attendance_Report.xlsx', metadata);
   };
 
   const handleExportPayroll = () => {
@@ -2523,7 +2537,7 @@ export default function App() {
       });
       alert(t('employeeSaved')); // Debug Confirmation
       setIsAddModalOpen(false);
-      setNewEmployeeForm({ name: '', role: '', dept: 'Security', location: '', shift: 'Morning (12 Hours)', salary: 60000, bonus: 0, overtime: 0, deductionHours: 0, photo: '' });
+      setNewEmployeeForm({ name: '', role: '', dept: 'Security', location: '', shift: 'Morning (12 Hours)', salary: 60000, salaryMethod: 'Monthly', bonus: 0, overtime: 0, deductionHours: 0, photo: '' });
     } catch (err) {
       console.error(err);
       alert(t('saveError') + err.message);
@@ -2820,6 +2834,9 @@ export default function App() {
         // 3. Operating Expenses - Employee Payroll by Department
         const periodEmployees = employees.filter(e => !reportLocationFilter || e.location === reportLocationFilter);
 
+        // Calculate period duration in days
+        const periodDays = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
+
         // Group employees by department
         const employeesByDept = {};
         let totalPayrollExpenses = 0;
@@ -2830,11 +2847,30 @@ export default function App() {
             employeesByDept[dept] = [];
           }
 
-          // Calculate employee's total compensation for the period
-          const baseSalary = Number(emp.salary) || 0;
+          // Calculate employee's total compensation SCALEABLE for the period
+          const rawSalary = Number(emp.salary) || 0;
+          const salaryMethod = emp.salaryMethod || 'Monthly';
+          let proportionalSalary = 0;
+
+          // Scaling Logic based on Salary Method
+          if (salaryMethod === 'Monthly') {
+            proportionalSalary = (rawSalary / 30) * periodDays;
+          } else if (salaryMethod === 'Weekly') {
+            proportionalSalary = (rawSalary / 7) * periodDays;
+          } else if (salaryMethod === 'Daily') {
+            proportionalSalary = rawSalary * periodDays;
+          } else if (salaryMethod === 'Hourly') {
+            // Heuristic: Assuming 8 hour work day for hourly estimate if not explicitly tracked
+            proportionalSalary = (rawSalary * 8) * periodDays;
+          }
+
           const bonus = Number(emp.bonus) || 0;
           const overtime = Number(emp.overtime) || 0;
-          const totalComp = baseSalary + bonus + overtime;
+
+          // Scale bonus/overtime too if it's a short period? 
+          // Usually bonus/overtime in the profile is a periodic estimate. 
+          // For simplicity, we scale everything by the same logic to keep budget realistic.
+          const totalComp = proportionalSalary + ((bonus + overtime) / 30) * periodDays;
 
           employeesByDept[dept].push({
             name: emp.name,
@@ -5780,7 +5816,15 @@ export default function App() {
                   {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
                 </select>
 
-                <input type="number" className="input-field" placeholder={t('salary')} value={newEmployeeForm.salary} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salary: Number(e.target.value) })} required />
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="number" className="input-field" placeholder={t('salary')} value={newEmployeeForm.salary} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salary: Number(e.target.value) })} required />
+                  <select className="p-2 border rounded-xl text-xs font-bold bg-white" value={newEmployeeForm.salaryMethod || 'Monthly'} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salaryMethod: e.target.value })}>
+                    <option value="Monthly">{t('monthly')}</option>
+                    <option value="Weekly">{t('weekly')}</option>
+                    <option value="Daily">{t('daily')}</option>
+                    <option value="Hourly">Hourly</option>
+                  </select>
+                </div>
 
                 <div className="pt-2 flex gap-3">
                   <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
@@ -5917,14 +5961,26 @@ export default function App() {
                     <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                       <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2"><DollarSign size={16} /> {t('compensation')}</h4>
                       <div className="space-y-3">
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-blue-700">{t('salary')}</span>
-                          <input
-                            type="number"
-                            className="w-24 text-right bg-white rounded px-1 text-sm border-blue-200"
-                            value={selectedEmployee.salary}
-                            onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salary', Number(e.target.value))}
-                          />
+                          <div className="flex gap-1 items-center">
+                            <input
+                              type="number"
+                              className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200"
+                              value={selectedEmployee.salary}
+                              onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salary', Number(e.target.value))}
+                            />
+                            <select
+                              className="text-[10px] bg-white border border-blue-100 rounded p-0.5 font-bold"
+                              value={selectedEmployee.salaryMethod || 'Monthly'}
+                              onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salaryMethod', e.target.value)}
+                            >
+                              <option value="Monthly">M</option>
+                              <option value="Weekly">W</option>
+                              <option value="Daily">D</option>
+                              <option value="Hourly">H</option>
+                            </select>
+                          </div>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-blue-700">{t('bonus')}</span>
