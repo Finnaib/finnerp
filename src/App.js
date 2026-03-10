@@ -440,6 +440,22 @@ export default function App() {
   const [editingServiceInventory, setEditingServiceInventory] = useState(null); // Added this
   const [serviceInventoryForm, setServiceInventoryForm] = useState({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 });
 
+  async function handleUploadRepairPhoto(file, ticketId) {
+    if (!file) return null;
+    const storageRef = ref(storage, `repairs/${ticketId}/${Date.now()}_${file.name}`);
+    try {
+      setPhotoUploading(true);
+      const snapshot = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(snapshot.ref);
+      setPhotoUploading(false);
+      return url;
+    } catch (e) {
+      console.error("Upload error:", e);
+      setPhotoUploading(false);
+      alert("Photo upload failed. Please check connection.");
+      return null;
+    }
+  }
 
   const [roomForm, setRoomForm] = useState({ name: '', type: 'Cafe', hourlyPrice: 0 });
   const [recipeForm, setRecipeForm] = useState({ name: '', category: 'Hot Drinks', sellPrice: '', ingredients: [] });
@@ -6139,8 +6155,8 @@ export default function App() {
                                 <p className="text-xs text-blue-500 font-bold mt-0.5">{ticket.customerPhone}</p>
                               </div>
                               <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shrink-0 ${ticket.status === 'Ready' || ticket.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-50' :
-                                  ticket.status === 'In Progress' || ticket.status === 'Waiting for Parts' ? 'bg-amber-100 text-amber-700 shadow-sm shadow-amber-50' :
-                                    'bg-rose-100 text-rose-700 shadow-sm shadow-rose-50'
+                                ticket.status === 'In Progress' || ticket.status === 'Waiting for Parts' ? 'bg-amber-100 text-amber-700 shadow-sm shadow-amber-50' :
+                                  'bg-rose-100 text-rose-700 shadow-sm shadow-rose-50'
                                 }`}>
                                 {t(ticket.status.toLowerCase().replace(/ /g, '')) || ticket.status}
                               </span>
@@ -6346,7 +6362,7 @@ export default function App() {
                               <td className="py-4 text-sm font-medium text-slate-700">{ticket.brand} {ticket.model}</td>
                               <td className="py-4">
                                 <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${ticket.status === 'Delivered' || ticket.status === 'Ready' ? 'bg-emerald-50 text-emerald-600' :
-                                    'bg-slate-100 text-slate-600'
+                                  'bg-slate-100 text-slate-600'
                                   }`}>{ticket.status}</span>
                               </td>
                               <td className="py-4 pr-4 text-right font-mono font-black text-gray-900">{formatCurrency(ticket.estimatedCost || 0)}</td>

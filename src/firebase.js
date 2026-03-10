@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 // REPLACE these values with your own from the Firebase Console
@@ -14,8 +15,6 @@ const firebaseConfig = {
     appId: "1:580624063568:web:04f79d238cc9f2296a8555",
     measurementId: "G-FXXDW35EPF"
 };
-
-import { getStorage } from "firebase/storage";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
