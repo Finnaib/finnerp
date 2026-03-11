@@ -166,7 +166,7 @@ export const translations = {
     "retailInvoice": "Retail Invoice",
     "invoice": "INVOICE",
     "date": "Date",
-    "billNo": "ID",
+    "billNo": "Bill No",
     "paymentMode": "Payment Mode",
     "cash": "Cash",
     "item": "Item",

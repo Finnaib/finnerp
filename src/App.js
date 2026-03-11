@@ -435,6 +435,7 @@ export default function App() {
   const [serviceSearch, setServiceSearch] = useState('');
   const [serviceStatusFilter, setServiceStatusFilter] = useState('');
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [partSearchResults, setPartSearchResults] = useState([]);
   const [serviceCustomers, setServiceCustomers] = useState([]);
   const [selectedServiceCustomer, setSelectedServiceCustomer] = useState(null);
   const [serviceCustomerForm, setServiceCustomerForm] = useState({ name: '', phone: '', email: '', address: '', notes: '' });
@@ -1930,8 +1931,8 @@ export default function App() {
       /* Footer */
       .footer { text-align: center; font-size: 0.7em; margin-top: 15px; border-top: 1px dashed #000; padding-top: 8px; font-style: italic; }
       .copy-label { text-align: center; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.75em; border: 1px solid #000; display: inline-block; padding: 3px 8px; }
-      .big-id { font-size: 2.2em; font-weight: 900; text-align: center; margin: 12px 0; border: 2px solid #000; padding: 10px; background: #f9f9f9; letter-spacing: 2px; }
-      .big-id-label { font-size: 0.6em; font-weight: black; text-transform: uppercase; display: block; margin-bottom: 2px; letter-spacing: 1px; }
+      .big-id { font-size: 3.5em; font-weight: 900; text-align: center; margin: 8px 0; border: 3px solid #000; padding: 5px; background: #fff; letter-spacing: 1px; line-height: 1; }
+      .big-id-label { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; display: block; margin-bottom: 2px; letter-spacing: 1px; color: #000; }
     ` : `
       @page { margin: 0; size: A4; }
       body { font-family: Arial, Helvetica, sans-serif; padding: 0; color: #333; margin: 0; background: #fff; }
@@ -2032,12 +2033,13 @@ export default function App() {
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         
-        ${invoiceData.type !== 'service' && invoiceData.type !== 'service_pos' && invoiceData.type !== 'cafe' ? `
         <div class="big-id">
-          <span class="big-id-label">${(invoiceData.type === 'sale' ? t('orderNumber') : '').toUpperCase()}</span>
+          <span class="big-id-label">
+            ${invoiceData.type === 'sale' ? t('orderNumber') : 
+              (['cafe', 'service', 'service_pos', 'service_receipt'].includes(invoiceData.type) ? t('billNo') : t('id'))}
+          </span>
           ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
         </div>
-        ` : ''}
 
         <div class="invoice-title">${t('retailInvoice')}</div>
 
@@ -2125,7 +2127,13 @@ export default function App() {
             <div style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 10px; text-align: right;">${t('retailInvoice').toUpperCase()}</div>
             <table style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; width: 100%;">
               <tr><td style="background: #f8fafc; border: none; font-size: 10px; width: 40%;">${t('date').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
-              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${(invoiceData.type === 'sale' ? t('orderNumber') : 'ID').toUpperCase()} #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
+              <tr>
+                <td style="background: #f8fafc; border: none; font-size: 10px;">
+                  ${(invoiceData.type === 'sale' ? t('orderNumber') : 
+                    (['cafe', 'service', 'service_pos', 'service_receipt'].includes(invoiceData.type) ? t('billNo') : t('id'))).toUpperCase()} #
+                </td>
+                <td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td>
+              </tr>
               ${invoiceData.sessionId ? `<tr><td style="background: #f8fafc; border: none; font-size: 10px;">SESSION #</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.sessionId}</td></tr>` : ''}
               <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('paymentMode').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${printPaymentMethod}</td></tr>
             </table>
@@ -2640,6 +2648,41 @@ export default function App() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleCheckoutServiceCart = async (format) => {
+    if (serviceCart.length === 0) return;
+    const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    const total = serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0);
+    const invData = {
+      invoiceId: currentId,
+      type: 'service_pos',
+      client: newSaleForm.customer || 'Service Customer',
+      date: new Date().toLocaleDateString(),
+      items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
+      amount: total,
+      paymentMethod: paymentMethod,
+      soldBy: salesEmployee ? salesEmployee.name : user.email,
+      location: 'Repair Shop',
+      userId: user.uid,
+      createdAt: serverTimestamp(),
+      orderType: orderType
+    };
+    try {
+      const saleRef = await addDoc(collection(db, 'sales'), invData);
+      const batch = writeBatch(db);
+      serviceCart.forEach(item => {
+        if (item.type === 'part') {
+          const invItem = inventory.find(i => i.id === item.id);
+          if (invItem) { batch.update(doc(db, 'inventory', item.id), { quantity: Number(invItem.quantity) - Number(item.quantity) }); }
+        }
+      });
+      await batch.commit();
+      handlePrintInvoice({ ...invData, id: saleRef.id }, format === 'Thermal' ? 'Service Receipt' : 'Service Invoice', format);
+      setServiceCart([]);
+      setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
+      alert('Sale Completed!');
+    } catch (e) { console.error(e); }
   };
 
   // --- Actions (Firestore) ---
@@ -4761,6 +4804,38 @@ export default function App() {
                         >
                           <Scan size={16} /> {t('scanBarcode')}
                         </button>
+                        <button
+                          onClick={() => {
+                            const name = prompt('Item Name:');
+                            if (!name) return;
+                            const price = prompt('Price:');
+                            if (!price) return;
+                            addToCart({ id: 'custom-'+Date.now(), name, sellPrice: Number(price), category: 'Custom' });
+                          }}
+                          className="flex items-center gap-1 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold transition-all"
+                        >
+                          <PlusCircle size={16} /> Custom
+                        </button>
+                        <button
+                          onClick={() => {
+                            const ready = serviceTickets.filter(t => t.status === 'Ready for Pickup');
+                            if (ready.length === 0) { alert('No repairs ready for pickup'); return; }
+                            const choice = prompt('Ready Repairs:\n' + ready.map((t, i) => `${i+1}. ${t.customerName} - ${t.brand} (${formatCurrency(t.estimatedCost)})`).join('\n') + '\n\nEnter number to add:');
+                            const idx = parseInt(choice) - 1;
+                            if (ready[idx]) {
+                              addToCart({
+                                id: 'SRV-' + ready[idx].id,
+                                name: `Repair: ${ready[idx].brand} ${ready[idx].model} (${ready[idx].id.slice(0, 6)})`,
+                                sellPrice: Number(ready[idx].estimatedCost),
+                                type: 'service'
+                              });
+                            }
+                          }}
+                          className="flex items-center gap-1 text-amber-600 hover:bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 text-xs font-bold transition-all"
+                        >
+                          <Wrench size={16} /> Ready
+                        </button>
+
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto">
                         <select
@@ -5006,7 +5081,6 @@ export default function App() {
                                 <button onClick={() => updateCartQuantity(item.id, 1)} className="px-2 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg transition-colors">+</button>
                               </div>
                               <button onClick={() => removeFromCart(item.id)} className="text-gray-300 hover:text-red-500 transition-colors p-1">
-                                <Trash2 size={15} />
                               </button>
                             </div>
                           </div>
@@ -5021,6 +5095,7 @@ export default function App() {
                       <div className="flex justify-between items-center text-xs text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <span className="font-bold">{t('subtotal')}</span>
+                        </div>
                         <span className="font-mono">{formatCurrency(calculateTotal())}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs text-gray-500">
@@ -6354,88 +6429,36 @@ export default function App() {
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="pt-2">
                           <button 
-                            onClick={async () => {
-                              if (serviceCart.length === 0) return;
-                              const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-                              const total = serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0);
-                              const invData = {
-                                invoiceId: currentId,
-                                type: 'service_pos',
-                                client: newSaleForm.customer || 'Service Customer',
-                                date: new Date().toLocaleDateString(),
-                                items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
-                                amount: total,
-                                paymentMethod: paymentMethod,
-                                soldBy: salesEmployee ? salesEmployee.name : user.email,
-                                location: 'Repair Shop',
-                                userId: user.uid,
-                                createdAt: serverTimestamp(),
-                                orderType: orderType
-                              };
-                              try {
-                                const saleRef = await addDoc(collection(db, 'sales'), invData);
-                                const batch = writeBatch(db);
-                                serviceCart.forEach(item => {
-                                  if (item.type === 'part') {
-                                    const invItem = inventory.find(i => i.id === item.id);
-                                    if (invItem) { batch.update(doc(db, 'inventory', item.id), { quantity: Number(invItem.quantity) - Number(item.quantity) }); }
-                                  }
-                                });
-                                await batch.commit();
-                                handlePrintInvoice({ ...invData, id: saleRef.id }, 'Service Receipt', 'Thermal');
-                                setServiceCart([]);
-                                setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
-                                alert('Sale Completed!');
-                              } catch (e) { console.error(e); }
+                            onClick={() => {
+                              if (serviceCart.length > 0) {
+                                const mode = prompt('Enter 1 for Thermal, 2 for A4 PRO:', '1');
+                                if (mode === '1') handleCheckoutServiceCart('Thermal');
+                                else if (mode === '2') handleCheckoutServiceCart('A4');
+                              }
                             }}
-                            className="bg-slate-900 hover:bg-black text-white py-5 rounded-[2rem] transition-all active:scale-95 shadow-xl shadow-slate-200 flex flex-col items-center gap-1"
+                            className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[2.5rem] transition-all active:scale-95 shadow-xl shadow-slate-200 flex items-center justify-center gap-3 group"
                           >
-                            <Printer size={18} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Thermal</span>
+                            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                              <CheckCircle2 size={20} />
+                            </div>
+                            <div className="text-left">
+                              <p className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">{t('completePayment') || 'Complete Payment'}</p>
+                              <p className="text-sm font-black uppercase tracking-tight">{t('checkout')}</p>
+                            </div>
                           </button>
-                          <button 
-                            onClick={async () => {
-                              if (serviceCart.length === 0) return;
-                              const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-                              const total = serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0);
-                              const invData = {
-                                invoiceId: currentId,
-                                type: 'service_pos',
-                                client: newSaleForm.customer || 'Service Customer',
-                                date: new Date().toLocaleDateString(),
-                                items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
-                                amount: total,
-                                paymentMethod: paymentMethod,
-                                soldBy: salesEmployee ? salesEmployee.name : user.email,
-                                location: 'Repair Shop',
-                                userId: user.uid,
-                                createdAt: serverTimestamp(),
-                                orderType: orderType
-                              };
-                              try {
-                                const saleRef = await addDoc(collection(db, 'sales'), invData);
-                                const batch = writeBatch(db);
-                                serviceCart.forEach(item => {
-                                  if (item.type === 'part') {
-                                    const invItem = inventory.find(i => i.id === item.id);
-                                    if (invItem) { batch.update(doc(db, 'inventory', item.id), { quantity: Number(invItem.quantity) - Number(item.quantity) }); }
-                                  }
-                                });
-                                await batch.commit();
-                                handlePrintInvoice({ ...invData, id: saleRef.id }, 'Service Invoice', 'A4');
-                                setServiceCart([]);
-                                setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
-                                alert('Sale Completed!');
-                              } catch (e) { console.error(e); }
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-[2rem] transition-all active:scale-95 shadow-xl shadow-blue-100 flex flex-col items-center gap-1"
-                          >
-                            <FileText size={18} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">A4 Pro</span>
-                          </button>
+                          
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                             <button onClick={() => handleCheckoutServiceCart('Thermal')} className="py-2.5 bg-gray-50 hover:bg-white border border-gray-100 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all flex items-center justify-center gap-2">
+                               <Printer size={14} /> Thermal
+                             </button>
+                             <button onClick={() => handleCheckoutServiceCart('A4')} className="py-2.5 bg-gray-50 hover:bg-white border border-gray-100 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
+                               <FileText size={14} /> A4 PRO
+                             </button>
+                          </div>
                         </div>
+
                       </div>
                     </div>
                   </div>
@@ -6876,9 +6899,8 @@ export default function App() {
               </div>
             )
           }
-
-        </div >
-      </main >
+        </div>
+      </main>
 
       {/* --- Modals --- */}
 
@@ -6974,49 +6996,66 @@ export default function App() {
                     <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest flex justify-between items-center">
                       {t('partsUsed') || 'Spare Parts Used'}
                     </label>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        id="part-search-input"
-                        placeholder="Barcode or Name..." 
-                        className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-bold"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const val = e.target.value;
+                    <div className="relative">
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          id="part-search-input"
+                          placeholder={t('searchInventory') || "Search parts..."}
+                          className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                          autoComplete="off"
+                          onChange={(e) => {
+                            const val = e.target.value.toLowerCase();
+                            const results = val ? inventory.filter(i => (i.name?.toLowerCase().includes(val) || i.barcode?.includes(val)) && i.quantity > 0).slice(0, 5) : [];
+                            setPartSearchResults(results);
+                          }}
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            const val = document.getElementById('part-search-input').value;
                             if (!val) return;
-                            const part = inventory.find(i => 
-                              i.barcode === val || i.name?.toLowerCase().includes(val.toLowerCase())
-                            );
-                            if (part) {
-                              setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: part.id, name: part.name, price: part.sellPrice, quantity: 1, fromInventory: true }] });
-                              e.target.value = '';
-                            } else {
-                              const manualPrice = prompt(`"${val}" not in stock. Enter price for manual entry:`);
-                              if (manualPrice) {
-                                setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: 'man-'+Date.now(), name: val, price: Number(manualPrice), quantity: 1, fromInventory: false }] });
-                                e.target.value = '';
-                              }
+                            const price = prompt(`Enter price for ${val}:`);
+                            if (price) {
+                              setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: 'man-'+Date.now(), name: val, price: Number(price), quantity: 1, fromInventory: false }] });
+                              document.getElementById('part-search-input').value = '';
+                              setPartSearchResults([]);
                             }
-                          }
-                        }}
-                      />
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          const val = document.getElementById('part-search-input').value;
-                          if (!val) { alert('Enter name first'); return; }
-                          const price = prompt(`Enter price for ${val}:`);
-                          if (price) {
-                            setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: 'man-'+Date.now(), name: val, price: Number(price), quantity: 1, fromInventory: false }] });
-                            document.getElementById('part-search-input').value = '';
-                          }
-                        }}
-                        className="bg-blue-600 text-white px-3 rounded-lg text-xs font-bold"
-                      >
-                        {t('add')}
-                      </button>
+                          }}
+                          className="bg-slate-900 text-white px-4 rounded-lg text-[10px] font-black uppercase tracking-widest"
+                        >
+                          Manual
+                        </button>
+                      </div>
+
+                      {/* Search Results Dropdown */}
+                      {partSearchResults.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl z-[210] mt-1 overflow-hidden">
+                          {partSearchResults.map(item => (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => {
+                                setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: item.id, name: item.name, price: item.sellPrice, quantity: 1, fromInventory: true }] });
+                                document.getElementById('part-search-input').value = '';
+                                setPartSearchResults([]);
+                              }}
+                              className="w-full text-left p-3 hover:bg-blue-50 border-b border-gray-50 flex justify-between items-center group transition-colors"
+                            >
+                              <div>
+                                <p className="text-xs font-bold text-gray-900">{item.name}</p>
+                                <p className="text-[10px] text-slate-400 font-mono">{item.barcode || 'NO BARCODE'}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs font-black text-blue-600">{formatCurrency(item.sellPrice)}</p>
+                                <p className="text-[9px] font-bold text-slate-400 capitalize">{item.quantity} in stock</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
+
                     <div className="space-y-2">
                       {(editingTicket.partsUsed || []).map((part, idx) => (
                         <div key={idx} className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100 text-xs">
