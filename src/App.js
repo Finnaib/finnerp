@@ -1888,11 +1888,13 @@ export default function App() {
     }
   };
 
-  const handlePrintInvoice = (invoiceData, type = 'Invoice') => {
+  const handlePrintInvoice = (invoiceData, type = 'Invoice', formatOverride = null) => {
     const printWindow = window.open('', '', 'width=800,height=600');
     if (!printWindow) return;
 
-    const styles = printFormat === 'Thermal' ? `
+    const currentFormat = formatOverride || printFormat;
+
+    const styles = currentFormat === 'Thermal' ? `
       @page { margin: 0; }
       body { font-family: 'Courier New', monospace; width: 80mm; padding: 10px; margin: 0 auto; color: #000; background: #fff; }
       .page { padding-bottom: 20px; display: block; position: relative; }
@@ -2008,11 +2010,16 @@ export default function App() {
         (invoiceData.paymentMethod || 'Cash').toLowerCase().includes('online') ? 'onlinePayment' : 'cash';
       const printPaymentMethod = t(paymentMethodKey);
 
+      // Enhanced Calculation to handle different data structures
       const subtotal = Array.isArray(invoiceData.items)
-        ? invoiceData.items.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || item.quantity || 0)), 0)
-        : invoiceData.amount || 0;
-      const tax = subtotal * 0.0625; // 6.25% tax
-      const total = invoiceData.amount || subtotal;
+        ? invoiceData.items.reduce((sum, item) => {
+            const price = Number(item.price || item.sellPrice || 0);
+            const qty = Number(item.qty || item.quantity || 1);
+            return sum + (price * qty);
+          }, 0)
+        : Number(invoiceData.amount || 0);
+      
+      const total = subtotal; // Use calculated subtotal as primary truth
 
       if (printFormat === 'Thermal') {
         return `
@@ -2025,12 +2032,17 @@ export default function App() {
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         
-        ${invoiceData.type !== 'service' ? `
+        ${invoiceData.type !== 'service' && invoiceData.type !== 'service_pos' ? `
         <div class="big-id">
-          <span class="big-id-label">${(invoiceData.type === 'sale' ? t('orderNumber') : t('billNo')).toUpperCase()}</span>
+          <span class="big-id-label">${(invoiceData.type === 'sale' ? t('orderNumber') : '').toUpperCase()}</span>
           ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
         </div>
-        ` : ''}
+        ` : `
+        <div class="big-id">
+          <span class="big-id-label">ID</span>
+          ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
+        </div>
+        `}
 
         <div class="invoice-title">${t('retailInvoice')}</div>
 
@@ -2054,8 +2066,8 @@ export default function App() {
             ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
             <tr>
               <td>${item.name}</td>
-              <td class="right">${item.qty || item.quantity}</td>
-              <td class="right">${formatCurrency((item.price || 0) * (item.qty || item.quantity || 0))}</td>
+              <td class="right">${item.qty || item.quantity || 1}</td>
+              <td class="right">${formatCurrency(Number(item.price || item.sellPrice || 0) * Number(item.qty || item.quantity || 1))}</td>
             </tr>
             `).join('') : `<tr><td colspan="3">${invoiceData.items}</td></tr>`}
           </tbody>
@@ -2118,7 +2130,7 @@ export default function App() {
             <div style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 10px; text-align: right;">${t('retailInvoice').toUpperCase()}</div>
             <table style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; width: 100%;">
               <tr><td style="background: #f8fafc; border: none; font-size: 10px; width: 40%;">${t('date').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
-              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${(invoiceData.type === 'sale' ? t('orderNumber') : t('billNo')).toUpperCase()} #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
+              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${(invoiceData.type === 'sale' ? t('orderNumber') : 'ID').toUpperCase()} #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
               ${invoiceData.sessionId ? `<tr><td style="background: #f8fafc; border: none; font-size: 10px;">SESSION #</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.sessionId}</td></tr>` : ''}
               <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('paymentMode').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${printPaymentMethod}</td></tr>
             </table>
@@ -2163,7 +2175,7 @@ export default function App() {
                  ${item.serial ? `<div style="font-size: 9px; color: #94a3b8; font-family: monospace;">SN: ${item.serial}</div>` : ''}
               </td>
               <td class="center" style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #64748b;">${item.qty || item.quantity || 1}</td>
-              <td class="right" style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b;">${formatCurrency((item.price || 0) * (item.qty || item.quantity || 1))}</td>
+              <td class="right" style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b;">${formatCurrency(Number(item.price || item.sellPrice || 0) * Number(item.qty || item.quantity || 1))}</td>
             </tr>
             `).join('') : `<tr><td colspan="3" style="padding: 12px 15px; text-align: center; color: #94a3b8;">${invoiceData.items}</td></tr>`}
           </tbody>
@@ -6112,123 +6124,184 @@ export default function App() {
                 )}
                 {/* Sub Tab: SELL (SERVICE POS) */}
                 {serviceSubTab === 'sell' && (
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-right-4 duration-500 pb-20">
-                    {/* Left Column: Product/Repair Search */}
-                    <div className="lg:col-span-8 space-y-6">
-                      <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
-                          <h3 className="text-lg font-black uppercase tracking-tight text-gray-900 flex items-center gap-2">
-                            <ShoppingCart size={20} className="text-blue-600" /> {t('servicePOS') || 'Service POS'}
-                          </h3>
+                  <div className="flex flex-col lg:flex-row h-full -m-6 bg-gray-50 overflow-hidden relative">
+                    {/* Left Side: Search & Items Grid */}
+                    <div className="flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200">
+                      {/* Top Action Bar */}
+                      <div className="p-6 bg-white border-b border-gray-200">
+                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
+                              <ShoppingCart size={24} />
+                            </div>
+                            <div>
+                              <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">{t('servicePOS') || 'Service POS'}</h2>
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('activeJobs') || 'Sales & Repairs'}</p>
+                            </div>
+                          </div>
                           <div className="relative w-full md:w-96">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                               type="text"
                               placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'}
-                              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
+                              className="w-full pl-12 pr-4 py-3 bg-gray-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
                               value={serviceInventorySearch}
                               onChange={e => setServiceInventorySearch(e.target.value)}
                             />
                           </div>
                         </div>
+                      </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Repairs Section */}
-                          <div className="space-y-3">
-                            <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">{t('activeRepairs') || 'Active Repairs'}</h4>
-                            <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                              {serviceTickets
-                                .filter(ticket => (ticket.status === 'Ready' || ticket.status === 'In Progress' || ticket.status === 'Received') && 
-                                  (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || 
-                                   ticket.id.toLowerCase().includes(serviceInventorySearch.toLowerCase()) ||
-                                   ticket.brand.toLowerCase().includes(serviceInventorySearch.toLowerCase())))
-                                .map(ticket => (
-                                  <button
-                                    key={ticket.id}
-                                    onClick={() => {
-                                      const laborPrice = Number(ticket.estimatedCost) - (ticket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0);
-                                      const items = [
-                                        { id: 'SRV-'+ticket.id + '-LB', name: `Repair Labor: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                                        ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
-                                      ];
-                                      setServiceCart([...serviceCart, ...items]);
-                                    }}
-                                    className="w-full text-left p-4 bg-gray-50 hover:bg-blue-50 rounded-2xl border border-transparent hover:border-blue-100 transition-all group"
-                                  >
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <p className="text-sm font-bold text-gray-900">{ticket.customerName}</p>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase">{ticket.brand} {ticket.model}</p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="text-sm font-black text-blue-600">{formatCurrency(ticket.estimatedCost)}</p>
-                                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white' : 'bg-amber-100 text-amber-700'}`}>{ticket.status}</span>
-                                      </div>
-                                    </div>
-                                  </button>
-                                ))}
-                            </div>
+                      <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                        {/* 1. Active Repairs Section */}
+                        <section className="space-y-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                              <Wrench size={14} className="text-blue-500" /> {t('activeRepairs') || 'Active Repairs'}
+                            </h3>
+                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs</span>
                           </div>
-
-                          {/* Inventory Section */}
-                          <div className="space-y-3">
-                            <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">{t('inventoryStock') || 'Inventory Stock'}</h4>
-                            <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                              {serviceInventory
-                                .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || item.category.toLowerCase().includes(serviceInventorySearch.toLowerCase()))
-                                .map(item => (
-                                  <button
-                                    key={item.id}
-                                    onClick={() => {
-                                      const existing = serviceCart.find(c => c.id === item.id);
-                                      if (existing) {
-                                        setServiceCart(serviceCart.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c));
-                                      } else {
-                                        setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: item.sellPrice, quantity: 1, type: 'part' }]);
-                                      }
-                                    }}
-                                    className="w-full text-left p-4 bg-gray-50 hover:bg-indigo-50 rounded-2xl border border-transparent hover:border-indigo-100 transition-all group flex justify-between items-center"
-                                  >
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {serviceTickets
+                              .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') && 
+                                (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || 
+                                 ticket.id.toLowerCase().includes(serviceInventorySearch.toLowerCase()) ||
+                                 ticket.brand.toLowerCase().includes(serviceInventorySearch.toLowerCase())))
+                              .map(ticket => (
+                                <button
+                                  key={ticket.id}
+                                  onClick={() => {
+                                    const laborPrice = Math.max(0, Number(ticket.estimatedCost) - (ticket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0));
+                                    const items = [
+                                      { id: 'SRV-'+ticket.id + '-LB', name: `Repair Labor: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                                      ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                                    ];
+                                    setServiceCart([...serviceCart, ...items]);
+                                  }}
+                                  className="text-left bg-white p-5 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
+                                >
+                                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <Wrench size={48} />
+                                  </div>
+                                  <div className="relative z-10 flex flex-col h-full justify-between">
                                     <div>
-                                      <p className="text-sm font-bold text-gray-900">{item.name}</p>
-                                      <p className="text-[10px] text-gray-400 font-bold uppercase">{item.category} • {t('stock')}: {item.stock}</p>
+                                      <div className="flex justify-between items-start mb-2">
+                                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
+                                        <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>{ticket.status}</span>
+                                      </div>
+                                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
                                     </div>
-                                    <p className="text-sm font-black text-indigo-600">{formatCurrency(item.sellPrice)}</p>
-                                  </button>
-                                ))}
+                                    <div className="mt-4 flex justify-between items-end border-t border-gray-50 pt-3">
+                                      <div className="text-xl font-black text-blue-600 font-mono">{formatCurrency(ticket.estimatedCost)}</div>
+                                      <div className="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                        <Plus size={16} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        </section>
+
+                        {/* 2. Parts & Inventory Section */}
+                        <section className="space-y-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                              <Package size={14} className="text-indigo-500" /> {t('inventoryParts') || 'Inventory Parts'}
+                            </h3>
+                            <div className="flex gap-2">
+                              {['All', 'Phone Parts', 'PC Components', 'Accessories'].map(cat => (
+                                <button 
+                                  key={cat}
+                                  onClick={() => setServiceInventorySearch(cat === 'All' ? '' : cat)}
+                                  className={`text-[8px] font-black uppercase px-3 py-1.5 rounded-full transition-all ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-400 hover:bg-gray-100'}`}
+                                >
+                                  {cat}
+                                </button>
+                              ))}
                             </div>
                           </div>
-                        </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
+                            {inventory
+                              .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || (item.category || '').toLowerCase().includes(serviceInventorySearch.toLowerCase()))
+                              .map(item => (
+                                <button
+                                  key={item.id}
+                                  onClick={() => {
+                                    const existing = serviceCart.find(c => c.id === item.id);
+                                    if (existing) {
+                                      setServiceCart(serviceCart.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c));
+                                    } else {
+                                      setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: item.sellPrice, quantity: 1, type: 'part' }]);
+                                    }
+                                  }}
+                                  className="bg-white p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-3 text-left"
+                                >
+                                  <div className="bg-gray-50 aspect-square rounded-2xl overflow-hidden relative">
+                                    {item.photo ? (
+                                      <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                        <Package size={24} />
+                                      </div>
+                                    )}
+                                    <div className="absolute top-2 right-2 px-2 py-1 bg-white/80 backdrop-blur-md rounded-lg text-[8px] font-black">
+                                       STOCK: {item.quantity || 0}
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <h4 className="text-xs font-black text-gray-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
+                                    <div className="flex justify-between items-end">
+                                      <p className="text-sm font-black text-indigo-600 font-mono">{formatCurrency(item.sellPrice)}</p>
+                                      <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                        <Plus size={14} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        </section>
                       </div>
                     </div>
 
-                    {/* Right Column: Cart & Checkout */}
-                    <div className="lg:col-span-4">
-                      <div className="bg-slate-900 rounded-[2.5rem] shadow-2xl flex flex-col h-[600px] border border-white/5 relative overflow-hidden">
-                        <div className="p-8 border-b border-white/5 flex-shrink-0">
-                          <h3 className="text-white text-lg font-black uppercase tracking-widest flex items-center justify-between">
-                            {t('cart') || 'Cart'}
-                            <span className="bg-blue-600 text-[10px] px-3 py-1 rounded-full">{serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)} {t('items')}</span>
-                          </h3>
+                    {/* Right Side: Cart Sidebar (Fixed) */}
+                    <div className="w-full lg:w-[420px] bg-white border-l border-gray-200 flex flex-col h-full z-20 shadow-[-10px_0_30px_rgba(0,0,0,0.02)]">
+                      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-30">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                            <ShoppingCart size={20} />
+                          </div>
+                          <h3 className="font-black text-lg uppercase tracking-tight">{t('currentBill')}</h3>
                         </div>
+                        <span className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg shadow-blue-200">
+                          {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)} ITEMS
+                        </span>
+                      </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar-dark">
-                          {serviceCart.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-4">
-                              <ShoppingBag size={48} className="opacity-20" />
-                              <p className="text-xs font-black uppercase tracking-widest">{t('cartEmpty')}</p>
+                      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                        {serviceCart.length === 0 ? (
+                          <div className="h-full flex flex-col items-center justify-center text-gray-300 p-8 text-center opacity-60">
+                            <div className="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mb-4 border border-dashed border-gray-200">
+                              <ShoppingBag size={32} className="opacity-20" />
                             </div>
-                          ) : (
-                            serviceCart.map((item, i) => (
-                              <div key={`${item.id}-${i}`} className="bg-white/5 rounded-2xl p-4 flex flex-col gap-3 group border border-transparent hover:border-white/10 transition-all">
+                            <p className="text-sm font-black uppercase tracking-widest text-gray-400">{t('cartEmpty')}</p>
+                            <p className="text-[10px] uppercase font-bold text-gray-300 mt-2">{t('selectItems')}</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {serviceCart.map((item, i) => (
+                              <div key={`${item.id}-${i}`} className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-3 group border border-transparent hover:border-blue-100 hover:bg-white hover:shadow-xl hover:shadow-blue-200/10 transition-all active:scale-[0.98]">
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
-                                    <h4 className="text-xs font-bold text-white">{item.name}</h4>
-                                    <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 tracking-widest">{item.type === 'service' ? 'Service/Labor' : 'Inventory Part'}</p>
+                                    <h4 className="text-[11px] font-black text-gray-800 uppercase tracking-tight leading-tight">{item.name}</h4>
+                                    <p className="text-[8px] text-gray-400 font-black uppercase mt-1 tracking-widest bg-white px-2 py-0.5 rounded-full inline-block border border-gray-100">{item.type === 'service' ? 'Maintenance Service' : 'Hardware Part'}</p>
                                   </div>
-                                  <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-slate-600 hover:text-red-400 p-1"><X size={14} /></button>
+                                  <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-gray-300 hover:text-rose-500 transition-colors p-1"><X size={16} /></button>
                                 </div>
-                                <div className="flex justify-between items-center bg-black/20 p-2 rounded-xl">
+                                <div className="flex justify-between items-center bg-white px-3 py-2 rounded-xl border border-gray-100">
                                   <div className="flex items-center gap-3">
                                     <button onClick={() => {
                                       const newCart = [...serviceCart];
@@ -6238,91 +6311,133 @@ export default function App() {
                                       } else {
                                         setServiceCart(serviceCart.filter((_, idx) => idx !== i));
                                       }
-                                    }} className="w-6 h-6 rounded-lg bg-white/5 text-slate-400 flex items-center justify-center hover:bg-white/10 transition-all"><Minus size={12} /></button>
-                                    <span className="text-xs font-mono font-bold text-white">{item.quantity}</span>
+                                    }} className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100"><Minus size={14} /></button>
+                                    <span className="text-xs font-black font-mono w-4 text-center">{item.quantity}</span>
                                     <button onClick={() => {
                                       const newCart = [...serviceCart];
                                       newCart[i].quantity += 1;
                                       setServiceCart(newCart);
-                                    }} className="w-6 h-6 rounded-lg bg-white/5 text-slate-400 flex items-center justify-center hover:bg-white/10 transition-all"><Plus size={12} /></button>
+                                    }} className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100"><Plus size={14} /></button>
                                   </div>
-                                  <p className="text-xs font-black text-white">{formatCurrency(item.sellPrice * item.quantity)}</p>
+                                  <p className="text-sm font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(item.sellPrice * item.quantity)}</p>
                                 </div>
                               </div>
-                            ))
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
-                        <div className="p-8 bg-black/30 border-t border-white/5 flex-shrink-0 space-y-4">
+                      <div className="p-6 bg-white border-t border-gray-100 space-y-6">
+                        <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">{t('totalCost')}</span>
-                            <span className="text-2xl font-black text-white">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                            <span className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em]">{t('subtotal')}</span>
+                            <span className="text-sm font-black text-gray-400 font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
                           </div>
-                          
-                          <div className="grid grid-cols-2 gap-3">
-                            <button 
-                              onClick={async () => {
-                                if (serviceCart.length === 0) return;
-                                try {
-                                  const total = serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0);
-                                  const invData = {
-                                    invoiceId: `SRV-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-                                    type: 'service_pos',
-                                    client: 'Service Customer',
-                                    date: new Date().toLocaleDateString(),
-                                    items: serviceCart,
-                                    amount: total,
-                                    paymentMethod: 'Cash',
-                                    soldBy: user.email,
-                                    location: 'Repair Shop',
-                                    userId: user.uid,
-                                    createdAt: serverTimestamp()
-                                  };
-                                  await addDoc(collection(db, 'sales'), invData);
-                                  handlePrintInvoice(invData, 'Service Invoice');
-                                  setServiceCart([]);
-                                  alert('Sale Completed!');
-                                } catch (e) { console.error(e); }
-                              }}
-                              className="bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black uppercase tracking-[0.1em] text-[10px] shadow-xl shadow-blue-900/40 transition-all active:scale-95 flex items-center justify-center gap-2"
-                            >
-                              <Printer size={16} /> Thermal
-                            </button>
-                            <button 
-                              onClick={async () => {
-                                if (serviceCart.length === 0) return;
-                                try {
-                                  const total = serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0);
-                                  const invData = {
-                                    invoiceId: `SRV-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-                                    type: 'service_pos',
-                                    client: 'Service Customer',
-                                    date: new Date().toLocaleDateString(),
-                                    items: serviceCart,
-                                    amount: total,
-                                    paymentMethod: 'Cash',
-                                    soldBy: user.email,
-                                    location: 'Repair Shop',
-                                    userId: user.uid,
-                                    createdAt: serverTimestamp()
-                                  };
-                                  await addDoc(collection(db, 'sales'), invData);
-                                  // This triggers A4 print using the main handler's print format preference
-                                  handlePrintInvoice(invData, 'A4 Service Invoice', 'A4');
-                                  setServiceCart([]);
-                                  alert('Sale Completed!');
-                                } catch (e) { console.error(e); }
-                              }}
-                              className="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-2xl font-black uppercase tracking-[0.1em] text-[10px] transition-all active:scale-95 flex items-center justify-center gap-2"
-                            >
-                              <FileText size={16} /> A4 Paper
-                            </button>
+                          <div className="flex justify-between items-center pt-2">
+                            <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{t('totalCost')}</span>
+                            <span className="text-3xl font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
                           </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <button 
+                            onClick={async () => {
+                              if (serviceCart.length === 0) return;
+                              const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                              const total = serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0);
+                              const invData = {
+                                invoiceId: currentId,
+                                type: 'service_pos',
+                                client: 'Service Customer',
+                                date: new Date().toLocaleDateString(),
+                                items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
+                                amount: total,
+                                paymentMethod: 'Cash',
+                                soldBy: user.email,
+                                location: 'Repair Shop',
+                                userId: user.uid,
+                                createdAt: serverTimestamp()
+                              };
+                              try {
+                                const saleRef = await addDoc(collection(db, 'sales'), invData);
+                                
+                                // Decrement Stock for inventory items
+                                const batch = writeBatch(db);
+                                serviceCart.forEach(item => {
+                                  if (item.type === 'part') {
+                                    const invItem = inventory.find(i => i.id === item.id);
+                                    if (invItem) {
+                                      batch.update(doc(db, 'inventory', item.id), { 
+                                        quantity: Number(invItem.quantity) - Number(item.quantity) 
+                                      });
+                                    }
+                                  }
+                                });
+                                await batch.commit();
+
+                                handlePrintInvoice({ ...invData, id: saleRef.id }, 'Service Invoice', 'Thermal');
+                                setServiceCart([]);
+                                alert('Sale Completed!');
+                              } catch (e) { console.error(e); }
+                            }}
+                            className="group relative bg-[#1e293b] hover:bg-black text-white py-5 rounded-[2rem] transition-all active:scale-95 shadow-2xl shadow-slate-200 overflow-hidden"
+                          >
+                            <div className="relative z-10 flex flex-col items-center gap-1">
+                              <Printer size={18} />
+                              <span className="text-[10px] font-black uppercase tracking-widest">Thermal</span>
+                            </div>
+                          </button>
+                          <button 
+                            onClick={async () => {
+                              if (serviceCart.length === 0) return;
+                              const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                              const total = serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0);
+                              const invData = {
+                                invoiceId: currentId,
+                                type: 'service_pos',
+                                client: 'Service Customer',
+                                date: new Date().toLocaleDateString(),
+                                items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
+                                amount: total,
+                                paymentMethod: 'Cash',
+                                soldBy: user.email,
+                                location: 'Repair Shop',
+                                userId: user.uid,
+                                createdAt: serverTimestamp()
+                              };
+                              try {
+                                const saleRef = await addDoc(collection(db, 'sales'), invData);
+                                
+                                // Decrement Stock for inventory items
+                                const batch = writeBatch(db);
+                                serviceCart.forEach(item => {
+                                  if (item.type === 'part') {
+                                    const invItem = inventory.find(i => i.id === item.id);
+                                    if (invItem) {
+                                      batch.update(doc(db, 'inventory', item.id), { 
+                                        quantity: Number(invItem.quantity) - Number(item.quantity) 
+                                      });
+                                    }
+                                  }
+                                });
+                                await batch.commit();
+
+                                handlePrintInvoice({ ...invData, id: saleRef.id }, 'A4 Service Invoice', 'A4');
+                                setServiceCart([]);
+                                alert('Sale Completed!');
+                              } catch (e) { console.error(e); }
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-[2rem] transition-all active:scale-95 shadow-2xl shadow-blue-100 flex flex-col items-center gap-1"
+                          >
+                            <FileText size={18} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">A4 Pro</span>
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
+
 
                 {/* Sub Tab: NEW TICKET */}
                 {serviceSubTab === 'new' && (
