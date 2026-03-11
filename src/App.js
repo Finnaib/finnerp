@@ -71,7 +71,8 @@ import {
   Hammer,
   UserPlus,
   Smartphone as MobileIcon,
-  Activity
+  Activity,
+  ShoppingBag
 } from 'lucide-react';
 import { auth, db, storage } from './firebase'; // Firebase
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
