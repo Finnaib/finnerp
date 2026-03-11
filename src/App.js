@@ -2032,17 +2032,12 @@ export default function App() {
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         
-        ${invoiceData.type !== 'service' && invoiceData.type !== 'service_pos' ? `
+        ${invoiceData.type !== 'service' && invoiceData.type !== 'service_pos' && invoiceData.type !== 'cafe' ? `
         <div class="big-id">
           <span class="big-id-label">${(invoiceData.type === 'sale' ? t('orderNumber') : '').toUpperCase()}</span>
           ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
         </div>
-        ` : `
-        <div class="big-id">
-          <span class="big-id-label">ID</span>
-          ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
-        </div>
-        `}
+        ` : ''}
 
         <div class="invoice-title">${t('retailInvoice')}</div>
 
@@ -5026,60 +5021,6 @@ export default function App() {
                       <div className="flex justify-between items-center text-xs text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <span className="font-bold">{t('subtotal')}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const tid = prompt('Search Repair Ticket (ID or Phone):');
-                              if (tid) {
-                                const ticket = serviceTickets.find(t => 
-                                  t.id.toUpperCase().includes(tid.toUpperCase()) || 
-                                  t.customerPhone === tid
-                                );
-                                if (ticket) {
-                                  if (cart.some(i => i.id === 'SRV-' + ticket.id)) {
-                                    alert('Repair already in cart!');
-                                  } else {
-                                    setCart([...cart, {
-                                      id: 'SRV-' + ticket.id,
-                                      name: `Repair: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`,
-                                      sellPrice: Number(ticket.estimatedCost),
-                                      quantity: 1,
-                                      type: 'service'
-                                    }]);
-                                  }
-                                } else {
-                                  alert('Repair ticket not found!');
-                                }
-                              }
-                            }}
-                            className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all border border-indigo-100 flex items-center gap-1"
-                            title="Add Repair Ticket to Cart"
-                          >
-                            <Wrench size={10} /> {t('addRepair') || 'Repair'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const name = prompt('Custom Item Name:');
-                              if (name) {
-                                const price = prompt('Enter Price:');
-                                if (price) {
-                                  setCart([...cart, {
-                                    id: 'manual-' + Date.now(),
-                                    name: name,
-                                    sellPrice: Number(price),
-                                    quantity: 1,
-                                    type: 'manual'
-                                  }]);
-                                }
-                              }
-                            }}
-                            className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100 flex items-center gap-1"
-                            title="Add Custom Manual Item"
-                          >
-                            <Plus size={10} /> {t('custom') || 'Custom'}
-                          </button>
-                        </div>
                         <span className="font-mono">{formatCurrency(calculateTotal())}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs text-gray-500">
@@ -6172,7 +6113,7 @@ export default function App() {
                                 <button
                                   key={ticket.id}
                                   onClick={() => {
-                                    const laborPrice = Math.max(0, Number(ticket.estimatedCost) - (ticket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0));
+                                    const laborPrice = Number(ticket.estimatedCost || 0);
                                     const items = [
                                       { id: 'SRV-'+ticket.id + '-LB', name: `Repair Labor: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
                                       ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
@@ -6262,6 +6203,23 @@ export default function App() {
                                   </div>
                                 </button>
                               ))}
+                            <button
+                              onClick={() => {
+                                const name = prompt('Custom Item Name:');
+                                if (name) {
+                                  const price = prompt('Price:');
+                                  if (price) {
+                                    setServiceCart([...serviceCart, { id: 'man-'+Date.now(), name: name, sellPrice: Number(price), quantity: 1, type: 'part' }]);
+                                  }
+                                }
+                              }}
+                              className="bg-white p-4 rounded-[1.5rem] border-2 border-dashed border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all active:scale-95 group flex flex-col items-center justify-center gap-2 text-center"
+                            >
+                              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <Plus size={20} />
+                              </div>
+                              <p className="text-[10px] font-black uppercase text-gray-400 group-hover:text-blue-600">Custom Item</p>
+                            </button>
                           </div>
                         </section>
                       </div>
@@ -6327,13 +6285,70 @@ export default function App() {
                         )}
                       </div>
 
-                      <div className="p-6 bg-white border-t border-gray-100 space-y-6">
-                        <div className="space-y-2">
+                      <div className="p-6 bg-white border-t border-gray-100 space-y-4 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+                        {/* Service POS Checkout Form - Match Sales Sidebar */}
+                        <div className="space-y-3">
+                          {/* Sales Employee Selection */}
+                          <button
+                            onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
+                            className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-2xl border border-blue-100 transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200">
+                                <User size={16} />
+                              </div>
+                              <div className="text-left">
+                                <p className="text-[8px] text-blue-500 font-black uppercase tracking-[0.1em]">{t('salesEmployee')}</p>
+                                <p className="text-xs font-black text-gray-900 uppercase">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</p>
+                              </div>
+                            </div>
+                            <ChevronRight size={16} className="text-blue-300 group-hover:translate-x-1 transition-transform" />
+                          </button>
+
+                          {/* Order Type Toggle */}
+                          <div className="flex bg-gray-50 p-1 rounded-2xl border border-gray-100">
+                            {['Walk-in', 'Takeaway'].map(type => (
+                              <button
+                                key={type}
+                                onClick={() => setOrderType(type)}
+                                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${orderType === type ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                              >
+                                {t(type.toLowerCase()) || type}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Customer Info */}
+                          <div className="relative group">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                            <input
+                              className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500 transition-all"
+                              placeholder={t('customerNameOptional') || 'Customer Name'}
+                              value={newSaleForm.customer}
+                              onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
+                            />
+                          </div>
+
+                          {/* Payment Methods */}
+                          <div className="grid grid-cols-3 gap-2">
+                            {['Cash', 'Visa', 'Online'].map(method => (
+                              <button
+                                key={method}
+                                onClick={() => setPaymentMethod(method)}
+                                className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-gray-50 text-gray-400 border-gray-100 hover:border-gray-300'}`}
+                              >
+                                {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-4 border-t border-gray-50 pt-4">
                           <div className="flex justify-between items-center">
                             <span className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em]">{t('subtotal')}</span>
                             <span className="text-sm font-black text-gray-400 font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
                           </div>
-                          <div className="flex justify-between items-center pt-2">
+                          <div className="flex justify-between items-center">
                             <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{t('totalCost')}</span>
                             <span className="text-3xl font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
                           </div>
@@ -6344,90 +6359,78 @@ export default function App() {
                             onClick={async () => {
                               if (serviceCart.length === 0) return;
                               const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-                              const total = serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0);
+                              const total = serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0);
                               const invData = {
                                 invoiceId: currentId,
                                 type: 'service_pos',
-                                client: 'Service Customer',
+                                client: newSaleForm.customer || 'Service Customer',
                                 date: new Date().toLocaleDateString(),
                                 items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
                                 amount: total,
-                                paymentMethod: 'Cash',
-                                soldBy: user.email,
+                                paymentMethod: paymentMethod,
+                                soldBy: salesEmployee ? salesEmployee.name : user.email,
                                 location: 'Repair Shop',
                                 userId: user.uid,
-                                createdAt: serverTimestamp()
+                                createdAt: serverTimestamp(),
+                                orderType: orderType
                               };
                               try {
                                 const saleRef = await addDoc(collection(db, 'sales'), invData);
-                                
-                                // Decrement Stock for inventory items
                                 const batch = writeBatch(db);
                                 serviceCart.forEach(item => {
                                   if (item.type === 'part') {
                                     const invItem = inventory.find(i => i.id === item.id);
-                                    if (invItem) {
-                                      batch.update(doc(db, 'inventory', item.id), { 
-                                        quantity: Number(invItem.quantity) - Number(item.quantity) 
-                                      });
-                                    }
+                                    if (invItem) { batch.update(doc(db, 'inventory', item.id), { quantity: Number(invItem.quantity) - Number(item.quantity) }); }
                                   }
                                 });
                                 await batch.commit();
-
-                                handlePrintInvoice({ ...invData, id: saleRef.id }, 'Service Invoice', 'Thermal');
+                                handlePrintInvoice({ ...invData, id: saleRef.id }, 'Service Receipt', 'Thermal');
                                 setServiceCart([]);
+                                setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
                                 alert('Sale Completed!');
                               } catch (e) { console.error(e); }
                             }}
-                            className="group relative bg-[#1e293b] hover:bg-black text-white py-5 rounded-[2rem] transition-all active:scale-95 shadow-2xl shadow-slate-200 overflow-hidden"
+                            className="bg-slate-900 hover:bg-black text-white py-5 rounded-[2rem] transition-all active:scale-95 shadow-xl shadow-slate-200 flex flex-col items-center gap-1"
                           >
-                            <div className="relative z-10 flex flex-col items-center gap-1">
-                              <Printer size={18} />
-                              <span className="text-[10px] font-black uppercase tracking-widest">Thermal</span>
-                            </div>
+                            <Printer size={18} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Thermal</span>
                           </button>
                           <button 
                             onClick={async () => {
                               if (serviceCart.length === 0) return;
                               const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-                              const total = serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0);
+                              const total = serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0);
                               const invData = {
                                 invoiceId: currentId,
                                 type: 'service_pos',
-                                client: 'Service Customer',
+                                client: newSaleForm.customer || 'Service Customer',
                                 date: new Date().toLocaleDateString(),
                                 items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
                                 amount: total,
-                                paymentMethod: 'Cash',
-                                soldBy: user.email,
+                                paymentMethod: paymentMethod,
+                                soldBy: salesEmployee ? salesEmployee.name : user.email,
                                 location: 'Repair Shop',
                                 userId: user.uid,
-                                createdAt: serverTimestamp()
+                                createdAt: serverTimestamp(),
+                                orderType: orderType
                               };
                               try {
                                 const saleRef = await addDoc(collection(db, 'sales'), invData);
-                                
-                                // Decrement Stock for inventory items
                                 const batch = writeBatch(db);
                                 serviceCart.forEach(item => {
                                   if (item.type === 'part') {
                                     const invItem = inventory.find(i => i.id === item.id);
-                                    if (invItem) {
-                                      batch.update(doc(db, 'inventory', item.id), { 
-                                        quantity: Number(invItem.quantity) - Number(item.quantity) 
-                                      });
-                                    }
+                                    if (invItem) { batch.update(doc(db, 'inventory', item.id), { quantity: Number(invItem.quantity) - Number(item.quantity) }); }
                                   }
                                 });
                                 await batch.commit();
-
-                                handlePrintInvoice({ ...invData, id: saleRef.id }, 'A4 Service Invoice', 'A4');
+                                handlePrintInvoice({ ...invData, id: saleRef.id }, 'Service Invoice', 'A4');
                                 setServiceCart([]);
+                                setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
                                 alert('Sale Completed!');
                               } catch (e) { console.error(e); }
                             }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-[2rem] transition-all active:scale-95 shadow-2xl shadow-blue-100 flex flex-col items-center gap-1"
+                            className="bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-[2rem] transition-all active:scale-95 shadow-xl shadow-blue-100 flex flex-col items-center gap-1"
                           >
                             <FileText size={18} />
                             <span className="text-[10px] font-black uppercase tracking-widest">A4 Pro</span>
