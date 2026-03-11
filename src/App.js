@@ -524,15 +524,6 @@ export default function App() {
     });
   }, [user]);
 
-  // Firestore: Service Inventory (Real-time)
-  useEffect(() => {
-    if (!user) return;
-    const q = query(collection(db, 'serviceInventory'), where('userId', '==', user.uid));
-    return onSnapshot(q, (snapshot) => {
-      setServiceInventory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-  }, [user]);
-
   // --- PIN Modal Keyboard Support ---
   useEffect(() => {
     if (!isPinModalOpen) return;
@@ -1659,7 +1650,28 @@ export default function App() {
     e.preventDefault();
     if (!user || !pendingRoom) return;
     try {
+      let sessionNo = 'S-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      try {
+        sessionNo = await runTransaction(db, async (transaction) => {
+          const counterRef = doc(db, 'counters', 'daily_cafe');
+          const counterDoc = await transaction.get(counterRef);
+          const today = new Date().toISOString().split('T')[0];
+
+          let data = counterDoc.exists() ? counterDoc.data() : { date: today };
+          if (data.date !== today) {
+            data = { date: today };
+          }
+
+          const count = (data['session_count'] || 0) + 1;
+          data['session_count'] = count;
+
+          transaction.set(counterRef, data);
+          return `S-${count.toString().padStart(4, '0')}`;
+        });
+      } catch (e) { console.error("Cafe counter failed", e); }
+
       await addDoc(collection(db, 'cafeSessions'), {
+        sessionId: sessionNo,
         roomId: pendingRoom.id,
         roomName: pendingRoom.name,
         roomType: pendingRoom.type,
@@ -1702,7 +1714,7 @@ export default function App() {
       });
 
       const saleData = {
-        invoiceId: 'CAFE-' + Date.now().toString().slice(-6),
+        invoiceId: session.sessionId || ('CAFE-' + Date.now().toString().slice(-6)),
         orderType: 'Dine-in',
         paymentMethod: 'Cash',
         customer: session.roomName,
@@ -2008,6 +2020,7 @@ export default function App() {
           <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
           <p><strong>${t('time')}:</strong> ${printTime}</p>
           <p><strong>${invoiceData.client || invoiceData.customer || t('customer')}</strong></p>
+          <p><strong>${t('orderNumber') || 'Order Number'}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
           <p><strong>${t('billNo')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
           <p><strong>${t('paymentMode')}:</strong> ${printPaymentMethod}</p>
         </div>
@@ -2072,112 +2085,112 @@ export default function App() {
       </div>
         `;
       } else {
-        // A4 Format
+        // A4 Format (Improved Professional Layout)
         return `
       <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
         ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
         
-        <div class="header">
+        <div class="header" style="border-bottom: 4px solid #1e293b; padding-bottom: 15px; margin-bottom: 25px;">
           <div class="brand">
-            <div class="title">${printName}</div>
-            <div class="subtitle">${printAddress}</div>
-            <div class="subtitle">${t('phone')}: ${printPhone}</div>
-            <div class="sold-by">${invoiceData.soldBy || 'Admin'}</div>
+            <div class="title" style="font-size: 28px; color: #1e293b; letter-spacing: -0.5px;">${printName}</div>
+            <div class="subtitle" style="font-size: 13px; font-weight: bold; color: #475569; margin-top: 4px;">${printAddress}</div>
+            <div class="subtitle" style="font-size: 13px; color: #64748b;">${t('phone')}: ${printPhone}</div>
           </div>
           <div class="invoice-info">
-            <h2>${t('invoice')}</h2>
-            <table>
-              <tr><td>${t('date').toUpperCase()}</td><td>${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
-              <tr><td>${t('time').toUpperCase()}</td><td>${printTime}</td></tr>
-              <tr><td>${t('invoice').toUpperCase()} #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
-              <tr><td>${t('customerId').toUpperCase()}</td><td>${invoiceData.customerId || '123'}</td></tr>
-              <tr><td>${t('paymentMode').toUpperCase()}</td><td>${printPaymentMethod}</td></tr>
+            <h2 style="font-size: 42px; color: #e2e8f0; margin-bottom: 10px;">${t('invoice')}</h2>
+            <table style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('date').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
+              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('invoice').toUpperCase()} #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
+              ${invoiceData.sessionId ? `<tr><td style="background: #f8fafc; border: none; font-size: 10px;">SESSION #</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.sessionId}</td></tr>` : ''}
+              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('paymentMode').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${printPaymentMethod}</td></tr>
             </table>
           </div>
         </div>
 
-        <div class="bill-to">${t('billTo')}</div>
-        <div class="bill-to-content">
-          <strong>${invoiceData.client || invoiceData.customer || 'Customer Name'}</strong>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+          <div style="flex: 1;">
+            <div class="bill-to" style="background: #1e293b; border-radius: 4px; padding: 6px 15px; margin-bottom: 10px;">${t('billTo')}</div>
+            <div class="bill-to-content" style="padding: 0 15px;">
+              <div style="font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 4px;">${invoiceData.client || invoiceData.customer || 'Customer Name'}</div>
+              <div style="font-size: 12px; color: #64748b;">${invoiceData.customerPhone || ''}</div>
+              <div style="font-size: 11px; color: #64748b; margin-top: 4px; font-style: italic;">ID: ${invoiceData.customerId || 'GEN-102'}</div>
+            </div>
+          </div>
+          <div style="width: 180px; text-align: right;">
+             ${(invoiceData.paymentMethod === 'Online') ? (() => {
+            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
+            const payId = subMethod === 'InstaPay' ? shopSettings.instapayId : shopSettings.upiId;
+            if (!payId) return '';
+            const expiryTime = Date.now() + 600000;
+            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&id=${payId}&method=${subMethod}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
+            return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(payUrl)}" style="width: 80px; height: 80px; border: 1px solid #f1f5f9; padding: 5px; border-radius: 8px;" />
+                    <p style="font-size: 8px; font-weight: bold; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Scan to Pay Online</p>`;
+          })() : ''}
+          </div>
         </div>
 
-        <table class="items">
-          <thead>
+        <table class="items" style="margin-top: 10px;">
+          <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
             <tr>
-              <th>${t('description')}</th>
-              <th class="center">${t('taxed')}</th>
-              <th class="right">${t('amount')}</th>
+              <th style="color: #475569; padding: 14px 15px; width: 60%;">${t('description')}</th>
+              <th class="center" style="color: #475569; padding: 14px 15px;">${t('qty')}</th>
+              <th class="right" style="color: #475569; padding: 14px 15px;">${t('amount')}</th>
             </tr>
           </thead>
           <tbody>
             ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
             <tr>
-              <td>${item.name}</td>
-              <td class="center">X</td>
-              <td class="right">${formatCurrency((item.price || 0) * (item.qty || item.quantity || 1))}</td>
+              <td style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: 500;">
+                 ${item.name}
+                 ${item.serial ? `<div style="font-size: 9px; color: #94a3b8; font-family: monospace;">SN: ${item.serial}</div>` : ''}
+              </td>
+              <td class="center" style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #64748b;">${item.qty || item.quantity || 1}</td>
+              <td class="right" style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b;">${formatCurrency((item.price || 0) * (item.qty || item.quantity || 1))}</td>
             </tr>
-            `).join('') : `<tr><td colspan="3">${invoiceData.items}</td></tr>`}
+            `).join('') : `<tr><td colspan="3" style="padding: 12px 15px; text-align: center; color: #94a3b8;">${invoiceData.items}</td></tr>`}
           </tbody>
         </table>
 
-        <div class="totals-section">
-          <div class="comments">
-            <div class="comments-title">${t('comments')}</div>
-            <div class="comments-content">
-              ${t('paymentTerms') || '1. Total payment due in 30 days'}<br>
-              ${t('includeInvoiceNumber') || '2. Please include the invoice number on your check'}
+        <div class="totals-section" style="margin-top: 40px;">
+          <div class="comments" style="background: #f8fafc; border-radius: 12px; border: 1px dashed #e2e8f0;">
+            <div class="comments-title" style="background: none; color: #475569; font-size: 11px;">${t('notes') || 'NOTES / REMARKS'}</div>
+            <div class="comments-content" style="border: none; font-size: 10px; color: #64748b;">
+              ${invoiceData.notes || t('thankYou')}
+              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f5f9;">
+                ${t('soldBy')}: <strong>${invoiceData.soldBy || 'Admin'}</strong>
+              </div>
             </div>
           </div>
           <div class="totals">
             <div class="totals-row">
-              <span>${t('subtotal')}</span>
-              <span>${formatCurrency(subtotal)}</span>
+              <span style="color: #94a3b8;">${t('subtotal')}</span>
+              <span style="font-weight: 600;">${formatCurrency(subtotal)}</span>
             </div>
             ${(invoiceData.discount > 0) ? `
             <div class="totals-row">
-              <span>${t('discount') || 'Discount'}</span>
-              <span>-${formatCurrency(invoiceData.discount)}</span>
+              <span style="color: #94a3b8;">${t('discount') || 'Discount'}</span>
+              <span style="color: #ef4444; font-weight: 600;">-${formatCurrency(invoiceData.discount)}</span>
             </div>` : ''}
-            <div class="totals-row">
-              <span>${t('taxVAT')}</span>
-              <span>${formatCurrency(tax)}</span>
-            </div>
-            <div class="totals-row">
-              <span>${t('taxRate')}</span>
-              <span>6.250%</span>
-            </div>
-            <div class="totals-row total">
-              <span>${t('total')}</span>
-              <span>${formatCurrency(total)}</span>
+            <div class="totals-row total" style="background: #1e293b; color: #fff; border: none; border-radius: 8px; margin-top: 10px; padding: 12px 15px;">
+              <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;">${t('total')}</span>
+              <span style="font-size: 18px;">${formatCurrency(total)}</span>
             </div>
           </div>
         </div>
 
-        <div class="footer">
-          <p>${t('makeChecksPayable')} <strong>${shopSettings.name}</strong></p>
-          <p>${t('contactQuestions')}</p>
-          <p>${shopSettings.name}, ${t('phone')}: ${shopSettings.phone}</p>
-          <p class="thank-you">${t('thankYou')}</p>
+        <div class="footer" style="position: absolute; bottom: 50px; left: 50px; right: 50px;">
+           <div style="display: flex; justify-content: space-between; border-top: 2px solid #f1f5f9; padding-top: 30px;">
+              <div style="text-align: left;">
+                 <p style="font-size: 9px; font-weight: bold; color: #94a3b8; margin-bottom: 40px;">AUTHORIZED SIGNATURE</p>
+                 <div style="width: 150px; height: 1px; background: #e2e8f0;"></div>
+              </div>
+              <div style="text-align: right;">
+                 <p style="font-size: 10px; font-weight: bold; color: #1e293b;">${shopSettings.name}</p>
+                 <p style="font-size: 9px; color: #64748b;">${shopSettings.phone} | ${shopSettings.address}</p>
+                 <p style="font-size: 9px; color: #94a3b8; margin-top: 8px;">THANK YOU FOR YOUR TRUST</p>
+              </div>
+           </div>
         </div>
-
-          ${(invoiceData.paymentMethod === 'Online') ? (() => {
-            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
-            const payId = subMethod === 'InstaPay' ? shopSettings.instapayId : shopSettings.upiId;
-
-            if (!payId) return '';
-
-            const expiryTime = Date.now() + 600000;
-            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&id=${payId}&method=${subMethod}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
-            const label = subMethod === 'UPI' ? t('payWithUPI') : t('payWithInstapay');
-
-            return `
-            <div style="position: absolute; bottom: 50px; left: 50px; text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(payUrl)}" style="width: 100px; height: 100px;" />
-              <p style="font-size: 9px; margin-top: 5px; font-weight: bold; color: #4a5f8f;">${label || 'Digital Payment'}</p>
-              <p style="font-size: 8px; color: #666; margin-top: 2px;">Valid for 10 mins</p>
-            </div>
-            `;
-          })() : ''}
       </div>
         `;
       }
@@ -6298,26 +6311,18 @@ export default function App() {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                      {serviceInventory
+                      {inventory
                         .filter(i => !serviceSearch || i.name?.toLowerCase().includes(serviceSearch.toLowerCase()))
                         .map(item => (
                           <div key={item.id} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col group relative">
-                            {item.stock <= item.minStock && <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse shadow-sm shadow-rose-200"></div>}
+                            {item.quantity <= (item.minStock || 5) && <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse shadow-sm shadow-rose-200"></div>}
                             <div className="flex justify-between items-start mb-4">
                               <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
                                 <Package size={20} />
                               </div>
-                              <div className="flex gap-1">
-                                <button onClick={() => { setEditingServiceInventory(item); setServiceInventoryForm(item); setIsServiceInventoryModalOpen(true); }} className="p-1.5 text-slate-300 hover:text-blue-600 transition-colors"><Edit size={14} /></button>
-                                <button onClick={async () => {
-                                  if (window.confirm('Delete this item?')) {
-                                    await deleteDoc(doc(db, 'serviceInventory', item.id));
-                                  }
-                                }} className="p-1.5 text-slate-300 hover:text-rose-600 transition-colors"><Trash2 size={14} /></button>
-                              </div>
                             </div>
                             <h4 className="text-xs font-black uppercase text-gray-900 tracking-tight line-clamp-2 min-h-[32px]">{item.name}</h4>
-                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1 mb-4">{item.category}</p>
+                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1 mb-4">{item.category || 'Part'}</p>
 
                             <div className="mt-auto space-y-3">
                               <div className="flex justify-between items-end">
@@ -6325,8 +6330,8 @@ export default function App() {
                                 <div className="text-sm font-black text-blue-600 font-mono">{formatCurrency(item.sellPrice)}</div>
                               </div>
                               <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100/50">
-                                <span className={`text-[9px] font-black uppercase tracking-widest ${item.stock <= item.minStock ? 'text-rose-500' : 'text-slate-400'}`}>{t('units')}</span>
-                                <span className="text-xs font-black tabular-nums">{item.stock}</span>
+                                <span className={`text-[9px] font-black uppercase tracking-widest ${item.quantity <= (item.minStock || 5) ? 'text-rose-500' : 'text-slate-400'}`}>{t('units')}</span>
+                                <span className="text-xs font-black tabular-nums">{item.quantity}</span>
                               </div>
                             </div>
                           </div>
@@ -6539,10 +6544,53 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('internalNotes') || 'Internal Technician Notes'}</label>
-                  <textarea className="input-field min-h-[60px] text-xs bg-slate-50 border-dashed" placeholder="Diagnoses details, parts used, etc..." value={editingTicket.notes || ''} onChange={e => setEditingTicket({ ...editingTicket, notes: e.target.value })}></textarea>
-                </div>
+                  <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest flex justify-between items-center">
+                      {t('partsUsed') || 'Spare Parts Used'}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const partId = prompt('Enter barcode or select part from inventory tab');
+                          if (partId) {
+                            const part = inventory.find(i => i.barcode === partId || i.id === partId);
+                            if (part) {
+                              setEditingTicket({
+                                ...editingTicket,
+                                partsUsed: [...(editingTicket.partsUsed || []), { id: part.id, name: part.name, price: part.sellPrice, quantity: 1 }]
+                              });
+                            } else {
+                              alert('Part not found in main inventory!');
+                            }
+                          }
+                        }}
+                        className="text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        <Plus size={12} /> {t('add')}
+                      </button>
+                    </label>
+                    <div className="space-y-2">
+                      {(editingTicket.partsUsed || []).map((part, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100 text-xs">
+                          <span className="font-bold text-gray-700">{part.name}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-blue-600 font-mono">{formatCurrency(part.price)}</span>
+                            <button
+                              onClick={() => setEditingTicket({ ...editingTicket, partsUsed: editingTicket.partsUsed.filter((_, i) => i !== idx) })}
+                              className="text-rose-400 hover:text-rose-600"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {(editingTicket.partsUsed || []).length === 0 && <p className="text-[10px] text-gray-400 italic text-center py-2">No parts linked yet</p>}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('internalNotes') || 'Internal Technician Notes'}</label>
+                    <textarea className="input-field min-h-[60px] text-xs bg-slate-50 border-dashed" placeholder="Diagnoses details, parts used, etc..." value={editingTicket.notes || ''} onChange={e => setEditingTicket({ ...editingTicket, notes: e.target.value })}></textarea>
+                  </div>
 
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest flex justify-between items-center">
@@ -6662,6 +6710,26 @@ export default function App() {
                   }} className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 font-bold border border-gray-200 transition-all flex items-center gap-2">
                     <Printer size={16} /> {t('print')}
                   </button>
+                  <button onClick={() => {
+                    // Professional Invoice Generation
+                    const invData = {
+                      invoiceId: `SRV-${editingTicket.id.slice(0, 6).toUpperCase()}`,
+                      client: editingTicket.customerName,
+                      customerPhone: editingTicket.customerPhone,
+                      date: new Date().toLocaleDateString(),
+                      items: [
+                        { name: `Repair: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.issue})`, price: Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0), quantity: 1 },
+                        ...(editingTicket.partsUsed || []).map(p => ({ name: `Part: ${p.name}`, price: p.price, quantity: p.quantity || 1 }))
+                      ],
+                      total: Number(editingTicket.estimatedCost),
+                      paymentMethod: editingTicket.paymentMethod || 'Cash',
+                      notes: `Device: ${editingTicket.brand} ${editingTicket.model}\nIssue: ${editingTicket.issue}\nStatus: ${editingTicket.status}`,
+                      soldBy: editingTicket.technician || 'Service Team'
+                    };
+                    handlePrintInvoice(invData, 'A4');
+                  }} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
+                    <Receipt size={16} /> {t('createInvoice') || 'Invoice'}
+                  </button>
                 </div>
                 <div className="flex gap-3">
                   <button type="button" onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="px-6 py-2.5 bg-white text-gray-700 rounded-xl hover:bg-gray-100 font-bold border border-gray-200 transition-all">{t('cancel')}</button>
@@ -6672,6 +6740,19 @@ export default function App() {
                       let newLogs = editingTicket.statusLogs || [];
                       if (origTicket && origTicket.status !== editingTicket.status) {
                         newLogs = [...newLogs, { status: editingTicket.status, date: new Date().toISOString(), by: user.email || 'System' }];
+
+                        // Deduct parts if delivered
+                        if (editingTicket.status === 'Delivered' && origTicket.status !== 'Delivered') {
+                          const batch = writeBatch(db);
+                          (editingTicket.partsUsed || []).forEach(part => {
+                            const invRef = doc(db, 'inventory', part.id);
+                            const currentInv = inventory.find(i => i.id === part.id);
+                            if (currentInv) {
+                              batch.update(invRef, { quantity: Number(currentInv.quantity) - (part.quantity || 1) });
+                            }
+                          });
+                          await batch.commit();
+                        }
                       }
                       await updateDoc(doc(db, 'serviceTickets', editingTicket.id), { ...editingTicket, statusLogs: newLogs });
                       setIsTicketModalOpen(false); setEditingTicket(null);
@@ -6758,10 +6839,17 @@ export default function App() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
+                const finalData = { 
+                  ...serviceInventoryForm, 
+                  quantity: Number(serviceInventoryForm.stock),
+                  updatedAt: serverTimestamp()
+                };
+                delete finalData.stock; // Use quantity instead of stock for main inventory compatibility
+
                 if (editingServiceInventory) {
-                  await updateDoc(doc(db, 'serviceInventory', editingServiceInventory.id), serviceInventoryForm);
+                  await updateDoc(doc(db, 'inventory', editingServiceInventory.id), finalData);
                 } else {
-                  await addDoc(collection(db, 'serviceInventory'), { ...serviceInventoryForm, userId: user.uid, createdAt: serverTimestamp() });
+                  await addDoc(collection(db, 'inventory'), { ...finalData, userId: user.uid, createdAt: serverTimestamp() });
                 }
                 setIsServiceInventoryModalOpen(false);
                 setEditingServiceInventory(null);
@@ -8764,7 +8852,7 @@ export default function App() {
         </div>
       )}
 
-    </div >
+    </div>
   );
 }
 
