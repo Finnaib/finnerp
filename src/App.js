@@ -6590,47 +6590,71 @@ export default function App() {
                   )}
                   <button onClick={() => {
                     const printWindow = window.open('', '_blank');
+                    if (!printWindow) {
+                      alert(t('allowPopups') || 'Please allow popups to print the receipt.');
+                      return;
+                    }
                     printWindow.document.write(`
                       <html>
                         <head>
                           <title>Repair Receipt #${editingTicket.id.slice(0, 6)}</title>
                           <style>
-                            body { font-family: 'Segoe UI', sans-serif; padding: 20px; color: #333; }
+                            body { font-family: 'Segoe UI', sans-serif; padding: 20px; color: #333; line-height: 1.5; }
                             .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
                             .details { margin-bottom: 20px; }
-                            .details div { margin-bottom: 5px; }
-                            .label { font-weight: bold; width: 120px; display: inline-block; }
-                            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 10px; }
-                            .id { font-family: monospace; font-weight: bold; }
+                            .details div { margin-bottom: 8px; font-size: 14px; }
+                            .label { font-weight: bold; width: 140px; display: inline-block; color: #666; }
+                            .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
+                            .id { font-family: monospace; font-weight: bold; color: #blue-600; }
+                            .qr-container { float: right; margin-top: -10px; border: 1px solid #eee; padding: 5px; border-radius: 8px; }
+                            @media print {
+                              body { padding: 0; }
+                              .no-print { display: none; }
+                            }
                           </style>
                         </head>
                         <body>
                           <div class="header">
-                            <div style="float: right; margin-top: -10px;">
-                              <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${editingTicket.id}" width="80" height="80" />
+                            <div class="qr-container">
+                              <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${editingTicket.id}" width="80" height="80" />
                             </div>
-                            <h2>REPAIR SHOP RECEIPT</h2>
-                            <div class="id">Ticket #${editingTicket.id.slice(0, 6)}</div>
+                            <h2 style="margin: 0; color: #1e293b;">REPAIR SHOP RECEIPT</h2>
+                            <div class="id" style="margin-top: 5px;">Ticket #${editingTicket.id.toUpperCase().slice(0, 10)}</div>
                             <div style="clear: both;"></div>
                           </div>
+                          
                           <div class="details">
                             <div><span class="label">Date:</span> ${new Date().toLocaleDateString()}</div>
-                            <div><span class="label">Customer:</span> ${editingTicket.customerName}</div>
-                            <div><span class="label">Phone:</span> ${editingTicket.customerPhone}</div>
-                            <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;" />
-                            <div><span class="label">Device:</span> ${editingTicket.brand} ${editingTicket.model}</div>
-                            <div><span class="label">Expected ID:</span> ${editingTicket.serialNo || 'N/A'}</div>
-                            <div><span class="label">Issue:</span> ${editingTicket.issue}</div>
-                            <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;" />
-                            <div><span class="label">Status:</span> ${editingTicket.status}</div>
-                            <div style="font-size: 1.2em; margin-top:10px;"><span class="label">Total Cost:</span> <strong>${formatCurrency(editingTicket.estimatedCost)}</strong></div>
-                            <div><span class="label">Payment:</span> ${editingTicket.paymentStatus} (${editingTicket.paymentMethod || 'Cash'})</div>
+                            <div><span class="label">Customer Name:</span> <strong>${editingTicket.customerName}</strong></div>
+                            <div><span class="label">Contact Number:</span> ${editingTicket.customerPhone}</div>
+                            <hr style="border:0; border-top:1px dashed #eee; margin:15px 0;" />
+                            
+                            <div style="background: #f8fafc; padding: 15px; rounded: 12px; border: 1px solid #f1f5f9;">
+                              <div><span class="label">Device:</span> ${editingTicket.brand} ${editingTicket.model}</div>
+                              <div><span class="label">Serial/IMEI:</span> <span class="id">${editingTicket.serialNo || 'N/A'}</span></div>
+                              <div><span class="label">Reported Issue:</span> ${editingTicket.issue}</div>
+                            </div>
+                            
+                            <hr style="border:0; border-top:1px dashed #eee; margin:15px 0;" />
+                            <div><span class="label">Current Status:</span> <span style="text-transform: uppercase; font-weight: 800; color: #2563eb;">${editingTicket.status}</span></div>
+                            <div style="font-size: 1.4em; margin-top:15px; color: #059669;"><span class="label">Estimated Total:</span> <strong>${formatCurrency(editingTicket.estimatedCost)}</strong></div>
+                            <div><span class="label">Payment Status:</span> ${editingTicket.paymentStatus} (${editingTicket.paymentMethod || 'Cash'})</div>
                           </div>
+
                           <div class="footer">
-                            <p>Thank you for choosing our service!</p>
-                            <p>For status verification, please call ${editingTicket.customerPhone}</p>
+                            <p><strong>Note:</strong> Please present this receipt for collection tracking.</p>
+                            <p>For inquiries, please contact us at ${shopSettings.phone || 'our support number'}</p>
+                            <p style="margin-top: 10px; font-weight: bold;">Thank you for your business!</p>
                           </div>
-                          <script>window.print(); window.close();</script>
+                          
+                          <script>
+                            window.onload = function() {
+                              setTimeout(function() {
+                                window.print();
+                                window.close();
+                              }, 500);
+                            };
+                          </script>
                         </body>
                       </html>
                     `);
