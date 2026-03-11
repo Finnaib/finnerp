@@ -1923,6 +1923,8 @@ export default function App() {
       /* Footer */
       .footer { text-align: center; font-size: 0.7em; margin-top: 15px; border-top: 1px dashed #000; padding-top: 8px; font-style: italic; }
       .copy-label { text-align: center; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.75em; border: 1px solid #000; display: inline-block; padding: 3px 8px; }
+      .big-id { font-size: 2.2em; font-weight: 900; text-align: center; margin: 12px 0; border: 2px solid #000; padding: 10px; background: #f9f9f9; letter-spacing: 2px; }
+      .big-id-label { font-size: 0.6em; font-weight: black; text-transform: uppercase; display: block; margin-bottom: 2px; letter-spacing: 1px; }
     ` : `
       @page { margin: 0; size: A4; }
       body { font-family: Arial, Helvetica, sans-serif; padding: 0; color: #333; margin: 0; background: #fff; }
@@ -2017,14 +2019,19 @@ export default function App() {
           <div class="subtitle">${printAddress} | ${printPhone}</div>
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
+        
+        <div class="big-id">
+          <span class="big-id-label">${(invoiceData.type === 'sale' ? t('orderNumber') : t('billNo')).toUpperCase()}</span>
+          ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
+        </div>
+
         <div class="invoice-title">${t('retailInvoice')}</div>
 
         <div class="details">
           <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
           <p><strong>${t('time')}:</strong> ${printTime}</p>
           <p><strong>${invoiceData.client || invoiceData.customer || t('customer')}</strong></p>
-          ${invoiceData.type === 'sale' ? `<p><strong>${t('orderNumber') || 'Order Number'}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>` : ''}
-          ${invoiceData.type !== 'sale' ? `<p><strong>${t('billNo')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>` : ''}
+          <p><strong>ID:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
           <p><strong>${t('paymentMode')}:</strong> ${printPaymentMethod}</p>
         </div>
 
@@ -2102,9 +2109,13 @@ export default function App() {
           <div class="invoice-info">
             <h2 style="font-size: 32px; color: #cbd5e1; margin-bottom: 5px; font-weight: 900; text-transform: uppercase; line-height: 1;">${invoiceData.type === 'service' ? (t('serviceInvoice') || 'SERVICE INVOICE') : t('invoice')}</h2>
             <div style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 10px; text-align: right;">${t('retailInvoice').toUpperCase()}</div>
+            <div style="background: #1e293b; color: #fff; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
+              <div style="font-size: 8px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin-bottom: 2px;">${(invoiceData.type === 'sale' ? t('orderNumber') : t('billNo')).toUpperCase()}</div>
+              <div style="font-size: 28px; font-weight: 900; letter-spacing: -1px;">${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}</div>
+            </div>
             <table style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; width: 100%;">
               <tr><td style="background: #f8fafc; border: none; font-size: 10px; width: 40%;">${t('date').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
-              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${(invoiceData.type === 'sale' ? t('orderNumber') : t('invoice')).toUpperCase()} #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
+              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">ID #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
               ${invoiceData.sessionId ? `<tr><td style="background: #f8fafc; border: none; font-size: 10px;">SESSION #</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.sessionId}</td></tr>` : ''}
               <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('paymentMode').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${printPaymentMethod}</td></tr>
             </table>
@@ -5928,7 +5939,7 @@ export default function App() {
                               { label: t('newTicket'), icon: <Wrench size={24} />, color: 'bg-blue-500', action: () => setServiceSubTab('new') },
                               { label: t('addCustomer'), icon: <UserPlus size={24} />, color: 'bg-indigo-500', action: () => { setServiceSubTab('customers'); setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); } },
                               { label: t('addStock'), icon: <Package size={24} />, color: 'bg-emerald-500', action: () => { setServiceSubTab('inventory'); setIsServiceInventoryModalOpen(true); } },
-                              { label: t('createInvoice'), icon: <FileText size={24} />, color: 'bg-purple-500', action: () => setActiveTab('sales_purchases') }
+                              { label: t('createInvoice'), icon: <FileText size={24} />, color: 'bg-indigo-600', action: () => { setOrderType('Walk-in'); setPosLocationFilter('Repair Shop'); setActiveTab('sales_purchases'); } }
                             ].map((btn, i) => (
                               <button
                                 key={i}
@@ -6554,16 +6565,20 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => {
-                          const partId = prompt('Enter barcode or select part from inventory tab');
-                          if (partId) {
-                            const part = inventory.find(i => i.barcode === partId || i.id === partId);
+                          const partSearch = prompt('Enter Item Name or Barcode to find in Warehouse:');
+                          if (partSearch) {
+                            const part = inventory.find(i => 
+                              i.name?.toLowerCase().includes(partSearch.toLowerCase()) || 
+                              i.barcode === partSearch || 
+                              i.id === partSearch
+                            );
                             if (part) {
                               setEditingTicket({
                                 ...editingTicket,
                                 partsUsed: [...(editingTicket.partsUsed || []), { id: part.id, name: part.name, price: part.sellPrice, quantity: 1 }]
                               });
                             } else {
-                              alert('Part not found in main inventory!');
+                              alert('Part not found in main warehouse inventory!');
                             }
                           }
                         }}
@@ -6641,104 +6656,31 @@ export default function App() {
                     </button>
                   )}
                   <button onClick={() => {
-                    const printWindow = window.open('', '_blank');
-                    if (!printWindow) {
-                      alert(t('allowPopups') || 'Please allow popups to print the receipt.');
-                      return;
-                    }
-                    printWindow.document.write(`
-                      <html>
-                        <head>
-                          <title>Repair Receipt #${editingTicket.id.slice(0, 6)}</title>
-                          <style>
-                            body { font-family: 'Segoe UI', sans-serif; padding: 20px; color: #333; line-height: 1.5; }
-                            .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-                            .details { margin-bottom: 20px; }
-                            .details div { margin-bottom: 8px; font-size: 14px; }
-                            .label { font-weight: bold; width: 140px; display: inline-block; color: #666; }
-                            .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
-                            .id { font-family: monospace; font-weight: bold; color: #blue-600; }
-                            .qr-container { float: right; margin-top: -10px; border: 1px solid #eee; padding: 5px; border-radius: 8px; }
-                            @media print {
-                              body { padding: 0; }
-                              .no-print { display: none; }
-                            }
-                          </style>
-                        </head>
-                        <body>
-                          <div class="header">
-                            <div class="qr-container">
-                              <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${editingTicket.id}" width="80" height="80" />
-                            </div>
-                            <h2 style="margin: 0; color: #1e293b;">REPAIR SHOP RECEIPT</h2>
-                            <div class="id" style="margin-top: 5px;">Ticket #${editingTicket.id.toUpperCase().slice(0, 10)}</div>
-                            <div style="clear: both;"></div>
-                          </div>
-                          
-                          <div class="details">
-                            <div><span class="label">Date:</span> ${new Date().toLocaleDateString()}</div>
-                            <div><span class="label">Customer Name:</span> <strong>${editingTicket.customerName}</strong></div>
-                            <div><span class="label">Contact Number:</span> ${editingTicket.customerPhone}</div>
-                            <hr style="border:0; border-top:1px dashed #eee; margin:15px 0;" />
-                            
-                            <div style="background: #f8fafc; padding: 15px; rounded: 12px; border: 1px solid #f1f5f9;">
-                              <div><span class="label">Device:</span> ${editingTicket.brand} ${editingTicket.model}</div>
-                              <div><span class="label">Serial/IMEI:</span> <span class="id">${editingTicket.serialNo || 'N/A'}</span></div>
-                              <div><span class="label">Reported Issue:</span> ${editingTicket.issue}</div>
-                            </div>
-                            
-                            <hr style="border:0; border-top:1px dashed #eee; margin:15px 0;" />
-                            <div><span class="label">Current Status:</span> <span style="text-transform: uppercase; font-weight: 800; color: #2563eb;">${editingTicket.status}</span></div>
-                            <div style="font-size: 1.4em; margin-top:15px; color: #059669;"><span class="label">Estimated Total:</span> <strong>${formatCurrency(editingTicket.estimatedCost)}</strong></div>
-                            <div><span class="label">Payment Status:</span> ${editingTicket.paymentStatus} (${editingTicket.paymentMethod || 'Cash'})</div>
-                          </div>
-
-                          <div class="footer">
-                            <p><strong>Note:</strong> Please present this receipt for collection tracking.</p>
-                            <p>For inquiries, please contact us at ${shopSettings.phone || 'our support number'}</p>
-                            <p style="margin-top: 10px; font-weight: bold;">Thank you for your business!</p>
-                          </div>
-                          
-                          <script>
-                            window.onload = function() {
-                              setTimeout(function() {
-                                window.print();
-                                window.close();
-                              }, 500);
-                            };
-                          </script>
-                        </body>
-                      </html>
-                    `);
-                    printWindow.document.close();
-                  }} className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 font-bold border border-gray-200 transition-all flex items-center gap-2">
-                    <Printer size={16} /> {t('print')}
-                  </button>
-                  <button onClick={() => {
-                    // Professional Invoice Generation
+                    // Unified Professional Invoice Generation & Print
                     const invData = {
-                      invoiceId: `SRV-${editingTicket.id.slice(0, 6).toUpperCase()}`,
+                      invoiceId: editingTicket.id.startsWith('SRV-') ? editingTicket.id : `SRV-${editingTicket.id.slice(0, 6).toUpperCase()}`,
                       type: 'service',
                       client: editingTicket.customerName,
                       customerPhone: editingTicket.customerPhone,
                       date: new Date().toLocaleDateString(),
                       items: [
                         { name: `Repair: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.issue})`, price: Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0), quantity: 1 },
-                        ...(editingTicket.partsUsed || []).map(p => ({ name: `Part: ${p.name}`, price: p.price, quantity: p.quantity || 1 }))
+                        ...(editingTicket.partsUsed || []).map(p => ({ name: `Part: ${p.name}`, price: p.price, quantity: p.quantity, id: p.id }))
                       ],
                       amount: Number(editingTicket.estimatedCost),
                       paymentMethod: editingTicket.paymentMethod || 'Cash',
                       notes: `Device: ${editingTicket.brand} ${editingTicket.model}\nIssue: ${editingTicket.issue}\nStatus: ${editingTicket.status}`,
                       soldBy: editingTicket.technician || 'Service Team',
-                      location: 'Service Shop',
+                      location: 'Repair Shop',
                       userId: user.uid,
                       createdAt: serverTimestamp()
                     };
-                    // Save to sales for tracking
+                    // Save to sales record
                     addDoc(collection(db, 'sales'), invData);
-                    handlePrintInvoice(invData, 'A4');
-                  }} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
-                    <FileText size={16} /> {t('createInvoice') || 'Invoice'}
+                    // Print using main handler (A4 or Thermal based on user settings)
+                    handlePrintInvoice(invData, printFormat === 'Thermal' ? 'Service Receipt' : 'A4');
+                  }} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-black font-black uppercase tracking-widest text-[11px] transition-all shadow-lg flex items-center gap-2">
+                    <Printer size={16} /> {t('printInvoice') || 'Print Invoice'}
                   </button>
                 </div>
                 <div className="flex gap-3">
