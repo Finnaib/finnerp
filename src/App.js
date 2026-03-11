@@ -2100,10 +2100,11 @@ export default function App() {
             <div class="subtitle" style="font-size: 13px; color: #64748b;">${t('phone')}: ${printPhone}</div>
           </div>
           <div class="invoice-info">
-            <h2 style="font-size: 42px; color: #e2e8f0; margin-bottom: 10px;">${t('invoice')}</h2>
-            <table style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('date').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
-              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('invoice').toUpperCase()} #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
+            <h2 style="font-size: 32px; color: #cbd5e1; margin-bottom: 5px; font-weight: 900; text-transform: uppercase; line-height: 1;">${invoiceData.type === 'service' ? (t('serviceInvoice') || 'SERVICE INVOICE') : t('invoice')}</h2>
+            <div style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 10px; text-align: right;">${t('retailInvoice').toUpperCase()}</div>
+            <table style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; width: 100%;">
+              <tr><td style="background: #f8fafc; border: none; font-size: 10px; width: 40%;">${t('date').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
+              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${(invoiceData.type === 'sale' ? t('orderNumber') : t('invoice')).toUpperCase()} #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
               ${invoiceData.sessionId ? `<tr><td style="background: #f8fafc; border: none; font-size: 10px;">SESSION #</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.sessionId}</td></tr>` : ''}
               <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('paymentMode').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${printPaymentMethod}</td></tr>
             </table>
@@ -6725,14 +6726,19 @@ export default function App() {
                         { name: `Repair: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.issue})`, price: Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0), quantity: 1 },
                         ...(editingTicket.partsUsed || []).map(p => ({ name: `Part: ${p.name}`, price: p.price, quantity: p.quantity || 1 }))
                       ],
-                      total: Number(editingTicket.estimatedCost),
+                      amount: Number(editingTicket.estimatedCost),
                       paymentMethod: editingTicket.paymentMethod || 'Cash',
                       notes: `Device: ${editingTicket.brand} ${editingTicket.model}\nIssue: ${editingTicket.issue}\nStatus: ${editingTicket.status}`,
-                      soldBy: editingTicket.technician || 'Service Team'
+                      soldBy: editingTicket.technician || 'Service Team',
+                      location: 'Service Shop',
+                      userId: user.uid,
+                      createdAt: serverTimestamp()
                     };
+                    // Save to sales for tracking
+                    addDoc(collection(db, 'sales'), invData);
                     handlePrintInvoice(invData, 'A4');
                   }} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
-                    <Receipt size={16} /> {t('createInvoice') || 'Invoice'}
+                    <FileText size={16} /> {t('createInvoice') || 'Invoice'}
                   </button>
                 </div>
                 <div className="flex gap-3">
