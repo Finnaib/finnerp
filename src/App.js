@@ -4765,20 +4765,41 @@ export default function App() {
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                           <input
                             type="text"
-                            placeholder={t('searchProducts')}
+                            placeholder={t('searchInventory') || "Search Parts or Repair IDs..."}
                             id="pos-search"
                             className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:border-blue-500 focus:ring-0 transition-all text-sm"
                             value={inventorySearch}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                const filtered = inventory.filter(item =>
+                                // Search Inventory
+                                const filteredInv = inventory.filter(item =>
                                   (!posLocationFilter || item.location === posLocationFilter) &&
                                   ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
                                     (item.barcode || '').includes(inventorySearch))
                                 );
-                                if (filtered.length === 1) {
-                                  addToCart(filtered[0]);
+                                if (filteredInv.length === 1) {
+                                  addToCart(filteredInv[0]);
                                   setInventorySearch('');
+                                  return;
+                                }
+
+                                // Search Repairs
+                                if (inventorySearch.length >= 3) {
+                                  const ticket = serviceTickets.find(t => t.id.toUpperCase().includes(inventorySearch.toUpperCase()) || t.customerPhone === inventorySearch);
+                                  if (ticket) {
+                                    if (!cart.some(i => i.id === 'SRV-' + ticket.id)) {
+                                      setCart([...cart, {
+                                        id: 'SRV-' + ticket.id,
+                                        name: `Repair: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`,
+                                        sellPrice: Number(ticket.estimatedCost),
+                                        quantity: 1,
+                                        type: 'service'
+                                      }]);
+                                      setInventorySearch('');
+                                    } else {
+                                      alert('Repair already in cart!');
+                                    }
+                                  }
                                 }
                               }
                             }}
@@ -4987,15 +5008,18 @@ export default function App() {
                   {/* Footer Section */}
                   <div className="bg-gray-50 border-t border-gray-200 p-4 space-y-4">
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <div className="flex items-center gap-2">
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <div className="flex items-center gap-1.5">
                           <span className="font-bold">{t('subtotal')}</span>
                           <button
                             type="button"
                             onClick={() => {
-                              const tid = prompt('Enter Repair Ticket ID (e.g., ILOURA):');
+                              const tid = prompt('Search Repair Ticket (ID or Phone):');
                               if (tid) {
-                                const ticket = serviceTickets.find(t => t.id.toUpperCase().includes(tid.toUpperCase()));
+                                const ticket = serviceTickets.find(t => 
+                                  t.id.toUpperCase().includes(tid.toUpperCase()) || 
+                                  t.customerPhone === tid
+                                );
                                 if (ticket) {
                                   if (cart.some(i => i.id === 'SRV-' + ticket.id)) {
                                     alert('Repair already in cart!');
@@ -5013,9 +5037,32 @@ export default function App() {
                                 }
                               }
                             }}
-                            className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors border border-indigo-100 active:scale-95 flex items-center gap-1"
+                            className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all border border-indigo-100 flex items-center gap-1"
+                            title="Add Repair Ticket to Cart"
                           >
-                            <Wrench size={10} /> {t('addRepair') || 'Add Repair'}
+                            <Wrench size={10} /> {t('addRepair') || 'Repair'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const name = prompt('Custom Item Name:');
+                              if (name) {
+                                const price = prompt('Enter Price:');
+                                if (price) {
+                                  setCart([...cart, {
+                                    id: 'manual-' + Date.now(),
+                                    name: name,
+                                    sellPrice: Number(price),
+                                    quantity: 1,
+                                    type: 'manual'
+                                  }]);
+                                }
+                              }
+                            }}
+                            className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100 flex items-center gap-1"
+                            title="Add Custom Manual Item"
+                          >
+                            <Plus size={10} /> {t('custom') || 'Custom'}
                           </button>
                         </div>
                         <span className="font-mono">{formatCurrency(calculateTotal())}</span>
@@ -6564,7 +6611,7 @@ export default function App() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('estimatedCost') || 'Total Cost'} ({currency})</label>
+                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('estimatedCost') || 'Grand Total Cost (Service + Parts)'} ({currency})</label>
                     <input type="number" className="input-field font-mono font-bold text-emerald-600" value={editingTicket.estimatedCost} onChange={e => setEditingTicket({ ...editingTicket, estimatedCost: e.target.value })} />
                   </div>
                 </div>
@@ -6591,48 +6638,50 @@ export default function App() {
                   <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest flex justify-between items-center">
                       {t('partsUsed') || 'Spare Parts Used'}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const partSearch = prompt('Part Name or Barcode (Search Warehouse) OR leave blank for manual entry:');
-                          if (partSearch) {
+                    </label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        id="part-search-input"
+                        placeholder="Barcode or Name..." 
+                        className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-bold"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = e.target.value;
+                            if (!val) return;
                             const part = inventory.find(i => 
-                              i.name?.toLowerCase().includes(partSearch.toLowerCase()) || 
-                              i.barcode === partSearch || 
-                              i.id === partSearch
+                              i.barcode === val || i.name?.toLowerCase().includes(val.toLowerCase())
                             );
                             if (part) {
-                              setEditingTicket({
-                                ...editingTicket,
-                                partsUsed: [...(editingTicket.partsUsed || []), { id: part.id, name: part.name, price: part.sellPrice, quantity: 1 }]
-                              });
+                              setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: part.id, name: part.name, price: part.sellPrice, quantity: 1, fromInventory: true }] });
+                              e.target.value = '';
                             } else {
-                              const manualPrice = prompt(`"${partSearch}" not found. Enter price to add manually:`);
-                              if (manualPrice !== null) {
-                                setEditingTicket({
-                                  ...editingTicket,
-                                  partsUsed: [...(editingTicket.partsUsed || []), { id: 'manual-' + Date.now(), name: partSearch, price: Number(manualPrice), quantity: 1 }]
-                                });
-                              }
-                            }
-                          } else {
-                            const manualName = prompt('Enter Manual Part Name:');
-                            if (manualName) {
-                              const manualPrice = prompt(`Enter price for ${manualName}:`);
-                              if (manualPrice !== null) {
-                                setEditingTicket({
-                                  ...editingTicket,
-                                  partsUsed: [...(editingTicket.partsUsed || []), { id: 'manual-' + Date.now(), name: manualName, price: Number(manualPrice), quantity: 1 }]
-                                });
+                              const manualPrice = prompt(`"${val}" not in stock. Enter price for manual entry:`);
+                              if (manualPrice) {
+                                setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: 'man-'+Date.now(), name: val, price: Number(manualPrice), quantity: 1, fromInventory: false }] });
+                                e.target.value = '';
                               }
                             }
                           }
                         }}
-                        className="text-blue-600 hover:underline flex items-center gap-1"
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          const val = document.getElementById('part-search-input').value;
+                          if (!val) { alert('Enter name first'); return; }
+                          const price = prompt(`Enter price for ${val}:`);
+                          if (price) {
+                            setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: 'man-'+Date.now(), name: val, price: Number(price), quantity: 1, fromInventory: false }] });
+                            document.getElementById('part-search-input').value = '';
+                          }
+                        }}
+                        className="bg-blue-600 text-white px-3 rounded-lg text-xs font-bold"
                       >
-                        <Plus size={12} /> {t('add')}
+                        {t('add')}
                       </button>
-                    </label>
+                    </div>
                     <div className="space-y-2">
                       {(editingTicket.partsUsed || []).map((part, idx) => (
                         <div key={idx} className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100 text-xs">
@@ -6648,7 +6697,13 @@ export default function App() {
                           </div>
                         </div>
                       ))}
-                      {(editingTicket.partsUsed || []).length === 0 && <p className="text-[10px] text-gray-400 italic text-center py-2">No parts linked yet</p>}
+                      {(editingTicket.partsUsed || []).length > 0 && (
+                        <div className="flex justify-between items-center px-2 py-1 bg-emerald-50 rounded-lg text-[10px] font-bold text-emerald-700 border border-emerald-100 mb-2">
+                          <span>Parts Total:</span>
+                          <span>{formatCurrency((editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0))}</span>
+                        </div>
+                      )}
+                      {(editingTicket.partsUsed || []).length === 0 && <p className="text-[10px] text-gray-400 italic text-center py-2">No spare parts used yet</p>}
                     </div>
                   </div>
 
@@ -6710,7 +6765,7 @@ export default function App() {
                       customerPhone: editingTicket.customerPhone,
                       date: new Date().toLocaleDateString(),
                       items: [
-                        { name: `Repair: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.issue})`, price: Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0), quantity: 1 },
+                        { name: `Repair Labor: ${editingTicket.brand} ${editingTicket.model}`, price: Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0), quantity: 1 },
                         ...(editingTicket.partsUsed || []).map(p => ({ name: `Part: ${p.name}`, price: p.price, quantity: p.quantity, id: p.id }))
                       ],
                       amount: Number(editingTicket.estimatedCost),
@@ -6723,14 +6778,29 @@ export default function App() {
                     };
                     // Save to sales record
                     addDoc(collection(db, 'sales'), invData);
-                     // Print using main handler (Always Thermal for Service Receipts as requested)
-                     handlePrintInvoice(invData, 'Service Receipt');
-                  }} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-black font-black uppercase tracking-widest text-[11px] transition-all shadow-lg flex items-center gap-2">
-                    <Printer size={16} /> {t('printInvoice') || 'Print Invoice'}
+                    // Print using main handler (Always Thermal for Service Receipts as requested)
+                    handlePrintInvoice(invData, 'Service Receipt');
+                  }} className="px-4 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-black font-black uppercase tracking-widest text-[10px] transition-all shadow-lg flex items-center gap-2">
+                    <Printer size={16} /> {t('receipt') || 'Receipt'}
+                  </button>
+                  <button onClick={() => {
+                    // Send everything to POS cart
+                    const laborPrice = Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0);
+                    const repairItems = [
+                      { id: 'SRV-'+editingTicket.id + '-LB', name: `Labor: ${editingTicket.brand} ${editingTicket.model}`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                      ...(editingTicket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                    ];
+                    setCart([...cart, ...repairItems]);
+                    setNewSaleForm({ ...newSaleForm, customer: editingTicket.customerName });
+                    setActiveTab('sales_purchases');
+                    setIsTicketModalOpen(false);
+                    setEditingTicket(null);
+                  }} className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-black uppercase tracking-widest text-[10px] transition-all shadow-lg flex items-center gap-2">
+                    <ShoppingCart size={16} /> {t('billToPOS') || 'Bill to POS'}
                   </button>
                 </div>
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="px-6 py-2.5 bg-white text-gray-700 rounded-xl hover:bg-gray-100 font-bold border border-gray-200 transition-all">{t('cancel')}</button>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="px-4 py-2.5 bg-white text-gray-700 rounded-xl hover:bg-gray-100 font-bold border border-gray-200 text-xs transition-all">{t('cancel')}</button>
                   <button onClick={async () => {
                     try {
                       // Update the status log if the status changed
