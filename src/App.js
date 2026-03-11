@@ -69,7 +69,9 @@ import {
   AlertTriangle,
   Tag,
   Hammer,
-  UserPlus
+  UserPlus,
+  Smartphone as MobileIcon,
+  Activity
 } from 'lucide-react';
 import { auth, db, storage } from './firebase'; // Firebase
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -2020,10 +2022,12 @@ export default function App() {
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         
+        ${invoiceData.type !== 'service' ? `
         <div class="big-id">
           <span class="big-id-label">${(invoiceData.type === 'sale' ? t('orderNumber') : t('billNo')).toUpperCase()}</span>
           ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
         </div>
+        ` : ''}
 
         <div class="invoice-title">${t('retailInvoice')}</div>
 
@@ -4984,7 +4988,36 @@ export default function App() {
                   <div className="bg-gray-50 border-t border-gray-200 p-4 space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs text-gray-500">
-                        <span>{t('subtotal')}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold">{t('subtotal')}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const tid = prompt('Enter Repair Ticket ID (e.g., ILOURA):');
+                              if (tid) {
+                                const ticket = serviceTickets.find(t => t.id.toUpperCase().includes(tid.toUpperCase()));
+                                if (ticket) {
+                                  if (cart.some(i => i.id === 'SRV-' + ticket.id)) {
+                                    alert('Repair already in cart!');
+                                  } else {
+                                    setCart([...cart, {
+                                      id: 'SRV-' + ticket.id,
+                                      name: `Repair: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`,
+                                      sellPrice: Number(ticket.estimatedCost),
+                                      quantity: 1,
+                                      type: 'service'
+                                    }]);
+                                  }
+                                } else {
+                                  alert('Repair ticket not found!');
+                                }
+                              }
+                            }}
+                            className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors border border-indigo-100 active:scale-95 flex items-center gap-1"
+                          >
+                            <Wrench size={10} /> {t('addRepair') || 'Add Repair'}
+                          </button>
+                        </div>
                         <span className="font-mono">{formatCurrency(calculateTotal())}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs text-gray-500">
@@ -5934,8 +5967,8 @@ export default function App() {
                             {[
                               { label: t('newTicket'), icon: <Wrench size={24} />, color: 'bg-blue-500', action: () => setServiceSubTab('new') },
                               { label: t('addCustomer'), icon: <UserPlus size={24} />, color: 'bg-indigo-500', action: () => { setServiceSubTab('customers'); setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); } },
-                              { label: t('addStock'), icon: <Package size={24} />, color: 'bg-emerald-500', action: () => { setServiceSubTab('inventory'); setIsServiceInventoryModalOpen(true); } },
-                              { label: t('createInvoice'), icon: <FileText size={24} />, color: 'bg-indigo-600', action: () => { setOrderType('Walk-in'); setPosLocationFilter('Repair Shop'); setActiveTab('sales_purchases'); } }
+                              { label: t('activeJobs'), icon: <Activity size={24} />, color: 'bg-emerald-500', action: () => setServiceSubTab('active') },
+                              { label: t('menuSalesPurchases'), icon: <ShoppingCart size={24} />, color: 'bg-indigo-600', action: () => { setOrderType('Walk-in'); setPosLocationFilter('Repair Shop'); setActiveTab('sales_purchases'); } }
                             ].map((btn, i) => (
                               <button
                                 key={i}
@@ -6561,7 +6594,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => {
-                          const partSearch = prompt('Enter Item Name or Barcode to find in Warehouse:');
+                          const partSearch = prompt('Part Name or Barcode (Search Warehouse) OR leave blank for manual entry:');
                           if (partSearch) {
                             const part = inventory.find(i => 
                               i.name?.toLowerCase().includes(partSearch.toLowerCase()) || 
@@ -6574,7 +6607,24 @@ export default function App() {
                                 partsUsed: [...(editingTicket.partsUsed || []), { id: part.id, name: part.name, price: part.sellPrice, quantity: 1 }]
                               });
                             } else {
-                              alert('Part not found in main warehouse inventory!');
+                              const manualPrice = prompt(`"${partSearch}" not found. Enter price to add manually:`);
+                              if (manualPrice !== null) {
+                                setEditingTicket({
+                                  ...editingTicket,
+                                  partsUsed: [...(editingTicket.partsUsed || []), { id: 'manual-' + Date.now(), name: partSearch, price: Number(manualPrice), quantity: 1 }]
+                                });
+                              }
+                            }
+                          } else {
+                            const manualName = prompt('Enter Manual Part Name:');
+                            if (manualName) {
+                              const manualPrice = prompt(`Enter price for ${manualName}:`);
+                              if (manualPrice !== null) {
+                                setEditingTicket({
+                                  ...editingTicket,
+                                  partsUsed: [...(editingTicket.partsUsed || []), { id: 'manual-' + Date.now(), name: manualName, price: Number(manualPrice), quantity: 1 }]
+                                });
+                              }
                             }
                           }
                         }}
@@ -6673,8 +6723,8 @@ export default function App() {
                     };
                     // Save to sales record
                     addDoc(collection(db, 'sales'), invData);
-                    // Print using main handler (A4 or Thermal based on user settings)
-                    handlePrintInvoice(invData, printFormat === 'Thermal' ? 'Service Receipt' : 'A4');
+                     // Print using main handler (Always Thermal for Service Receipts as requested)
+                     handlePrintInvoice(invData, 'Service Receipt');
                   }} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-black font-black uppercase tracking-widest text-[11px] transition-all shadow-lg flex items-center gap-2">
                     <Printer size={16} /> {t('printInvoice') || 'Print Invoice'}
                   </button>
