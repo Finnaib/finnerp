@@ -2109,13 +2109,9 @@ export default function App() {
           <div class="invoice-info">
             <h2 style="font-size: 32px; color: #cbd5e1; margin-bottom: 5px; font-weight: 900; text-transform: uppercase; line-height: 1;">${invoiceData.type === 'service' ? (t('serviceInvoice') || 'SERVICE INVOICE') : t('invoice')}</h2>
             <div style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 10px; text-align: right;">${t('retailInvoice').toUpperCase()}</div>
-            <div style="background: #1e293b; color: #fff; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
-              <div style="font-size: 8px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin-bottom: 2px;">${(invoiceData.type === 'sale' ? t('orderNumber') : t('billNo')).toUpperCase()}</div>
-              <div style="font-size: 28px; font-weight: 900; letter-spacing: -1px;">${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}</div>
-            </div>
             <table style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; width: 100%;">
               <tr><td style="background: #f8fafc; border: none; font-size: 10px; width: 40%;">${t('date').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
-              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">ID #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
+              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${(invoiceData.type === 'sale' ? t('orderNumber') : t('billNo')).toUpperCase()} #</td><td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td></tr>
               ${invoiceData.sessionId ? `<tr><td style="background: #f8fafc; border: none; font-size: 10px;">SESSION #</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.sessionId}</td></tr>` : ''}
               <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('paymentMode').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${printPaymentMethod}</td></tr>
             </table>
