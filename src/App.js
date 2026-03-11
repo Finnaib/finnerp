@@ -5093,62 +5093,36 @@ export default function App() {
                     )}
                   </div>
 
-                  {/* Footer Section */}
-                  <div className="bg-gray-50 border-t border-gray-200 p-4 space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-xs text-gray-500">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold">{t('subtotal')}</span>
+                  {/* Refactored Premium Footer Section */}
+                  <div className="bg-white border-t border-gray-100 p-6 space-y-5">
+                    
+                    {/* 1. Sales Employee Selection (Top) */}
+                    <button
+                      onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
+                      className="w-full flex items-center justify-between p-3 bg-blue-50/50 hover:bg-blue-50 rounded-[1.5rem] border border-blue-100 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform">
+                          <User size={18} />
                         </div>
-                        <span className="font-mono">{formatCurrency(calculateTotal())}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs text-gray-500">
-                        <span className="border-b border-dashed border-gray-300 pb-px cursor-help">{t('discount')}</span>
-                        <div className="flex items-center bg-white border border-gray-200 rounded px-2 h-6 w-20">
-                          <span className="text-gray-400 mr-1">-</span>
-                          <input
-                            type="number"
-                            min="0"
-                            className="w-full text-right bg-transparent border-none outline-none text-xs font-mono p-0 focus:ring-0"
-                            placeholder="0"
-                            value={cartDiscount || ''}
-                            onChange={(e) => setCartDiscount(Math.max(0, Number(e.target.value)))}
-                          />
+                        <div className="text-left">
+                          <div className="text-[10px] text-blue-500 font-black uppercase tracking-widest leading-none mb-1">{t('salesEmployee')}</div>
+                          <div className="font-black text-gray-900 uppercase tracking-tight">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</div>
                         </div>
                       </div>
-                      <div className="pt-2 border-t border-gray-200 flex justify-between items-end">
-                        <span className="text-sm font-bold text-gray-700">{t('total')}</span>
-                        <span className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
-                      </div>
-                    </div>
-                    {/* Sales Employee Selection */}
-                    <div className="mb-2">
-                      <button
-                        onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                        className="w-full flex items-center justify-between p-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <User size={18} className="text-blue-600" />
-                          <div className="text-left">
-                            <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">{t('salesEmployee')}</div>
-                            <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : t('selectEmployee') || 'Select Employee'}</div>
-                          </div>
-                        </div>
-                        <ChevronDown size={16} className="text-blue-400" />
-                      </button>
-                    </div>
+                      <ChevronRight size={18} className="text-blue-400 group-hover:translate-x-1 transition-transform" />
+                    </button>
 
-                    {/* Order Type Toggle */}
-                    <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
+                    {/* 2. Order Type Toggle */}
+                    <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
                       <button
                         onClick={() => {
                           setOrderType('Walk-in');
-                          // Set default if empty or matches previous default
                           if (!newSaleForm.customer || newSaleForm.customer === t('takeawayCustomer')) {
                             setNewSaleForm(prev => ({ ...prev, customer: t('walkInCustomer') }));
                           }
                         }}
-                        className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
                       >
                         {t('walkIn')}
                       </button>
@@ -5159,68 +5133,90 @@ export default function App() {
                             setNewSaleForm(prev => ({ ...prev, customer: t('takeawayCustomer') }));
                           }
                         }}
-                        className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
                       >
                         {t('takeaway')}
                       </button>
                     </div>
 
-                    <input
-                      className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                      placeholder={t('customerNameOptional')}
-                      value={newSaleForm.customer}
-                      autoComplete="off"
-                      onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
-                    />
-
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-black text-gray-400 ml-1">{t('customerId')}</label>
+                    {/* 3. Customer Info */}
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-600 transition-colors">
+                        <User size={16} />
+                      </div>
                       <input
-                        className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                        placeholder={t('customerId') + " (" + t('optional') + ")"}
-                        value={newSaleForm.customerId}
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none"
+                        placeholder={t('customerNameOptional')}
+                        value={newSaleForm.customer}
                         autoComplete="off"
-                        onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
+                        onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                       />
                     </div>
-                    <div className="space-y-3 mb-4">
-                      <div className="grid grid-cols-3 gap-2">
-                        {['Cash', 'Visa', 'Online'].map(method => (
-                          <button
-                            key={method}
-                            onClick={() => {
-                              setPaymentMethod(method);
-                              if (method === 'Online') setShowUpiQr(true);
-                            }}
-                            className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-[1.02]' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
-                          >
-                            {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
-                          </button>
-                        ))}
-                      </div>
 
-                      {paymentMethod === 'Online' && (
-                        <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 rounded-2xl animate-in slide-in-from-top-2 duration-300 border border-gray-100">
-                          {['UPI', 'InstaPay'].map(sub => (
-                            <button
-                              key={sub}
-                              onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
-                              className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-tight rounded-lg transition-all ${digitalSubMethod === sub ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 hover:text-gray-600'}`}
-                            >
-                              {sub}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                    {/* 4. Payment Methods */}
+                    <div className="grid grid-cols-3 gap-2">
+                      {['Cash', 'Visa', 'Online'].map(method => (
+                        <button
+                          key={method}
+                          onClick={() => {
+                            setPaymentMethod(method);
+                            if (method === 'Online') setShowUpiQr(true);
+                          }}
+                          className={`py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl border transition-all duration-300 ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200 scale-[1.02]' : 'bg-gray-50/50 text-gray-400 border-gray-100 hover:border-gray-200'}`}
+                        >
+                          {method === 'Online' ? 'Digital Payment' : method}
+                        </button>
+                      ))}
                     </div>
 
+                    {/* 5. Cost Summary */}
+                    <div className="pt-4 space-y-3">
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('subtotal')}</span>
+                        <span className="font-mono font-bold text-gray-600">{formatCurrency(calculateTotal())}</span>
+                      </div>
+                      <div className="flex justify-between items-center px-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('totalCost')}</span>
+                        </div>
+                        <span className="text-3xl font-black text-gray-900 font-mono tracking-tighter">
+                          {formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 6. Main Checkout Button (Dark Premium) */}
                     <button
                       onClick={handleCheckout}
                       disabled={cart.length === 0}
-                      className="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                      className="w-full bg-[#0f172a] hover:bg-black text-white p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 transition-all active:scale-95 disabled:opacity-30 flex items-center justify-center gap-4 group relative overflow-hidden"
                     >
-                      <CheckCircle size={20} /> {t('checkout')}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                      <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all">
+                        <CheckCircle size={24} className="text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] leading-none mb-1">Complete Payment</div>
+                        <div className="text-xl font-black uppercase tracking-wider">{t('checkout')}</div>
+                      </div>
                     </button>
+
+                    {/* 7. Print Format Selectors */}
+                    <div className="grid grid-cols-2 gap-3 pb-2">
+                      <button
+                        onClick={() => setPrintFormat('Thermal')}
+                        className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl border transition-all font-bold text-xs ${printFormat === 'Thermal' ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}
+                      >
+                        <Printer size={16} /> {t('thermal')}
+                      </button>
+                      <button
+                        onClick={() => setPrintFormat('A4')}
+                        className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl border transition-all font-bold text-xs ${printFormat === 'A4' ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}
+                      >
+                        <FileText size={16} /> A4 Pro
+                      </button>
+                    </div>
+
                   </div>
                 </div>
               </div>
@@ -6314,23 +6310,6 @@ export default function App() {
                                   </div>
                                 </button>
                               ))}
-                            <button
-                              onClick={() => {
-                                const name = prompt('Custom Item Name:');
-                                if (name) {
-                                  const price = prompt('Price:');
-                                  if (price) {
-                                    setServiceCart([...serviceCart, { id: 'man-'+Date.now(), name: name, sellPrice: Number(price), quantity: 1, type: 'part' }]);
-                                  }
-                                }
-                              }}
-                              className="bg-white p-4 rounded-[1.5rem] border-2 border-dashed border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all active:scale-95 group flex flex-col items-center justify-center gap-2 text-center"
-                            >
-                              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                <Plus size={20} />
-                              </div>
-                              <p className="text-[10px] font-black uppercase text-gray-400 group-hover:text-blue-600">Custom Item</p>
-                            </button>
                           </div>
                         </section>
                       </div>
@@ -6396,105 +6375,132 @@ export default function App() {
                         )}
                       </div>
 
-                      <div className="p-6 bg-white border-t border-gray-100 space-y-4 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-                        {/* Service POS Checkout Form - Match Sales Sidebar */}
-                        <div className="space-y-3">
-                          {/* Sales Employee Selection */}
-                          <button
-                            onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                            className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-2xl border border-blue-100 transition-all group"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200">
-                                <User size={16} />
-                              </div>
-                              <div className="text-left">
-                                <p className="text-[8px] text-blue-500 font-black uppercase tracking-[0.1em]">{t('salesEmployee')}</p>
-                                <p className="text-xs font-black text-gray-900 uppercase">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</p>
-                              </div>
-                            </div>
-                            <ChevronRight size={16} className="text-blue-300 group-hover:translate-x-1 transition-transform" />
-                          </button>
-
-                          {/* Order Type Toggle */}
-                          <div className="flex bg-gray-50 p-1 rounded-2xl border border-gray-100">
-                            {['Walk-in', 'Takeaway'].map(type => (
-                              <button
-                                key={type}
-                                onClick={() => setOrderType(type)}
-                                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${orderType === type ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                              >
-                                {t(type.toLowerCase()) || type}
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Customer Info */}
-                          <div className="relative group">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
-                            <input
-                              className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500 transition-all"
-                              placeholder={t('customerNameOptional') || 'Customer Name'}
-                              value={newSaleForm.customer}
-                              onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
-                            />
-                          </div>
-
-                          {/* Payment Methods */}
-                          <div className="grid grid-cols-3 gap-2">
-                            {['Cash', 'Visa', 'Online'].map(method => (
-                              <button
-                                key={method}
-                                onClick={() => setPaymentMethod(method)}
-                                className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-gray-50 text-gray-400 border-gray-100 hover:border-gray-300'}`}
-                              >
-                                {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="space-y-4 border-t border-gray-50 pt-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em]">{t('subtotal')}</span>
-                            <span className="text-sm font-black text-gray-400 font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{t('totalCost')}</span>
-                            <span className="text-3xl font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="pt-2">
-                          <button 
-                            onClick={() => {
-                              if (serviceCart.length > 0) {
-                                const mode = prompt('Enter 1 for Thermal, 2 for A4 PRO:', '1');
-                                if (mode === '1') handleCheckoutServiceCart('Thermal');
-                                else if (mode === '2') handleCheckoutServiceCart('A4');
-                              }
-                            }}
-                            className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[2.5rem] transition-all active:scale-95 shadow-xl shadow-slate-200 flex items-center justify-center gap-3 group"
-                          >
-                            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                              <CheckCircle2 size={20} />
+                      <div className="bg-white border-t border-gray-100 p-6 space-y-5">
+                        {/* 1. Sales Employee Selection (Top) */}
+                        <button
+                          onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
+                          className="w-full flex items-center justify-between p-3 bg-blue-50/50 hover:bg-blue-50 rounded-[1.5rem] border border-blue-100 transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform">
+                              <User size={18} />
                             </div>
                             <div className="text-left">
-                              <p className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">{t('completePayment') || 'Complete Payment'}</p>
-                              <p className="text-sm font-black uppercase tracking-tight">{t('checkout')}</p>
+                              <div className="text-[10px] text-blue-500 font-black uppercase tracking-widest leading-none mb-1">{t('salesEmployee')}</div>
+                              <div className="font-black text-gray-900 uppercase tracking-tight">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</div>
                             </div>
+                          </div>
+                          <ChevronRight size={18} className="text-blue-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+
+                        {/* 2. Order Type Toggle */}
+                        <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+                          <button
+                            onClick={() => {
+                              setOrderType('Walk-in');
+                              if (!newSaleForm.customer || newSaleForm.customer === t('takeawayCustomer')) {
+                                setNewSaleForm(prev => ({ ...prev, customer: t('walkInCustomer') }));
+                              }
+                            }}
+                            className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
+                          >
+                            {t('walkIn')}
                           </button>
-                          
-                          <div className="grid grid-cols-2 gap-2 mt-2">
-                             <button onClick={() => handleCheckoutServiceCart('Thermal')} className="py-2.5 bg-gray-50 hover:bg-white border border-gray-100 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all flex items-center justify-center gap-2">
-                               <Printer size={14} /> Thermal
-                             </button>
-                             <button onClick={() => handleCheckoutServiceCart('A4')} className="py-2.5 bg-gray-50 hover:bg-white border border-gray-100 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
-                               <FileText size={14} /> A4 PRO
-                             </button>
+                          <button
+                            onClick={() => {
+                              setOrderType('Takeaway');
+                              if (!newSaleForm.customer || newSaleForm.customer === t('walkInCustomer')) {
+                                setNewSaleForm(prev => ({ ...prev, customer: t('takeawayCustomer') }));
+                              }
+                            }}
+                            className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
+                          >
+                            {t('takeaway')}
+                          </button>
+                        </div>
+
+                        {/* 3. Customer Info */}
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-600 transition-colors">
+                            <User size={16} />
+                          </div>
+                          <input
+                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none"
+                            placeholder={t('customerNameOptional')}
+                            value={newSaleForm.customer}
+                            autoComplete="off"
+                            onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
+                          />
+                        </div>
+
+                        {/* 4. Payment Methods */}
+                        <div className="grid grid-cols-3 gap-2">
+                          {['Cash', 'Visa', 'Online'].map(method => (
+                            <button
+                              key={method}
+                              onClick={() => {
+                                setPaymentMethod(method);
+                                if (method === 'Online') setShowUpiQr(true);
+                              }}
+                              className={`py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl border transition-all duration-300 ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200 scale-[1.02]' : 'bg-gray-50/50 text-gray-400 border-gray-100 hover:border-gray-200'}`}
+                            >
+                              {method === 'Online' ? 'Digital Payment' : method}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* 5. Cost Summary */}
+                        <div className="pt-4 space-y-3">
+                          <div className="flex justify-between items-center px-1">
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('subtotal')}</span>
+                            <span className="font-mono font-bold text-gray-600">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                          </div>
+                          <div className="flex justify-between items-center px-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('totalCost')}</span>
+                            </div>
+                            <span className="text-3xl font-black text-gray-900 font-mono tracking-tighter">
+                              {formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}
+                            </span>
                           </div>
                         </div>
 
+                        {/* 6. Main Checkout Button (Dark Premium) */}
+                        <button
+                          onClick={() => {
+                            if (serviceCart.length > 0) {
+                              if (printFormat === 'Thermal') handleCheckoutServiceCart('Thermal');
+                              else handleCheckoutServiceCart('A4');
+                            }
+                          }}
+                          disabled={serviceCart.length === 0}
+                          className="w-full bg-[#0f172a] hover:bg-black text-white p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 transition-all active:scale-95 disabled:opacity-30 flex items-center justify-center gap-4 group relative overflow-hidden"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all">
+                            <CheckCircle size={24} className="text-white" />
+                          </div>
+                          <div className="text-left">
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] leading-none mb-1">Complete Payment</div>
+                            <div className="text-xl font-black uppercase tracking-wider">{t('checkout')}</div>
+                          </div>
+                        </button>
+
+                        {/* 7. Print Format Selectors */}
+                        <div className="grid grid-cols-2 gap-3 pb-2">
+                          <button
+                            onClick={() => setPrintFormat('Thermal')}
+                            className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl border transition-all font-bold text-xs ${printFormat === 'Thermal' ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}
+                          >
+                            <Printer size={16} /> {t('thermal')}
+                          </button>
+                          <button
+                            onClick={() => setPrintFormat('A4')}
+                            className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl border transition-all font-bold text-xs ${printFormat === 'A4' ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}
+                          >
+                            <FileText size={16} /> A4 Pro
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
