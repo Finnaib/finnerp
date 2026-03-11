@@ -322,6 +322,7 @@ export default function App() {
   // [Added] Location Filters for new modules
   const [warehouseLocationFilter, setWarehouseLocationFilter] = useState('');
   const [posLocationFilter, setPosLocationFilter] = useState('');
+  const [posSubTab, setPosSubTab] = useState('products'); // 'products' or 'services'
   const [homeLocationFilter, setHomeLocationFilter] = useState('');
   const [historyLocationFilter, setHistoryLocationFilter] = useState('');
   const [reportLocationFilter, setReportLocationFilter] = useState('');
@@ -4806,37 +4807,21 @@ export default function App() {
                         >
                           <Scan size={16} /> {t('scanBarcode')}
                         </button>
-                        <button
-                          onClick={() => {
-                            const name = prompt('Item Name:');
-                            if (!name) return;
-                            const price = prompt('Price:');
-                            if (!price) return;
-                            addToCart({ id: 'custom-'+Date.now(), name, sellPrice: Number(price), category: 'Custom' });
-                          }}
-                          className="flex items-center gap-1 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold transition-all"
-                        >
-                          <PlusCircle size={16} /> Custom
-                        </button>
-                        <button
-                          onClick={() => {
-                            const ready = serviceTickets.filter(t => t.status === 'Ready for Pickup');
-                            if (ready.length === 0) { alert('No repairs ready for pickup'); return; }
-                            const choice = prompt('Ready Repairs:\n' + ready.map((t, i) => `${i+1}. ${t.customerName} - ${t.brand} (${formatCurrency(t.estimatedCost)})`).join('\n') + '\n\nEnter number to add:');
-                            const idx = parseInt(choice) - 1;
-                            if (ready[idx]) {
-                              addToCart({
-                                id: 'SRV-' + ready[idx].id,
-                                name: `Repair: ${ready[idx].brand} ${ready[idx].model} (${ready[idx].id.slice(0, 6)})`,
-                                sellPrice: Number(ready[idx].estimatedCost),
-                                type: 'service'
-                              });
-                            }
-                          }}
-                          className="flex items-center gap-1 text-amber-600 hover:bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 text-xs font-bold transition-all"
-                        >
-                          <Wrench size={16} /> Ready
-                        </button>
+
+                        <div className="flex bg-gray-100 p-1 rounded-xl ml-4">
+                          <button 
+                            onClick={() => setPosSubTab('products')}
+                            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${posSubTab === 'products' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                          >
+                            <Package size={14} className="inline mr-1" /> {t('products')}
+                          </button>
+                          <button 
+                            onClick={() => setPosSubTab('services')}
+                            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${posSubTab === 'services' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                          >
+                            <Wrench size={14} className="inline mr-1" /> {t('service')}
+                          </button>
+                        </div>
 
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -4899,7 +4884,8 @@ export default function App() {
 
                   <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-24 lg:pb-4">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-                      {inventory
+                      {posSubTab === 'products' ? 
+                        inventory
                         .filter(item =>
                           (!posLocationFilter || item.location === posLocationFilter) &&
                           ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
@@ -4941,7 +4927,69 @@ export default function App() {
                               </div>
                             </div>
                           </button>
-                        ))}
+                        )) : (
+                        <>
+                          {/* Custom Item Button */}
+                          <button
+                            onClick={() => {
+                              const name = prompt('Item Name:');
+                              if (!name) return;
+                              const price = prompt('Price:');
+                              if (!price) return;
+                              addToCart({ id: 'custom-'+Date.now(), name, sellPrice: Number(price), category: 'Custom' });
+                            }}
+                            className="flex flex-col h-[210px] sm:h-[230px] bg-white rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden transition-all active:scale-95 hover:border-blue-500 hover:bg-blue-50/20 group items-center justify-center gap-3 p-6 text-center"
+                          >
+                            <div className="p-4 bg-blue-100 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:rotate-12">
+                              <PlusCircle size={32} />
+                            </div>
+                            <div>
+                              <h4 className="font-black text-gray-900 uppercase tracking-widest text-[10px] mb-1">Manual Entry</h4>
+                              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Add custom item/service</p>
+                            </div>
+                          </button>
+
+                          {/* Service Tickets (Ready for Pickup) */}
+                          {serviceTickets
+                            .filter(t => t.status === 'Ready for Pickup' || t.status === 'Ready')
+                            .map(ticket => (
+                              <button
+                                key={ticket.id}
+                                onClick={() => addToCart({
+                                  id: 'SRV-' + ticket.id,
+                                  name: `Repair: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`,
+                                  sellPrice: Number(ticket.estimatedCost),
+                                  type: 'service'
+                                })}
+                                className="flex flex-col h-[210px] sm:h-[230px] bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all active:scale-95 lg:hover:shadow-2xl lg:hover:border-amber-200 lg:hover:-translate-y-1 relative group text-left shadow-sm"
+                              >
+                                <div className="h-28 sm:h-32 w-full bg-amber-50 relative overflow-hidden flex items-center justify-center">
+                                  <div className="absolute top-0 left-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                    <Wrench size={64} />
+                                  </div>
+                                  <div className="relative z-10 p-2 bg-white rounded-full shadow-lg shadow-amber-200/50 text-amber-600">
+                                    <CheckCircle size={32} fill="currentColor" fillOpacity={0.1} />
+                                  </div>
+                                  <div className="absolute top-2 right-2 px-2 py-1 bg-amber-500 text-white text-[8px] font-black uppercase rounded-lg shadow-sm">
+                                    READY
+                                  </div>
+                                </div>
+                                <div className="p-3 flex flex-col flex-1 justify-between bg-white relative">
+                                  <div>
+                                    <h4 className="font-black text-gray-900 text-[10px] uppercase tracking-tighter line-clamp-1 mb-0.5">{ticket.customerName}</h4>
+                                    <p className="text-[10px] font-bold text-slate-400 truncate tracking-tight">{ticket.brand} {ticket.model}</p>
+                                  </div>
+                                  <div className="flex justify-between items-end mt-1 pt-2 border-t border-gray-50">
+                                    <div className="text-emerald-600 font-black font-mono text-base sm:text-lg">{formatCurrency(ticket.estimatedCost || 0)}</div>
+                                    <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                                      <Plus size={14} />
+                                    </div>
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -5999,8 +6047,6 @@ export default function App() {
                     { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={14} /> },
                     { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
                     { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
-                    { id: 'customers', label: t('customers'), icon: <Users size={14} /> },
-                    { id: 'inventory', label: t('inventory'), icon: <Package size={14} /> },
                     { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
                     { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
                   ].map(tab => (
@@ -9252,8 +9298,6 @@ export default function App() {
           {[
             { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
             { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
-            { id: 'inventory', label: t('inventory'), icon: <Package size={20} /> },
-            { id: 'customers', label: t('customers'), icon: <Users size={20} /> },
             { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={20} /> }
           ].map(tab => (
             <button
