@@ -27,6 +27,7 @@ import {
   FileText,
   CheckCircle,
   AlertCircle,
+  Receipt,
   Loader2,
   X,
   Trash2,
@@ -1581,6 +1582,7 @@ export default function App() {
 
       const saleData = {
         invoiceId: uniqueId,
+        type: 'sale',
         orderType: orderType,
         paymentMethod: paymentMethod,
         digitalSubMethod: paymentMethod === 'Online' ? digitalSubMethod : null,
@@ -1715,6 +1717,7 @@ export default function App() {
 
       const saleData = {
         invoiceId: session.sessionId || ('CAFE-' + Date.now().toString().slice(-6)),
+        type: 'cafe',
         orderType: 'Dine-in',
         paymentMethod: 'Cash',
         customer: session.roomName,
@@ -2020,8 +2023,8 @@ export default function App() {
           <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
           <p><strong>${t('time')}:</strong> ${printTime}</p>
           <p><strong>${invoiceData.client || invoiceData.customer || t('customer')}</strong></p>
-          <p><strong>${t('orderNumber') || 'Order Number'}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
-          <p><strong>${t('billNo')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
+          ${invoiceData.type === 'sale' ? `<p><strong>${t('orderNumber') || 'Order Number'}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>` : ''}
+          ${invoiceData.type !== 'sale' ? `<p><strong>${t('billNo')}:</strong> ${invoiceData.invoiceId || 'N/A'}</p>` : ''}
           <p><strong>${t('paymentMode')}:</strong> ${printPaymentMethod}</p>
         </div>
 
@@ -6714,6 +6717,7 @@ export default function App() {
                     // Professional Invoice Generation
                     const invData = {
                       invoiceId: `SRV-${editingTicket.id.slice(0, 6).toUpperCase()}`,
+                      type: 'service',
                       client: editingTicket.customerName,
                       customerPhone: editingTicket.customerPhone,
                       date: new Date().toLocaleDateString(),
