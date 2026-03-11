@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
@@ -264,9 +264,9 @@ export default function App() {
   useEffect(() => {
     const defaults = {
       en: { walkIn: 'Walk-in Customer', takeaway: 'Takeaway Customer' },
-      ar: { walkIn: 'عميل محلي', takeaway: 'عميل تيك أواي' },
-      hi: { walkIn: 'कैश ग्राहक (Walk-in)', takeaway: 'ले जाने वाला ग्राहक (Takeaway)' },
-      zh: { walkIn: '回客', takeaway: '外带客户' }
+      ar: { walkIn: '╪╣┘à┘è┘ä ┘à╪¡┘ä┘è', takeaway: '╪╣┘à┘è┘ä ╪¬┘è┘â ╪ú┘ê╪º┘è' },
+      hi: { walkIn: 'αñòαÑêαñ╢ αñùαÑìαñ░αñ╛αñ╣αñò (Walk-in)', takeaway: 'αñ▓αÑç αñ£αñ╛αñ¿αÑç αñ╡αñ╛αñ▓αñ╛ αñùαÑìαñ░αñ╛αñ╣αñò (Takeaway)' },
+      zh: { walkIn: 'σ¢₧σ«ó', takeaway: 'σñûσ╕ªσ«óµê╖' }
     };
     const isCurrentDefault = Object.values(defaults).some(d =>
       newSaleForm.customer === d.walkIn || newSaleForm.customer === d.takeaway || !newSaleForm.customer
@@ -3109,14 +3109,14 @@ export default function App() {
           }
         });
 
-        // ── DRAW HEADER ─────────────────────────────────────────────
+        // ΓöÇΓöÇ DRAW HEADER ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(20);
         doc.setTextColor(15, 23, 42);
         doc.text((shopSettings.name?.toUpperCase() || 'FINN ERP'), 15, 18);
         doc.setFontSize(10);
         doc.setTextColor(59, 130, 246);
-        doc.text(`${t('profit_loss').toUpperCase()} — ${t(profitPeriod.toLowerCase()).toUpperCase()}`, 15, 25);
+        doc.text(`${t('profit_loss').toUpperCase()} ΓÇö ${t(profitPeriod.toLowerCase()).toUpperCase()}`, 15, 25);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7.5);
         doc.setTextColor(100, 116, 139);
@@ -3126,7 +3126,7 @@ export default function App() {
         doc.setLineWidth(0.4);
         doc.line(15, 39, pageWidth - 15, 39);
 
-        // ── SECTION 1: INCOME STATEMENT ─────────────────────────────
+        // ΓöÇΓöÇ SECTION 1: INCOME STATEMENT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         const incomeRows = [
           // Revenue
           ...Object.entries(revByMethod).map(([m, amt]) => [t(m.toLowerCase()) || m, amt]),
@@ -3173,7 +3173,7 @@ export default function App() {
           }
         });
 
-        // ── SECTION 2: SOLD ITEMS ────────────────────────────────────
+        // ΓöÇΓöÇ SECTION 2: SOLD ITEMS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         const soldRows = [];
         let sumSoldQty2 = 0, sumSoldSales2 = 0, sumSoldCost2 = 0, sumSoldProfit2 = 0;
 
@@ -3227,7 +3227,7 @@ export default function App() {
           }
         });
 
-        // ── SECTION 3: BOUGHT ITEMS ──────────────────────────────────
+        // ΓöÇΓöÇ SECTION 3: BOUGHT ITEMS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         const boughtRows = [];
         let sumBoughtQty2 = 0, sumBoughtAmt2 = 0;
 
@@ -3805,7 +3805,7 @@ export default function App() {
                       <input
                         type="password"
                         className="pl-10 input-field"
-                        placeholder="••••••••"
+                        placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó"
                         value={authForm.password}
                         onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
                         required
@@ -3862,9 +3862,9 @@ export default function App() {
                 className="bg-gray-100 border-none text-xs font-medium text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-200 cursor:pointer focus:ring-0"
               >
                 <option value="en">English</option>
-                <option value="hi">हिंदी</option>
-                <option value="ar">العربية</option>
-                <option value="zh">中文</option>
+                <option value="hi">αñ╣αñ┐αñéαñªαÑÇ</option>
+                <option value="ar">╪º┘ä╪╣╪▒╪¿┘è╪⌐</option>
+                <option value="zh">Σ╕¡µûç</option>
               </select>
             </div>
           </div>
@@ -4808,7 +4808,37 @@ export default function App() {
                           <Scan size={16} /> {t('scanBarcode')}
                         </button>
 
-
+                        <button
+                          onClick={() => {
+                            const name = prompt('Item Name:');
+                            if (!name) return;
+                            const price = prompt('Price:');
+                            if (!price) return;
+                            addToCart({ id: 'custom-'+Date.now(), name, sellPrice: Number(price), category: 'Custom' });
+                          }}
+                          className="flex items-center gap-1 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold transition-all ml-2"
+                        >
+                          <PlusCircle size={16} /> Custom
+                        </button>
+                        <button
+                          onClick={() => {
+                            const ready = serviceTickets.filter(t => t.status === 'Ready for Pickup' || t.status === 'Ready');
+                            if (ready.length === 0) { alert('No repairs ready for pickup'); return; }
+                            const choice = prompt('Ready Repairs:\n' + ready.map((t, i) => `${i+1}. ${t.customerName} - ${t.brand} (${formatCurrency(t.estimatedCost)})`).join('\n') + '\n\nEnter number to add:');
+                            const idx = parseInt(choice) - 1;
+                            if (ready[idx]) {
+                              addToCart({
+                                id: 'SRV-' + ready[idx].id,
+                                name: `Repair: ${ready[idx].brand} ${ready[idx].model} (${ready[idx].id.slice(0, 6)})`,
+                                sellPrice: Number(ready[idx].estimatedCost),
+                                type: 'service'
+                              });
+                            }
+                          }}
+                          className="flex items-center gap-1 text-amber-600 hover:bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 text-xs font-bold transition-all ml-1"
+                        >
+                          <Wrench size={16} /> Ready
+                        </button>
 
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -4916,6 +4946,7 @@ export default function App() {
                         ))}
                     </div>
                     </div>
+                  </div>
 
                   {/* Daily History Toggle / View - Responsive Card/Table */}
                   <div className="bg-white p-4 mx-4 mb-20 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-64 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
@@ -5698,7 +5729,7 @@ export default function App() {
                             <div className="mt-6 flex flex-wrap gap-2">
                               {(recipe.ingredients || []).map((ing, idx) => (
                                 <span key={idx} className="bg-slate-50 text-[9px] font-bold px-3 py-1.5 rounded-lg uppercase text-slate-500 border border-slate-100">
-                                  {ing.qty}× {ing.name}
+                                  {ing.qty}├ù {ing.name}
                                 </span>
                               ))}
                             </div>
@@ -6048,7 +6079,7 @@ export default function App() {
                                 </div>
                                 <div className="flex-1">
                                   <h4 className="text-sm font-bold text-gray-900">{ticket.customerName} - {ticket.brand} {ticket.model}</h4>
-                                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-0.5">{ticket.status} • {ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleString() : 'Just now'}</p>
+                                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-0.5">{ticket.status} ΓÇó {ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleString() : 'Just now'}</p>
                                 </div>
                                 <button onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }} className="p-2 text-gray-300 hover:text-blue-600 transition-colors"><ChevronRight size={20} /></button>
                               </div>
@@ -6138,7 +6169,38 @@ export default function App() {
                                 onChange={e => setServiceInventorySearch(e.target.value)}
                               />
                             </div>
-
+                            <button
+                              onClick={() => {
+                                const name = prompt('Item Name:');
+                                if (!name) return;
+                                const price = prompt('Price:');
+                                if (!price) return;
+                                setServiceCart([...serviceCart, { id: 'custom-'+Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'part' }]);
+                              }}
+                              className="flex items-center gap-1 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold transition-all whitespace-nowrap"
+                            >
+                              <PlusCircle size={16} /> Custom
+                            </button>
+                            <button
+                              onClick={() => {
+                                const ready = serviceTickets.filter(t => t.status === 'Ready for Pickup' || t.status === 'Ready');
+                                if (ready.length === 0) { alert('No repairs ready for pickup'); return; }
+                                const choice = prompt('Ready Repairs:\n' + ready.map((t, i) => `${i+1}. ${t.customerName} - ${t.brand} (${formatCurrency(t.estimatedCost)})`).join('\n') + '\n\nEnter number to add:');
+                                const idx = parseInt(choice) - 1;
+                                if (ready[idx]) {
+                                  setServiceCart([...serviceCart, {
+                                    id: 'SRV-' + ready[idx].id,
+                                    name: `Repair: ${ready[idx].brand} ${ready[idx].model} (${ready[idx].id.slice(0, 6)})`,
+                                    sellPrice: Number(ready[idx].estimatedCost),
+                                    quantity: 1,
+                                    type: 'service'
+                                  }]);
+                                }
+                              }}
+                              className="flex items-center gap-1 text-amber-600 hover:bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 text-xs font-bold transition-all whitespace-nowrap"
+                            >
+                              <Wrench size={16} /> Ready
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -6253,6 +6315,23 @@ export default function App() {
                                   </div>
                                 </button>
                               ))}
+                            <button
+                              onClick={() => {
+                                const name = prompt('Custom Item Name:');
+                                if (name) {
+                                  const price = prompt('Price:');
+                                  if (price) {
+                                    setServiceCart([...serviceCart, { id: 'man-'+Date.now(), name: name, sellPrice: Number(price), quantity: 1, type: 'part' }]);
+                                  }
+                                }
+                              }}
+                              className="bg-white p-4 rounded-[1.5rem] border-2 border-dashed border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all active:scale-95 group flex flex-col items-center justify-center gap-2 text-center"
+                            >
+                              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <Plus size={20} />
+                              </div>
+                              <p className="text-[10px] font-black uppercase text-gray-400 group-hover:text-blue-600">Custom Item</p>
+                            </button>
                           </div>
                         </section>
                       </div>
@@ -6318,93 +6397,105 @@ export default function App() {
                         )}
                       </div>
 
-                      <div className="bg-gray-50 border-t border-gray-200 p-4 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center text-xs text-gray-500">
-                            <span className="font-bold">{t('subtotal')}</span>
-                            <span className="font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
-                          </div>
-                          <div className="pt-2 border-t border-gray-200 flex justify-between items-end">
-                            <span className="text-sm font-bold text-gray-700">{t('totalCost')}</span>
-                            <span className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
-                          </div>
-                        </div>
-
-                        {/* Sales Employee Selection */}
-                        <div className="mb-2">
+                      <div className="p-6 bg-white border-t border-gray-100 space-y-4 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+                        {/* Service POS Checkout Form - Match Sales Sidebar */}
+                        <div className="space-y-3">
+                          {/* Sales Employee Selection */}
                           <button
                             onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                            className="w-full flex items-center justify-between p-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                            className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-2xl border border-blue-100 transition-all group"
                           >
-                            <div className="flex items-center gap-2">
-                              <User size={18} className="text-blue-600" />
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200">
+                                <User size={16} />
+                              </div>
                               <div className="text-left">
-                                <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">{t('salesEmployee')}</div>
-                                <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : t('selectEmployee') || 'Select Employee'}</div>
+                                <p className="text-[8px] text-blue-500 font-black uppercase tracking-[0.1em]">{t('salesEmployee')}</p>
+                                <p className="text-xs font-black text-gray-900 uppercase">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</p>
                               </div>
                             </div>
-                            <ChevronDown size={16} className="text-blue-400" />
+                            <ChevronRight size={16} className="text-blue-300 group-hover:translate-x-1 transition-transform" />
                           </button>
+
+                          {/* Order Type Toggle */}
+                          <div className="flex bg-gray-50 p-1 rounded-2xl border border-gray-100">
+                            {['Walk-in', 'Takeaway'].map(type => (
+                              <button
+                                key={type}
+                                onClick={() => setOrderType(type)}
+                                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${orderType === type ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                              >
+                                {t(type.toLowerCase()) || type}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Customer Info */}
+                          <div className="relative group">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                            <input
+                              className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500 transition-all"
+                              placeholder={t('customerNameOptional') || 'Customer Name'}
+                              value={newSaleForm.customer}
+                              onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
+                            />
+                          </div>
+
+                          {/* Payment Methods */}
+                          <div className="grid grid-cols-3 gap-2">
+                            {['Cash', 'Visa', 'Online'].map(method => (
+                              <button
+                                key={method}
+                                onClick={() => setPaymentMethod(method)}
+                                className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-gray-50 text-gray-400 border-gray-100 hover:border-gray-300'}`}
+                              >
+                                {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
+                              </button>
+                            ))}
+                          </div>
                         </div>
 
-                        {/* Order Type Toggle */}
-                        <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
-                          <button
-                            onClick={() => setOrderType('Walk-in')}
-                            className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                          >
-                            {t('walkIn')}
-                          </button>
-                          <button
-                            onClick={() => setOrderType('Takeaway')}
-                            className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                          >
-                            {t('takeaway')}
-                          </button>
+                        <div className="space-y-4 border-t border-gray-50 pt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em]">{t('subtotal')}</span>
+                            <span className="text-sm font-black text-gray-400 font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{t('totalCost')}</span>
+                            <span className="text-3xl font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                          </div>
                         </div>
-
-                        <input
-                          className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                          placeholder={t('customerNameOptional') || 'Customer Name'}
-                          value={newSaleForm.customer}
-                          onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
-                        />
-
-                        <div className="grid grid-cols-3 gap-2 mb-4">
-                          {['Cash', 'Visa', 'Online'].map(method => (
-                            <button
-                              key={method}
-                              onClick={() => setPaymentMethod(method)}
-                              className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
-                            >
-                              {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div>
-                          <button
+                        
+                        <div className="pt-2">
+                          <button 
                             onClick={() => {
                               if (serviceCart.length > 0) {
-                                if (printFormat === 'Thermal') handleCheckoutServiceCart('Thermal');
-                                else handleCheckoutServiceCart('A4');
+                                const mode = prompt('Enter 1 for Thermal, 2 for A4 PRO:', '1');
+                                if (mode === '1') handleCheckoutServiceCart('Thermal');
+                                else if (mode === '2') handleCheckoutServiceCart('A4');
                               }
                             }}
-                            disabled={serviceCart.length === 0}
-                            className="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                            className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[2.5rem] transition-all active:scale-95 shadow-xl shadow-slate-200 flex items-center justify-center gap-3 group"
                           >
-                            <CheckCircle size={20} /> {t('checkout')}
+                            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                              <CheckCircle2 size={20} />
+                            </div>
+                            <div className="text-left">
+                              <p className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">{t('completePayment') || 'Complete Payment'}</p>
+                              <p className="text-sm font-black uppercase tracking-tight">{t('checkout')}</p>
+                            </div>
                           </button>
                           
                           <div className="grid grid-cols-2 gap-2 mt-2">
-                             <button onClick={() => setPrintFormat('Thermal')} className={`py-2 bg-white border rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${printFormat === 'Thermal' ? 'border-blue-500 text-blue-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                               <Printer size={14} /> {t('thermal')}
+                             <button onClick={() => handleCheckoutServiceCart('Thermal')} className="py-2.5 bg-gray-50 hover:bg-white border border-gray-100 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all flex items-center justify-center gap-2">
+                               <Printer size={14} /> Thermal
                              </button>
-                             <button onClick={() => setPrintFormat('A4')} className={`py-2 bg-white border rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${printFormat === 'A4' ? 'border-blue-500 text-blue-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                               <FileText size={14} /> A4 Pro
+                             <button onClick={() => handleCheckoutServiceCart('A4')} className="py-2.5 bg-gray-50 hover:bg-white border border-gray-100 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
+                               <FileText size={14} /> A4 PRO
                              </button>
                           </div>
                         </div>
+
                       </div>
                     </div>
                   </div>
@@ -6488,8 +6579,8 @@ export default function App() {
                           <select className="input-field text-blue-600 font-bold" value={serviceForm.priority} onChange={e => setServiceForm({ ...serviceForm, priority: e.target.value })}>
                             <option value="Low">{t('low')}</option>
                             <option value="Normal">{t('normal')}</option>
-                            <option value="High">{t('high')} ⚡</option>
-                            <option value="Urgent">{t('urgent')} 🔥</option>
+                            <option value="High">{t('high')} ΓÜí</option>
+                            <option value="Urgent">{t('urgent')} ≡ƒöÑ</option>
                           </select>
                         </div>
                         <div className="space-y-2">
@@ -6909,8 +7000,8 @@ export default function App() {
                     <select className="input-field" value={editingTicket.priority} onChange={e => setEditingTicket({ ...editingTicket, priority: e.target.value })}>
                       <option value="Low">Low</option>
                       <option value="Normal">Normal</option>
-                      <option value="High">High ⚡</option>
-                      <option value="Urgent">Urgent 🔥</option>
+                      <option value="High">High ΓÜí</option>
+                      <option value="Urgent">Urgent ≡ƒöÑ</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -7842,9 +7933,9 @@ export default function App() {
                               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                             >
                               <option value="en">English</option>
-                              <option value="hi">हिंदी</option>
-                              <option value="ar">العربية</option>
-                              <option value="zh">中文</option>
+                              <option value="hi">αñ╣αñ┐αñéαñªαÑÇ</option>
+                              <option value="ar">╪º┘ä╪╣╪▒╪¿┘è╪⌐</option>
+                              <option value="zh">Σ╕¡µûç</option>
                             </select>
                           </div>
                           <div>
@@ -8554,7 +8645,7 @@ export default function App() {
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <div>
                   <h3 className="font-bold text-lg text-gray-900">{t('managePayroll')}</h3>
-                  <p className="text-xs text-slate-500">{currentPayrollForm.name} • {currentPayrollForm.month}</p>
+                  <p className="text-xs text-slate-500">{currentPayrollForm.name} ΓÇó {currentPayrollForm.month}</p>
                 </div>
                 <button onClick={() => setIsManagePayrollModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
