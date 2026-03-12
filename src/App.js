@@ -298,6 +298,8 @@ export default function App() {
   }, [language]);
 
   const [newSaleForm, setNewSaleForm] = useState({ customer: '', customerId: '', amount: 0, status: 'Completed', items: '' });
+  const [isEditHistoryModalOpen, setIsEditHistoryModalOpen] = useState(false);
+  const [editingHistoryItem, setEditingHistoryItem] = useState(null);
 
   // Sync document direction and language for RTL support (Arabic)
   useEffect(() => {
@@ -1800,6 +1802,24 @@ export default function App() {
       handlePrintInvoice(saleData, 'Cafe Receipt');
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleUpdateHistorySale = async (e) => {
+    e.preventDefault();
+    if (!editingHistoryItem || currentMode !== 'Owner') return;
+    try {
+      await updateDoc(doc(db, 'sales', editingHistoryItem.id), {
+        customer: editingHistoryItem.customer,
+        amount: Number(editingHistoryItem.amount),
+        paymentMethod: editingHistoryItem.paymentMethod
+      });
+      setIsEditHistoryModalOpen(false);
+      setEditingHistoryItem(null);
+      alert(t('saleUpdated') || 'Sale updated successfully!');
+    } catch (err) {
+      console.error(err);
+      alert(t('updateError') + err.message);
     }
   };
 
@@ -3994,10 +4014,6 @@ export default function App() {
               <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
               <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
               
-              {currentMode === 'Owner' && (
-                <SidebarItem icon={<Calculator size={20} />} label={t('menuAccounts')} active={activeTab === 'accounts'} onClick={() => { setActiveTab('accounts'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-              )}
-
               <SidebarItem 
                 icon={<BarChart3 size={20} />} 
                 label={t('menuReports')} 
@@ -6009,7 +6025,14 @@ export default function App() {
                               {currentMode === 'Owner' && (
                                 <td className="px-6 py-4 text-right">
                                   {log.category === 'Sale' && (
-                                    <div className="flex justify-end gap-2">
+                                    <div className="flex justify-end gap-2 text-right">
+                                      <button 
+                                        onClick={() => { setEditingHistoryItem(log.original); setIsEditHistoryModalOpen(true); }}
+                                        className="p-2 rounded-lg transition-all text-blue-500 hover:bg-blue-50"
+                                        title="Edit Bill"
+                                      >
+                                        <Edit size={16} />
+                                      </button>
                                       <button 
                                         onClick={() => handleDeleteSale(log.original)}
                                         className="p-2 rounded-lg transition-all text-rose-500 hover:bg-rose-50"
@@ -7002,13 +7025,22 @@ export default function App() {
                                           <Printer size={16} />
                                         </button>
                                         {!h.isTicket && currentMode === 'Owner' && (
-                                          <button 
-                                            onClick={() => handleDeleteSale(h.item)}
-                                            className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-rose-400 hover:text-rose-600 hover:bg-rose-50"
-                                            title="Delete Sale"
-                                          >
-                                            <Trash2 size={16} />
-                                          </button>
+                                          <div className="flex gap-2">
+                                            <button 
+                                              onClick={() => { setEditingHistoryItem(h.item); setIsEditHistoryModalOpen(true); }}
+                                              className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-blue-400 hover:text-blue-600 hover:bg-blue-50"
+                                              title="Edit Sale"
+                                            >
+                                              <Edit size={16} />
+                                            </button>
+                                            <button 
+                                              onClick={() => handleDeleteSale(h.item)}
+                                              className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-rose-400 hover:text-rose-600 hover:bg-rose-50"
+                                              title="Delete Sale"
+                                            >
+                                              <Trash2 size={16} />
+                                            </button>
+                                          </div>
                                         )}
                                       </td>
                                     </tr>
@@ -8670,7 +8702,60 @@ export default function App() {
         )
       }
 
-      {/* Add Sale Modal */}
+      {/* Edit History Sale Modal */}
+      {
+        isEditHistoryModalOpen && editingHistoryItem && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[250] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden border border-gray-100">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <Edit className="text-blue-600" size={18} />
+                  <h3 className="font-bold text-lg text-gray-900">{t('editSale') || 'Edit Sale Entry'}</h3>
+                </div>
+                <button onClick={() => { setIsEditHistoryModalOpen(false); setEditingHistoryItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleUpdateHistorySale} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('customerName')}</label>
+                  <input 
+                    className="input-field" 
+                    value={editingHistoryItem.customer} 
+                    onChange={e => setEditingHistoryItem({ ...editingHistoryItem, customer: e.target.value })} 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('totalAmount')}</label>
+                  <input 
+                    type="number" 
+                    className="input-field font-mono" 
+                    value={editingHistoryItem.amount} 
+                    onChange={e => setEditingHistoryItem({ ...editingHistoryItem, amount: Number(e.target.value) })} 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('paymentMethod')}</label>
+                  <select 
+                    className="input-field" 
+                    value={editingHistoryItem.paymentMethod} 
+                    onChange={e => setEditingHistoryItem({ ...editingHistoryItem, paymentMethod: e.target.value })}
+                  >
+                    <option value="Cash">{t('cash')}</option>
+                    <option value="Visa">{t('visa')}</option>
+                    <option value="Online">{t('onlinePayment')}</option>
+                  </select>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button type="button" onClick={() => { setIsEditHistoryModalOpen(false); setEditingHistoryItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-bold text-xs uppercase tracking-widest">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">{t('update')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
       {
         isAddSaleModalOpen && (
           <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
