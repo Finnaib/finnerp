@@ -1551,9 +1551,13 @@ export default function App() {
   }, [sites, posLocationFilter]);
 
   const addToCart = (item) => {
-    if (item.quantity <= 0) return;
+    // 1. Check if item has any stock at all
+    if (item.quantity <= 0) {
+      alert(t('outOfStock') || "This item is out of stock!");
+      return;
+    }
 
-    // Strict Location Rule
+    // 2. Strict Location Rule
     if (cart.length > 0) {
       const cartLocation = cart[0].location;
       if (item.location !== cartLocation) {
@@ -1561,18 +1565,22 @@ export default function App() {
         return;
       }
     } else {
-      // First item: Auto-lock filter if currently "All"
       if (!posLocationFilter) {
         setPosLocationFilter(item.location);
       }
     }
 
+    // 3. Check current cart quantity against stock
     setCart(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
+        if (existing.quantity + 1 > item.quantity) {
+          alert(`${t('maxStockReached') || 'Cannot add more. Only'} ${item.quantity} ${t('available') || 'available'}`);
+          return prev;
+        }
         return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { ...item, quantity: 1, price: item.sellPrice || 0, barcode: item.barcode || '' }];
+      return [...prev, { ...item, quantity: 1, price: Number(item.sellPrice) || 0, barcode: item.barcode || '' }];
     });
   };
 
@@ -1585,15 +1593,26 @@ export default function App() {
   };
 
   const updateCartQuantity = (itemId, delta) => {
+    // Find the item in the current inventory state to check its stock
+    const stockItem = inventory.find(inv => inv.id === itemId);
+    const maxStock = stockItem ? Number(stockItem.quantity) : 0;
+
     setCart(prev => prev.map(i => {
       if (i.id === itemId) {
-        return { ...i, quantity: Math.max(1, i.quantity + delta) };
+        const nextQty = i.quantity + delta;
+        // Check for upper limit (stock)
+        if (delta > 0 && nextQty > maxStock) {
+          alert(`${t('maxStockReached') || 'No more stock available! Max:'} ${maxStock}`);
+          return i;
+        }
+        // Lower limit is always 1
+        return { ...i, quantity: Math.max(1, nextQty) };
       }
       return i;
     }));
   };
 
-  const calculateTotal = () => cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const calculateTotal = () => cart.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
 
   const handleCheckout = async () => {
     if (!user || cart.length === 0) return;
@@ -1667,22 +1686,20 @@ export default function App() {
 
       // 2. Update Inventory (Decrement Stock)
       const batch = writeBatch(db);
-      cart.forEach(item => {
+      for (const item of cart) {
+        if (item.type === 'service') continue; // Skip service items as they don't have warehouse stock
+
         const itemRef = doc(db, 'inventory', item.id);
-        // Note: In a real app, check for negative stock. Here we just decrement.
-        // We need the current stock. Since we have 'inventory' state, we can use it, 
-        // but for concurrency, Firestore transactions are better. 
-        // For simplicity in this demo, we assume 'inventory' state is close enough 
-        // or we just use increment(-qty).
-        // HOWEVER, 'increment' import is needed. Let's just use the state value logic for now 
-        // or assumes the user manages it manually if complex. 
-        // BETTER: Use existing item data from state to calculate new qty.
         const currentItem = inventory.find(inv => inv.id === item.id);
+        
         if (currentItem) {
-          const newQty = Math.max(0, Number(currentItem.quantity) - item.quantity);
+          const newQty = Number(currentItem.quantity) - Number(item.quantity);
+          if (newQty < 0) {
+             throw new Error(`${t('insufficientStock') || 'Insufficient stock for'} ${item.name}`);
+          }
           batch.update(itemRef, { quantity: newQty });
         }
-      });
+      }
       await batch.commit();
 
       // 3. Print Invoice (Optional auto-print)
@@ -1872,37 +1889,49 @@ export default function App() {
     try {
       const batch = writeBatch(db);
       for (const item of cartItems) {
+        // Find recipe or direct item
         const recipe = recipes.find(r => r.id === item.id);
         if (recipe && recipe.ingredients) {
-          recipe.ingredients.forEach(ing => {
+          for (const ing of recipe.ingredients) {
             const ingRef = doc(db, 'inventory', ing.id);
             const invItem = inventory.find(i => i.id === ing.id);
             if (invItem) {
               const consumption = Number(ing.qty) * (Number(item.quantity) || 1);
-              batch.update(ingRef, { quantity: Number(invItem.quantity) - consumption });
+              const newQty = Number(invItem.quantity) - consumption;
+              if (newQty < 0) {
+                 throw new Error(`${t('insufficientIngredient') || 'Insufficient stock for ingredient'} ${invItem.name} in ${item.name}`);
+              }
+              batch.update(ingRef, { quantity: newQty });
             }
-          });
+          }
         } else {
           const itemRef = doc(db, 'inventory', item.id);
           const invItem = inventory.find(i => i.id === item.id);
           if (invItem) {
-            batch.update(itemRef, { quantity: Number(invItem.quantity) - (Number(item.quantity) || 1) });
+            const newQty = Number(invItem.quantity) - (Number(item.quantity) || 1);
+            if (newQty < 0) {
+               throw new Error(`${t('insufficientStock') || 'Insufficient stock for'} ${item.name}`);
+            }
+            batch.update(itemRef, { quantity: newQty });
           }
         }
       }
 
       if (sessionId) {
         const session = cafeSessions.find(s => s.id === sessionId);
-        const updatedOrders = [...(session.orders || []), ...cartItems];
-        batch.update(doc(db, 'cafeSessions', sessionId), {
-          orders: updatedOrders,
-          updatedAt: serverTimestamp()
-        });
+        if (session) {
+          const updatedOrders = [...(session.orders || []), ...cartItems];
+          batch.update(doc(db, 'cafeSessions', sessionId), {
+            orders: updatedOrders,
+            updatedAt: serverTimestamp()
+          });
+        }
       }
       await batch.commit();
       setCart([]);
     } catch (err) {
       console.error(err);
+      alert(err.message);
     }
   };
 
@@ -2738,14 +2767,14 @@ export default function App() {
   const handleCheckoutServiceCart = async (format) => {
     if (serviceCart.length === 0) return;
     const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-    const total = serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0);
+    const total = serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0);
     const invData = {
       invoiceId: currentId,
       type: 'service_pos',
       client: newSaleForm.customer || 'Service Customer',
       customerId: newSaleForm.customerId || null,
       date: new Date().toLocaleDateString(),
-      items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
+      items: serviceCart.map(i => ({ ...i, price: Number(i.sellPrice || 0), qty: Number(i.quantity || 1) })),
       amount: total,
       paymentMethod: paymentMethod,
       soldBy: salesEmployee ? salesEmployee.name : user.email,
@@ -2755,20 +2784,29 @@ export default function App() {
       orderType: orderType
     };
     try {
-      const saleRef = await addDoc(collection(db, 'sales'), invData);
       const batch = writeBatch(db);
-      serviceCart.forEach(item => {
+      for (const item of serviceCart) {
         if (item.type === 'part') {
           const invItem = inventory.find(i => i.id === item.id);
-          if (invItem) { batch.update(doc(db, 'inventory', item.id), { quantity: Number(invItem.quantity) - Number(item.quantity) }); }
+          if (invItem) { 
+            const newQty = Number(invItem.quantity) - Number(item.quantity);
+            if (newQty < 0) {
+              throw new Error(`${t('insufficientStock') || 'Insufficient stock for'} ${item.name}`);
+            }
+            batch.update(doc(db, 'inventory', item.id), { quantity: newQty }); 
+          }
         }
-      });
+      }
+      const saleRef = await addDoc(collection(db, 'sales'), invData);
       await batch.commit();
       handlePrintInvoice({ ...invData, id: saleRef.id }, format === 'Thermal' ? 'Service Receipt' : 'Service Invoice', format);
       setServiceCart([]);
       setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
       alert('Sale Completed!');
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+      alert(e.message);
+    }
   };
 
   // --- Actions (Firestore) ---
@@ -3740,16 +3778,16 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleShortcuts);
   }, [activeTab, cart, calculateTotal, handleHoldCart, handleCheckout]);
 
-  // UPI QR Auto-hide logic (15 sec)
+  // UPI QR Auto-hide logic (30 sec)
   useEffect(() => {
     let timer;
     let interval;
     if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
       setShowUpiQr(true);
-      setUpiQrTimer(600); // 10 minutes (600 seconds)
-      timer = setTimeout(() => setShowUpiQr(false), 600000);
+      setUpiQrTimer(30); // 30 seconds
+      timer = setTimeout(() => setShowUpiQr(false), 30000);
       interval = setInterval(() => {
-        setUpiQrTimer(prev => Math.max(0, prev - 1)); // Decrement 1 second per second
+        setUpiQrTimer(prev => Math.max(0, prev - 1));
       }, 1000);
       return () => {
         clearTimeout(timer);
@@ -5315,7 +5353,7 @@ export default function App() {
 
                       {paymentMethod === 'Online' && (
                         <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 rounded-2xl animate-in slide-in-from-top-2 duration-300 border border-gray-100">
-                          {['UPI', 'InstaPay'].map(sub => (
+                          {['UPI', 'InstaPay', 'Other'].map(sub => (
                             <button
                               key={sub}
                               onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
@@ -6141,7 +6179,7 @@ export default function App() {
           {
             activeTab === 'service' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-fit border border-gray-200 mb-8 overflow-x-auto shadow-sm">
+                <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-full lg:w-fit border border-gray-200 mb-8 overflow-x-auto shadow-sm sticky top-0 z-50 scrollbar-hide">
                   {[
                     { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
                     { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
@@ -6288,9 +6326,33 @@ export default function App() {
                 )}
                 {/* Sub Tab: SELL (SERVICE POS) */}
                 {serviceSubTab === 'sell' && (
-                  <div className="flex flex-col lg:flex-row h-full -m-6 bg-gray-50 overflow-hidden relative">
+                  <div className="flex flex-col lg:flex-row h-full -m-6 bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)]">
+                    {/* Mobile Bottom Navigation for Service POS */}
+                    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-8 py-3 flex justify-between items-center z-[65] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
+                        <div className="flex gap-10">
+                          <button
+                            onClick={() => setIsMobileCartOpen(false)}
+                            className={`flex flex-col items-center gap-1.5 transition-all ${!isMobileCartOpen ? 'text-blue-600 scale-110' : 'text-gray-300 hover:text-gray-400'}`}
+                          >
+                            <div className={`p-2 rounded-xl transition-all ${!isMobileCartOpen ? 'bg-blue-50' : ''}`}><Wrench size={20} /></div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.15em]">{t('repairs') || 'Repairs'}</span>
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => setIsMobileCartOpen(true)}
+                          className="relative -top-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 rounded-[2rem] shadow-[0_15px_40px_rgba(37,99,235,0.4)] transform active:scale-95 transition-all border-4 border-white group"
+                        >
+                          <ShoppingCart size={28} className="group-hover:rotate-12 transition-transform" />
+                          {serviceCart.length > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white animate-bounce shadow-md">
+                              {serviceCart.reduce((a, b) => a + (b.quantity||1), 0)}
+                            </span>
+                          )}
+                        </button>
+                    </div>
+
                     {/* Left Side: Search & Items Grid */}
-                    <div className="flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200">
+                    <div className={`flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
                       {/* Top Action Bar */}
                       <div className="p-6 bg-white border-b border-gray-200">
                         <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
@@ -6411,11 +6473,16 @@ export default function App() {
                                 <button
                                   key={item.id}
                                   onClick={() => {
+                                    const stock = Number(item.quantity) || 0;
+                                    if (stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
                                     const existing = serviceCart.find(c => c.id === item.id);
                                     if (existing) {
+                                      if (existing.quantity + 1 > stock) {
+                                        return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
+                                      }
                                       setServiceCart(serviceCart.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c));
                                     } else {
-                                      setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: item.sellPrice, quantity: 1, type: 'part' }]);
+                                      setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: Number(item.sellPrice), quantity: 1, type: 'part' }]);
                                     }
                                   }}
                                   className="bg-white p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-3 text-left"
@@ -6428,8 +6495,8 @@ export default function App() {
                                         <Package size={24} />
                                       </div>
                                     )}
-                                    <div className="absolute top-2 right-2 px-2 py-1 bg-white/80 backdrop-blur-md rounded-lg text-[8px] font-black">
-                                       STOCK: {item.quantity || 0}
+                                    <div className={`absolute top-2 right-2 px-2 py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-red-600 text-white' : 'bg-white/80'}`}>
+                                       {Number(item.quantity) <= 0 ? 'OUT OF STOCK' : `STOCK: ${item.quantity}`}
                                     </div>
                                   </div>
                                   <div className="space-y-1">
@@ -6449,9 +6516,13 @@ export default function App() {
                     </div>
 
                     {/* Right Side: Cart Sidebar (Fixed) */}
-                    <div className="w-full lg:w-[420px] bg-white border-l border-gray-200 flex flex-col h-full z-20 shadow-[-10px_0_30px_rgba(0,0,0,0.02)]">
+                    {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[75] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
+                    <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[80] lg:z-20 transition-transform duration-300 ease-in-out transform shadow-[-10px_0_30px_rgba(0,0,0,0.02)] ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
                       <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-30">
                         <div className="flex items-center gap-3">
+                          <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
+                             <ArrowLeft size={20} />
+                          </button>
                           <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
                             <ShoppingCart size={20} />
                           </div>
@@ -9315,7 +9386,7 @@ export default function App() {
               <div className="flex items-center gap-3 text-blue-800">
                 <div className="p-2 bg-blue-50 rounded-xl"><QrCode size={20} /></div>
                 <span className="font-black text-xs uppercase tracking-widest">
-                  {digitalSubMethod === 'UPI' ? t('payWithUPI') : t('payWithInstapay')}
+                  {digitalSubMethod === 'UPI' ? t('payWithUPI') : digitalSubMethod === 'InstaPay' ? t('payWithInstapay') : (t('otherPayment') || 'Other Payment')}
                 </span>
               </div>
               <button
@@ -9340,6 +9411,13 @@ export default function App() {
                   </div>
                   <p className="text-[10px] font-bold text-gray-500">InstaPay ID: {shopSettings.instapayId}</p>
                 </div>
+              ) : digitalSubMethod === 'Other' ? (
+                <div className="text-center py-4 flex flex-col items-center gap-3">
+                   <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                      <QrCode size={32} />
+                   </div>
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('useExternalTerminal') || 'Use External Terminal or QR'}</p>
+                </div>
               ) : (
                 <div className="p-4 text-center text-xs text-red-500 italic">
                   {t('paymentMethodNotConfigured') || 'Details not configured in Settings'}
@@ -9359,7 +9437,7 @@ export default function App() {
               <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-600 transition-all duration-1000 ease-linear rounded-full"
-                  style={{ width: `${(upiQrTimer / 600) * 100}%` }}
+                  style={{ width: `${(upiQrTimer / 30) * 100}%` }}
                 ></div>
               </div>
               <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
@@ -9414,8 +9492,18 @@ export default function App() {
                         <button
                           key={item.id}
                           onClick={() => {
+                            const stock = Number(item.quantity) || 0;
+                            const isRecipe = recipe.find(r => r.id === item.id)?.ingredients;
+                            
+                            // For recipes, we just allow adding and check at checkout OR perform a shallow check here if we want to be fancy.
+                            // For now, let's just do direct item check.
+                            if (!isRecipe && stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
+
                             const existing = cart.find(c => c.id === item.id);
                             if (existing) {
+                              if (!isRecipe && Number(existing.quantity) + 1 > stock) {
+                                return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
+                              }
                               setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
                             } else {
                               setCart([...cart, { ...item, quantity: 1 }]);
@@ -9494,7 +9582,10 @@ export default function App() {
                                 <button 
                                   onClick={() => {
                                     const invItem = inventory.find(i => i.id === item.id);
-                                    if (invItem && item.quantity < invItem.quantity) {
+                                    const isRecipe = recipes.find(r => r.id === item.id);
+                                    if (isRecipe) {
+                                      setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
+                                    } else if (invItem && Number(item.quantity) < Number(invItem.quantity)) {
                                       setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
                                     } else {
                                       alert(t('outOfStock') || "No more stock available!");
