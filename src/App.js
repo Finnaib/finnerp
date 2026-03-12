@@ -1676,7 +1676,8 @@ export default function App() {
         // BETTER: Use existing item data from state to calculate new qty.
         const currentItem = inventory.find(inv => inv.id === item.id);
         if (currentItem) {
-          batch.update(itemRef, { quantity: Number(currentItem.quantity) - item.quantity });
+          const newQty = Math.max(0, Number(currentItem.quantity) - item.quantity);
+          batch.update(itemRef, { quantity: newQty });
         }
       });
       await batch.commit();
@@ -5459,7 +5460,13 @@ export default function App() {
                               </td>
                               <td className="px-6 py-4 text-right font-mono font-black text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
                               <td className="px-6 py-4 text-right font-mono font-black text-gray-900">
-                                {item.quantity === 0 ? <span className="text-red-600">0</span> : item.quantity}
+                                {item.quantity <= 0 ? (
+                                  <span className="text-rose-600 text-[10px] font-black uppercase tracking-widest bg-rose-50 px-2 py-1 rounded-lg border border-rose-100 italic">
+                                    {t('outOfStock') || 'Out of Stock'}
+                                  </span>
+                                ) : (
+                                  item.quantity
+                                )}
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex justify-end gap-2">
@@ -5519,11 +5526,11 @@ export default function App() {
                                     <span className="text-[10px] text-gray-400 ml-1 font-normal opacity-50">/ UNIT</span>
                                   </div>
                                 </div>
-                                <div className={`px-3 py-1 rounded-full text-[10px] font-black shadow-sm flex items-center gap-1 ${item.quantity <= 0 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-gray-900 text-white'}`}>
+                                <div className={`px-3 py-1 rounded-full text-[10px] font-black shadow-sm flex items-center gap-1 ${item.quantity <= 0 ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-gray-900 text-white'}`}>
                                   {item.quantity <= 0 ? (
-                                    <>OUT</>
+                                    <>{t('outOfStock') || 'OUT OF STOCK'}</>
                                   ) : (
-                                    <>{item.quantity} IN STOCK</>
+                                    <>{item.quantity} {t('inStock') || 'IN STOCK'}</>
                                   )}
                                 </div>
                               </div>
@@ -7367,7 +7374,8 @@ export default function App() {
                             const invRef = doc(db, 'inventory', part.id);
                             const currentInv = inventory.find(i => i.id === part.id);
                             if (currentInv) {
-                              batch.update(invRef, { quantity: Number(currentInv.quantity) - (part.quantity || 1) });
+                              const newQty = Math.max(0, Number(currentInv.quantity) - (part.quantity || 1));
+                              batch.update(invRef, { quantity: newQty });
                             }
                           });
                           await batch.commit();
@@ -9358,7 +9366,19 @@ export default function App() {
                               <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-1.5 border border-gray-100">
                                 <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Math.max(0, Number(c.quantity) - 1) } : c).filter(c => c.quantity > 0))} className="p-1.5 hover:bg-white hover:text-rose-600 rounded-lg text-slate-400 transition-all"><Minus size={12} /></button>
                                 <span className="text-[11px] font-black text-slate-700 tabular-nums min-w-[20px] text-center">{item.quantity}</span>
-                                <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c))} className="p-1.5 hover:bg-white hover:text-blue-600 rounded-lg text-slate-400 transition-all"><Plus size={12} /></button>
+                                <button 
+                                  onClick={() => {
+                                    const invItem = inventory.find(i => i.id === item.id);
+                                    if (invItem && item.quantity < invItem.quantity) {
+                                      setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
+                                    } else {
+                                      alert(t('outOfStock') || "No more stock available!");
+                                    }
+                                  }} 
+                                  className="p-1.5 hover:bg-white hover:text-blue-600 rounded-lg text-slate-400 transition-all"
+                                >
+                                  <Plus size={12} />
+                                </button>
                               </div>
                             </div>
                           ))
