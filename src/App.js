@@ -9494,15 +9494,15 @@ export default function App() {
                           key={item.id}
                           onClick={() => {
                             const stock = Number(item.quantity) || 0;
-                            const hasIngredients = item.ingredients && item.ingredients.length > 0;
+                            const isRecipe = recipe.find(r => r.id === item.id)?.ingredients;
                             
                             // For recipes, we just allow adding and check at checkout OR perform a shallow check here if we want to be fancy.
                             // For now, let's just do direct item check.
-                            if (!hasIngredients && stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
+                            if (!isRecipe && stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
 
                             const existing = cart.find(c => c.id === item.id);
                             if (existing) {
-                              if (!hasIngredients && Number(existing.quantity) + 1 > stock) {
+                              if (!isRecipe && Number(existing.quantity) + 1 > stock) {
                                 return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
                               }
                               setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
