@@ -58,6 +58,7 @@ import {
   Coffee,
   Monitor,
   Disc,
+  Lock,
   Minus,
   History,
   Play,
@@ -178,11 +179,14 @@ export default function App() {
   const [printFormat, setPrintFormat] = useState('Thermal'); // 'Thermal' or 'A4'
   const [printDual, setPrintDual] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [securityPin, setSecurityPin] = useState('1234'); // Default until loaded
+  const [securityPin, setSecurityPin] = useState('1234'); 
+  const [managerPin, setManagerPin] = useState('8888'); 
+  const [ownerPin, setOwnerPin] = useState('0000'); 
+  const [currentMode, setCurrentMode] = useState('Cashier'); // 'Cashier' | 'Manager' | 'Owner'
   const [securityQuestion, setSecurityQuestion] = useState('');
   const [securityAnswer, setSecurityAnswer] = useState('');
   const [pinInput, setPinInput] = useState('');
-  const [showSensitiveData, setShowSensitiveData] = useState(false); // Warehouse Buy Price toggle
+  const [showSensitiveData, setShowSensitiveData] = useState(false); 
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [shopSettings, setShopSettings] = useState({
     name: '',
@@ -289,6 +293,8 @@ export default function App() {
           if (docSnap.exists()) {
             const data = docSnap.data();
             if (data.securityPin) setSecurityPin(data.securityPin);
+            if (data.managerPin) setManagerPin(data.managerPin);
+            if (data.ownerPin) setOwnerPin(data.ownerPin);
             if (data.securityQuestion) setSecurityQuestion(data.securityQuestion);
             if (data.securityAnswer) setSecurityAnswer(data.securityAnswer);
             if (data.language) setLanguage(data.language);
@@ -1757,6 +1763,49 @@ export default function App() {
       handlePrintInvoice(saleData, 'Cafe Receipt');
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteSale = async (sale) => {
+    if (currentMode === 'Cashier') {
+      alert(t('permissionDenied') || 'Permission Denied. Switch to Manager or Owner mode.');
+      return;
+    }
+
+    if (!window.confirm(t('confirmDeleteSale') || 'Are you sure you want to delete this bill? This will also restore stock levels.')) return;
+
+    try {
+      const batch = writeBatch(db);
+      
+      // 1. Restore Stock if applicable
+      if (Array.isArray(sale.items)) {
+        sale.items.forEach(item => {
+          if (item.id) {
+            // Check Warehouse Inventory
+            const invItem = inventory.find(i => i.id === item.id);
+            if (invItem) {
+              const newQty = Number(invItem.quantity) + Number(item.qty || item.quantity);
+              batch.update(doc(db, 'inventory', item.id), { quantity: newQty });
+            }
+            
+            // Check Service Inventory
+            const srvItem = serviceInventory.find(i => i.id === item.id);
+            if (srvItem) {
+                const newQty = Number(srvItem.stock) + Number(item.qty || item.quantity);
+                batch.update(doc(db, 'serviceInventory', item.id), { stock: newQty });
+            }
+          }
+        });
+      }
+
+      // 2. Delete the Sale Document
+      batch.delete(doc(db, 'sales', sale.id));
+
+      await batch.commit();
+      alert(t('saleDeleted') || 'Bill deleted and stock restored.');
+    } catch (err) {
+      console.error("Error deleting sale:", err);
+      alert(t('errorDeleting') || 'Error deleting bill.');
     }
   };
 
@@ -3863,12 +3912,32 @@ export default function App() {
       <aside className={`fixed md:relative inset-y-0 left-0 bg-slate-900 text-white flex flex-col shadow-2xl z-[70] transition-all duration-[400ms] ease-in-out overflow-hidden ${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full opacity-0 md:w-0'}`}>
         <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-xl sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg ring-4 ring-blue-500/10">
-              <Shield size={22} className="text-white" />
+            <div className={`p-2.5 rounded-xl shadow-lg ring-4 ${currentMode === 'Owner' ? 'bg-rose-500 ring-rose-500/10' : currentMode === 'Manager' ? 'bg-amber-500 ring-amber-500/10' : 'bg-blue-500 ring-blue-500/10'}`}>
+              <Shield 
+                size={22} 
+                className="text-white cursor-pointer" 
+                onDoubleClick={() => { setPinAction('switchMode'); setIsPinModalOpen(true); }}
+                title="Double Click for Admin"
+              />
             </div>
             <div className="overflow-hidden">
               <h1 className="font-black text-sm uppercase tracking-widest truncate">{shopSettings.name || t('appName')}</h1>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter truncate">{shopSettings.address || t('appSubtitle')}</p>
+              {currentMode !== 'Cashier' ? (
+                <div 
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg transition-all ${currentMode === 'Owner' ? 'text-rose-400' : 'text-amber-400'}`}
+                >
+                  <span className="text-[9px] font-black uppercase tracking-tighter">{currentMode} {t('mode')}</span>
+                  <button 
+                    onClick={() => { setCurrentMode('Cashier'); setShowSensitiveData(false); }}
+                    className="p-1 hover:text-white"
+                    title="Lock Mode"
+                  >
+                    <Lock size={10} />
+                  </button>
+                </div>
+              ) : (
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter truncate opacity-50">{shopSettings.address || t('appSubtitle')}</p>
+              )}
             </div>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-all bg-slate-800/50"><X size={18} /></button>
@@ -3880,7 +3949,9 @@ export default function App() {
           <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<BarChart3 size={20} />} label={t('menuReports')} active={activeTab === 'reports'} onClick={() => { setPinAction('accessReports'); setIsPinModalOpen(true); }} />
+          {currentMode !== 'Cashier' && (
+            <SidebarItem icon={<BarChart3 size={20} />} label={t('menuReports')} active={activeTab === 'reports'} onClick={() => { setPinAction('accessReports'); setIsPinModalOpen(true); }} />
+          )}
 
           <div className="my-2 border-t border-slate-700/50"></div>
 
@@ -5825,6 +5896,7 @@ export default function App() {
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('description')}</th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('paymentMode') || 'Payment'}</th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('valueStatus')}</th>
+                          {currentMode !== 'Cashier' && <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('actions')}</th>}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -5841,7 +5913,8 @@ export default function App() {
                                 desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
                                 val: s.amount,
                                 isCurrency: true,
-                                paymentMethod: s.paymentMethod
+                                paymentMethod: s.paymentMethod,
+                                original: s
                               })),
                             ...purchases
                               .filter(p => p.type === 'Stock Increase' || p.type === 'Inventory Add')
@@ -5879,6 +5952,19 @@ export default function App() {
                                 )}
                               </td>
                               <td className="px-6 py-4 text-right font-black font-mono text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
+                              {currentMode !== 'Cashier' && (
+                                <td className="px-6 py-4 text-right">
+                                  {log.category === 'Sale' && (
+                                    <button 
+                                      onClick={() => handleDeleteSale(log.original)}
+                                      className="p-2 rounded-lg transition-all text-rose-500 hover:bg-rose-50"
+                                      title="Delete Bill"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  )}
+                                </td>
+                              )}
                             </tr>
                           ));
                         })()}
@@ -6852,13 +6938,22 @@ export default function App() {
                                          <div className="text-[10px] text-slate-400 font-medium truncate max-w-[200px]">{h.details}</div>
                                          <div className="text-[8px] text-blue-500 font-black uppercase mt-1 tracking-widest">BY: {h.soldBy}</div>
                                       </td>
-                                      <td className="p-4 text-right">
+                                      <td className="p-4 text-right flex items-center justify-end gap-2">
                                         <button 
                                           onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')} 
                                           className="p-2 border border-slate-100 text-slate-400 hover:text-blue-600 rounded-lg transition-all shadow-sm"
                                         >
                                           <Printer size={16} />
                                         </button>
+                                        {!h.isTicket && currentMode !== 'Cashier' && (
+                                          <button 
+                                            onClick={() => handleDeleteSale(h.item)}
+                                            className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-rose-400 hover:text-rose-600 hover:bg-rose-50"
+                                            title="Delete Sale"
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
+                                        )}
                                       </td>
                                     </tr>
                                   ))}
@@ -6880,7 +6975,17 @@ export default function App() {
                                     <div className="font-mono font-black text-slate-900 mt-1">{formatCurrency(h.amount)}</div>
                                     <div className="text-[8px] text-blue-500 font-black uppercase mt-1 tracking-widest">BY: {h.soldBy}</div>
                                   </div>
-                                  <button onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')} className="p-3 bg-white border border-slate-100 text-slate-600 rounded-2xl shadow-sm"><Printer size={20} /></button>
+                                  <div className="flex flex-col gap-2">
+                                    <button onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')} className="p-3 bg-white border border-slate-100 text-slate-600 rounded-2xl shadow-sm"><Printer size={20} /></button>
+                                    {!h.isTicket && currentMode !== 'Cashier' && (
+                                       <button 
+                                         onClick={() => handleDeleteSale(h.item)} 
+                                         className="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm text-rose-500"
+                                       >
+                                         <Trash2 size={20} />
+                                       </button>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -8075,18 +8180,21 @@ export default function App() {
                           <Shield size={18} className="text-teal-600" /> {t('changePin')} & {t('setSecurityQuestion')}
                         </h4>
 
-                        {/* PIN */}
-                        <div className="mb-4">
-                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('securityPin')}</label>
-                          {securityPin === '1234' ? (
+                        {/* Multi-Mode PIN Management */}
+                        <div className="space-y-4 pt-2 border-t border-gray-100">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t('pinManagement') || 'PIN Management'}</h4>
+                          
+                          {/* Cashier PIN */}
+                          <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-500 mb-1">{t('cashierPin') || 'Cashier PIN'}</label>
                             <input
                               type="password"
-                              placeholder={t('newPin')}
+                              placeholder={securityPin === '1234' ? t('setNewPin') : '****'}
                               maxLength={4}
-                              className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-red-50 focus:ring-2 focus:ring-red-500 outline-none"
+                              className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm bg-blue-50/30 focus:ring-2 focus:ring-blue-500 outline-none"
                               onBlur={(e) => {
                                 if (e.target.value.length === 4) {
-                                  if (window.confirm(t('confirmChangePin') || "Set new PIN?")) {
+                                  if (window.confirm("Update Cashier PIN?")) {
                                     setSecurityPin(e.target.value);
                                     saveUserSettings({ securityPin: e.target.value });
                                     e.target.value = '';
@@ -8095,9 +8203,49 @@ export default function App() {
                                 }
                               }}
                             />
+                          </div>
+
+                          {/* Manager & Owner PINs (Owner Only) */}
+                          {currentMode === 'Owner' ? (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                              <div>
+                                <label className="block text-[10px] font-black uppercase text-amber-600 mb-1">{t('managerPin') || 'Manager PIN'}</label>
+                                <input
+                                  type="password"
+                                  placeholder={managerPin === '8888' ? "Set Manager PIN" : "****"}
+                                  maxLength={4}
+                                  className="w-full px-3 py-2 border border-amber-100 rounded-lg text-sm bg-amber-50/30 focus:ring-2 focus:ring-amber-500 outline-none"
+                                  onBlur={(e) => {
+                                    if (e.target.value.length === 4) {
+                                      setManagerPin(e.target.value);
+                                      saveUserSettings({ managerPin: e.target.value });
+                                      e.target.value = '';
+                                      alert("Manager PIN Restricted.");
+                                    }
+                                  }}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-black uppercase text-rose-600 mb-1">{t('ownerPin') || 'Owner PIN'}</label>
+                                <input
+                                  type="password"
+                                  placeholder={ownerPin === '0000' ? "Set Owner PIN" : "****"}
+                                  maxLength={4}
+                                  className="w-full px-3 py-2 border border-rose-100 rounded-lg text-sm bg-rose-50/30 focus:ring-2 focus:ring-rose-500 outline-none"
+                                  onBlur={(e) => {
+                                    if (e.target.value.length === 4) {
+                                      setOwnerPin(e.target.value);
+                                      saveUserSettings({ ownerPin: e.target.value });
+                                      e.target.value = '';
+                                      alert("Owner PIN Restricted.");
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
                           ) : (
-                            <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
-                              <CheckCircle size={16} /> <span className="font-medium">{t('pinSetMessage')}</span>
+                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 italic text-[10px] text-slate-400">
+                              {t('ownerOnlyPins') || 'Switch to Owner Mode to manage Manager/Owner PINs.'}
                             </div>
                           )}
                         </div>
@@ -8784,10 +8932,26 @@ export default function App() {
                         if (newPin.length <= 4) {
                           setPinInput(newPin);
                           if (newPin.length === 4) {
-                            if (newPin === securityPin) {
+                            if (newPin === ownerPin) {
                               setIsPinModalOpen(false);
                               setPinInput('');
-                              // Execute Action
+                              setCurrentMode('Owner');
+                              setShowSensitiveData(true);
+                              if (pinAction === 'accessReports') {
+                                setActiveTab('reports');
+                                if (window.innerWidth < 768) setIsSidebarOpen(false);
+                              }
+                            } else if (newPin === managerPin) {
+                              setIsPinModalOpen(false);
+                              setPinInput('');
+                              setCurrentMode('Manager');
+                              if (pinAction === 'accessReports') {
+                                setActiveTab('reports');
+                                if (window.innerWidth < 768) setIsSidebarOpen(false);
+                              }
+                            } else if (newPin === securityPin) {
+                              setIsPinModalOpen(false);
+                              setPinInput('');
                               if (pinAction === 'showCosts') setShowSensitiveData(true);
                               if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
                               if (pinAction === 'accessReports') {
@@ -8815,7 +8979,24 @@ export default function App() {
                       if (newPin.length <= 4) {
                         setPinInput(newPin);
                         if (newPin.length === 4) {
-                          if (newPin === securityPin) {
+                          if (newPin === ownerPin) {
+                            setIsPinModalOpen(false);
+                            setPinInput('');
+                            setCurrentMode('Owner');
+                            setShowSensitiveData(true);
+                            if (pinAction === 'accessReports') {
+                              setActiveTab('reports');
+                              if (window.innerWidth < 768) setIsSidebarOpen(false);
+                            }
+                          } else if (newPin === managerPin) {
+                            setIsPinModalOpen(false);
+                            setPinInput('');
+                            setCurrentMode('Manager');
+                            if (pinAction === 'accessReports') {
+                              setActiveTab('reports');
+                              if (window.innerWidth < 768) setIsSidebarOpen(false);
+                            }
+                          } else if (newPin === securityPin) {
                             setIsPinModalOpen(false);
                             setPinInput('');
                             if (pinAction === 'showCosts') setShowSensitiveData(true);
