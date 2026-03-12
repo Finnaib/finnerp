@@ -121,15 +121,16 @@ function SidebarItem({ icon, label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all duration-300 group ${active
-        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 -translate-y-0.5'
-        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+      className={`w-full flex items-center gap-3.5 px-5 py-3.5 rounded-2xl mb-2.5 transition-all duration-500 group relative overflow-hidden ${active
+        ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-500/20 translate-x-1'
+        : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
         }`}
     >
-      <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>{icon}</div>
-      <span className={`font-bold text-sm tracking-wide transition-all ${active ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>{label}</span>
+      {active && <div className="absolute inset-0 bg-white/10 animate-pulse"></div>}
+      <div className={`transition-all duration-500 ${active ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:-rotate-6'}`}>{icon}</div>
+      <span className={`font-black text-[12px] uppercase tracking-widest transition-all ${active ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}>{label}</span>
       {active && (
-        <div className="ml-auto w-1 h-4 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] animate-pulse"></div>
+        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]"></div>
       )}
     </button>
   );
@@ -3966,10 +3967,10 @@ export default function App() {
       <SpeedInsights />
       <Analytics />
       {/* Sidebar (Responsive & High Z-Index) */}
-      <aside className={`fixed md:relative inset-y-0 left-0 bg-slate-900 text-white flex flex-col shadow-2xl z-[70] transition-all duration-[400ms] ease-in-out overflow-hidden ${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full opacity-0 md:w-0'}`}>
-        <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-xl sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl shadow-lg ring-4 ${currentMode === 'Owner' ? 'bg-rose-500 ring-rose-500/10' : currentMode === 'Manager' ? 'bg-amber-500 ring-amber-500/10' : 'bg-blue-500 ring-blue-500/10'}`}>
+      <aside className={`fixed md:relative inset-y-0 left-0 bg-[#0f172a] text-white flex flex-col shadow-2xl z-[150] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full opacity-0 md:w-0'}`}>
+        <div className="p-7 border-b border-slate-800/50 flex justify-between items-center bg-slate-900/50 backdrop-blur-2xl sticky top-0 z-10">
+          <div className="flex items-center gap-3.5">
+            <div className={`p-2.5 rounded-2xl shadow-lg ring-4 ${currentMode === 'Owner' ? 'bg-rose-500 ring-rose-500/10' : currentMode === 'Manager' ? 'bg-amber-500 ring-amber-500/10' : 'bg-blue-600 ring-blue-600/10'} transform hover:scale-105 transition-transform`}>
               <Shield 
                 size={22} 
                 className="text-white cursor-pointer" 
@@ -3978,7 +3979,7 @@ export default function App() {
               />
             </div>
             <div className="overflow-hidden">
-              <h1 className="font-black text-sm uppercase tracking-widest truncate">{shopSettings.name || t('appName')}</h1>
+              <h1 className="font-black text-sm uppercase tracking-widest truncate text-white/90">{shopSettings.name || t('appName')}</h1>
               <div 
                 className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg transition-all ${
                   currentMode === 'Owner' ? 'text-rose-400' : 
@@ -3986,13 +3987,14 @@ export default function App() {
                   'text-blue-400'
                 }`}
               >
-                <span className="text-[9px] font-black uppercase tracking-tighter">
-                  {t(currentMode.toLowerCase()) || currentMode} {t('mode')}
+                <div className={`w-1.5 h-1.5 rounded-full ${currentMode === 'Owner' ? 'bg-rose-500' : currentMode === 'Manager' ? 'bg-amber-500' : 'bg-blue-500'} animate-pulse`}></div>
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  {t(currentMode.toLowerCase()) || currentMode}
                 </span>
                 {currentMode !== 'Cashier' && (
                   <button 
                     onClick={() => { setCurrentMode('Cashier'); setShowSensitiveData(false); }}
-                    className="p-1 hover:text-white"
+                    className="p-1 hover:text-white transition-colors"
                     title="Lock Mode"
                   >
                     <Lock size={10} />
@@ -4001,18 +4003,20 @@ export default function App() {
               </div>
             </div>
           </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-all bg-slate-800/50"><X size={18} /></button>
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-2 hover:bg-slate-800 rounded-2xl text-slate-400 hover:text-white transition-all bg-slate-800/30"><X size={20} /></button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-          <SidebarItem icon={<LayoutDashboard size={20} />} label={t('menuDashboard')} active={activeTab === 'dashboard'} onClick={() => { setActiveTab('dashboard'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+        <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-2 no-scrollbar">
+          <SidebarItem icon={<LayoutDashboard size={20} />} label={t('menuDashboard')} active={activeTab === 'dashboard'} onClick={() => { setActiveTab('dashboard'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+          
           {/* Owner & Manager ERP Tabs */}
           {currentMode !== 'Cashier' && (
-            <>
-              <SidebarItem icon={<Users size={20} />} label={t('menuEmployees')} active={activeTab === 'employees'} onClick={() => { setActiveTab('employees'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-              <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-              <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-              <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+            <div className="pt-2 animate-in slide-in-from-left duration-500">
+              <div className="px-4 mb-2"><span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{t('management') || 'Management'}</span></div>
+              <SidebarItem icon={<Users size={20} />} label={t('menuEmployees')} active={activeTab === 'employees'} onClick={() => { setActiveTab('employees'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+              <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+              <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+              <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
               
               <SidebarItem 
                 icon={<BarChart3 size={20} />} 
@@ -4020,31 +4024,29 @@ export default function App() {
                 active={activeTab === 'reports'} 
                 onClick={() => { 
                   setActiveTab('reports');
-                  if (window.innerWidth < 768) setIsSidebarOpen(false);
+                  if (window.innerWidth < 1024) setIsSidebarOpen(false);
                 }} 
               />
-            </>
+            </div>
           )}
 
-          <div className="my-2 border-t border-slate-700/50"></div>
+          <div className="my-6 px-4 border-t border-slate-800/50 pt-6">
+             <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{t('operations') || 'Operations'}</span>
+          </div>
 
-          <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Coffee size={20} />} label={t('menuCafe')} active={activeTab === 'cafe'} onClick={() => { setActiveTab('cafe'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Wrench size={20} />} label={t('menuService') || 'Service'} active={activeTab === 'service'} onClick={() => { setActiveTab('service'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Package size={20} />} label={t('menuWarehouses')} active={activeTab === 'warehouses'} onClick={() => { setActiveTab('warehouses'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Clock size={20} />} label={t('menuInvoices')} active={activeTab === 'history'} onClick={() => { setActiveTab('history'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Coffee size={20} />} label={t('menuCafe')} active={activeTab === 'cafe'} onClick={() => { setActiveTab('cafe'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Wrench size={20} />} label={t('menuService') || 'Service'} active={activeTab === 'service'} onClick={() => { setActiveTab('service'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Package size={20} />} label={t('menuWarehouses')} active={activeTab === 'warehouses'} onClick={() => { setActiveTab('warehouses'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Clock size={20} />} label={t('menuInvoices')} active={activeTab === 'history'} onClick={() => { setActiveTab('history'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
         </nav>
 
-        <div className="p-4 border-t border-slate-800 space-y-2">
-          <div className="my-2 border-t border-slate-700/50"></div>
-
-
-
-          <button onClick={() => setShowSettings(true)} className="flex items-center w-full px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
-            <Settings size={18} className="mr-3" />
+        <div className="p-6 border-t border-slate-800/50 space-y-4 bg-slate-900/20">
+          <button onClick={() => setShowSettings(true)} className="flex items-center w-full px-4 py-3 text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-2xl transition-all group">
+            <Settings size={18} className="mr-3 group-hover:rotate-90 transition-transform duration-500" />
             {t('settings')}
           </button>
-          <button onClick={handleLogout} className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-slate-800 rounded-lg transition-colors">
+          <button onClick={handleLogout} className="flex items-center w-full px-4 py-3 text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-2xl transition-all">
             <LogOut size={18} className="mr-3" />
             {t('logout')}
           </button>
@@ -4057,43 +4059,41 @@ export default function App() {
         {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[65] md:hidden animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)}></div>}
 
         {/* Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center justify-between px-4 md:px-8 sticky top-0 z-50 transition-all">
+        <header className="bg-white/90 backdrop-blur-2xl border-b border-gray-100 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[100] transition-all">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2 -ml-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all ${isSidebarOpen ? 'md:hidden' : 'block'}`}><Menu size={24} /></button>
-            <h2 className="text-lg font-black text-gray-900 flex items-center gap-2.5 tracking-tight">
-              <span className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                {activeTab === 'dashboard' && <LayoutDashboard size={20} />}
-                {activeTab === 'employees' && <Users size={20} />}
-                {activeTab === 'sites' && <MapPin size={20} />}
-                {activeTab === 'attendance' && <Clock size={20} />}
-                {activeTab === 'payroll' && <DollarSign size={20} />}
-                {activeTab === 'reports' && <BarChart3 size={20} />}
-                {activeTab === 'accounts' && <Calculator size={20} />}
-                {activeTab === 'cafe' && <Coffee size={20} />}
-                {activeTab === 'service' && <Wrench size={20} />}
-                {activeTab === 'sales_purchases' && <ShoppingCart size={20} />}
-                {activeTab === 'warehouses' && <Package size={20} />}
-                {activeTab === 'invoices' && <InvoiceIcon size={20} />}
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2.5 -ml-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all active:scale-90 ${isSidebarOpen ? 'lg:hidden' : 'block'}`}><Menu size={26} /></button>
+            <h2 className="text-xl font-black text-gray-900 flex items-center gap-3.5 tracking-tight group">
+              <span className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl shadow-lg shadow-blue-200 group-hover:rotate-12 transition-all duration-500">
+                {activeTab === 'dashboard' && <LayoutDashboard size={22} />}
+                {activeTab === 'employees' && <Users size={22} />}
+                {activeTab === 'sites' && <MapPin size={22} />}
+                {activeTab === 'attendance' && <Clock size={22} />}
+                {activeTab === 'payroll' && <DollarSign size={22} />}
+                {activeTab === 'reports' && <BarChart3 size={22} />}
+                {activeTab === 'cafe' && <Coffee size={22} />}
+                {activeTab === 'service' && <Wrench size={22} />}
+                {activeTab === 'sales_purchases' && <ShoppingCart size={22} />}
+                {activeTab === 'warehouses' && <Package size={22} />}
+                {activeTab === 'history' && <Clock size={22} />}
               </span>
-              <span className="hidden sm:inline">
+              <span className="hidden sm:inline-block animate-in fade-in slide-in-from-left-4 duration-500">
                 {activeTab === 'dashboard' && t('menuDashboard')}
                 {activeTab === 'employees' && t('menuEmployees')}
                 {activeTab === 'sites' && t('menuSites')}
                 {activeTab === 'attendance' && t('menuAttendance')}
                 {activeTab === 'payroll' && t('menuPayroll')}
                 {activeTab === 'reports' && t('menuReports')}
-                {activeTab === 'accounts' && t('menuAccounts')}
                 {activeTab === 'cafe' && t('menuCafe')}
                 {activeTab === 'service' && (t('menuService') || 'Service')}
                 {activeTab === 'sales_purchases' && t('menuSalesPurchases')}
                 {activeTab === 'warehouses' && t('menuWarehouses')}
-                {activeTab === 'invoices' && t('menuInvoices')}
+                {activeTab === 'history' && t('menuInvoices')}
               </span>
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="hidden md:flex items-center bg-gray-100 p-1 rounded-xl">
+          <div className="flex items-center gap-2 sm:gap-4 h-full">
+            <div className="hidden md:flex items-center bg-gray-50 p-1 rounded-2xl border border-gray-100 shadow-inner">
               <select
                 value={currency}
                 onChange={(e) => {
@@ -4101,7 +4101,7 @@ export default function App() {
                   setCurrency(newCurrency);
                   saveUserSettings({ currency: newCurrency });
                 }}
-                className="bg-transparent border-none text-[10px] font-black uppercase text-gray-600 px-2 py-1 cursor-pointer focus:ring-0"
+                className="bg-transparent border-none text-[11px] font-black uppercase text-slate-600 px-3 py-1.5 cursor-pointer focus:ring-0 hover:text-blue-600 transition-colors"
               >
                 <option value="EGP">EGP</option>
                 <option value="USD">USD</option>
@@ -4110,7 +4110,7 @@ export default function App() {
                 <option value="SAR">SAR</option>
                 <option value="AED">AED</option>
               </select>
-              <div className="w-px h-3 bg-gray-300 mx-1"></div>
+              <div className="w-px h-4 bg-gray-200 mx-1"></div>
               <select
                 value={language}
                 onChange={(e) => {
@@ -4118,18 +4118,47 @@ export default function App() {
                   setLanguage(newLang);
                   saveUserSettings({ language: newLang });
                 }}
-                className="bg-transparent border-none text-[10px] font-black uppercase text-gray-600 px-2 py-1 cursor-pointer focus:ring-0"
+                className="bg-transparent border-none text-[11px] font-black uppercase text-slate-600 px-3 py-1.5 cursor-pointer focus:ring-0 hover:text-blue-600 transition-colors"
               >
                 <option value="en">EN</option>
-                <option value="hi">HI</option>
                 <option value="ar">AR</option>
+                <option value="hi">HI</option>
                 <option value="zh">ZH</option>
               </select>
             </div>
-
-
+            
+            <div className="flex items-center gap-2">
+               <button onClick={() => setShowSettings(true)} className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all"><Settings size={22} /></button>
+               <div className="w-10 h-10 border-2 border-slate-100 p-0.5 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
+                  <div className={`w-full h-full rounded-[0.6rem] flex items-center justify-center font-black text-white text-[12px] shadow-sm ${currentMode === 'Owner' ? 'bg-rose-500' : currentMode === 'Manager' ? 'bg-amber-500' : 'bg-blue-600'}`}>
+                    {currentMode[0]}
+                  </div>
+               </div>
+            </div>
           </div>
         </header>
+
+        {/* Global Mobile Navigation (Native App Feel) */}
+        {activeTab !== 'sales_purchases' && activeTab !== 'cafe' && (
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
+            <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
+              <div className={`p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
+              <span className="text-[9px] font-black uppercase tracking-widest">{t('menuDashboard')}</span>
+            </button>
+            <button onClick={() => setActiveTab('sales_purchases')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'sales_purchases' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
+              <div className={`p-2 rounded-xl ${activeTab === 'sales_purchases' ? 'bg-blue-50' : ''}`}><ShoppingCart size={20} /></div>
+              <span className="text-[9px] font-black uppercase tracking-widest">{t('menuSalesPurchases')}</span>
+            </button>
+            <button onClick={() => setActiveTab('service')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'service' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
+              <div className={`p-2 rounded-xl ${activeTab === 'service' ? 'bg-blue-50' : ''}`}><Wrench size={20} /></div>
+              <span className="text-[9px] font-black uppercase tracking-widest">{t('menuService')}</span>
+            </button>
+            <button onClick={() => setActiveTab('history')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'history' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
+              <div className={`p-2 rounded-xl ${activeTab === 'history' ? 'bg-blue-50' : ''}`}><Clock size={20} /></div>
+              <span className="text-[9px] font-black uppercase tracking-widest">{t('menuInvoices')}</span>
+            </button>
+          </div>
+        )}
 
         {/* Global Error Banner */}
         {globalError && (
@@ -4985,8 +5014,8 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-24 lg:pb-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                  <div className="flex-1 overflow-y-auto p-3 sm:p-5 pb-32 lg:pb-6 no-scrollbar">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
                       {inventory
                         .filter(item =>
                           (!posLocationFilter || item.location === posLocationFilter) &&
