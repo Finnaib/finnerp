@@ -75,6 +75,7 @@ import {
   PlusCircle,
   CheckCircle2,
   Smartphone as MobileIcon,
+  Calendar,
 } from 'lucide-react';
 import { auth, db, storage } from './firebase'; // Firebase
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -449,6 +450,8 @@ export default function App() {
   const [serviceInventoryForm, setServiceInventoryForm] = useState({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 });
   const [serviceCart, setServiceCart] = useState([]);
   const [serviceInventorySearch, setServiceInventorySearch] = useState('');
+  const [serviceHistoryDateFilter, setServiceHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
+  const [isServiceCustomerScannerOpen, setIsServiceCustomerScannerOpen] = useState(false);
 
   async function handleUploadRepairPhoto(file, ticketId) {
     if (!file) return null;
@@ -2661,6 +2664,7 @@ export default function App() {
       invoiceId: currentId,
       type: 'service_pos',
       client: newSaleForm.customer || 'Service Customer',
+      customerId: newSaleForm.customerId || null,
       date: new Date().toLocaleDateString(),
       items: serviceCart.map(i => ({ ...i, price: i.sellPrice, qty: i.quantity })),
       amount: total,
@@ -3328,7 +3332,14 @@ export default function App() {
 
   const onScanSuccess = useCallback(async (decodedText) => {
     const code = decodedText.trim();
+    if (scannerMode === 'customerID') {
+      setNewSaleForm(prev => ({ ...prev, customerId: code }));
+      setIsScannerOpen(false);
+      return;
+    }
+
     const item = inventoryRef.current.find(i => i.barcode === code);
+
     if (!item) {
       alert(t('itemNotFound') || 'Item with barcode: ' + code + ' not found in inventory.');
       return;
@@ -3352,7 +3363,7 @@ export default function App() {
         }
       }
     }
-  }, [addToCart, t, scannerMode]); // Removed inventory dependency to stop re-creation and flickering
+  }, [addToCart, t, scannerMode, setNewSaleForm, setIsScannerOpen]); // Removed inventory dependency to stop re-creation and flickering
 
   const onScanError = useCallback((err) => { }, []);
 
@@ -5968,7 +5979,7 @@ export default function App() {
                 <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-fit border border-gray-200 mb-8 overflow-x-auto shadow-sm">
                   {[
                     { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
-                    { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={14} /> },
+                    { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
                     { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
                     { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
                     { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
@@ -6019,7 +6030,7 @@ export default function App() {
                               { label: t('newTicket'), icon: <Wrench size={24} />, color: 'bg-blue-500', action: () => setServiceSubTab('new') },
                               { label: t('addCustomer'), icon: <UserPlus size={24} />, color: 'bg-indigo-500', action: () => { setServiceSubTab('customers'); setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); } },
                               { label: t('activeJobs'), icon: <Activity size={24} />, color: 'bg-emerald-500', action: () => setServiceSubTab('active') },
-                              { label: t('sell') || 'Sell', icon: <ShoppingCart size={24} />, color: 'bg-indigo-600', action: () => setServiceSubTab('sell') }
+                              { label: t('sales') || 'Sales', icon: <ShoppingCart size={24} />, color: 'bg-indigo-600', action: () => setServiceSubTab('sell') }
                             ].map((btn, i) => (
                               <button
                                 key={i}
@@ -6128,15 +6139,29 @@ export default function App() {
                             </div>
                           </div>
                           <div className="flex items-center gap-4 flex-1">
-                            <div className="relative flex-1">
-                              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                              <input
-                                type="text"
-                                placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'}
-                                className="w-full pl-12 pr-4 py-3 bg-gray-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
-                                value={serviceInventorySearch}
-                                onChange={e => setServiceInventorySearch(e.target.value)}
-                              />
+                            <div className="relative flex-1 flex gap-2">
+                              <div className="relative flex-1">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                  type="text"
+                                  placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'}
+                                  className="w-full pl-12 pr-4 py-3 bg-gray-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
+                                  value={serviceInventorySearch}
+                                  onChange={e => setServiceInventorySearch(e.target.value)}
+                                />
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const name = prompt(t('enterItemName') || 'Enter Item Name:');
+                                  if (!name) return;
+                                  const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
+                                  if (!price || isNaN(price)) return;
+                                  setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
+                                }}
+                                className="px-4 py-3 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center gap-2 transition-all whitespace-nowrap shadow-lg shadow-amber-500/20"
+                              >
+                                <Plus size={16} /> {t('customItem') || 'Custom Item'}
+                              </button>
                             </div>
 
                           </div>
@@ -6363,6 +6388,24 @@ export default function App() {
                           </button>
                         </div>
 
+                        <div className="flex gap-2 mb-2">
+                          <div className="relative flex-1">
+                            <input
+                              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                              placeholder={t('customerId') || 'Customer ID'}
+                              value={newSaleForm.customerId}
+                              onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
+                            />
+                          </div>
+                          <button
+                            onClick={() => { setScannerMode('customerID'); setIsScannerOpen(true); }}
+                            className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
+                            title={t('scanBarcode')}
+                          >
+                            <Scan size={18} />
+                          </button>
+                        </div>
+
                         <input
                           className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
                           placeholder={t('customerNameOptional') || 'Customer Name'}
@@ -6370,17 +6413,34 @@ export default function App() {
                           onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                         />
 
-                        <div className="grid grid-cols-3 gap-2 mb-4">
+                        <div className="grid grid-cols-3 gap-2 mb-2">
                           {['Cash', 'Visa', 'Online'].map(method => (
                             <button
                               key={method}
-                              onClick={() => setPaymentMethod(method)}
+                              onClick={() => {
+                                setPaymentMethod(method);
+                                if (method === 'Online') setShowUpiQr(true);
+                              }}
                               className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
                             >
                               {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
                             </button>
                           ))}
                         </div>
+
+                        {paymentMethod === 'Online' && (
+                          <div className="grid grid-cols-2 gap-2 mb-4 animate-in slide-in-from-top-2 duration-300">
+                            {['UPI', 'InstaPay'].map(sub => (
+                              <button
+                                key={sub}
+                                onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
+                                className={`py-2 text-[9px] font-black uppercase tracking-widest rounded-xl border transition-all ${digitalSubMethod === sub ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'}`}
+                              >
+                                {sub}
+                              </button>
+                            ))}
+                          </div>
+                        )}
 
                         <div>
                           <button
@@ -6738,8 +6798,22 @@ export default function App() {
                 {/* Sub Tab: HISTORY */}
                 {serviceSubTab === 'history' && (
                   <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 animate-in fade-in zoom-in-95 duration-700">
-                    <div className="flex justify-between items-end mb-6">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                       <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('serviceHistory') || 'Repair History'}</h2>
+                      <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                        <Calendar size={18} className="text-slate-400 ml-2" />
+                        <input
+                          type="date"
+                          value={serviceHistoryDateFilter}
+                          onChange={(e) => setServiceHistoryDateFilter(e.target.value)}
+                          className="bg-transparent border-none text-xs font-black uppercase tracking-widest outline-none focus:ring-0 text-slate-600 cursor-pointer"
+                        />
+                        {serviceHistoryDateFilter && (
+                          <button onClick={() => setServiceHistoryDateFilter('')} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
+                            <X size={14} className="text-slate-400" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-left">
@@ -6754,7 +6828,11 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                          {serviceTickets.filter(t => t.status === 'Delivered').sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).map(ticket => (
+                          {serviceTickets
+                            .filter(t => t.status === 'Delivered')
+                            .filter(t => !serviceHistoryDateFilter || (t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] === serviceHistoryDateFilter))
+                            .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds)
+                            .map(ticket => (
                             <tr key={ticket.id} className="hover:bg-slate-50/50 transition-colors">
                               <td className="py-4 pl-4 font-mono text-xs font-bold text-slate-400">#{ticket.id.slice(0, 6)}</td>
                               <td className="py-4 text-xs font-medium text-slate-600">{ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleDateString() : '-'}</td>
@@ -8905,7 +8983,7 @@ export default function App() {
 
       {/* UPI QR Payment Modal (Improved with Close and Overlap fix) */}
       {
-        activeTab === 'sales_purchases' && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && cart.length > 0 && (
+        (activeTab === 'sales_purchases' || activeTab === 'service') && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && (
           <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[280px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,.1)] border border-blue-50 p-6 animate-in slide-in-from-bottom-10 duration-500 z-[100]">
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-3 text-blue-800">
@@ -8924,7 +9002,7 @@ export default function App() {
             <div className="flex justify-center bg-gray-50 p-5 rounded-3xl mb-4 border border-gray-100 shadow-inner">
               {digitalSubMethod === 'UPI' && shopSettings.upiId ? (
                 <QRCodeSVG
-                  value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(calculateTotal() - cartDiscount).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
+                  value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
                   size={180}
                   level="H"
                   includeMargin={true}
@@ -8946,7 +9024,9 @@ export default function App() {
               <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">
                 {digitalSubMethod === 'UPI' ? shopSettings.upiId : shopSettings.instapayId}
               </p>
-              <p className="text-lg font-black text-gray-900 font-mono tracking-tight">{formatCurrency(calculateTotal() - cartDiscount)}</p>
+              <p className="text-lg font-black text-gray-900 font-mono tracking-tight">
+                {formatCurrency(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount))}
+              </p>
             </div>
 
             <div className="space-y-2">

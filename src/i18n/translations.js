@@ -56,7 +56,7 @@ export const translations = {
     "downloadReport": "Download Report",
     "editLocation": "Edit Location",
     "menuAccounts": "Accounts",
-    "menuSalesPurchases": "Sell",
+    "menuSalesPurchases": "Sales",
     "menuWarehouses": "Warehouses",
     "menuCafe": "Cafe",
     "menuInvoices": "History",
