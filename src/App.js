@@ -3959,11 +3959,17 @@ export default function App() {
             </div>
             <div className="overflow-hidden">
               <h1 className="font-black text-sm uppercase tracking-widest truncate">{shopSettings.name || t('appName')}</h1>
-              {currentMode !== 'Cashier' ? (
-                <div 
-                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg transition-all ${currentMode === 'Owner' ? 'text-rose-400' : 'text-amber-400'}`}
-                >
-                  <span className="text-[9px] font-black uppercase tracking-tighter">{currentMode} {t('mode')}</span>
+              <div 
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg transition-all ${
+                  currentMode === 'Owner' ? 'text-rose-400' : 
+                  currentMode === 'Manager' ? 'text-amber-400' : 
+                  'text-blue-400'
+                }`}
+              >
+                <span className="text-[9px] font-black uppercase tracking-tighter">
+                  {t(currentMode.toLowerCase()) || currentMode} {t('mode')}
+                </span>
+                {currentMode !== 'Cashier' && (
                   <button 
                     onClick={() => { setCurrentMode('Cashier'); setShowSensitiveData(false); }}
                     className="p-1 hover:text-white"
@@ -3971,10 +3977,8 @@ export default function App() {
                   >
                     <Lock size={10} />
                   </button>
-                </div>
-              ) : (
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter truncate opacity-50">{shopSettings.address || t('appSubtitle')}</p>
-              )}
+                )}
+              </div>
             </div>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-all bg-slate-800/50"><X size={18} /></button>
