@@ -315,7 +315,7 @@ export default function App() {
       en: { walkIn: 'Walk-in Customer', takeaway: 'Takeaway Customer' },
       ar: { walkIn: 'عميل محلي', takeaway: 'عميل تيك أواي' },
       hi: { walkIn: 'कैश ग्राहक (Walk-in)', takeaway: 'ले जाने वाला ग्राहक (Takeaway)' },
-      zh: { walkIn: '回客', takeaway: '外带客户' }
+      zh: { walkIn: '散客', takeaway: '外带客户' }
     };
     const isCurrentDefault = Object.values(defaults).some(d =>
       newSaleForm.customer === d.walkIn || newSaleForm.customer === d.takeaway || !newSaleForm.customer
@@ -3783,9 +3783,8 @@ export default function App() {
   useEffect(() => {
     let timer;
     let interval;
-    if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
-      setShowUpiQr(true);
-      setUpiQrTimer(30); // 30 seconds
+    if (showUpiQr && paymentMethod === 'Online' && (serviceCart.length > 0 || cart.length > 0) && (activeTab === 'sales_purchases' || activeTab === 'service')) {
+      setUpiQrTimer(30); // reset timer on open
       timer = setTimeout(() => setShowUpiQr(false), 30000);
       interval = setInterval(() => {
         setUpiQrTimer(prev => Math.max(0, prev - 1));
@@ -3794,10 +3793,10 @@ export default function App() {
         clearTimeout(timer);
         clearInterval(interval);
       };
-    } else {
+    } else if (showUpiQr) {
       setShowUpiQr(false);
     }
-  }, [paymentMethod, cart.length, activeTab]);
+  }, [showUpiQr, paymentMethod, cart.length, serviceCart.length, activeTab]);
 
 
 
@@ -6698,7 +6697,7 @@ export default function App() {
                                <Printer size={14} /> {t('thermal')}
                              </button>
                              <button onClick={() => setPrintFormat('A4')} className={`py-2 bg-white border rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${printFormat === 'A4' ? 'border-blue-500 text-blue-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                               <FileText size={14} /> A4 Pro
+                               <FileText size={14} /> {t('a4') || 'A4'}
                              </button>
                           </div>
                         </div>
