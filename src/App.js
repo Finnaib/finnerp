@@ -77,6 +77,7 @@ import {
   CheckCircle2,
   Smartphone as MobileIcon,
   Calendar,
+  HardDrive,
 } from 'lucide-react';
 import { auth, db, storage } from './firebase'; // Firebase
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
