@@ -5359,7 +5359,7 @@ export default function App() {
                               onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
                               className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-tight rounded-lg transition-all ${digitalSubMethod === sub ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 hover:text-gray-600'}`}
                             >
-                              {sub}
+                              {t(sub.toLowerCase()) || sub}
                             </button>
                           ))}
                         </div>
@@ -6417,8 +6417,8 @@ export default function App() {
                                   onClick={() => {
                                     const laborPrice = Number(ticket.estimatedCost || 0);
                                     const items = [
-                                      { id: 'SRV-'+ticket.id + '-LB', name: `Repair Labor: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                                      ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                                    { id: 'SRV-'+ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                                    ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
                                     ];
                                     setServiceCart([...serviceCart, ...items]);
                                   }}
@@ -9441,8 +9441,8 @@ export default function App() {
                 ></div>
               </div>
               <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                <span className="text-blue-600">Auto-hide</span>
-                <span className="text-gray-400">{upiQrTimer}s</span>
+                <span className="text-blue-600">{t('autoHide') || 'Auto-hide'}</span>
+                <span className="text-gray-400">{upiQrTimer}{t('seconds') || 's'}</span>
               </div>
             </div>
           </div>
