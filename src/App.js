@@ -2823,6 +2823,7 @@ export default function App() {
       handlePrintInvoice({ ...invData, id: saleRef.id }, format === 'Thermal' ? 'Service Receipt' : 'Service Invoice', format);
       setServiceCart([]);
       setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
+      setShowUpiQr(false); // Close QR modal
       alert('Sale Completed!');
     } catch (e) { 
       console.error(e); 
@@ -5447,7 +5448,7 @@ export default function App() {
                       <button
                         onClick={() => setBarcodePrintMode('a4')}
                         className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'a4' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        title="Standard A4 Paper Printer"
+                        title="Standard A4 Printer"
                       > {t('a4 sheet')} </button>
                     </div>
                     <button
@@ -6214,24 +6215,29 @@ export default function App() {
             activeTab === 'service' && (
               <div className="flex flex-col lg:flex-row h-full min-h-0 overflow-hidden relative pb-24 lg:pb-0 animate-in fade-in duration-500">
                 <div className="flex-1 flex flex-col min-w-0 overflow-auto p-4 sm:p-6 lg:p-8 space-y-6">
-                  <div className="hidden lg:flex gap-2 bg-white/80 backdrop-blur-xl shadow-xl shadow-gray-200/40 p-2 rounded-[2.5rem] w-full lg:w-fit border border-white mb-6 overflow-x-auto no-scrollbar snap-x">
-                  {[
-                    { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={16} /> },
-                    { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={16} /> },
-                    { id: 'active', label: t('activeJobs'), icon: <Wrench size={16} /> },
-                    { id: 'new', label: t('newTicket'), icon: <Plus size={16} /> },
-                    { id: 'history', label: t('history') || 'History', icon: <History size={16} /> },
-                    { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={16} /> }
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setServiceSubTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all snap-center whitespace-nowrap ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
-                    >
-                      {tab.icon} {tab.label}
-                    </button>
-                  ))}
-                </div>
+                  <div className="hidden lg:grid grid-cols-4 xl:grid-cols-8 gap-3 p-3 bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 mb-6">
+                    {[
+                      { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
+                      { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={20} /> },
+                      { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
+                      { id: 'new', label: t('newTicket'), icon: <PlusCircle size={20} /> },
+                      { id: 'history', label: t('history'), icon: <History size={20} /> },
+                      { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={20} /> },
+                      { id: 'customers', label: t('customers'), icon: <Users size={20} /> },
+                      { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} /> }
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setServiceSubTab(tab.id)}
+                        className={`flex flex-col items-center gap-2 p-3 rounded-3xl transition-all duration-500 group relative ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-2xl shadow-blue-500/30' : 'text-gray-400 hover:bg-white hover:text-gray-600'}`}
+                      >
+                        <div className={`p-2.5 rounded-2xl transition-all duration-500 ${serviceSubTab === tab.id ? 'bg-white/20 scale-110' : 'bg-gray-50 group-hover:scale-110'}`}>
+                          {tab.icon}
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-center truncate w-full">{tab.label}</span>
+                      </button>
+                    ))}
+                  </div>
 
                 {/* Sub Tab: BOARD (DASHBOARD) */}
                 {serviceSubTab === 'board' && (
@@ -6360,6 +6366,167 @@ export default function App() {
                   </div>
                 )}
                 {/* Sub Tab: SELL (SERVICE POS) */}
+                {serviceSubTab === 'sell' && (
+                  <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
+                    {/* Left Side: Search & Items Grid */}
+                    <div className={`flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
+                      {/* Top Action Bar - Compact on Mobile */}
+                      <div className="p-4 sm:p-6 bg-white border-b border-gray-200">
+                        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center">
+                          <div className="hidden lg:flex items-center gap-4">
+                            <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
+                              <ShoppingCart size={24} />
+                            </div>
+                            <div>
+                              <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">{t('servicePOS') || 'Service POS'}</h2>
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('activeJobs') || 'Sales & Repairs'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="relative flex-1 flex gap-2">
+                              <div className="relative flex-1">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                  type="text"
+                                  placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'}
+                                  className="w-full pl-12 pr-4 py-3 bg-gray-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
+                                  value={serviceInventorySearch}
+                                  onChange={e => setServiceInventorySearch(e.target.value)}
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => { setScannerMode('service_sell'); setIsScannerOpen(true); }}
+                                  className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all shadow-sm border border-blue-100 flex items-center justify-center"
+                                  title={t('scanBarcode')}
+                                >
+                                  <Scan size={20} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const name = prompt(t('enterItemName') || 'Enter Item Name:');
+                                    if (!name) return;
+                                    const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
+                                    if (!price || isNaN(price)) return;
+                                    setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
+                                  }}
+                                  className="px-4 py-3.5 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-500/20 active:scale-95"
+                                >
+                                  <Plus size={18} /> <span className="hidden sm:inline">{t('customItem') || 'Custom Item'}</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 custom-scrollbar">
+                        {/* 1. Active Repairs Section */}
+                        <section className="space-y-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                              <Wrench size={14} className="text-blue-500" /> {t('activeRepairs') || 'Active Repairs'}
+                            </h3>
+                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs</span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
+                            {serviceTickets
+                              .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') && 
+                                (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || 
+                                 ticket.id.toLowerCase().includes(serviceInventorySearch.toLowerCase()) ||
+                                 ticket.brand.toLowerCase().includes(serviceInventorySearch.toLowerCase())))
+                              .map(ticket => (
+                                <button
+                                  key={ticket.id}
+                                  onClick={() => {
+                                    const laborPrice = Number(ticket.estimatedCost || 0);
+                                    const items = [
+                                    { id: 'SRV-'+ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                                    ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                                    ];
+                                    setServiceCart([...serviceCart, ...items]);
+                                  }}
+                                  className="text-left bg-white p-4 sm:p-5 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
+                                >
+                                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden sm:block">
+                                    <Wrench size={48} />
+                                  </div>
+                                  <div className="relative z-10 flex flex-col h-full justify-between">
+                                    <div>
+                                      <div className="flex justify-between items-start mb-2">
+                                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
+                                        <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>{ticket.status}</span>
+                                      </div>
+                                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
+                                    </div>
+                                    <div className="mt-4 flex justify-between items-end border-t border-gray-50 pt-3">
+                                      <div className="text-xl font-black text-blue-600 font-mono">{formatCurrency(ticket.estimatedCost)}</div>
+                                      <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 scale-90 group-hover:scale-100 transition-all duration-500">
+                                        <Plus size={18} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        </section>
+
+                        {/* 2. Parts & Inventory Section */}
+                        <section className="space-y-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                              <Package size={14} className="text-indigo-500" /> {t('inventoryParts') || 'Inventory Parts'}
+                            </h3>
+                            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 flex-1 justify-end">
+                              {['All', 'Phone Parts', 'PC Components', 'Accessories'].map(cat => (
+                                <button 
+                                  key={cat}
+                                  onClick={() => setServiceInventorySearch(cat === 'All' ? '' : cat)}
+                                  className={`text-[8px] font-black uppercase px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-400 hover:bg-gray-100'}`}
+                                >
+                                  {cat}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
+                            {inventory
+                              .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || (item.category || '').toLowerCase().includes(serviceInventorySearch.toLowerCase()))
+                              .map(item => (
+                                <button
+                                  key={item.id}
+                                  onClick={() => addToServiceCart(item)}
+                                  className="bg-white p-3 sm:p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-2 sm:gap-3 text-left"
+                                >
+                                  <div className="bg-gray-50 aspect-square rounded-2xl overflow-hidden relative">
+                                    {item.photo ? (
+                                      <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                        <Package size={24} />
+                                      </div>
+                                    )}
+                                    <div className={`absolute top-2 right-2 px-2 py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-red-600 text-white' : 'bg-white/80'}`}>
+                                       {Number(item.quantity) <= 0 ? 'OUT OF STOCK' : `STOCK: ${item.quantity}`}
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <h4 className="text-xs font-black text-gray-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
+                                    <div className="flex justify-between items-end">
+                                      <p className="text-sm font-black text-indigo-600 font-mono">{formatCurrency(item.sellPrice)}</p>
+                                      <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                        <Plus size={14} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        </section>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -6966,23 +7133,54 @@ export default function App() {
                     )}
                   </div>
 
-                  {serviceCart.length > 0 && (
-                    <div className="p-6 bg-white border-t border-gray-100 space-y-4">
-                      <div className="flex justify-between items-end">
-                        <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('totalCost')}</span>
-                        <span className="text-2xl font-black text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                  <div className="p-6 bg-white border-t border-gray-100 space-y-4">
+                    <div className="space-y-3 mb-6">
+                      <div className="grid grid-cols-3 gap-2">
+                        {['Cash', 'Visa', 'Online'].map(method => (
+                          <button
+                            key={method}
+                            onClick={() => {
+                              setPaymentMethod(method);
+                              if (method === 'Online') setShowUpiQr(true);
+                            }}
+                            className={`py-3 text-[9px] font-black uppercase tracking-widest rounded-2xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
+                          >
+                            {method === 'Online' ? 'Digital' : (t(method.toLowerCase()) || method)}
+                          </button>
+                        ))}
                       </div>
-                      <button
-                        onClick={() => {
-                          if (printFormat === 'Thermal') handleCheckoutServiceCart('Thermal');
-                          else handleCheckoutServiceCart('A4');
-                        }}
-                        className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-[0.98]"
-                      >
-                        {t('payNow') || 'Complete Payment'}
-                      </button>
+
+                      {paymentMethod === 'Online' && (
+                        <div className="flex gap-2 p-2 bg-gray-50 rounded-2xl border border-gray-100 animate-in slide-in-from-top-2">
+                          {['UPI', 'InstaPay', 'Other'].map(sub => (
+                            <button
+                              key={sub}
+                              onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
+                              className={`flex-1 py-2 text-[9px] font-black uppercase tracking-tight rounded-xl transition-all ${digitalSubMethod === sub ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100'}`}
+                            >
+                              {t(sub.toLowerCase()) || sub}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    <div className="flex justify-between items-end mb-4">
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('totalCost')}</span>
+                      <span className="text-2xl font-black text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        if (printFormat === 'Thermal') handleCheckoutServiceCart('Thermal');
+                        else handleCheckoutServiceCart('A4');
+                      }}
+                      className="w-full bg-slate-900 text-white py-5 rounded-3xl font-black uppercase tracking-widest text-[11px] hover:bg-black shadow-2xl shadow-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                    >
+                      <ShoppingBag size={18} />
+                      {t('payNow') || 'Complete Payment'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )
@@ -9412,35 +9610,45 @@ export default function App() {
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
-                  <input
-                    type="text"
-                    value={sessionStartForm.customerName}
-                    onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
-                    placeholder={t('guestName')}
-                  />
-                </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
+                    <input
+                      type="text"
+                      value={sessionStartForm.customerName}
+                      onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
+                      placeholder={t('guestName')}
+                    />
+                  </div>
+                  <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
+                    <Play size={18} fill="currentColor" /> {t('startSession')}
+                  </button>
+                </form>
+            </div>
+          </div>
+        )
+      }
 
       {/* Service Module Specific Mobile Navigation */}
       {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-15px_60px_rgba(0,0,0,0.15)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 z-[110]">
-          <div className="grid grid-cols-6 gap-0 px-1 py-3 h-20 items-center">
+        <div className="lg:hidden fixed bottom-12 left-2 right-2 bg-white/90 backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.3)] rounded-[3rem] animate-in slide-in-from-bottom duration-500 z-[110] border border-white/50">
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-0 px-2 py-4 items-center">
             {[
               { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={18} /> },
               { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={18} /> },
               { id: 'active', label: t('activeJobs'), icon: <Wrench size={18} /> },
-              { id: 'inventory', label: t('inventory'), icon: <HardDrive size={18} /> },
+              { id: 'new', label: t('newTicket'), icon: <PlusCircle size={18} /> },
               { id: 'history', label: t('history'), icon: <History size={18} /> },
-              { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={18} /> }
+              { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={18} /> },
+              { id: 'customers', label: t('customers'), icon: <Users size={18} /> },
+              { id: 'inventory', label: t('inventory'), icon: <HardDrive size={18} /> }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setServiceSubTab(tab.id)}
                 className={`flex flex-col items-center gap-1.5 transition-all outline-none ${serviceSubTab === tab.id ? 'text-blue-600' : 'text-gray-300'}`}
               >
-                <div className={`p-2.5 rounded-2xl transition-all ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-transparent'}`}>
+                <div className={`p-2 rounded-2xl transition-all ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-300' : 'bg-transparent'}`}>
                   {tab.icon}
                 </div>
                 <span className="text-[7px] font-black uppercase tracking-tight text-center w-full truncate px-1">{tab.label}</span>
@@ -9468,6 +9676,6 @@ export default function App() {
   );
 }
 
-export default App;
+
 
 
