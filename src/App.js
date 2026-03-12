@@ -212,9 +212,14 @@ export default function App() {
       // Trigger respective actions
       if (pinAction === 'showCosts') setShowSensitiveData(true);
       if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
-      if (pinAction === 'accessReports') {
-        setActiveTab('reports');
-        if (window.innerWidth < 768) setIsSidebarOpen(false);
+      if (pinAction === 'accessReports' || pinAction === 'accessAccounts') {
+        // Only allow Manager or Owner to access these modules
+        if (newMode === 'Owner' || newMode === 'Manager') {
+          setActiveTab(pinAction === 'accessReports' ? 'reports' : 'accounts');
+          if (window.innerWidth < 768) setIsSidebarOpen(false);
+        } else {
+          alert("Access Denied: Admin PIN Required.");
+        }
       }
     } else {
       setTimeout(() => {
@@ -583,7 +588,10 @@ export default function App() {
     if (!isPinModalOpen) return;
     const handleKeyDown = (e) => {
       if (e.key >= '0' && e.key <= '9') {
-        setPinInput(prev => (prev.length < 4 ? prev + e.key : prev));
+        if (pinInput.length < 4) {
+          const newPin = pinInput + e.key;
+          setPinInput(newPin);
+        }
       } else if (e.key === 'Backspace') {
         setPinInput(prev => prev.slice(0, -1));
       }
@@ -592,26 +600,13 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPinModalOpen, pinInput]);
 
-  // Auto-submit PIN when length is 4 (for keyboard support)
+  // Auto-submit PIN when length is 4 (for keyboard support & clicks)
   useEffect(() => {
     if (isPinModalOpen && pinInput.length === 4) {
-      if (pinInput === securityPin) {
-        setIsPinModalOpen(false);
-        setPinInput('');
-        if (pinAction === 'showCosts') setShowSensitiveData(true);
-        if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
-        if (pinAction === 'accessReports') {
-          setActiveTab('reports');
-          if (window.innerWidth < 768) setIsSidebarOpen(false);
-        }
-      } else {
-        setTimeout(() => {
-          setPinInput('');
-          alert(t('incorrectPin'));
-        }, 200);
-      }
+      handlePinAuth(pinInput);
     }
-  }, [pinInput, isPinModalOpen, pinAction, securityPin, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinInput, isPinModalOpen]);
 
   // --- Auth Handlers ---
   const handleAuth = async (e) => {
@@ -3984,9 +3979,36 @@ export default function App() {
           <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
           <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          {currentMode !== 'Cashier' && (
-            <SidebarItem icon={<BarChart3 size={20} />} label={t('menuReports')} active={activeTab === 'reports'} onClick={() => { setPinAction('accessReports'); setIsPinModalOpen(true); }} />
-          )}
+          
+          <SidebarItem 
+            icon={<BarChart3 size={20} />} 
+            label={t('menuReports')} 
+            active={activeTab === 'reports'} 
+            onClick={() => { 
+              if (currentMode === 'Owner' || currentMode === 'Manager') {
+                setActiveTab('reports');
+                if (window.innerWidth < 768) setIsSidebarOpen(false);
+              } else {
+                setPinAction('accessReports'); 
+                setIsPinModalOpen(true); 
+              }
+            }} 
+          />
+
+          <SidebarItem 
+            icon={<Calculator size={20} />} 
+            label={t('menuAccounts')} 
+            active={activeTab === 'accounts'} 
+            onClick={() => { 
+              if (currentMode === 'Owner' || currentMode === 'Manager') {
+                setActiveTab('accounts');
+                if (window.innerWidth < 768) setIsSidebarOpen(false);
+              } else {
+                setPinAction('accessAccounts'); 
+                setIsPinModalOpen(true); 
+              }
+            }} 
+          />
 
           <div className="my-2 border-t border-slate-700/50"></div>
 
@@ -8815,7 +8837,7 @@ export default function App() {
                 <div className="space-y-1">
                   {/* Filtered Employees: Assigned to Location OR Covering Today */}
                   {employees.filter(emp => {
-                    if (!posLocationFilter) return true; // Safety check
+                    if (!posLocationFilter || currentMode !== 'Cashier') return true; // Safety check
                     const isAssigned = emp.location === posLocationFilter;
                     const today = new Date().toISOString().split('T')[0];
                     const isCovering = attendance.some(a =>
@@ -8970,9 +8992,6 @@ export default function App() {
                         const newPin = pinInput + num;
                         if (newPin.length <= 4) {
                           setPinInput(newPin);
-                          if (newPin.length === 4) {
-                            handlePinAuth(newPin);
-                          }
                         }
                       }}
                       className="h-12 rounded-xl bg-gray-50 hover:bg-gray-100 text-lg font-bold text-gray-700 transition-colors flex items-center justify-center active:scale-95"
@@ -8986,9 +9005,6 @@ export default function App() {
                       const newPin = pinInput + '0';
                       if (newPin.length <= 4) {
                         setPinInput(newPin);
-                        if (newPin.length === 4) {
-                          handlePinAuth(newPin);
-                        }
                       }
                     }}
                     className="h-12 rounded-xl bg-gray-50 hover:bg-gray-100 text-lg font-bold text-gray-700 transition-colors flex items-center justify-center active:scale-95"
