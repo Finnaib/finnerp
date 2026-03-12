@@ -188,6 +188,41 @@ export default function App() {
   const [pinInput, setPinInput] = useState('');
   const [showSensitiveData, setShowSensitiveData] = useState(false); 
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+
+  const handlePinAuth = (inputPin) => {
+    let authorized = false;
+    let newMode = currentMode;
+
+    if (inputPin === ownerPin) {
+      newMode = 'Owner';
+      setShowSensitiveData(true);
+      authorized = true;
+    } else if (inputPin === managerPin) {
+      newMode = 'Manager';
+      authorized = true;
+    } else if (inputPin === securityPin) {
+      authorized = true;
+    }
+
+    if (authorized) {
+      setIsPinModalOpen(false);
+      setPinInput('');
+      setCurrentMode(newMode);
+
+      // Trigger respective actions
+      if (pinAction === 'showCosts') setShowSensitiveData(true);
+      if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
+      if (pinAction === 'accessReports') {
+        setActiveTab('reports');
+        if (window.innerWidth < 768) setIsSidebarOpen(false);
+      }
+    } else {
+      setTimeout(() => {
+        setPinInput('');
+        alert(t('incorrectPin'));
+      }, 200);
+    }
+  };
   const [shopSettings, setShopSettings] = useState({
     name: '',
     address: '',
@@ -650,9 +685,9 @@ export default function App() {
     if (!user) return;
     if (!window.confirm(t('factoryResetWarning'))) return;
 
-    const confirmPin = prompt(t('pinPrompt'));
-    if (confirmPin !== securityPin) {
-      alert(t('incorrectPin'));
+    const confirmPin = prompt(t('factoryResetPinPrompt') || t('pinPrompt'));
+    if (confirmPin !== securityPin && confirmPin !== managerPin && confirmPin !== ownerPin) {
+      alert(t('factoryResetIncorrectPin') || t('incorrectPin'));
       return;
     }
 
@@ -8915,7 +8950,11 @@ export default function App() {
                   <Shield size={32} className="text-blue-600" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{t('securityCheck')}</h3>
-                <p className="text-sm text-gray-500 mb-6">{t('pinPrompt')}</p>
+                <p className="text-sm text-gray-500 mb-6">
+                  {pinAction === 'changeSalesEmployee' ? t('changeUserPrompt') : 
+                   pinAction === 'switchMode' ? t('switchModePrompt') : 
+                   t('pinPrompt')}
+                </p>
 
                 <div className="flex justify-center gap-3 mb-6">
                   {[0, 1, 2, 3].map((i) => (
@@ -8932,38 +8971,7 @@ export default function App() {
                         if (newPin.length <= 4) {
                           setPinInput(newPin);
                           if (newPin.length === 4) {
-                            if (newPin === ownerPin) {
-                              setIsPinModalOpen(false);
-                              setPinInput('');
-                              setCurrentMode('Owner');
-                              setShowSensitiveData(true);
-                              if (pinAction === 'accessReports') {
-                                setActiveTab('reports');
-                                if (window.innerWidth < 768) setIsSidebarOpen(false);
-                              }
-                            } else if (newPin === managerPin) {
-                              setIsPinModalOpen(false);
-                              setPinInput('');
-                              setCurrentMode('Manager');
-                              if (pinAction === 'accessReports') {
-                                setActiveTab('reports');
-                                if (window.innerWidth < 768) setIsSidebarOpen(false);
-                              }
-                            } else if (newPin === securityPin) {
-                              setIsPinModalOpen(false);
-                              setPinInput('');
-                              if (pinAction === 'showCosts') setShowSensitiveData(true);
-                              if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
-                              if (pinAction === 'accessReports') {
-                                setActiveTab('reports');
-                                if (window.innerWidth < 768) setIsSidebarOpen(false);
-                              }
-                            } else {
-                              setTimeout(() => {
-                                setPinInput('');
-                                alert(t('incorrectPin'));
-                              }, 200);
-                            }
+                            handlePinAuth(newPin);
                           }
                         }
                       }}
@@ -8979,38 +8987,7 @@ export default function App() {
                       if (newPin.length <= 4) {
                         setPinInput(newPin);
                         if (newPin.length === 4) {
-                          if (newPin === ownerPin) {
-                            setIsPinModalOpen(false);
-                            setPinInput('');
-                            setCurrentMode('Owner');
-                            setShowSensitiveData(true);
-                            if (pinAction === 'accessReports') {
-                              setActiveTab('reports');
-                              if (window.innerWidth < 768) setIsSidebarOpen(false);
-                            }
-                          } else if (newPin === managerPin) {
-                            setIsPinModalOpen(false);
-                            setPinInput('');
-                            setCurrentMode('Manager');
-                            if (pinAction === 'accessReports') {
-                              setActiveTab('reports');
-                              if (window.innerWidth < 768) setIsSidebarOpen(false);
-                            }
-                          } else if (newPin === securityPin) {
-                            setIsPinModalOpen(false);
-                            setPinInput('');
-                            if (pinAction === 'showCosts') setShowSensitiveData(true);
-                            if (pinAction === 'changeSalesEmployee') setIsSelectSalesEmployeeModalOpen(true);
-                            if (pinAction === 'accessReports') {
-                              setActiveTab('reports');
-                              if (window.innerWidth < 768) setIsSidebarOpen(false);
-                            }
-                          } else {
-                            setTimeout(() => {
-                              setPinInput('');
-                              alert(t('incorrectPin'));
-                            }, 200);
-                          }
+                          handlePinAuth(newPin);
                         }
                       }
                     }}
