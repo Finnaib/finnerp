@@ -1715,11 +1715,20 @@ export default function App() {
       const durationMins = Math.floor(durationMs / 60000);
       const durationHours = durationMins / 60;
 
-      const rate = session.hourlyRate || 30;
+      const rate = Number(session.hourlyRate);
 
-      const sessionCost = Math.ceil(durationHours * rate);
+      // User Logic: Minimum 1 hour charge for any time up to 60 minutes.
+      // After 60 minutes, it calculates proportionally.
+      let sessionCost;
+      if (durationMins <= 60) {
+        sessionCost = rate;
+      } else {
+        // Pro-rated calculation for sessions longer than an hour
+        sessionCost = (durationMins / 60) * rate;
+      }
+      
       const ordersCost = (session.orders || []).reduce((sum, o) => sum + (Number(o.sellPrice) * Number(o.quantity || 1)), 0);
-      const totalAmount = sessionCost + ordersCost;
+      const totalAmount = Math.round(sessionCost + ordersCost);
 
       await updateDoc(doc(db, 'cafeSessions', session.id), {
         status: 'Completed',
@@ -6777,71 +6786,107 @@ export default function App() {
                     </div>
 
                     <div className="overflow-x-auto px-1">
-                      {/* Desktop View */}
-                      <div className="hidden md:block">
-                        <table className="w-full text-sm text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
-                            <tr>
-                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
-                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')} #</th>
-                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('cost')}</th>
-                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('details') || 'Details'}</th>
-                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {serviceTickets
-                              .filter(t => t.status === 'Delivered')
-                              .filter(t => !serviceHistoryDateFilter || (t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] === serviceHistoryDateFilter))
-                              .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                              .map(ticket => (
-                                <tr key={ticket.id} className="hover:bg-slate-50/50 transition-colors group">
-                                  <td className="p-4 text-slate-500 font-bold">{ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
-                                  <td className="p-4 font-mono text-xs text-blue-600 font-black">#{ticket.id.slice(0, 6)}</td>
-                                  <td className="p-4 font-mono font-black text-slate-900">{formatCurrency(ticket.estimatedCost || 0)}</td>
-                                  <td className="p-4">
-                                     <div className="text-xs font-bold text-gray-900">{ticket.customerName}</div>
-                                     <div className="text-[10px] text-slate-400 font-medium">{ticket.brand} {ticket.model}</div>
-                                  </td>
-                                  <td className="p-4 text-right">
-                                    <button onClick={() => handlePrintInvoice(ticket, 'Service Invoice')} className="p-2 border border-slate-100 text-slate-400 hover:text-blue-600 rounded-lg transition-all shadow-sm">
-                                      <Printer size={16} />
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                          </tbody>
-                        </table>
-                      </div>
+                      {(() => {
+                        const historyItems = [
+                          ...serviceTickets
+                            .filter(t => t.status === 'Delivered')
+                            .map(t => ({
+                              id: t.id,
+                              item: t,
+                              isTicket: true,
+                              date: t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000) : new Date(),
+                              invoiceId: t.id.slice(0, 6),
+                              amount: t.estimatedCost || 0,
+                              customer: t.customerName,
+                              details: `${t.brand} ${t.model}`,
+                              soldBy: t.technician || '-'
+                            })),
+                          ...sales
+                            .filter(s => s.location === 'Repair Shop')
+                            .map(s => ({
+                              id: s.id,
+                              item: s,
+                              isTicket: false,
+                              date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : (s.date ? new Date(s.date) : new Date()),
+                              invoiceId: s.invoiceId || s.id.slice(0, 6),
+                              amount: s.amount,
+                              customer: s.client || s.customer || 'Walk-in',
+                              details: Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : 'Service POS',
+                              soldBy: s.soldBy || '-'
+                            }))
+                        ]
+                        .filter(h => !serviceHistoryDateFilter || h.date.toISOString().split('T')[0] === serviceHistoryDateFilter)
+                        .sort((a, b) => b.date - a.date);
 
-                      {/* Mobile View */}
-                      <div className="md:hidden space-y-4">
-                        {serviceTickets
-                          .filter(t => t.status === 'Delivered')
-                          .filter(t => !serviceHistoryDateFilter || (t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] === serviceHistoryDateFilter))
-                          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                          .map(ticket => (
-                            <div key={ticket.id} className="p-4 border border-slate-100 rounded-3xl bg-slate-50/50 flex justify-between items-center">
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{ticket.createdAt ? new Date(ticket.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</span>
-                                  <span className="text-[10px] font-mono font-bold text-blue-600">#{ticket.id.slice(0, 6)}</span>
-                                </div>
-                                <div className="text-sm font-bold text-gray-900">{ticket.customerName}</div>
-                                <div className="text-xs text-slate-500">{ticket.brand} {ticket.model}</div>
-                                <div className="font-mono font-black text-slate-900 mt-1">{formatCurrency(ticket.estimatedCost || 0)}</div>
-                              </div>
-                              <button onClick={() => handlePrintInvoice(ticket, 'Service Invoice')} className="p-3 bg-white border border-slate-100 text-slate-600 rounded-2xl shadow-sm"><Printer size={20} /></button>
+                        if (historyItems.length === 0) {
+                          return (
+                            <div className="p-20 text-center">
+                              <History size={40} className="mx-auto mb-4 text-slate-200" />
+                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noHistory')}</p>
                             </div>
-                          ))}
-                      </div>
+                          );
+                        }
 
-                      {serviceTickets.filter(t => t.status === 'Delivered' && (!serviceHistoryDateFilter || (t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] === serviceHistoryDateFilter))).length === 0 && (
-                        <div className="p-20 text-center">
-                          <History size={40} className="mx-auto mb-4 text-slate-200" />
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noHistory')}</p>
-                        </div>
-                      )}
+                        return (
+                          <>
+                            {/* Desktop View */}
+                            <div className="hidden md:block">
+                              <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                                  <tr>
+                                    <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
+                                    <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')} #</th>
+                                    <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('cost')}</th>
+                                    <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('details') || 'Details'}</th>
+                                    <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                  {historyItems.map(h => (
+                                    <tr key={h.id} className="hover:bg-slate-50/50 transition-colors group">
+                                      <td className="p-4 text-slate-500 font-bold">{h.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                      <td className="p-4 font-mono text-xs text-blue-600 font-black">#{h.invoiceId}</td>
+                                      <td className="p-4 font-mono font-black text-slate-900">{formatCurrency(h.amount)}</td>
+                                      <td className="p-4">
+                                         <div className="text-xs font-bold text-gray-900">{h.customer}</div>
+                                         <div className="text-[10px] text-slate-400 font-medium truncate max-w-[200px]">{h.details}</div>
+                                         <div className="text-[8px] text-blue-500 font-black uppercase mt-1 tracking-widest">BY: {h.soldBy}</div>
+                                      </td>
+                                      <td className="p-4 text-right">
+                                        <button 
+                                          onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')} 
+                                          className="p-2 border border-slate-100 text-slate-400 hover:text-blue-600 rounded-lg transition-all shadow-sm"
+                                        >
+                                          <Printer size={16} />
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Mobile View */}
+                            <div className="md:hidden space-y-4">
+                              {historyItems.map(h => (
+                                <div key={h.id} className="p-4 border border-slate-100 rounded-3xl bg-slate-50/50 flex justify-between items-center">
+                                  <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{h.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                      <span className="text-[10px] font-mono font-bold text-blue-600">#{h.invoiceId}</span>
+                                    </div>
+                                    <div className="text-sm font-bold text-gray-900">{h.customer}</div>
+                                    <div className="text-xs text-slate-500">{h.details}</div>
+                                    <div className="font-mono font-black text-slate-900 mt-1">{formatCurrency(h.amount)}</div>
+                                    <div className="text-[8px] text-blue-500 font-black uppercase mt-1 tracking-widest">BY: {h.soldBy}</div>
+                                  </div>
+                                  <button onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')} className="p-3 bg-white border border-slate-100 text-slate-600 rounded-2xl shadow-sm"><Printer size={20} /></button>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
