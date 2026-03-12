@@ -3816,25 +3816,21 @@ export default function App() {
 
   // UPI QR Auto-hide logic (30 sec)
   useEffect(() => {
-    let timer;
     let interval;
-    const isCartActive = (activeTab === 'sales_purchases' && cart.length > 0) || (activeTab === 'service' && serviceCart.length > 0);
-    
-    if (paymentMethod === 'Online' && isCartActive) {
-      setShowUpiQr(true);
-      setUpiQrTimer(30); // 30 seconds
-      timer = setTimeout(() => setShowUpiQr(false), 30000);
+    if (showUpiQr) {
+      setUpiQrTimer(30);
       interval = setInterval(() => {
-        setUpiQrTimer(prev => Math.max(0, prev - 1));
+        setUpiQrTimer(prev => {
+          if (prev <= 1) {
+            setShowUpiQr(false);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
-      return () => {
-        clearTimeout(timer);
-        clearInterval(interval);
-      };
-    } else {
-      setShowUpiQr(false);
     }
-  }, [paymentMethod, cart.length, serviceCart.length, activeTab]);
+    return () => clearInterval(interval);
+  }, [showUpiQr]);
 
 
 
@@ -6391,10 +6387,10 @@ export default function App() {
 
                     {/* Left Side: Search & Items Grid */}
                     <div className={`flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
-                      {/* Top Action Bar */}
-                      <div className="p-6 bg-white border-b border-gray-200">
-                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                          <div className="flex items-center gap-4">
+                      {/* Top Action Bar - Compact on Mobile */}
+                      <div className="p-4 sm:p-6 bg-white border-b border-gray-200">
+                        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center">
+                          <div className="hidden lg:flex items-center gap-4">
                             <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
                               <ShoppingCart size={24} />
                             </div>
@@ -6418,7 +6414,7 @@ export default function App() {
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => { setScannerMode('service_sell'); setIsScannerOpen(true); }}
-                                  className="p-3 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all shadow-lg shadow-blue-500/10 flex items-center justify-center"
+                                  className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all shadow-sm border border-blue-100 flex items-center justify-center"
                                   title={t('scanBarcode')}
                                 >
                                   <Scan size={20} />
@@ -6431,9 +6427,9 @@ export default function App() {
                                     if (!price || isNaN(price)) return;
                                     setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
                                   }}
-                                  className="px-4 py-3 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center gap-2 transition-all whitespace-nowrap shadow-lg shadow-amber-500/20"
+                                  className="px-4 py-3.5 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-500/20 active:scale-95"
                                 >
-                                  <Plus size={16} /> {t('customItem') || 'Custom Item'}
+                                  <Plus size={18} /> <span className="hidden sm:inline">{t('customItem') || 'Custom Item'}</span>
                                 </button>
                               </div>
                             </div>
@@ -6442,7 +6438,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 custom-scrollbar">
                         {/* 1. Active Repairs Section */}
                         <section className="space-y-4">
                           <div className="flex items-center justify-between px-2">
@@ -6469,9 +6465,9 @@ export default function App() {
                                     ];
                                     setServiceCart([...serviceCart, ...items]);
                                   }}
-                                  className="text-left bg-white p-5 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
+                                  className="text-left bg-white p-4 sm:p-5 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
                                 >
-                                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden sm:block">
                                     <Wrench size={48} />
                                   </div>
                                   <div className="relative z-10 flex flex-col h-full justify-between">
@@ -6500,12 +6496,12 @@ export default function App() {
                             <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
                               <Package size={14} className="text-indigo-500" /> {t('inventoryParts') || 'Inventory Parts'}
                             </h3>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 flex-1 justify-end">
                               {['All', 'Phone Parts', 'PC Components', 'Accessories'].map(cat => (
                                 <button 
                                   key={cat}
                                   onClick={() => setServiceInventorySearch(cat === 'All' ? '' : cat)}
-                                  className={`text-[8px] font-black uppercase px-3 py-1.5 rounded-full transition-all ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-400 hover:bg-gray-100'}`}
+                                  className={`text-[8px] font-black uppercase px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-400 hover:bg-gray-100'}`}
                                 >
                                   {cat}
                                 </button>
@@ -6520,7 +6516,7 @@ export default function App() {
                                 <button
                                   key={item.id}
                                   onClick={() => addToServiceCart(item)}
-                                  className="bg-white p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-3 text-left"
+                                  className="bg-white p-3 sm:p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-2 sm:gap-3 text-left"
                                 >
                                   <div className="bg-gray-50 aspect-square rounded-2xl overflow-hidden relative">
                                     {item.photo ? (
@@ -9434,7 +9430,7 @@ export default function App() {
             <div className="flex justify-center bg-gray-50 p-5 rounded-3xl mb-4 border border-gray-100 shadow-inner">
               {digitalSubMethod === 'UPI' && shopSettings.upiId ? (
                 <QRCodeSVG
-                  value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
+                  value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=INR`}
                   size={180}
                   level="H"
                   includeMargin={true}
@@ -9464,7 +9460,7 @@ export default function App() {
                 {digitalSubMethod === 'UPI' ? shopSettings.upiId : shopSettings.instapayId}
               </p>
               <p className="text-lg font-black text-gray-900 font-mono tracking-tight">
-                {formatCurrency(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount))}
+                {formatCurrency(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0) : (calculateTotal() - cartDiscount))}
               </p>
             </div>
 
