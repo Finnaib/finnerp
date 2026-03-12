@@ -4177,7 +4177,7 @@ export default function App() {
         </header>
 
         {/* Global Mobile Navigation (Native App Feel) */}
-        {activeTab !== 'sales_purchases' && activeTab !== 'cafe' && !(activeTab === 'service' && serviceSubTab === 'sell') && (
+        {activeTab !== 'sales_purchases' && activeTab !== 'cafe' && activeTab !== 'service' && (
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
             <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
               <div className={`p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
@@ -6179,7 +6179,7 @@ export default function App() {
           {
             activeTab === 'service' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex gap-2 bg-white/5 shadow-sm p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto scrollbar-hide">
+                <div className="hidden lg:flex gap-2 bg-white/5 shadow-sm p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto scrollbar-hide">
                   {[
                     { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
                     { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
@@ -6327,8 +6327,8 @@ export default function App() {
                 {/* Sub Tab: SELL (SERVICE POS) */}
                 {serviceSubTab === 'sell' && (
                   <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
-                    {/* Mobile Bottom Navigation for Service POS */}
-                    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-8 py-3 flex justify-between items-center z-[65] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
+                    {/* Mobile Bottom Navigation for Service POS (Hidden as global service nav handles it) */}
+                    <div className="hidden lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-8 py-3 flex justify-between items-center z-[65] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
                         <div className="flex gap-10">
                           <button
                             onClick={() => setIsMobileCartOpen(false)}
@@ -9700,6 +9700,31 @@ export default function App() {
       }
 
       )}
+
+      {/* Service Module Specific Mobile Navigation */}
+      {activeTab === 'service' && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-100 px-6 py-2 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500">
+          {[
+            { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
+            { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={20} /> },
+            { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
+            { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} /> },
+            { id: 'exit', label: t('back') || 'Exit', icon: <LogOut size={20} />, action: () => setActiveTab('dashboard') }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => tab.action ? tab.action() : setServiceSubTab(tab.id)}
+              className={`flex flex-col items-center gap-1 p-2 transition-all ${serviceSubTab === tab.id ? 'text-blue-600 scale-110' : 'text-gray-400 opacity-60'}`}
+            >
+              <div className={`p-2 rounded-xl ${serviceSubTab === tab.id ? 'bg-blue-50' : ''}`}>
+                {tab.icon}
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
     </div>
   );
 }
