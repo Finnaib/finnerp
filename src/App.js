@@ -3995,21 +3995,6 @@ export default function App() {
             }} 
           />
 
-          <SidebarItem 
-            icon={<Calculator size={20} />} 
-            label={t('menuAccounts')} 
-            active={activeTab === 'accounts'} 
-            onClick={() => { 
-              if (currentMode === 'Owner' || currentMode === 'Manager') {
-                setActiveTab('accounts');
-                if (window.innerWidth < 768) setIsSidebarOpen(false);
-              } else {
-                setPinAction('accessAccounts'); 
-                setIsPinModalOpen(true); 
-              }
-            }} 
-          />
-
           <div className="my-2 border-t border-slate-700/50"></div>
 
           <SidebarItem icon={<ShoppingCart size={20} />} label={t('menuSalesPurchases')} active={activeTab === 'sales_purchases'} onClick={() => { setActiveTab('sales_purchases'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
