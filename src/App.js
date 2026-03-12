@@ -6665,14 +6665,14 @@ export default function App() {
                         </div>
 
                         {paymentMethod === 'Online' && (
-                          <div className="grid grid-cols-2 gap-2 mb-4 animate-in slide-in-from-top-2 duration-300">
-                            {['UPI', 'InstaPay'].map(sub => (
+                          <div className="grid grid-cols-3 gap-2 mb-4 animate-in slide-in-from-top-2 duration-300">
+                            {['UPI', 'InstaPay', 'Other'].map(sub => (
                               <button
                                 key={sub}
                                 onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
                                 className={`py-2 text-[9px] font-black uppercase tracking-widest rounded-xl border transition-all ${digitalSubMethod === sub ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'}`}
                               >
-                                {sub}
+                                {t(sub.toLowerCase()) || sub}
                               </button>
                             ))}
                           </div>
@@ -9426,7 +9426,7 @@ export default function App() {
             </div>
             <div className="text-center mb-6">
               <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">
-                {digitalSubMethod === 'UPI' ? shopSettings.upiId : shopSettings.instapayId}
+                {digitalSubMethod === 'Other' ? '' : (digitalSubMethod === 'UPI' ? shopSettings.upiId : shopSettings.instapayId)}
               </p>
               <p className="text-lg font-black text-gray-900 font-mono tracking-tight">
                 {formatCurrency(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount))}
