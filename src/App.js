@@ -4096,18 +4096,7 @@ export default function App() {
               </select>
             </div>
 
-            <button
-              onClick={() => setShowSettings(true)}
-              className="flex items-center gap-2 pl-2 pr-1 py-1 bg-white border border-gray-100 rounded-2xl hover:border-blue-200 transition-all shadow-sm group"
-            >
-              <div className="hidden sm:block text-right mr-1">
-                <div className="text-[10px] font-black text-gray-900 uppercase tracking-tighter leading-none">{t('adminUser')}</div>
-                <div className="text-[8px] text-gray-400 font-bold tracking-tight lowercase truncate max-w-[80px]">{user.email}</div>
-              </div>
-              <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform duration-300">
-                <User size={20} />
-              </div>
-            </button>
+
           </div>
         </header>
 
