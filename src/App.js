@@ -5416,31 +5416,35 @@ export default function App() {
                         title="Standard A4 Paper Printer"
                       > {t('a4 sheet')} </button>
                     </div>
-                    <button
-                      onClick={() => {
-                        const itemsToConfig = selectedInventoryItems.length > 0
-                          ? inventory.filter(item => selectedInventoryItems.includes(item.id))
-                          : inventory.filter(item =>
-                            (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
-                            ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
-                              (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
-                          );
-                        setPrintConfigs(itemsToConfig.map(item => ({ item, qty: 1 })));
-                        setIsPrintBarcodeModalOpen(true);
-                      }}
-                      className="bg-slate-800 text-white px-4 py-2.5 rounded-lg hover:bg-slate-900 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
-                    >
-                      <Printer size={20} /> {selectedInventoryItems.length > 0 ? `${t('printSelected')} (${selectedInventoryItems.length})` : t('printAll')}
-                    </button>
-                    <button
-                      onClick={() => { setScannerMode('buy'); setIsScannerOpen(true); }}
-                      className="bg-emerald-600 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-700 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
-                    >
-                      <Scan size={20} /> {t('quickStockIn') || 'Stock In'}
-                    </button>
-                    <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 w-full sm:w-auto">
-                      <Plus size={20} /> {t('addItem')}
-                    </button>
+                    {currentMode !== 'Cashier' && (
+                      <>
+                        <button
+                          onClick={() => {
+                            const itemsToConfig = selectedInventoryItems.length > 0
+                              ? inventory.filter(item => selectedInventoryItems.includes(item.id))
+                              : inventory.filter(item =>
+                                (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                                ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                                  (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                              );
+                            setPrintConfigs(itemsToConfig.map(item => ({ item, qty: 1 })));
+                            setIsPrintBarcodeModalOpen(true);
+                          }}
+                          className="bg-slate-800 text-white px-4 py-2.5 rounded-lg hover:bg-slate-900 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
+                        >
+                          <Printer size={20} /> {selectedInventoryItems.length > 0 ? `${t('printSelected')} (${selectedInventoryItems.length})` : t('printAll')}
+                        </button>
+                        <button
+                          onClick={() => { setScannerMode('buy'); setIsScannerOpen(true); }}
+                          className="bg-emerald-600 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-700 flex items-center justify-center gap-2 w-full sm:w-auto font-medium"
+                        >
+                          <Scan size={20} /> {t('quickStockIn') || 'Stock In'}
+                        </button>
+                        <button onClick={() => setIsAddItemModalOpen(true)} className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 w-full sm:w-auto">
+                          <Plus size={20} /> {t('addItem')}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -5474,40 +5478,42 @@ export default function App() {
                     <table className="w-full text-left">
                       <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
-                          <th className="px-6 py-4 w-10">
-                            <input
-                              type="checkbox"
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              onChange={(e) => {
-                                const filtered = inventory.filter(item =>
-                                  (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
-                                  ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
-                                    (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
-                                );
-                                if (e.target.checked) {
-                                  setSelectedInventoryItems(filtered.map(i => i.id));
-                                } else {
-                                  setSelectedInventoryItems([]);
-                                }
-                              }}
-                              checked={(() => {
-                                const filtered = inventory.filter(item =>
-                                  (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
-                                  ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
-                                    (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
-                                );
-                                return filtered.length > 0 && filtered.every(i => selectedInventoryItems.includes(i.id));
-                              })()}
-                            />
-                          </th>
+                          {currentMode !== 'Cashier' && (
+                            <th className="px-6 py-4 w-10">
+                              <input
+                                type="checkbox"
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                onChange={(e) => {
+                                  const filtered = inventory.filter(item =>
+                                    (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                                    ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                                      (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                                  );
+                                  if (e.target.checked) {
+                                    setSelectedInventoryItems(filtered.map(i => i.id));
+                                  } else {
+                                    setSelectedInventoryItems([]);
+                                  }
+                                }}
+                                checked={(() => {
+                                  const filtered = inventory.filter(item =>
+                                    (!warehouseLocationFilter || item.location === warehouseLocationFilter) &&
+                                    ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                                      (item.barcode?.toLowerCase() || '').includes(inventorySearch.toLowerCase()))
+                                  );
+                                  return filtered.length > 0 && filtered.every(i => selectedInventoryItems.includes(i.id));
+                                })()}
+                              />
+                            </th>
+                          )}
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('image') || 'Image'}</th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('itemName')}</th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('barcode') || 'Barcode'}</th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('location')}</th>
-                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('buyPrice')}</th>
+                          {currentMode !== 'Cashier' && <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('buyPrice')}</th>}
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('sellPrice')}</th>
                           <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('quantity')}</th>
-                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('actions')}</th>
+                          {currentMode !== 'Cashier' && <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('actions')}</th>}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -5519,20 +5525,22 @@ export default function App() {
                           )
                           .map(item => (
                             <tr key={item.id} className={`hover:bg-gray-50 transition-colors ${selectedInventoryItems.includes(item.id) ? 'bg-blue-50/50' : ''}`}>
-                              <td className="px-6 py-4">
-                                <input
-                                  type="checkbox"
-                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                  checked={selectedInventoryItems.includes(item.id)}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedInventoryItems([...selectedInventoryItems, item.id]);
-                                    } else {
-                                      setSelectedInventoryItems(selectedInventoryItems.filter(id => id !== item.id));
-                                    }
-                                  }}
-                                />
-                              </td>
+                              {currentMode !== 'Cashier' && (
+                                <td className="px-6 py-4">
+                                  <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    checked={selectedInventoryItems.includes(item.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedInventoryItems([...selectedInventoryItems, item.id]);
+                                      } else {
+                                        setSelectedInventoryItems(selectedInventoryItems.filter(id => id !== item.id));
+                                      }
+                                    }}
+                                  />
+                                </td>
+                              )}
                               <td className="px-6 py-4">
                                 <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden shadow-inner">
                                   {item.photo ? (
@@ -5547,9 +5555,11 @@ export default function App() {
                               </td>
                               <td className="px-6 py-4 text-xs font-mono text-gray-400">{item.barcode || '-'}</td>
                               <td className="px-6 py-4 text-xs font-bold text-gray-500">{item.location}</td>
-                              <td className="px-6 py-4 text-right font-mono text-gray-500">
-                                {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
-                              </td>
+                              {currentMode !== 'Cashier' && (
+                                <td className="px-6 py-4 text-right font-mono text-gray-500">
+                                  {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
+                                </td>
+                              )}
                               <td className="px-6 py-4 text-right font-mono font-black text-gray-900">{formatCurrency(item.sellPrice || 0)}</td>
                               <td className="px-6 py-4 text-right font-mono font-black text-gray-900">
                                 {item.quantity <= 0 ? (
@@ -5560,13 +5570,15 @@ export default function App() {
                                   item.quantity
                                 )}
                               </td>
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex justify-end gap-2">
-                                  <button onClick={() => { setPrintConfigs([{ item, qty: 1 }]); setIsPrintBarcodeModalOpen(true); }} disabled={!item.barcode} className="p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100 disabled:opacity-30" title="Print Barcode"><Printer size={16} /></button>
-                                  <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Edit size={16} /></button>
-                                  <button onClick={() => handleDeleteWarehouseItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Trash2 size={16} /></button>
-                                </div>
-                              </td>
+                              {currentMode !== 'Cashier' && (
+                                <td className="px-6 py-4 text-right">
+                                  <div className="flex justify-end gap-2">
+                                    <button onClick={() => { setPrintConfigs([{ item, qty: 1 }]); setIsPrintBarcodeModalOpen(true); }} disabled={!item.barcode} className="p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100 disabled:opacity-30" title="Print Barcode"><Printer size={16} /></button>
+                                    <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Edit size={16} /></button>
+                                    <button onClick={() => handleDeleteWarehouseItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm bg-white border border-gray-100"><Trash2 size={16} /></button>
+                                  </div>
+                                </td>
+                              )}
                             </tr>
                           ))}
                       </tbody>
@@ -5584,18 +5596,20 @@ export default function App() {
                       .map(item => (
                         <div key={item.id} className={`bg-white p-4 rounded-2xl border transition-all duration-300 shadow-sm flex gap-4 animate-in fade-in duration-300 ${selectedInventoryItems.includes(item.id) ? 'border-blue-500 bg-blue-50/20' : 'border-gray-100'}`}>
                           <div className="flex flex-col items-center gap-2 shrink-0">
-                            <input
-                              type="checkbox"
-                              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              checked={selectedInventoryItems.includes(item.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedInventoryItems([...selectedInventoryItems, item.id]);
-                                } else {
-                                  setSelectedInventoryItems(selectedInventoryItems.filter(id => id !== item.id));
-                                }
-                              }}
-                            />
+                            {currentMode !== 'Cashier' && (
+                              <input
+                                type="checkbox"
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                checked={selectedInventoryItems.includes(item.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedInventoryItems([...selectedInventoryItems, item.id]);
+                                  } else {
+                                    setSelectedInventoryItems(selectedInventoryItems.filter(id => id !== item.id));
+                                  }
+                                }}
+                              />
+                            )}
                             <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 overflow-hidden shadow-inner">
                               {item.photo ? (
                                 <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
