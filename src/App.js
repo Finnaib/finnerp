@@ -6215,47 +6215,77 @@ export default function App() {
             activeTab === 'service' && (
               <div className="flex flex-col lg:flex-row h-full min-h-0 overflow-hidden relative pb-24 lg:pb-0 animate-in fade-in duration-500">
                 <div className="flex-1 flex flex-col min-w-0 overflow-auto p-4 sm:p-6 lg:p-8 space-y-6">
-                  <div className="hidden lg:grid grid-cols-4 xl:grid-cols-8 gap-3 p-3 bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 mb-6">
+                  <div className="hidden lg:grid grid-cols-4 xl:grid-cols-8 gap-4 p-4 bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.08)] mb-8 transition-all hover:bg-white/90">
                     {[
-                      { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
-                      { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={20} /> },
-                      { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
-                      { id: 'new', label: t('newTicket'), icon: <PlusCircle size={20} /> },
-                      { id: 'history', label: t('history'), icon: <History size={20} /> },
-                      { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={20} /> },
-                      { id: 'customers', label: t('customers'), icon: <Users size={20} /> },
-                      { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} /> }
+                      { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} />, color: 'blue' },
+                      { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={20} />, color: 'emerald' },
+                      { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} />, color: 'indigo' },
+                      { id: 'new', label: t('newTicket'), icon: <PlusCircle size={20} />, color: 'rose' },
+                      { id: 'history', label: t('history'), icon: <History size={20} />, color: 'amber' },
+                      { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={20} />, color: 'purple' },
+                      { id: 'customers', label: t('customers'), icon: <Users size={20} />, color: 'cyan' },
+                      { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} />, color: 'slate' }
                     ].map(tab => (
                       <button
                         key={tab.id}
                         onClick={() => setServiceSubTab(tab.id)}
-                        className={`flex flex-col items-center gap-2 p-3 rounded-3xl transition-all duration-500 group relative ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-2xl shadow-blue-500/30' : 'text-gray-400 hover:bg-white hover:text-gray-600'}`}
+                        className={`group flex flex-col items-center gap-2.5 p-3 rounded-[2rem] transition-all duration-700 relative overflow-hidden ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-2xl shadow-slate-900/30' : 'text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-xl hover:shadow-slate-200/50'}`}
                       >
-                        <div className={`p-2.5 rounded-2xl transition-all duration-500 ${serviceSubTab === tab.id ? 'bg-white/20 scale-110' : 'bg-gray-50 group-hover:scale-110'}`}>
-                          {tab.icon}
+                        {serviceSubTab === tab.id && <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent animate-pulse"></div>}
+                        <div className={`p-3 rounded-2xl transition-all duration-700 ${serviceSubTab === tab.id ? 'bg-white/20 scale-110 rotate-3' : 'bg-slate-50 group-hover:scale-110 group-hover:-rotate-3'}`}>
+                          {React.cloneElement(tab.icon, { size: 22, className: serviceSubTab === tab.id ? 'text-white' : `text-${tab.color}-500` })}
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-center truncate w-full">{tab.label}</span>
+                        <span className={`text-[10px] font-black uppercase tracking-[0.1em] text-center truncate w-full transition-all ${serviceSubTab === tab.id ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}>{tab.label}</span>
                       </button>
                     ))}
                   </div>
 
                 {/* Sub Tab: BOARD (DASHBOARD) */}
                 {serviceSubTab === 'board' && (
-                  <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                  <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                    {/* Premium Header Banner */}
+                    <div className="relative h-64 sm:h-80 rounded-[4rem] overflow-hidden group shadow-3xl shadow-blue-500/10 border border-white/20">
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#1e40af] via-[#3b82f6] to-[#a855f7] animate-gradient-xy"></div>
+                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                      
+                      <div className="absolute bottom-0 left-0 p-10 sm:p-16 z-10">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white">
+                            <Zap size={24} className="animate-pulse" />
+                          </div>
+                          <span className="text-white/60 font-black uppercase tracking-[0.3em] text-[10px]">{t('serviceControl') || 'Service Control'}</span>
+                        </div>
+                        <h2 className="text-4xl sm:text-6xl font-black text-white mb-4 uppercase tracking-tighter drop-shadow-2xl">
+                          {t('repairHub') || 'Repair Hub'}
+                        </h2>
+                        <div className="flex flex-wrap gap-4">
+                          <button onClick={() => setServiceSubTab('new')} className="bg-white text-slate-900 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-110 active:scale-95 transition-all shadow-xl shadow-white/10">{t('newRepair') || 'New Repair'}</button>
+                          <button onClick={() => setServiceSubTab('sell')} className="bg-blue-600/30 backdrop-blur-md border border-white/20 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all">{t('posTerminal') || 'POS Terminal'}</button>
+                        </div>
+                      </div>
+
+                      <div className="absolute top-1/2 right-20 -translate-y-1/2 opacity-20 group-hover:scale-125 group-hover:rotate-12 transition-all duration-1000 hidden xl:block">
+                        <Wrench size={300} className="text-white" strokeWidth={1} />
+                      </div>
+                    </div>
+
+                    {/* High-Vibrancy Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                       {[
-                        { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <Zap className="text-amber-500" />, bg: 'bg-amber-50' },
-                        { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock className="text-orange-500" />, bg: 'bg-orange-50' },
-                        { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckSquare className="text-emerald-500" />, bg: 'bg-emerald-50' },
-                        { label: t('lowStock'), value: serviceInventory.filter(i => i.stock <= i.minStock).length, icon: <AlertTriangle className="text-rose-500" />, bg: 'bg-rose-50' },
-                        { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard className="text-blue-500" />, bg: 'bg-blue-50' }
+                        { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <DollarSign size={24} />, bg: 'from-emerald-400 to-green-600', shadow: 'emerald' },
+                        { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock size={24} />, bg: 'from-orange-400 to-amber-600', shadow: 'amber' },
+                        { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckCircle2 size={24} />, bg: 'from-blue-400 to-indigo-600', shadow: 'blue' },
+                        { label: t('lowStock'), value: serviceInventory.filter(i => i.stock <= i.minStock).length, icon: <Package size={24} />, bg: 'from-rose-400 to-pink-600', shadow: 'rose' },
+                        { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard size={24} />, bg: 'from-slate-700 to-slate-900', shadow: 'slate' }
                       ].map((stat, i) => (
-                        <div key={i} className="bg-white p-4 sm:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4 sm:gap-5 hover:shadow-md transition-shadow">
-                          <div className={`p-3 sm:p-4 rounded-2xl ${stat.bg}`}>{stat.icon}</div>
+                        <div key={i} className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 group hover:scale-[1.03] transition-all duration-700 relative overflow-hidden flex flex-col justify-between h-48">
+                          <div className={`p-4 rounded-3xl bg-gradient-to-br ${stat.bg} text-white w-fit shadow-xl shadow-${stat.shadow}-500/20 group-hover:rotate-6 transition-all`}>
+                            {stat.icon}
+                          </div>
                           <div>
-                            <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{stat.label}</p>
-                            <h3 className="text-lg font-black text-gray-900 leading-none mt-1">{stat.value}</h3>
+                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">{stat.label}</p>
+                            <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-none tabular-nums truncate w-full">{stat.value}</h3>
                           </div>
                         </div>
                       ))}
@@ -6420,17 +6450,17 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 custom-scrollbar">
+                      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-12 custom-scrollbar lg:-mx-6 lg:px-6">
                         {/* 1. Active Repairs Section */}
-                        <section className="space-y-4">
-                          <div className="flex items-center justify-between px-2">
-                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                              <Wrench size={14} className="text-blue-500" /> {t('activeRepairs') || 'Active Repairs'}
+                        <section className="space-y-6">
+                          <div className="flex items-center justify-between px-4">
+                            <h3 className="text-[11px] font-black uppercase text-slate-900 tracking-[0.25em] flex items-center gap-3">
+                              <Wrench size={16} className="text-blue-600" /> {t('activeRepairs') || 'Active Repairs'}
                             </h3>
-                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs</span>
+                            <button onClick={() => setServiceSubTab('active')} className="text-[10px] font-black text-blue-600 uppercase hover:underline">{t('viewAll') || 'View All Jobs'}</button>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {serviceTickets
                               .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') && 
                                 (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || 
@@ -6442,28 +6472,32 @@ export default function App() {
                                   onClick={() => {
                                     const laborPrice = Number(ticket.estimatedCost || 0);
                                     const items = [
-                                    { id: 'SRV-'+ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                                    ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                                      { id: 'SRV-'+ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                                      ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
                                     ];
                                     setServiceCart([...serviceCart, ...items]);
                                   }}
-                                  className="text-left bg-white p-4 sm:p-5 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
+                                  className="text-left bg-white p-6 rounded-[2.5rem] border border-gray-100 hover:border-blue-500 hover:shadow-3xl hover:shadow-blue-500/10 transition-all active:scale-[0.97] group relative overflow-hidden"
                                 >
-                                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden sm:block">
-                                    <Wrench size={48} />
-                                  </div>
-                                  <div className="relative z-10 flex flex-col h-full justify-between">
-                                    <div>
-                                      <div className="flex justify-between items-start mb-2">
-                                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
-                                        <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>{ticket.status}</span>
+                                  {/* Glassy Overlay decoration */}
+                                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-all"></div>
+                                  
+                                  <div className="relative z-10 space-y-4">
+                                    <div className="flex justify-between items-start">
+                                      <div className="space-y-1">
+                                        <p className="text-sm font-black text-slate-900 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
                                       </div>
-                                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
+                                      <span className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-full shadow-lg ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-slate-100 text-slate-700'}`}>{ticket.status}</span>
                                     </div>
-                                    <div className="mt-4 flex justify-between items-end border-t border-gray-50 pt-3">
-                                      <div className="text-xl font-black text-blue-600 font-mono">{formatCurrency(ticket.estimatedCost)}</div>
-                                      <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 scale-90 group-hover:scale-100 transition-all duration-500">
-                                        <Plus size={18} />
+
+                                    <div className="flex justify-between items-center pt-4 border-t border-gray-50">
+                                      <div className="space-y-0.5">
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{t('estimatedCost')}</p>
+                                        <div className="text-xl font-black text-blue-600 font-mono tracking-tighter">{formatCurrency(ticket.estimatedCost)}</div>
+                                      </div>
+                                      <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-slate-900/20 group-hover:bg-blue-600 group-hover:rotate-12 transition-all duration-700">
+                                        <Plus size={20} />
                                       </div>
                                     </div>
                                   </div>
@@ -6473,17 +6507,17 @@ export default function App() {
                         </section>
 
                         {/* 2. Parts & Inventory Section */}
-                        <section className="space-y-4">
-                          <div className="flex items-center justify-between px-2">
-                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                              <Package size={14} className="text-indigo-500" /> {t('inventoryParts') || 'Inventory Parts'}
+                        <section className="space-y-6">
+                          <div className="flex items-center justify-between px-4">
+                            <h3 className="text-[11px] font-black uppercase text-slate-900 tracking-[0.25em] flex items-center gap-3">
+                              <Package size={16} className="text-indigo-600" /> {t('inventoryParts') || 'Spare Parts'}
                             </h3>
-                            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 flex-1 justify-end">
+                            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
                               {['All', 'Phone Parts', 'PC Components', 'Accessories'].map(cat => (
                                 <button 
                                   key={cat}
                                   onClick={() => setServiceInventorySearch(cat === 'All' ? '' : cat)}
-                                  className={`text-[8px] font-black uppercase px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-400 hover:bg-gray-100'}`}
+                                  className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-full transition-all whitespace-nowrap border ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-100 hover:text-indigo-600'}`}
                                 >
                                   {cat}
                                 </button>
@@ -6491,33 +6525,33 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
+                          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pb-24">
                             {inventory
                               .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || (item.category || '').toLowerCase().includes(serviceInventorySearch.toLowerCase()))
                               .map(item => (
                                 <button
                                   key={item.id}
                                   onClick={() => addToServiceCart(item)}
-                                  className="bg-white p-3 sm:p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-2 sm:gap-3 text-left"
+                                  className="bg-white p-4 rounded-[2.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-4xl hover:shadow-indigo-500/10 transition-all active:scale-[0.97] group flex flex-col gap-4 text-left"
                                 >
-                                  <div className="bg-gray-50 aspect-square rounded-2xl overflow-hidden relative">
+                                  <div className="bg-slate-50 aspect-square rounded-[2rem] overflow-hidden relative border border-slate-100">
                                     {item.photo ? (
-                                      <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                      <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                                     ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                        <Package size={24} />
+                                      <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                        <Package size={40} strokeWidth={1.5} />
                                       </div>
                                     )}
-                                    <div className={`absolute top-2 right-2 px-2 py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-red-600 text-white' : 'bg-white/80'}`}>
-                                       {Number(item.quantity) <= 0 ? 'OUT OF STOCK' : `STOCK: ${item.quantity}`}
+                                    <div className={`absolute top-3 right-3 px-2.5 py-1.5 backdrop-blur-xl rounded-xl text-[9px] font-black uppercase tracking-widest shadow-xl ${Number(item.quantity) <= 0 ? 'bg-rose-500 text-white' : 'bg-white/90 text-slate-900'}`}>
+                                       {Number(item.quantity) <= 0 ? 'Out' : `Stock: ${item.quantity}`}
                                     </div>
                                   </div>
-                                  <div className="space-y-1">
-                                    <h4 className="text-xs font-black text-gray-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
-                                    <div className="flex justify-between items-end">
-                                      <p className="text-sm font-black text-indigo-600 font-mono">{formatCurrency(item.sellPrice)}</p>
-                                      <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                        <Plus size={14} />
+                                  <div className="space-y-2 px-1">
+                                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
+                                    <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl group-hover:bg-indigo-50 transition-colors">
+                                      <p className="text-sm font-black text-indigo-600 font-mono tracking-tighter">{formatCurrency(item.sellPrice)}</p>
+                                      <div className="w-8 h-8 bg-white text-indigo-600 rounded-lg flex items-center justify-center shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:rotate-90">
+                                        <Plus size={16} />
                                       </div>
                                     </div>
                                   </div>
@@ -6640,14 +6674,15 @@ export default function App() {
                 {serviceSubTab === 'active' && (
                   <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
                     <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                      <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
+                      <div className="flex bg-slate-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
                         {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready', 'Delivered'].map(stat => {
                           const labelMap = { 'All': t('filterAll'), 'Received': t('received'), 'In Progress': t('inProgress'), 'Waiting for Parts': t('waitingParts'), 'Ready': t('readyPickup'), 'Delivered': t('delivered') };
+                          const isActive = serviceStatusFilter === (stat === 'All' ? '' : stat);
                           return (
                             <button
                               key={stat}
                               onClick={() => setServiceStatusFilter(stat === 'All' ? '' : stat)}
-                              className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${serviceStatusFilter === (stat === 'All' ? '' : stat) ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
+                              className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${isActive ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
                             >
                               {labelMap[stat] || stat}
                             </button>
@@ -6676,15 +6711,15 @@ export default function App() {
                             {ticket.priority === 'Urgent' && <div className="absolute top-0 inset-x-0 h-1 bg-red-500"></div>}
                             {ticket.priority === 'High' && <div className="absolute top-0 inset-x-0 h-1 bg-orange-400"></div>}
 
-                            <div className="flex justify-between items-start mb-4">
-                              <div>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] font-mono">#{ticket.id.slice(0, 6)}</span>
-                                <h3 className="font-bold text-gray-900 leading-tight mt-1">{ticket.customerName}</h3>
-                                <p className="text-xs text-blue-500 font-bold mt-0.5">{ticket.customerPhone}</p>
+                            <div className="flex justify-between items-start mb-6">
+                              <div className="space-y-1">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] font-mono">#{ticket.id.slice(0, 8)}</span>
+                                <h3 className="text-xl font-black text-slate-900 leading-none tracking-tight">{ticket.customerName}</h3>
+                                <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mt-1 opacity-60">{ticket.customerPhone}</p>
                               </div>
-                              <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shrink-0 ${ticket.status === 'Ready' || ticket.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-50' :
-                                ticket.status === 'In Progress' || ticket.status === 'Waiting for Parts' ? 'bg-amber-100 text-amber-700 shadow-sm shadow-amber-50' :
-                                  'bg-rose-100 text-rose-700 shadow-sm shadow-rose-50'
+                              <span className={`px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.15em] shadow-lg shrink-0 ${ticket.status === 'Ready' || ticket.status === 'Delivered' ? 'bg-emerald-500 text-white shadow-emerald-200' :
+                                ticket.status === 'In Progress' || ticket.status === 'Waiting for Parts' ? 'bg-slate-900 text-white' :
+                                  'bg-rose-500 text-white shadow-rose-200'
                                 }`}>
                                 {t(ticket.status.toLowerCase().replace(/ /g, '')) || ticket.status}
                               </span>
@@ -9327,33 +9362,46 @@ export default function App() {
                 <X size={20} />
               </button>
             </div>
-            <div className="flex justify-center bg-gray-50 p-5 rounded-3xl mb-4 border border-gray-100 shadow-inner">
-              {digitalSubMethod === 'UPI' && shopSettings.upiId ? (
-                <QRCodeSVG
-                  value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=INR`}
-                  size={180}
-                  level="H"
-                  includeMargin={true}
-                />
-              ) : digitalSubMethod === 'InstaPay' && shopSettings.instapayId ? (
-                <div className="text-center">
-                  <div className="bg-white p-2 rounded-lg inline-block border border-gray-100 shadow-sm mb-2">
-                    <QRCodeSVG value={shopSettings.instapayId} size={150} />
+            <div className="flex flex-col items-center gap-6 py-4">
+              <div className="relative group p-4 bg-white rounded-[2.5rem] shadow-3xl shadow-blue-500/10 border border-blue-50">
+                <div className="absolute inset-0 bg-blue-500/5 rounded-[2.5rem] animate-pulse"></div>
+                <div className="relative z-10 w-44 h-44 flex items-center justify-center p-2">
+                  <QRCodeSVG
+                    value={`upi://pay?pa=${shopSettings.upiId || 'merchant@upi'}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=INR`}
+                    size={160}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+              </div>
+
+              {/* Circular Progress Timer */}
+              <div className="flex flex-col items-center gap-4 w-full px-6">
+                <div className="relative w-20 h-20 flex items-center justify-center bg-slate-900 rounded-full text-white shadow-2xl">
+                  <svg className="absolute inset-0 w-full h-full rotate-[-90deg]">
+                    <circle
+                      cx="40" cy="40" r="36"
+                      fill="none" stroke="currentColor" strokeWidth="4"
+                      className="text-white/10"
+                    />
+                    <circle
+                      cx="40" cy="40" r="36"
+                      fill="none" stroke="currentColor" strokeWidth="4"
+                      strokeDasharray="226"
+                      strokeDashoffset={226 - (226 * upiQrTimer) / 30}
+                      className="text-blue-500 transition-all duration-1000"
+                    />
+                  </svg>
+                  <div className="text-center">
+                    <span className="text-xl font-black block leading-none tabular-nums">{upiQrTimer}</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest opacity-40">sec</span>
                   </div>
-                  <p className="text-[10px] font-bold text-gray-500">InstaPay ID: {shopSettings.instapayId}</p>
                 </div>
-              ) : digitalSubMethod === 'Other' ? (
-                <div className="text-center py-4 flex flex-col items-center gap-3">
-                   <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
-                      <QrCode size={32} />
-                   </div>
-                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('useExternalTerminal') || 'Use External Terminal or QR'}</p>
+                <div className="flex flex-col items-center gap-1">
+                   <p className="text-[11px] font-black uppercase text-slate-900 tracking-[0.2em] animate-pulse">{t('paymentAwaited') || 'Payment Awaited'}</p>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{t('doNotClose') || 'Do not close this window'}</p>
                 </div>
-              ) : (
-                <div className="p-4 text-center text-xs text-red-500 italic">
-                  {t('paymentMethodNotConfigured') || 'Details not configured in Settings'}
-                </div>
-              )}
+              </div>
             </div>
             <div className="text-center mb-6">
               <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">
@@ -9631,8 +9679,8 @@ export default function App() {
 
       {/* Service Module Specific Mobile Navigation */}
       {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-12 left-2 right-2 bg-white/90 backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.3)] rounded-[3rem] animate-in slide-in-from-bottom duration-500 z-[110] border border-white/50">
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-0 px-2 py-4 items-center">
+        <div className="lg:hidden fixed bottom-12 left-2 right-2 bg-slate-900/90 backdrop-blur-3xl shadow-[0_25px_100px_rgba(0,0,0,0.5)] rounded-[3rem] animate-in slide-in-from-bottom duration-700 z-[110] border border-white/20 p-2">
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-1 items-center">
             {[
               { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={18} /> },
               { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={18} /> },
@@ -9646,25 +9694,26 @@ export default function App() {
               <button
                 key={tab.id}
                 onClick={() => setServiceSubTab(tab.id)}
-                className={`flex flex-col items-center gap-1.5 transition-all outline-none ${serviceSubTab === tab.id ? 'text-blue-600' : 'text-gray-300'}`}
+                className={`flex flex-col items-center gap-1.5 py-2.5 transition-all duration-500 rounded-2xl relative ${serviceSubTab === tab.id ? 'bg-white text-slate-900 shadow-2xl scale-105' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
               >
-                <div className={`p-2 rounded-2xl transition-all ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-300' : 'bg-transparent'}`}>
+                <div className={`p-0 transition-all ${serviceSubTab === tab.id ? 'animate-bounce' : ''}`}>
                   {tab.icon}
                 </div>
-                <span className="text-[7px] font-black uppercase tracking-tight text-center w-full truncate px-1">{tab.label}</span>
+                <span className="text-[7px] font-black uppercase tracking-[0.1em] text-center w-full truncate px-1">{tab.label}</span>
+                {serviceSubTab === tab.id && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-slate-900 rounded-full mt-1"></div>}
               </button>
             ))}
           </div>
           
-          {/* Global Cart FAB */}
+          {/* Global Cart FAB - Repositioned to not overlap floating island */}
           {serviceCart.length > 0 && !isMobileCartOpen && (
             <button 
               onClick={() => setIsMobileCartOpen(true)}
-              className="fixed bottom-24 right-5 bg-rose-500 text-white p-4 rounded-full shadow-2xl shadow-rose-500/40 animate-in zoom-in duration-300 active:scale-90 z-[120] border-4 border-white"
+              className="absolute -top-16 right-4 bg-rose-500 text-white p-5 rounded-[2rem] shadow-3xl shadow-rose-500/40 animate-in zoom-in duration-500 active:scale-90 z-[120] border-4 border-white flex items-center justify-center"
             >
               <div className="relative">
                 <ShoppingBag size={24} />
-                <span className="absolute -top-1 -right-1 bg-white text-rose-500 text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-rose-500 animate-pulse">
+                <span className="absolute -top-3 -right-3 bg-white text-rose-500 text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-rose-500 animate-pulse shadow-md">
                   {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
                 </span>
               </div>

@@ -70,7 +70,7 @@ export const translations = {
     "shopCopy": "Shop Copy",
     "printSettings": "Print Settings",
     "thermal": "Thermal (80mm)",
-    "a4": "A4 (Standard)",
+    "a4": "A4",
     "dualPrint": "Dual Print (Client + Shop)",
     "lastUpdated": "Last Updated",
     "stockValueBuy": "Stock Value (Buy)",
