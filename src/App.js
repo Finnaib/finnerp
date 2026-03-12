@@ -243,7 +243,7 @@ export default function App() {
   const [scannerMode, setScannerMode] = useState('sell'); // 'sell' or 'buy'
   const [showUpiQr, setShowUpiQr] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
-  const [upiQrTimer, setUpiQrTimer] = useState(30);
+  const [upiQrTimer, setUpiQrTimer] = useState(15);
   const [digitalSubMethod, setDigitalSubMethod] = useState('UPI');
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   const [barcodePrintMode, setBarcodePrintMode] = useState('sticker'); // 'sticker' or 'a4'
@@ -1589,26 +1589,6 @@ export default function App() {
 
 
 
-  const addToServiceCart = (item) => {
-    const stock = Number(item.quantity) || 0;
-    if (stock <= 0) {
-      alert(t('outOfStock') || "Out of stock!");
-      return;
-    }
-    setServiceCart(prev => {
-      const existing = prev.find(c => c.id === item.id);
-      if (existing) {
-        if (existing.quantity + 1 > stock) {
-          alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
-          return prev;
-        }
-        return prev.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c);
-      } else {
-        return [...prev, { id: item.id, name: item.name, sellPrice: Number(item.sellPrice), quantity: 1, type: 'part' }];
-      }
-    });
-  };
-
   const removeFromCart = (itemId) => {
     setCart(prev => prev.filter(i => i.id !== itemId));
   };
@@ -2823,7 +2803,6 @@ export default function App() {
       handlePrintInvoice({ ...invData, id: saleRef.id }, format === 'Thermal' ? 'Service Receipt' : 'Service Invoice', format);
       setServiceCart([]);
       setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
-      setShowUpiQr(false); // Close QR modal
       alert('Sale Completed!');
     } catch (e) { 
       console.error(e); 
@@ -3491,13 +3470,6 @@ export default function App() {
       } else {
         alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
       }
-    } else if (scannerMode === 'service_sell') {
-       if (item.quantity > 0) {
-         addToServiceCart(item);
-         setIsScannerOpen(false);
-       } else {
-         alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
-       }
     } else if (scannerMode === 'buy') {
       const moreStock = prompt(`${t('quickStockIn') || 'Quick Stock In'}: ${item.name}\n${t('currentQuantity') || 'Current'}: ${item.quantity}\n${t('enterAddedQty') || 'Enter added quantity'}:`, "1");
       if (moreStock !== null && !isNaN(moreStock) && Number(moreStock) > 0) {
@@ -3509,7 +3481,7 @@ export default function App() {
         }
       }
     }
-  }, [addToCart, addToServiceCart, t, scannerMode, setNewSaleForm, setIsScannerOpen]); // Removed inventory dependency to stop re-creation and flickering
+  }, [addToCart, t, scannerMode, setNewSaleForm, setIsScannerOpen]); // Removed inventory dependency to stop re-creation and flickering
 
   const onScanError = useCallback((err) => { }, []);
 
@@ -3541,14 +3513,6 @@ export default function App() {
 
           // If we are in warehouse and scanning for something
           if (activeTab === 'warehouses' && scannerMode === 'buy') {
-            onScanSuccess(scanned);
-            e.preventDefault();
-            return;
-          }
-
-          // If we are in Service Tab
-          if (activeTab === 'service') {
-            setScannerMode('service_sell');
             onScanSuccess(scanned);
             e.preventDefault();
             return;
@@ -3817,21 +3781,23 @@ export default function App() {
 
   // UPI QR Auto-hide logic (30 sec)
   useEffect(() => {
+    let timer;
     let interval;
-    if (showUpiQr) {
-      setUpiQrTimer(30);
+    if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
+      setShowUpiQr(true);
+      setUpiQrTimer(30); // 30 seconds
+      timer = setTimeout(() => setShowUpiQr(false), 30000);
       interval = setInterval(() => {
-        setUpiQrTimer(prev => {
-          if (prev <= 1) {
-            setShowUpiQr(false);
-            return 0;
-          }
-          return prev - 1;
-        });
+        setUpiQrTimer(prev => Math.max(0, prev - 1));
       }, 1000);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(interval);
+      };
+    } else {
+      setShowUpiQr(false);
     }
-    return () => clearInterval(interval);
-  }, [showUpiQr]);
+  }, [paymentMethod, cart.length, activeTab]);
 
 
 
@@ -4132,7 +4098,7 @@ export default function App() {
         {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[65] md:hidden animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)}></div>}
 
         {/* Header */}
-        <header className={`bg-white/95 backdrop-blur-2xl border-b border-gray-50 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[120] transition-all shadow-[0_10px_40px_rgba(0,0,0,0.06)] lg:rounded-none rounded-b-[2.5rem] ${activeTab === 'service' ? 'hidden lg:flex' : 'flex'}`}>
+        <header className="bg-white/90 backdrop-blur-2xl border-b border-gray-100 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[100] transition-all">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2.5 -ml-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all active:scale-90 ${isSidebarOpen ? 'lg:hidden' : 'block'}`}><Menu size={26} /></button>
             <h2 className="text-xl font-black text-gray-900 flex items-center gap-3.5 tracking-tight group">
@@ -5448,7 +5414,7 @@ export default function App() {
                       <button
                         onClick={() => setBarcodePrintMode('a4')}
                         className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'a4' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        title="Standard A4 Printer"
+                        title="Standard A4 Paper Printer"
                       > {t('a4 sheet')} </button>
                     </div>
                     <button
@@ -6213,79 +6179,43 @@ export default function App() {
           {/* ========================================================= */}
           {
             activeTab === 'service' && (
-              <div className="flex flex-col lg:flex-row h-full min-h-0 overflow-hidden relative pb-24 lg:pb-0 animate-in fade-in duration-500">
-                <div className="flex-1 flex flex-col min-w-0 overflow-auto p-4 sm:p-6 lg:p-8 space-y-6">
-                  <div className="hidden lg:grid grid-cols-4 xl:grid-cols-8 gap-4 p-4 bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.08)] mb-8 transition-all hover:bg-white/90">
-                    {[
-                      { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} />, color: 'blue' },
-                      { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={20} />, color: 'emerald' },
-                      { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} />, color: 'indigo' },
-                      { id: 'new', label: t('newTicket'), icon: <PlusCircle size={20} />, color: 'rose' },
-                      { id: 'history', label: t('history'), icon: <History size={20} />, color: 'amber' },
-                      { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={20} />, color: 'purple' },
-                      { id: 'customers', label: t('customers'), icon: <Users size={20} />, color: 'cyan' },
-                      { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} />, color: 'slate' }
-                    ].map(tab => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setServiceSubTab(tab.id)}
-                        className={`group flex flex-col items-center gap-2.5 p-3 rounded-[2rem] transition-all duration-700 relative overflow-hidden ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-2xl shadow-slate-900/30' : 'text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-xl hover:shadow-slate-200/50'}`}
-                      >
-                        {serviceSubTab === tab.id && <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent animate-pulse"></div>}
-                        <div className={`p-3 rounded-2xl transition-all duration-700 ${serviceSubTab === tab.id ? 'bg-white/20 scale-110 rotate-3' : 'bg-slate-50 group-hover:scale-110 group-hover:-rotate-3'}`}>
-                          {React.cloneElement(tab.icon, { size: 22, className: serviceSubTab === tab.id ? 'text-white' : `text-${tab.color}-500` })}
-                        </div>
-                        <span className={`text-[10px] font-black uppercase tracking-[0.1em] text-center truncate w-full transition-all ${serviceSubTab === tab.id ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}>{tab.label}</span>
-                      </button>
-                    ))}
-                  </div>
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="hidden lg:flex gap-2 bg-white/5 shadow-sm p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto scrollbar-hide">
+                  {[
+                    { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
+                    { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
+                    { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
+                    { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
+                    { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
+                    { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setServiceSubTab(tab.id)}
+                      className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
+                    >
+                      {tab.icon} {tab.label}
+                    </button>
+                  ))}
+                </div>
 
                 {/* Sub Tab: BOARD (DASHBOARD) */}
                 {serviceSubTab === 'board' && (
-                  <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                    {/* Premium Header Banner */}
-                    <div className="relative h-64 sm:h-80 rounded-[4rem] overflow-hidden group shadow-3xl shadow-blue-500/10 border border-white/20">
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#1e40af] via-[#3b82f6] to-[#a855f7] animate-gradient-xy"></div>
-                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
-                      
-                      <div className="absolute bottom-0 left-0 p-10 sm:p-16 z-10">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white">
-                            <Zap size={24} className="animate-pulse" />
-                          </div>
-                          <span className="text-white/60 font-black uppercase tracking-[0.3em] text-[10px]">{t('serviceControl') || 'Service Control'}</span>
-                        </div>
-                        <h2 className="text-4xl sm:text-6xl font-black text-white mb-4 uppercase tracking-tighter drop-shadow-2xl">
-                          {t('repairHub') || 'Repair Hub'}
-                        </h2>
-                        <div className="flex flex-wrap gap-4">
-                          <button onClick={() => setServiceSubTab('new')} className="bg-white text-slate-900 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-110 active:scale-95 transition-all shadow-xl shadow-white/10">{t('newRepair') || 'New Repair'}</button>
-                          <button onClick={() => setServiceSubTab('sell')} className="bg-blue-600/30 backdrop-blur-md border border-white/20 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all">{t('posTerminal') || 'POS Terminal'}</button>
-                        </div>
-                      </div>
-
-                      <div className="absolute top-1/2 right-20 -translate-y-1/2 opacity-20 group-hover:scale-125 group-hover:rotate-12 transition-all duration-1000 hidden xl:block">
-                        <Wrench size={300} className="text-white" strokeWidth={1} />
-                      </div>
-                    </div>
-
-                    {/* High-Vibrancy Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                  <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
                       {[
-                        { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <DollarSign size={24} />, bg: 'from-emerald-400 to-green-600', shadow: 'emerald' },
-                        { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock size={24} />, bg: 'from-orange-400 to-amber-600', shadow: 'amber' },
-                        { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckCircle2 size={24} />, bg: 'from-blue-400 to-indigo-600', shadow: 'blue' },
-                        { label: t('lowStock'), value: serviceInventory.filter(i => i.stock <= i.minStock).length, icon: <Package size={24} />, bg: 'from-rose-400 to-pink-600', shadow: 'rose' },
-                        { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard size={24} />, bg: 'from-slate-700 to-slate-900', shadow: 'slate' }
+                        { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <Zap className="text-amber-500" />, bg: 'bg-amber-50' },
+                        { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock className="text-orange-500" />, bg: 'bg-orange-50' },
+                        { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckSquare className="text-emerald-500" />, bg: 'bg-emerald-50' },
+                        { label: t('lowStock'), value: serviceInventory.filter(i => i.stock <= i.minStock).length, icon: <AlertTriangle className="text-rose-500" />, bg: 'bg-rose-50' },
+                        { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard className="text-blue-500" />, bg: 'bg-blue-50' }
                       ].map((stat, i) => (
-                        <div key={i} className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 group hover:scale-[1.03] transition-all duration-700 relative overflow-hidden flex flex-col justify-between h-48">
-                          <div className={`p-4 rounded-3xl bg-gradient-to-br ${stat.bg} text-white w-fit shadow-xl shadow-${stat.shadow}-500/20 group-hover:rotate-6 transition-all`}>
-                            {stat.icon}
-                          </div>
+                        <div key={i} className="bg-white p-4 sm:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4 sm:gap-5 hover:shadow-md transition-shadow">
+                          <div className={`p-3 sm:p-4 rounded-2xl ${stat.bg}`}>{stat.icon}</div>
                           <div>
-                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">{stat.label}</p>
-                            <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-none tabular-nums truncate w-full">{stat.value}</h3>
+                            <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{stat.label}</p>
+                            <h3 className="text-lg font-black text-gray-900 leading-none mt-1">{stat.value}</h3>
                           </div>
                         </div>
                       ))}
@@ -6398,12 +6328,36 @@ export default function App() {
                 {/* Sub Tab: SELL (SERVICE POS) */}
                 {serviceSubTab === 'sell' && (
                   <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
+                    {/* Mobile Bottom Navigation for Service POS (Hidden as global service nav handles it) */}
+                    <div className="hidden lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-8 py-3 flex justify-between items-center z-[65] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
+                        <div className="flex gap-10">
+                          <button
+                            onClick={() => setIsMobileCartOpen(false)}
+                            className={`flex flex-col items-center gap-1.5 transition-all ${!isMobileCartOpen ? 'text-blue-600 scale-110' : 'text-gray-300 hover:text-gray-400'}`}
+                          >
+                            <div className={`p-2 rounded-xl transition-all ${!isMobileCartOpen ? 'bg-blue-50' : ''}`}><Wrench size={20} /></div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.15em]">{t('repairs') || 'Repairs'}</span>
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => setIsMobileCartOpen(true)}
+                          className="relative -top-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 rounded-[2rem] shadow-[0_15px_40px_rgba(37,99,235,0.4)] transform active:scale-95 transition-all border-4 border-white group"
+                        >
+                          <ShoppingCart size={28} className="group-hover:rotate-12 transition-transform" />
+                          {serviceCart.length > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white animate-bounce shadow-md">
+                              {serviceCart.reduce((a, b) => a + (b.quantity||1), 0)}
+                            </span>
+                          )}
+                        </button>
+                    </div>
+
                     {/* Left Side: Search & Items Grid */}
                     <div className={`flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
-                      {/* Top Action Bar - Compact on Mobile */}
-                      <div className="p-4 sm:p-6 bg-white border-b border-gray-200">
-                        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center">
-                          <div className="hidden lg:flex items-center gap-4">
+                      {/* Top Action Bar */}
+                      <div className="p-6 bg-white border-b border-gray-200">
+                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                          <div className="flex items-center gap-4">
                             <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
                               <ShoppingCart size={24} />
                             </div>
@@ -6424,43 +6378,35 @@ export default function App() {
                                   onChange={e => setServiceInventorySearch(e.target.value)}
                                 />
                               </div>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => { setScannerMode('service_sell'); setIsScannerOpen(true); }}
-                                  className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all shadow-sm border border-blue-100 flex items-center justify-center"
-                                  title={t('scanBarcode')}
-                                >
-                                  <Scan size={20} />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    const name = prompt(t('enterItemName') || 'Enter Item Name:');
-                                    if (!name) return;
-                                    const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
-                                    if (!price || isNaN(price)) return;
-                                    setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
-                                  }}
-                                  className="px-4 py-3.5 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-500/20 active:scale-95"
-                                >
-                                  <Plus size={18} /> <span className="hidden sm:inline">{t('customItem') || 'Custom Item'}</span>
-                                </button>
-                              </div>
+                              <button
+                                onClick={() => {
+                                  const name = prompt(t('enterItemName') || 'Enter Item Name:');
+                                  if (!name) return;
+                                  const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
+                                  if (!price || isNaN(price)) return;
+                                  setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
+                                }}
+                                className="px-4 py-3 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center gap-2 transition-all whitespace-nowrap shadow-lg shadow-amber-500/20"
+                              >
+                                <Plus size={16} /> {t('customItem') || 'Custom Item'}
+                              </button>
                             </div>
+
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-12 custom-scrollbar lg:-mx-6 lg:px-6">
+                      <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                         {/* 1. Active Repairs Section */}
-                        <section className="space-y-6">
-                          <div className="flex items-center justify-between px-4">
-                            <h3 className="text-[11px] font-black uppercase text-slate-900 tracking-[0.25em] flex items-center gap-3">
-                              <Wrench size={16} className="text-blue-600" /> {t('activeRepairs') || 'Active Repairs'}
+                        <section className="space-y-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                              <Wrench size={14} className="text-blue-500" /> {t('activeRepairs') || 'Active Repairs'}
                             </h3>
-                            <button onClick={() => setServiceSubTab('active')} className="text-[10px] font-black text-blue-600 uppercase hover:underline">{t('viewAll') || 'View All Jobs'}</button>
+                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs</span>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                             {serviceTickets
                               .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') && 
                                 (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || 
@@ -6472,32 +6418,28 @@ export default function App() {
                                   onClick={() => {
                                     const laborPrice = Number(ticket.estimatedCost || 0);
                                     const items = [
-                                      { id: 'SRV-'+ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                                      ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                                    { id: 'SRV-'+ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                                    ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
                                     ];
                                     setServiceCart([...serviceCart, ...items]);
                                   }}
-                                  className="text-left bg-white p-6 rounded-[2.5rem] border border-gray-100 hover:border-blue-500 hover:shadow-3xl hover:shadow-blue-500/10 transition-all active:scale-[0.97] group relative overflow-hidden"
+                                  className="text-left bg-white p-5 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
                                 >
-                                  {/* Glassy Overlay decoration */}
-                                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-all"></div>
-                                  
-                                  <div className="relative z-10 space-y-4">
-                                    <div className="flex justify-between items-start">
-                                      <div className="space-y-1">
-                                        <p className="text-sm font-black text-slate-900 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
+                                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <Wrench size={48} />
+                                  </div>
+                                  <div className="relative z-10 flex flex-col h-full justify-between">
+                                    <div>
+                                      <div className="flex justify-between items-start mb-2">
+                                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
+                                        <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>{ticket.status}</span>
                                       </div>
-                                      <span className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-full shadow-lg ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-slate-100 text-slate-700'}`}>{ticket.status}</span>
+                                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
                                     </div>
-
-                                    <div className="flex justify-between items-center pt-4 border-t border-gray-50">
-                                      <div className="space-y-0.5">
-                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{t('estimatedCost')}</p>
-                                        <div className="text-xl font-black text-blue-600 font-mono tracking-tighter">{formatCurrency(ticket.estimatedCost)}</div>
-                                      </div>
-                                      <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-slate-900/20 group-hover:bg-blue-600 group-hover:rotate-12 transition-all duration-700">
-                                        <Plus size={20} />
+                                    <div className="mt-4 flex justify-between items-end border-t border-gray-50 pt-3">
+                                      <div className="text-xl font-black text-blue-600 font-mono">{formatCurrency(ticket.estimatedCost)}</div>
+                                      <div className="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                        <Plus size={16} />
                                       </div>
                                     </div>
                                   </div>
@@ -6507,17 +6449,17 @@ export default function App() {
                         </section>
 
                         {/* 2. Parts & Inventory Section */}
-                        <section className="space-y-6">
-                          <div className="flex items-center justify-between px-4">
-                            <h3 className="text-[11px] font-black uppercase text-slate-900 tracking-[0.25em] flex items-center gap-3">
-                              <Package size={16} className="text-indigo-600" /> {t('inventoryParts') || 'Spare Parts'}
+                        <section className="space-y-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                              <Package size={14} className="text-indigo-500" /> {t('inventoryParts') || 'Inventory Parts'}
                             </h3>
-                            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                            <div className="flex gap-2">
                               {['All', 'Phone Parts', 'PC Components', 'Accessories'].map(cat => (
                                 <button 
                                   key={cat}
                                   onClick={() => setServiceInventorySearch(cat === 'All' ? '' : cat)}
-                                  className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-full transition-all whitespace-nowrap border ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-100 hover:text-indigo-600'}`}
+                                  className={`text-[8px] font-black uppercase px-3 py-1.5 rounded-full transition-all ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-400 hover:bg-gray-100'}`}
                                 >
                                   {cat}
                                 </button>
@@ -6525,33 +6467,45 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pb-24">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
                             {inventory
                               .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || (item.category || '').toLowerCase().includes(serviceInventorySearch.toLowerCase()))
                               .map(item => (
                                 <button
                                   key={item.id}
-                                  onClick={() => addToServiceCart(item)}
-                                  className="bg-white p-4 rounded-[2.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-4xl hover:shadow-indigo-500/10 transition-all active:scale-[0.97] group flex flex-col gap-4 text-left"
+                                  onClick={() => {
+                                    const stock = Number(item.quantity) || 0;
+                                    if (stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
+                                    const existing = serviceCart.find(c => c.id === item.id);
+                                    if (existing) {
+                                      if (existing.quantity + 1 > stock) {
+                                        return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
+                                      }
+                                      setServiceCart(serviceCart.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c));
+                                    } else {
+                                      setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: Number(item.sellPrice), quantity: 1, type: 'part' }]);
+                                    }
+                                  }}
+                                  className="bg-white p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-3 text-left"
                                 >
-                                  <div className="bg-slate-50 aspect-square rounded-[2rem] overflow-hidden relative border border-slate-100">
+                                  <div className="bg-gray-50 aspect-square rounded-2xl overflow-hidden relative">
                                     {item.photo ? (
-                                      <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                                      <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                     ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-slate-200">
-                                        <Package size={40} strokeWidth={1.5} />
+                                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                        <Package size={24} />
                                       </div>
                                     )}
-                                    <div className={`absolute top-3 right-3 px-2.5 py-1.5 backdrop-blur-xl rounded-xl text-[9px] font-black uppercase tracking-widest shadow-xl ${Number(item.quantity) <= 0 ? 'bg-rose-500 text-white' : 'bg-white/90 text-slate-900'}`}>
-                                       {Number(item.quantity) <= 0 ? 'Out' : `Stock: ${item.quantity}`}
+                                    <div className={`absolute top-2 right-2 px-2 py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-red-600 text-white' : 'bg-white/80'}`}>
+                                       {Number(item.quantity) <= 0 ? 'OUT OF STOCK' : `STOCK: ${item.quantity}`}
                                     </div>
                                   </div>
-                                  <div className="space-y-2 px-1">
-                                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
-                                    <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl group-hover:bg-indigo-50 transition-colors">
-                                      <p className="text-sm font-black text-indigo-600 font-mono tracking-tighter">{formatCurrency(item.sellPrice)}</p>
-                                      <div className="w-8 h-8 bg-white text-indigo-600 rounded-lg flex items-center justify-center shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:rotate-90">
-                                        <Plus size={16} />
+                                  <div className="space-y-1">
+                                    <h4 className="text-xs font-black text-gray-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
+                                    <div className="flex justify-between items-end">
+                                      <p className="text-sm font-black text-indigo-600 font-mono">{formatCurrency(item.sellPrice)}</p>
+                                      <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                        <Plus size={14} />
                                       </div>
                                     </div>
                                   </div>
@@ -6559,6 +6513,195 @@ export default function App() {
                               ))}
                           </div>
                         </section>
+                      </div>
+                    </div>
+
+                    {/* Right Side: Cart Sidebar (Fixed) */}
+                    {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[75] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
+                    <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[80] lg:z-20 transition-transform duration-300 ease-in-out transform shadow-[-10px_0_30px_rgba(0,0,0,0.02)] ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-30">
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
+                             <ArrowLeft size={20} />
+                          </button>
+                          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                            <ShoppingCart size={20} />
+                          </div>
+                          <h3 className="font-black text-lg uppercase tracking-tight">{t('currentBill')}</h3>
+                        </div>
+                        <span className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg shadow-blue-200">
+                          {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)} ITEMS
+                        </span>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                        {serviceCart.length === 0 ? (
+                          <div className="h-full flex flex-col items-center justify-center text-gray-300 p-8 text-center opacity-60">
+                            <div className="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mb-4 border border-dashed border-gray-200">
+                              <ShoppingBag size={32} className="opacity-20" />
+                            </div>
+                            <p className="text-sm font-black uppercase tracking-widest text-gray-400">{t('cartEmpty')}</p>
+                            <p className="text-[10px] uppercase font-bold text-gray-300 mt-2">{t('selectItems')}</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {serviceCart.map((item, i) => (
+                              <div key={`${item.id}-${i}`} className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-3 group border border-transparent hover:border-blue-100 hover:bg-white hover:shadow-xl hover:shadow-blue-200/10 transition-all active:scale-[0.98]">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="text-[11px] font-black text-gray-800 uppercase tracking-tight leading-tight">{item.name}</h4>
+                                    <p className="text-[8px] text-gray-400 font-black uppercase mt-1 tracking-widest bg-white px-2 py-0.5 rounded-full inline-block border border-gray-100">{item.type === 'service' ? 'Maintenance Service' : 'Hardware Part'}</p>
+                                  </div>
+                                  <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-gray-300 hover:text-rose-500 transition-colors p-1"><X size={16} /></button>
+                                </div>
+                                <div className="flex justify-between items-center bg-white px-3 py-2 rounded-xl border border-gray-100">
+                                  <div className="flex items-center gap-3">
+                                    <button onClick={() => {
+                                      const newCart = [...serviceCart];
+                                      if (newCart[i].quantity > 1) {
+                                        newCart[i].quantity -= 1;
+                                        setServiceCart(newCart);
+                                      } else {
+                                        setServiceCart(serviceCart.filter((_, idx) => idx !== i));
+                                      }
+                                    }} className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100"><Minus size={14} /></button>
+                                    <span className="text-xs font-black font-mono w-4 text-center">{item.quantity}</span>
+                                    <button onClick={() => {
+                                      const newCart = [...serviceCart];
+                                      newCart[i].quantity += 1;
+                                      setServiceCart(newCart);
+                                    }} className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100"><Plus size={14} /></button>
+                                  </div>
+                                  <p className="text-sm font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(item.sellPrice * item.quantity)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="bg-gray-50 border-t border-gray-200 p-4 space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-xs text-gray-500">
+                            <span className="font-bold">{t('subtotal')}</span>
+                            <span className="font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                          </div>
+                          <div className="pt-2 border-t border-gray-200 flex justify-between items-end">
+                            <span className="text-sm font-bold text-gray-700">{t('totalCost')}</span>
+                            <span className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                          </div>
+                        </div>
+
+                        {/* Sales Employee Selection */}
+                        <div className="mb-2">
+                          <button
+                            onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
+                            className="w-full flex items-center justify-between p-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <User size={18} className="text-blue-600" />
+                              <div className="text-left">
+                                <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">{t('salesEmployee')}</div>
+                                <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : t('selectEmployee') || 'Select Employee'}</div>
+                              </div>
+                            </div>
+                            <ChevronDown size={16} className="text-blue-400" />
+                          </button>
+                        </div>
+
+                        {/* Order Type Toggle */}
+                        <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
+                          <button
+                            onClick={() => setOrderType('Walk-in')}
+                            className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          >
+                            {t('walkIn')}
+                          </button>
+                          <button
+                            onClick={() => setOrderType('Takeaway')}
+                            className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          >
+                            {t('takeaway')}
+                          </button>
+                        </div>
+
+                        <div className="flex gap-2 mb-2">
+                          <div className="relative flex-1">
+                            <input
+                              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                              placeholder={t('customerId') || 'Customer ID'}
+                              value={newSaleForm.customerId}
+                              onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
+                            />
+                          </div>
+                          <button
+                            onClick={() => { setScannerMode('customerID'); setIsScannerOpen(true); }}
+                            className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
+                            title={t('scanBarcode')}
+                          >
+                            <Scan size={18} />
+                          </button>
+                        </div>
+
+                        <input
+                          className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                          placeholder={t('customerNameOptional') || 'Customer Name'}
+                          value={newSaleForm.customer}
+                          onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
+                        />
+
+                        <div className="grid grid-cols-3 gap-2 mb-2">
+                          {['Cash', 'Visa', 'Online'].map(method => (
+                            <button
+                              key={method}
+                              onClick={() => {
+                                setPaymentMethod(method);
+                                if (method === 'Online') setShowUpiQr(true);
+                              }}
+                              className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
+                            >
+                              {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
+                            </button>
+                          ))}
+                        </div>
+
+                        {paymentMethod === 'Online' && (
+                          <div className="grid grid-cols-2 gap-2 mb-4 animate-in slide-in-from-top-2 duration-300">
+                            {['UPI', 'InstaPay'].map(sub => (
+                              <button
+                                key={sub}
+                                onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
+                                className={`py-2 text-[9px] font-black uppercase tracking-widest rounded-xl border transition-all ${digitalSubMethod === sub ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'}`}
+                              >
+                                {sub}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        <div>
+                          <button
+                            onClick={() => {
+                              if (serviceCart.length > 0) {
+                                if (printFormat === 'Thermal') handleCheckoutServiceCart('Thermal');
+                                else handleCheckoutServiceCart('A4');
+                              }
+                            }}
+                            disabled={serviceCart.length === 0}
+                            className="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                          >
+                            <CheckCircle size={20} /> {t('checkout')}
+                          </button>
+                          
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                             <button onClick={() => setPrintFormat('Thermal')} className={`py-2 bg-white border rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${printFormat === 'Thermal' ? 'border-blue-500 text-blue-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                               <Printer size={14} /> {t('thermal')}
+                             </button>
+                             <button onClick={() => setPrintFormat('A4')} className={`py-2 bg-white border rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${printFormat === 'A4' ? 'border-blue-500 text-blue-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                               <FileText size={14} /> A4 Pro
+                             </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -6674,15 +6817,14 @@ export default function App() {
                 {serviceSubTab === 'active' && (
                   <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
                     <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                      <div className="flex bg-slate-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
+                      <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
                         {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready', 'Delivered'].map(stat => {
                           const labelMap = { 'All': t('filterAll'), 'Received': t('received'), 'In Progress': t('inProgress'), 'Waiting for Parts': t('waitingParts'), 'Ready': t('readyPickup'), 'Delivered': t('delivered') };
-                          const isActive = serviceStatusFilter === (stat === 'All' ? '' : stat);
                           return (
                             <button
                               key={stat}
                               onClick={() => setServiceStatusFilter(stat === 'All' ? '' : stat)}
-                              className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${isActive ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
+                              className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${serviceStatusFilter === (stat === 'All' ? '' : stat) ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
                             >
                               {labelMap[stat] || stat}
                             </button>
@@ -6711,15 +6853,15 @@ export default function App() {
                             {ticket.priority === 'Urgent' && <div className="absolute top-0 inset-x-0 h-1 bg-red-500"></div>}
                             {ticket.priority === 'High' && <div className="absolute top-0 inset-x-0 h-1 bg-orange-400"></div>}
 
-                            <div className="flex justify-between items-start mb-6">
-                              <div className="space-y-1">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] font-mono">#{ticket.id.slice(0, 8)}</span>
-                                <h3 className="text-xl font-black text-slate-900 leading-none tracking-tight">{ticket.customerName}</h3>
-                                <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mt-1 opacity-60">{ticket.customerPhone}</p>
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] font-mono">#{ticket.id.slice(0, 6)}</span>
+                                <h3 className="font-bold text-gray-900 leading-tight mt-1">{ticket.customerName}</h3>
+                                <p className="text-xs text-blue-500 font-bold mt-0.5">{ticket.customerPhone}</p>
                               </div>
-                              <span className={`px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.15em] shadow-lg shrink-0 ${ticket.status === 'Ready' || ticket.status === 'Delivered' ? 'bg-emerald-500 text-white shadow-emerald-200' :
-                                ticket.status === 'In Progress' || ticket.status === 'Waiting for Parts' ? 'bg-slate-900 text-white' :
-                                  'bg-rose-500 text-white shadow-rose-200'
+                              <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shrink-0 ${ticket.status === 'Ready' || ticket.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-50' :
+                                ticket.status === 'In Progress' || ticket.status === 'Waiting for Parts' ? 'bg-amber-100 text-amber-700 shadow-sm shadow-amber-50' :
+                                  'bg-rose-100 text-rose-700 shadow-sm shadow-rose-50'
                                 }`}>
                                 {t(ticket.status.toLowerCase().replace(/ /g, '')) || ticket.status}
                               </span>
@@ -7110,113 +7252,6 @@ export default function App() {
                     </div>
                   </div>
                 )}
-                </div>
-
-                {/* Right Side: Shared Cart Sidebar (Persistent in Service) */}
-                <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[120] lg:z-20 transition-transform duration-300 ease-in-out transform shadow-[-10px_0_30px_rgba(0,0,0,0.02)] ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
-                  {isMobileCartOpen && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[-1] lg:hidden" onClick={() => setIsMobileCartOpen(false)}></div>}
-                  <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-30">
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
-                          <ArrowLeft size={20} />
-                      </button>
-                      <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-                        <ShoppingCart size={20} />
-                      </div>
-                      <h3 className="font-black text-lg uppercase tracking-tight">{t('currentBill')}</h3>
-                    </div>
-                    <span className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full">
-                      {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)} ITEMS
-                    </span>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-gray-50/50">
-                    {serviceCart.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-gray-300 p-8 text-center opacity-60">
-                        <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center mb-4 border border-dashed border-gray-200">
-                          <ShoppingBag size={32} className="opacity-20" />
-                        </div>
-                        <p className="text-sm font-black uppercase tracking-widest text-gray-400">{t('cartEmpty')}</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {serviceCart.map((item, i) => (
-                          <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm transition-all hover:shadow-md">
-                            <div className="flex justify-between items-start mb-3">
-                              <h4 className="text-[11px] font-black text-gray-800 uppercase leading-tight flex-1 pr-4">{item.name}</h4>
-                              <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-gray-300 hover:text-rose-500 transition-colors"><X size={16} /></button>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-2 py-1">
-                                <button onClick={() => {
-                                  const newCart = [...serviceCart];
-                                  if (newCart[i].quantity > 1) { newCart[i].quantity -= 1; setServiceCart(newCart); }
-                                  else { setServiceCart(serviceCart.filter((_, idx) => idx !== i)); }
-                                }} className="p-1 hover:text-rose-500"><Minus size={14} /></button>
-                                <span className="text-xs font-black w-4 text-center">{item.quantity}</span>
-                                <button onClick={() => {
-                                  const newCart = [...serviceCart];
-                                  newCart[i].quantity += 1;
-                                  setServiceCart(newCart);
-                                }} className="p-1 hover:text-blue-500"><Plus size={14} /></button>
-                              </div>
-                              <p className="text-sm font-black text-gray-900 mono">{formatCurrency(item.sellPrice * item.quantity)}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-6 bg-white border-t border-gray-100 space-y-4">
-                    <div className="space-y-3 mb-6">
-                      <div className="grid grid-cols-3 gap-2">
-                        {['Cash', 'Visa', 'Online'].map(method => (
-                          <button
-                            key={method}
-                            onClick={() => {
-                              setPaymentMethod(method);
-                              if (method === 'Online') setShowUpiQr(true);
-                            }}
-                            className={`py-3 text-[9px] font-black uppercase tracking-widest rounded-2xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
-                          >
-                            {method === 'Online' ? 'Digital' : (t(method.toLowerCase()) || method)}
-                          </button>
-                        ))}
-                      </div>
-
-                      {paymentMethod === 'Online' && (
-                        <div className="flex gap-2 p-2 bg-gray-50 rounded-2xl border border-gray-100 animate-in slide-in-from-top-2">
-                          {['UPI', 'InstaPay', 'Other'].map(sub => (
-                            <button
-                              key={sub}
-                              onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
-                              className={`flex-1 py-2 text-[9px] font-black uppercase tracking-tight rounded-xl transition-all ${digitalSubMethod === sub ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100'}`}
-                            >
-                              {t(sub.toLowerCase()) || sub}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex justify-between items-end mb-4">
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('totalCost')}</span>
-                      <span className="text-2xl font-black text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        if (printFormat === 'Thermal') handleCheckoutServiceCart('Thermal');
-                        else handleCheckoutServiceCart('A4');
-                      }}
-                      className="w-full bg-slate-900 text-white py-5 rounded-3xl font-black uppercase tracking-widest text-[11px] hover:bg-black shadow-2xl shadow-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
-                    >
-                      <ShoppingBag size={18} />
-                      {t('payNow') || 'Complete Payment'}
-                    </button>
-                  </div>
-                </div>
               </div>
             )
           }
@@ -9362,53 +9397,40 @@ export default function App() {
                 <X size={20} />
               </button>
             </div>
-            <div className="flex flex-col items-center gap-6 py-4">
-              <div className="relative group p-4 bg-white rounded-[2.5rem] shadow-3xl shadow-blue-500/10 border border-blue-50">
-                <div className="absolute inset-0 bg-blue-500/5 rounded-[2.5rem] animate-pulse"></div>
-                <div className="relative z-10 w-44 h-44 flex items-center justify-center p-2">
-                  <QRCodeSVG
-                    value={`upi://pay?pa=${shopSettings.upiId || 'merchant@upi'}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=INR`}
-                    size={160}
-                    level="H"
-                    includeMargin={false}
-                  />
-                </div>
-              </div>
-
-              {/* Circular Progress Timer */}
-              <div className="flex flex-col items-center gap-4 w-full px-6">
-                <div className="relative w-20 h-20 flex items-center justify-center bg-slate-900 rounded-full text-white shadow-2xl">
-                  <svg className="absolute inset-0 w-full h-full rotate-[-90deg]">
-                    <circle
-                      cx="40" cy="40" r="36"
-                      fill="none" stroke="currentColor" strokeWidth="4"
-                      className="text-white/10"
-                    />
-                    <circle
-                      cx="40" cy="40" r="36"
-                      fill="none" stroke="currentColor" strokeWidth="4"
-                      strokeDasharray="226"
-                      strokeDashoffset={226 - (226 * upiQrTimer) / 30}
-                      className="text-blue-500 transition-all duration-1000"
-                    />
-                  </svg>
-                  <div className="text-center">
-                    <span className="text-xl font-black block leading-none tabular-nums">{upiQrTimer}</span>
-                    <span className="text-[8px] font-black uppercase tracking-widest opacity-40">sec</span>
+            <div className="flex justify-center bg-gray-50 p-5 rounded-3xl mb-4 border border-gray-100 shadow-inner">
+              {digitalSubMethod === 'UPI' && shopSettings.upiId ? (
+                <QRCodeSVG
+                  value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
+                  size={180}
+                  level="H"
+                  includeMargin={true}
+                />
+              ) : digitalSubMethod === 'InstaPay' && shopSettings.instapayId ? (
+                <div className="text-center">
+                  <div className="bg-white p-2 rounded-lg inline-block border border-gray-100 shadow-sm mb-2">
+                    <QRCodeSVG value={shopSettings.instapayId} size={150} />
                   </div>
+                  <p className="text-[10px] font-bold text-gray-500">InstaPay ID: {shopSettings.instapayId}</p>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                   <p className="text-[11px] font-black uppercase text-slate-900 tracking-[0.2em] animate-pulse">{t('paymentAwaited') || 'Payment Awaited'}</p>
-                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{t('doNotClose') || 'Do not close this window'}</p>
+              ) : digitalSubMethod === 'Other' ? (
+                <div className="text-center py-4 flex flex-col items-center gap-3">
+                   <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                      <QrCode size={32} />
+                   </div>
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('useExternalTerminal') || 'Use External Terminal or QR'}</p>
                 </div>
-              </div>
+              ) : (
+                <div className="p-4 text-center text-xs text-red-500 italic">
+                  {t('paymentMethodNotConfigured') || 'Details not configured in Settings'}
+                </div>
+              )}
             </div>
             <div className="text-center mb-6">
               <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">
                 {digitalSubMethod === 'UPI' ? shopSettings.upiId : shopSettings.instapayId}
               </p>
               <p className="text-lg font-black text-gray-900 font-mono tracking-tight">
-                {formatCurrency(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0) : (calculateTotal() - cartDiscount))}
+                {formatCurrency(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount))}
               </p>
             </div>
 
@@ -9658,20 +9680,21 @@ export default function App() {
                   />
                 </div>
 
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
-                    <input
-                      type="text"
-                      value={sessionStartForm.customerName}
-                      onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
-                      placeholder={t('guestName')}
-                    />
-                  </div>
-                  <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
-                    <Play size={18} fill="currentColor" /> {t('startSession')}
-                  </button>
-                </form>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
+                  <input
+                    type="text"
+                    value={sessionStartForm.customerName}
+                    onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
+                    placeholder={t('guestName')}
+                  />
+                </div>
+
+                <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
+                  <Play size={18} fill="currentColor" /> {t('startSession')}
+                </button>
+              </form>
             </div>
           </div>
         )
@@ -9679,52 +9702,30 @@ export default function App() {
 
       {/* Service Module Specific Mobile Navigation */}
       {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-12 left-2 right-2 bg-slate-900/90 backdrop-blur-3xl shadow-[0_25px_100px_rgba(0,0,0,0.5)] rounded-[3rem] animate-in slide-in-from-bottom duration-700 z-[110] border border-white/20 p-2">
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-1 items-center">
-            {[
-              { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={18} /> },
-              { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={18} /> },
-              { id: 'active', label: t('activeJobs'), icon: <Wrench size={18} /> },
-              { id: 'new', label: t('newTicket'), icon: <PlusCircle size={18} /> },
-              { id: 'history', label: t('history'), icon: <History size={18} /> },
-              { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={18} /> },
-              { id: 'customers', label: t('customers'), icon: <Users size={18} /> },
-              { id: 'inventory', label: t('inventory'), icon: <HardDrive size={18} /> }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setServiceSubTab(tab.id)}
-                className={`flex flex-col items-center gap-1.5 py-2.5 transition-all duration-500 rounded-2xl relative ${serviceSubTab === tab.id ? 'bg-white text-slate-900 shadow-2xl scale-105' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
-              >
-                <div className={`p-0 transition-all ${serviceSubTab === tab.id ? 'animate-bounce' : ''}`}>
-                  {tab.icon}
-                </div>
-                <span className="text-[7px] font-black uppercase tracking-[0.1em] text-center w-full truncate px-1">{tab.label}</span>
-                {serviceSubTab === tab.id && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-slate-900 rounded-full mt-1"></div>}
-              </button>
-            ))}
-          </div>
-          
-          {/* Global Cart FAB - Repositioned to not overlap floating island */}
-          {serviceCart.length > 0 && !isMobileCartOpen && (
-            <button 
-              onClick={() => setIsMobileCartOpen(true)}
-              className="absolute -top-16 right-4 bg-rose-500 text-white p-5 rounded-[2rem] shadow-3xl shadow-rose-500/40 animate-in zoom-in duration-500 active:scale-90 z-[120] border-4 border-white flex items-center justify-center"
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-100 px-6 py-2 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500">
+          {[
+            { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
+            { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={20} /> },
+            { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
+            { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} /> },
+            { id: 'exit', label: t('back') || 'Exit', icon: <LogOut size={20} />, action: () => setActiveTab('dashboard') }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => tab.action ? tab.action() : setServiceSubTab(tab.id)}
+              className={`flex flex-col items-center gap-1 p-2 transition-all ${serviceSubTab === tab.id ? 'text-blue-600 scale-110' : 'text-gray-400 opacity-60'}`}
             >
-              <div className="relative">
-                <ShoppingBag size={24} />
-                <span className="absolute -top-3 -right-3 bg-white text-rose-500 text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-rose-500 animate-pulse shadow-md">
-                  {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
-                </span>
+              <div className={`p-2 rounded-xl ${serviceSubTab === tab.id ? 'bg-blue-50' : ''}`}>
+                {tab.icon}
               </div>
+              <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
             </button>
-          )}
+          ))}
         </div>
       )}
+
     </div>
   );
 }
-
-
 
 
