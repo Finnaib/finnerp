@@ -4177,7 +4177,7 @@ export default function App() {
         </header>
 
         {/* Global Mobile Navigation (Native App Feel) */}
-        {activeTab !== 'sales_purchases' && activeTab !== 'cafe' && (
+        {activeTab !== 'sales_purchases' && activeTab !== 'cafe' && !(activeTab === 'service' && serviceSubTab === 'sell') && (
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
             <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
               <div className={`p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
@@ -6179,7 +6179,7 @@ export default function App() {
           {
             activeTab === 'service' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-full lg:w-fit border border-gray-200 mb-8 overflow-x-auto shadow-sm sticky top-0 z-50 scrollbar-hide">
+                <div className="flex gap-2 bg-white/5 shadow-sm p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto scrollbar-hide">
                   {[
                     { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
                     { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
@@ -6202,7 +6202,7 @@ export default function App() {
                 {serviceSubTab === 'board' && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
                       {[
                         { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <Zap className="text-amber-500" />, bg: 'bg-amber-50' },
                         { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock className="text-orange-500" />, bg: 'bg-orange-50' },
@@ -6210,8 +6210,8 @@ export default function App() {
                         { label: t('lowStock'), value: serviceInventory.filter(i => i.stock <= i.minStock).length, icon: <AlertTriangle className="text-rose-500" />, bg: 'bg-rose-50' },
                         { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard className="text-blue-500" />, bg: 'bg-blue-50' }
                       ].map((stat, i) => (
-                        <div key={i} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-5">
-                          <div className={`p-4 rounded-2xl ${stat.bg}`}>{stat.icon}</div>
+                        <div key={i} className="bg-white p-4 sm:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4 sm:gap-5 hover:shadow-md transition-shadow">
+                          <div className={`p-3 sm:p-4 rounded-2xl ${stat.bg}`}>{stat.icon}</div>
                           <div>
                             <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{stat.label}</p>
                             <h3 className="text-lg font-black text-gray-900 leading-none mt-1">{stat.value}</h3>
@@ -6326,7 +6326,7 @@ export default function App() {
                 )}
                 {/* Sub Tab: SELL (SERVICE POS) */}
                 {serviceSubTab === 'sell' && (
-                  <div className="flex flex-col lg:flex-row h-full -m-6 bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)]">
+                  <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
                     {/* Mobile Bottom Navigation for Service POS */}
                     <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-8 py-3 flex justify-between items-center z-[65] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
                         <div className="flex gap-10">
@@ -9699,26 +9699,7 @@ export default function App() {
         )
       }
 
-      {/* Global Mobile Bottom Navigation for Service Shop Mode */}
-      {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] bg-white/95 backdrop-blur-xl border border-gray-100 px-6 py-3 flex justify-between items-center z-[130] shadow-[0_15px_35px_rgba(0,0,0,0.1)] rounded-[2.5rem]">
-          {[
-            { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
-            { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
-            { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={20} /> }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setServiceSubTab(tab.id)}
-              className={`flex flex-col items-center gap-1 p-2 transition-all ${serviceSubTab === tab.id ? 'text-blue-600 scale-110' : 'text-slate-400 opacity-60'}`}
-            >
-              {tab.icon}
-              <span className="text-[8px] font-black uppercase tracking-tighter">{tab.label}</span>
-            </button>
-          ))}
-        </div>
       )}
-
     </div>
   );
 }
