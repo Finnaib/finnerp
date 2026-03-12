@@ -6212,20 +6212,20 @@ export default function App() {
           {/* ========================================================= */}
           {
             activeTab === 'service' && (
-              <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="hidden lg:flex gap-2 bg-white/5 shadow-sm p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto scrollbar-hide">
+              <div className="space-y-6 pb-32 lg:pb-0 animate-in fade-in duration-500">
+                <div className="flex gap-2 bg-white/80 backdrop-blur-xl shadow-xl shadow-gray-200/40 p-2 rounded-[2.5rem] w-full lg:w-fit border border-white mb-6 overflow-x-auto no-scrollbar snap-x">
                   {[
-                    { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
-                    { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
-                    { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
-                    { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
-                    { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
-                    { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
+                    { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={16} /> },
+                    { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={16} /> },
+                    { id: 'active', label: t('activeJobs'), icon: <Wrench size={16} /> },
+                    { id: 'new', label: t('newTicket'), icon: <Plus size={16} /> },
+                    { id: 'history', label: t('history') || 'History', icon: <History size={16} /> },
+                    { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={16} /> }
                   ].map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setServiceSubTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all snap-center whitespace-nowrap ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
                     >
                       {tab.icon} {tab.label}
                     </button>
@@ -6448,7 +6448,7 @@ export default function App() {
                             <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs</span>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                             {serviceTickets
                               .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') && 
                                 (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || 
@@ -6465,7 +6465,7 @@ export default function App() {
                                     ];
                                     setServiceCart([...serviceCart, ...items]);
                                   }}
-                                  className="text-left bg-white p-4 sm:p-5 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
+                                  className="flex-shrink-0 w-[240px] text-left bg-white p-4 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
                                 >
                                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden sm:block">
                                     <Wrench size={48} />
@@ -6480,8 +6480,8 @@ export default function App() {
                                     </div>
                                     <div className="mt-4 flex justify-between items-end border-t border-gray-50 pt-3">
                                       <div className="text-xl font-black text-blue-600 font-mono">{formatCurrency(ticket.estimatedCost)}</div>
-                                      <div className="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                        <Plus size={16} />
+                                      <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 scale-90 group-hover:scale-100 transition-all duration-500">
+                                        <Plus size={18} />
                                       </div>
                                     </div>
                                   </div>
@@ -9732,26 +9732,41 @@ export default function App() {
 
       {/* Service Module Specific Mobile Navigation */}
       {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-100 px-4 py-2 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500">
-          {[
-            { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={18} /> },
-            { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={18} /> },
-            { id: 'active', label: t('activeJobs'), icon: <Wrench size={18} /> },
-            { id: 'inventory', label: t('inventory'), icon: <HardDrive size={18} /> },
-            { id: 'history', label: t('history'), icon: <History size={18} /> },
-            { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={18} /> }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => tab.action ? tab.action() : setServiceSubTab(tab.id)}
-              className={`flex flex-col items-center gap-1 p-2 transition-all ${serviceSubTab === tab.id ? 'text-blue-600 scale-110' : 'text-gray-400 opacity-60'}`}
-            >
-              <div className={`p-2 rounded-xl ${serviceSubTab === tab.id ? 'bg-blue-50' : ''}`}>
-                {tab.icon}
-              </div>
-              <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
-            </button>
-          ))}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-50 flex items-center z-[110] shadow-[0_-15px_50px_rgba(0,0,0,0.12)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 overflow-visible">
+          <div className="flex overflow-x-auto no-scrollbar px-4 py-2 w-full gap-2 snap-x">
+            {[
+              { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={18} /> },
+              { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={18} /> },
+              { id: 'active', label: t('activeJobs'), icon: <Wrench size={18} /> },
+              { id: 'inventory', label: t('inventory'), icon: <HardDrive size={18} /> },
+              { id: 'history', label: t('history'), icon: <History size={18} /> },
+              { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={18} /> },
+              ...(serviceSubTab === 'sell' && serviceCart.length > 0 ? [{ 
+                id: 'cart', 
+                label: t('checkout'), 
+                icon: (
+                  <div className="relative">
+                    <ShoppingBag size={18} />
+                    <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full animate-pulse border border-white">
+                      {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
+                    </span>
+                  </div>
+                ),
+                action: () => setIsMobileCartOpen(true)
+              }] : [])
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => tab.action ? tab.action() : setServiceSubTab(tab.id)}
+                className={`flex-shrink-0 flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all snap-center ${serviceSubTab === tab.id ? 'text-blue-600' : 'text-gray-400'}`}
+              >
+                <div className={`p-2.5 rounded-2xl transition-all ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-50'}`}>
+                  {tab.icon}
+                </div>
+                <span className={`text-[8px] font-black uppercase tracking-widest ${serviceSubTab === tab.id ? 'opacity-100' : 'opacity-40'}`}>{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
