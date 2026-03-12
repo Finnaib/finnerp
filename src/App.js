@@ -243,7 +243,7 @@ export default function App() {
   const [scannerMode, setScannerMode] = useState('sell'); // 'sell' or 'buy'
   const [showUpiQr, setShowUpiQr] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
-  const [upiQrTimer, setUpiQrTimer] = useState(15);
+  const [upiQrTimer, setUpiQrTimer] = useState(30);
   const [digitalSubMethod, setDigitalSubMethod] = useState('UPI');
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   const [barcodePrintMode, setBarcodePrintMode] = useState('sticker'); // 'sticker' or 'a4'
@@ -1588,6 +1588,26 @@ export default function App() {
 
 
 
+
+  const addToServiceCart = (item) => {
+    const stock = Number(item.quantity) || 0;
+    if (stock <= 0) {
+      alert(t('outOfStock') || "Out of stock!");
+      return;
+    }
+    setServiceCart(prev => {
+      const existing = prev.find(c => c.id === item.id);
+      if (existing) {
+        if (existing.quantity + 1 > stock) {
+          alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
+          return prev;
+        }
+        return prev.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c);
+      } else {
+        return [...prev, { id: item.id, name: item.name, sellPrice: Number(item.sellPrice), quantity: 1, type: 'part' }];
+      }
+    });
+  };
 
   const removeFromCart = (itemId) => {
     setCart(prev => prev.filter(i => i.id !== itemId));
@@ -3470,6 +3490,13 @@ export default function App() {
       } else {
         alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
       }
+    } else if (scannerMode === 'service_sell') {
+       if (item.quantity > 0) {
+         addToServiceCart(item);
+         setIsScannerOpen(false);
+       } else {
+         alert(item.name + " " + (t('outOfStock') || 'is out of stock!'));
+       }
     } else if (scannerMode === 'buy') {
       const moreStock = prompt(`${t('quickStockIn') || 'Quick Stock In'}: ${item.name}\n${t('currentQuantity') || 'Current'}: ${item.quantity}\n${t('enterAddedQty') || 'Enter added quantity'}:`, "1");
       if (moreStock !== null && !isNaN(moreStock) && Number(moreStock) > 0) {
@@ -3481,7 +3508,7 @@ export default function App() {
         }
       }
     }
-  }, [addToCart, t, scannerMode, setNewSaleForm, setIsScannerOpen]); // Removed inventory dependency to stop re-creation and flickering
+  }, [addToCart, addToServiceCart, t, scannerMode, setNewSaleForm, setIsScannerOpen]); // Removed inventory dependency to stop re-creation and flickering
 
   const onScanError = useCallback((err) => { }, []);
 
@@ -3513,6 +3540,14 @@ export default function App() {
 
           // If we are in warehouse and scanning for something
           if (activeTab === 'warehouses' && scannerMode === 'buy') {
+            onScanSuccess(scanned);
+            e.preventDefault();
+            return;
+          }
+
+          // If we are in Service Tab
+          if (activeTab === 'service') {
+            setScannerMode('service_sell');
             onScanSuccess(scanned);
             e.preventDefault();
             return;
@@ -3783,7 +3818,9 @@ export default function App() {
   useEffect(() => {
     let timer;
     let interval;
-    if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
+    const isCartActive = (activeTab === 'sales_purchases' && cart.length > 0) || (activeTab === 'service' && serviceCart.length > 0);
+    
+    if (paymentMethod === 'Online' && isCartActive) {
       setShowUpiQr(true);
       setUpiQrTimer(30); // 30 seconds
       timer = setTimeout(() => setShowUpiQr(false), 30000);
@@ -3797,7 +3834,7 @@ export default function App() {
     } else {
       setShowUpiQr(false);
     }
-  }, [paymentMethod, cart.length, activeTab]);
+  }, [paymentMethod, cart.length, serviceCart.length, activeTab]);
 
 
 
@@ -4098,7 +4135,7 @@ export default function App() {
         {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[65] md:hidden animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)}></div>}
 
         {/* Header */}
-        <header className="bg-white/90 backdrop-blur-2xl border-b border-gray-100 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[100] transition-all">
+        <header className="bg-white/95 backdrop-blur-2xl border-b border-gray-50 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[120] transition-all shadow-[0_10px_40px_rgba(0,0,0,0.06)] lg:rounded-none rounded-b-[2.5rem]">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2.5 -ml-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all active:scale-90 ${isSidebarOpen ? 'lg:hidden' : 'block'}`}><Menu size={26} /></button>
             <h2 className="text-xl font-black text-gray-900 flex items-center gap-3.5 tracking-tight group">
@@ -6378,18 +6415,27 @@ export default function App() {
                                   onChange={e => setServiceInventorySearch(e.target.value)}
                                 />
                               </div>
-                              <button
-                                onClick={() => {
-                                  const name = prompt(t('enterItemName') || 'Enter Item Name:');
-                                  if (!name) return;
-                                  const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
-                                  if (!price || isNaN(price)) return;
-                                  setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
-                                }}
-                                className="px-4 py-3 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center gap-2 transition-all whitespace-nowrap shadow-lg shadow-amber-500/20"
-                              >
-                                <Plus size={16} /> {t('customItem') || 'Custom Item'}
-                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => { setScannerMode('service_sell'); setIsScannerOpen(true); }}
+                                  className="p-3 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all shadow-lg shadow-blue-500/10 flex items-center justify-center"
+                                  title={t('scanBarcode')}
+                                >
+                                  <Scan size={20} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const name = prompt(t('enterItemName') || 'Enter Item Name:');
+                                    if (!name) return;
+                                    const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
+                                    if (!price || isNaN(price)) return;
+                                    setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
+                                  }}
+                                  className="px-4 py-3 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center gap-2 transition-all whitespace-nowrap shadow-lg shadow-amber-500/20"
+                                >
+                                  <Plus size={16} /> {t('customItem') || 'Custom Item'}
+                                </button>
+                              </div>
                             </div>
 
                           </div>
@@ -6473,19 +6519,7 @@ export default function App() {
                               .map(item => (
                                 <button
                                   key={item.id}
-                                  onClick={() => {
-                                    const stock = Number(item.quantity) || 0;
-                                    if (stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
-                                    const existing = serviceCart.find(c => c.id === item.id);
-                                    if (existing) {
-                                      if (existing.quantity + 1 > stock) {
-                                        return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
-                                      }
-                                      setServiceCart(serviceCart.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c));
-                                    } else {
-                                      setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: Number(item.sellPrice), quantity: 1, type: 'part' }]);
-                                    }
-                                  }}
+                                  onClick={() => addToServiceCart(item)}
                                   className="bg-white p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-3 text-left"
                                 >
                                   <div className="bg-gray-50 aspect-square rounded-2xl overflow-hidden relative">
@@ -6666,14 +6700,14 @@ export default function App() {
                         </div>
 
                         {paymentMethod === 'Online' && (
-                          <div className="grid grid-cols-2 gap-2 mb-4 animate-in slide-in-from-top-2 duration-300">
-                            {['UPI', 'InstaPay'].map(sub => (
+                          <div className="flex flex-wrap gap-2 mb-4 animate-in slide-in-from-top-2 duration-300 p-2 bg-gray-50 rounded-2xl border border-gray-100">
+                            {['UPI', 'InstaPay', 'Other'].map(sub => (
                               <button
                                 key={sub}
                                 onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
-                                className={`py-2 text-[9px] font-black uppercase tracking-widest rounded-xl border transition-all ${digitalSubMethod === sub ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'}`}
+                                className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${digitalSubMethod === sub ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 hover:text-gray-600'}`}
                               >
-                                {sub}
+                                {t(sub.toLowerCase()) || sub}
                               </button>
                             ))}
                           </div>
@@ -6698,7 +6732,7 @@ export default function App() {
                                <Printer size={14} /> {t('thermal')}
                              </button>
                              <button onClick={() => setPrintFormat('A4')} className={`py-2 bg-white border rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${printFormat === 'A4' ? 'border-blue-500 text-blue-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                               <FileText size={14} /> A4 Pro
+                               <FileText size={14} /> {t('a4') || 'A4'}
                              </button>
                           </div>
                         </div>
@@ -9702,13 +9736,14 @@ export default function App() {
 
       {/* Service Module Specific Mobile Navigation */}
       {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-100 px-6 py-2 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-100 px-4 py-2 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500">
           {[
-            { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
-            { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={20} /> },
-            { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
-            { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} /> },
-            { id: 'exit', label: t('back') || 'Exit', icon: <LogOut size={20} />, action: () => setActiveTab('dashboard') }
+            { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={18} /> },
+            { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={18} /> },
+            { id: 'active', label: t('activeJobs'), icon: <Wrench size={18} /> },
+            { id: 'inventory', label: t('inventory'), icon: <HardDrive size={18} /> },
+            { id: 'history', label: t('history'), icon: <History size={18} /> },
+            { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={18} /> }
           ].map(tab => (
             <button
               key={tab.id}
