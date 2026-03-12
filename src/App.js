@@ -5404,20 +5404,20 @@ export default function App() {
                         {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
                       </button>
                     )}
-                    <div className="flex bg-gray-100 p-1 rounded-lg">
-                      <button
-                        onClick={() => setBarcodePrintMode('sticker')}
-                        className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'sticker' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        title="Thermal Sticker Printer"
-                      > {t('sticker')} </button>
-                      <button
-                        onClick={() => setBarcodePrintMode('a4')}
-                        className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'a4' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        title="Standard A4 Paper Printer"
-                      > {t('a4 sheet')} </button>
-                    </div>
                     {currentMode !== 'Cashier' && (
                       <>
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                          <button
+                            onClick={() => setBarcodePrintMode('sticker')}
+                            className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'sticker' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            title="Thermal Sticker Printer"
+                          > {t('sticker')} </button>
+                          <button
+                            onClick={() => setBarcodePrintMode('a4')}
+                            className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all ${barcodePrintMode === 'a4' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            title="Standard A4 Paper Printer"
+                          > {t('a4 sheet')} </button>
+                        </div>
                         <button
                           onClick={() => {
                             const itemsToConfig = selectedInventoryItems.length > 0
