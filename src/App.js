@@ -2026,7 +2026,7 @@ export default function App() {
           }, 0)
         : Number(invoiceData.amount || 0);
       
-      const total = subtotal; // Use calculated subtotal as primary truth
+      const total = subtotal - Number(invoiceData.discount || 0); // Correct total by subtracting discount
 
       if (printFormat === 'Thermal') {
         return `
@@ -2039,13 +2039,12 @@ export default function App() {
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         
+        ${invoiceData.type === 'sale' ? `
         <div class="big-id">
-          <span class="big-id-label">
-            ${invoiceData.type === 'sale' ? t('orderNumber') : 
-              (['cafe', 'service', 'service_pos', 'service_receipt'].includes(invoiceData.type) ? t('billNo') : t('id'))}
-          </span>
+          <span class="big-id-label">${t('orderNumber')}</span>
           ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
         </div>
+        ` : ''}
 
         <div class="invoice-title">${t('retailInvoice')}</div>
 
