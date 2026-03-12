@@ -1940,56 +1940,49 @@ export default function App() {
       .big-id { font-size: 3.5em; font-weight: 900; text-align: center; margin: 8px 0; border: 3px solid #000; padding: 5px; background: #fff; letter-spacing: 1px; line-height: 1; }
       .big-id-label { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; display: block; margin-bottom: 2px; letter-spacing: 1px; color: #000; }
     ` : `
-      @page { margin: 0; size: A4; }
-      body { font-family: Arial, Helvetica, sans-serif; padding: 0; color: #333; margin: 0; background: #fff; }
-      .page { padding: 50px; min-height: 90vh; position: relative; box-sizing: border-box; }
+      @page { margin: 10mm; size: A4; }
+      body { font-family: 'Arial', sans-serif; color: #000; background: #fff; line-height: 1.4; }
+      .page { padding: 40px; position: relative; border: 1px solid #000; border-bottom: none; }
+      .page:last-child { border-bottom: 2px solid #000; }
       .page-break { page-break-after: always; }
-      
+
       /* Header */
-      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #4a5f8f; }
-      .brand { flex: 1; }
-      .brand .title { font-size: 24px; font-weight: bold; color: #333; margin: 0 0 5px 0; }
-      .brand .subtitle { font-size: 11px; color: #666; line-height: 1.5; margin: 2px 0; }
-      .sold-by { font-size: 12px; color: #4a5f8f; font-weight: bold; margin-top: 5px; }
+      .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+      .brand-info { flex: 1; }
+      .brand-info h1 { font-size: 32px; font-weight: 900; margin: 0; text-transform: uppercase; }
+      .brand-info p { margin: 2px 0; font-size: 14px; font-weight: bold; }
+
+      .invoice-title-box { text-align: right; }
+      .invoice-title-box h2 { font-size: 48px; font-weight: 900; margin: 0 0 10px 0; text-transform: uppercase; }
+      .info-table { border-collapse: collapse; min-width: 200px; }
+      .info-table td { border: 2px solid #000; padding: 6px 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+      .info-table td:first-child { background: #fff; text-align: right; width: 40%; }
+      .info-table td:last-child { background: #fff; text-align: left; }
+
+      /* Sections */
+      .section-header { background: #000; color: #fff; padding: 10px 15px; font-weight: 900; text-transform: uppercase; font-size: 14px; margin: 20px 0 0 0; }
+      .section-content { border: 2px solid #000; padding: 15px; font-weight: bold; font-size: 14px; margin-bottom: 20px; }
+
+      /* Items Table */
+      .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      .items-table th { background: #000; color: #fff; padding: 12px 15px; text-align: left; font-size: 14px; font-weight: 900; text-transform: uppercase; }
+      .items-table td { border: 2px solid #000; padding: 12px 15px; font-size: 14px; font-weight: bold; }
+      .center { text-align: center; }
+      .right { text-align: right; }
+
+      /* Totals & Comments */
+      .bottom-layout { display: flex; justify-content: space-between; margin-top: 30px; }
+      .comments-box { width: 60%; }
+      .comments-box p { font-size: 12px; font-style: italic; margin: 5px 0; font-weight: bold; }
       
-      .invoice-info { text-align: right; }
-      .invoice-info h2 { font-size: 36px; font-weight: bold; color: #7891c7; margin: 0 0 15px 0; text-transform: uppercase; }
-      .invoice-info table { margin: 0; }
-      .invoice-info td { padding: 4px 8px; font-size: 11px; }
-      .invoice-info td:first-child { text-align: right; font-weight: bold; background: #f5f5f5; }
-      .invoice-info td:last-child { text-align: left; border: 1px solid #ddd; background: #fff; }
-      
-      /* Bill To */
-      .bill-to { background: #4a5f8f; color: #fff; padding: 8px 12px; font-weight: bold; font-size: 12px; margin: 20px 0 10px 0; }
-      .bill-to-content { padding: 10px 12px; font-size: 11px; line-height: 1.6; color: #333; margin-bottom: 20px; }
-      
-      /* Table */
-      table.items { width: 100%; border-collapse: collapse; margin: 20px 0; }
-      table.items thead { background: #4a5f8f; color: #fff; }
-      table.items th { padding: 12px; text-align: left; font-size: 12px; font-weight: bold; }
-      table.items th.center { text-align: center; }
-      table.items th.right { text-align: right; }
-      table.items td { padding: 10px 12px; border-bottom: 1px solid #e0e0e0; font-size: 11px; color: #555; }
-      table.items td.center { text-align: center; }
-      table.items td.right { text-align: right; font-weight: bold; }
-      table.items tbody tr:hover { background: #f9f9f9; }
-      
-      /* Totals */
-      .totals-section { display: flex; justify-content: space-between; margin-top: 30px; }
-      .comments { flex: 1; max-width: 50%; }
-      .comments-title { background: #4a5f8f; color: #fff; padding: 8px 12px; font-weight: bold; font-size: 12px; margin-bottom: 10px; }
-      .comments-content { padding: 10px 12px; font-size: 11px; line-height: 1.8; color: #555; border: 1px solid #e0e0e0; }
-      
-      .totals { width: 300px; }
-      .totals-row { display: flex; justify-content: space-between; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid #e0e0e0; }
-      .totals-row strong { font-weight: bold; }
-      .totals-row.total { background: #f5f5f5; font-weight: bold; font-size: 14px; border-top: 2px solid #4a5f8f; border-bottom: 2px solid #4a5f8f; margin-top: 5px; }
-      
-      /* Footer */
-      .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #666; padding-top: 20px; border-top: 1px solid #e0e0e0; }
-      .footer p { margin: 5px 0; }
-      .footer .thank-you { font-style: italic; font-weight: bold; color: #333; margin-top: 10px; }
-      .copy-label { position: absolute; top: 30px; right: 30px; font-size: 9px; font-weight: bold; color: #999; text-transform: uppercase; border: 1px solid #ddd; padding: 4px 8px; border-radius: 3px; background: #f9f9f9; }
+      .totals-box { width: 35%; }
+      .totals-table { width: 100%; border-collapse: collapse; }
+      .totals-table td { padding: 8px 10px; font-size: 14px; font-weight: bold; }
+      .totals-table tr.total-row td { border: 3px solid #000; font-size: 18px; font-weight: 900; text-transform: uppercase; }
+      .totals-table .label { color: #666; }
+
+      .footer { margin-top: 50px; border-top: 2px solid #000; padding-top: 10px; text-align: center; font-size: 10px; font-weight: bold; }
+      .copy-label { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; border: 1px solid #000; padding: 2px 5px; }
     `;
 
     const getPageContent = (copyLabel, isFirstPage) => {
@@ -2101,13 +2094,14 @@ export default function App() {
 
             if (!payId) return '';
 
-            const expiryTime = Date.now() + 600000; // 10 minutes
-            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&id=${payId}&method=${subMethod}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
             const label = subMethod === 'UPI' ? t('payWithUPI') : t('payWithInstapay');
+            const directPayUrl = subMethod === 'InstaPay' 
+              ? payId 
+              : `upi://pay?pa=${payId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`;
 
             return `
           <div style="text-align: center; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(payUrl)}" style="width: 120px; height: 120px;" />
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(directPayUrl)}" style="width: 120px; height: 120px;" />
             <p style="font-size: 0.6em; margin-top: 5px; font-weight: bold;">${label || 'Scan to Pay'}</p>
             <p style="font-size: 0.5em; color: #666; margin-top: 2px;">(Valid for 10 minutes)</p>
           </div>
@@ -2121,113 +2115,83 @@ export default function App() {
       <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
         ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
         
-        <div class="header" style="border-bottom: 4px solid #1e293b; padding-bottom: 15px; margin-bottom: 25px;">
-          <div class="brand">
-            <div class="title" style="font-size: 28px; color: #1e293b; letter-spacing: -0.5px;">${printName}</div>
-            <div class="subtitle" style="font-size: 13px; font-weight: bold; color: #475569; margin-top: 4px;">${printAddress}</div>
-            <div class="subtitle" style="font-size: 13px; color: #64748b;">${t('phone')}: ${printPhone}</div>
+        <div class="header">
+          <div class="brand-info">
+            <h1>${printName}</h1>
+            <p>${site.address_ar || 'شارع احمد عصمت'}</p>
+            <p>Phone: ${printPhone}</p>
+            <p>Finnaib</p>
           </div>
-          <div class="invoice-info">
-            <h2 style="font-size: 32px; color: #cbd5e1; margin-bottom: 5px; font-weight: 900; text-transform: uppercase; line-height: 1;">${invoiceData.type === 'service' ? (t('serviceInvoice') || 'SERVICE INVOICE') : t('invoice')}</h2>
-            <div style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 10px; text-align: right;">${t('retailInvoice').toUpperCase()}</div>
-            <table style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; width: 100%;">
-              <tr><td style="background: #f8fafc; border: none; font-size: 10px; width: 40%;">${t('date').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.date || new Date().toLocaleDateString()}</td></tr>
-              <tr>
-                <td style="background: #f8fafc; border: none; font-size: 10px;">
-                  ${(invoiceData.type === 'sale' ? t('orderNumber') : 
-                    (['cafe', 'service', 'service_pos', 'service_receipt'].includes(invoiceData.type) ? t('billNo') : t('id'))).toUpperCase()} #
-                </td>
-                <td style="border: none; font-weight: bold; font-size: 10px; color: #2563eb;">${invoiceData.invoiceId || 'N/A'}</td>
-              </tr>
-              ${invoiceData.sessionId ? `<tr><td style="background: #f8fafc; border: none; font-size: 10px;">SESSION #</td><td style="border: none; font-weight: bold; font-size: 10px;">${invoiceData.sessionId}</td></tr>` : ''}
-              <tr><td style="background: #f8fafc; border: none; font-size: 10px;">${t('paymentMode').toUpperCase()}</td><td style="border: none; font-weight: bold; font-size: 10px;">${printPaymentMethod}</td></tr>
+          <div class="invoice-title-box">
+            <h2>INVOICE</h2>
+            <table class="info-table">
+              <tr><td>DATE</td><td>${invoiceData.date || new Date().toISOString().split('T')[0]}</td></tr>
+              <tr><td>TIME</td><td>${printTime}</td></tr>
+              <tr><td>INVOICE #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
+              <tr><td>CUSTOMER ID</td><td>${invoiceData.customerId || '123'}</td></tr>
+              <tr><td>PAYMENT MODE</td><td>${printPaymentMethod.toUpperCase()}</td></tr>
             </table>
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-          <div style="flex: 1;">
-            <div class="bill-to" style="background: #1e293b; border-radius: 4px; padding: 6px 15px; margin-bottom: 10px;">${t('billTo')}</div>
-            <div class="bill-to-content" style="padding: 0 15px;">
-              <div style="font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 4px;">${invoiceData.client || invoiceData.customer || 'Customer Name'}</div>
-              <div style="font-size: 12px; color: #64748b;">${invoiceData.customerPhone || ''}</div>
-              <div style="font-size: 11px; color: #64748b; margin-top: 4px; font-style: italic;">ID: ${invoiceData.customerId || 'GEN-102'}</div>
-            </div>
-          </div>
-          <div style="width: 180px; text-align: right;">
-             ${(invoiceData.paymentMethod === 'Online') ? (() => {
-            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
-            const payId = subMethod === 'InstaPay' ? shopSettings.instapayId : shopSettings.upiId;
-            if (!payId) return '';
-            const expiryTime = Date.now() + 600000;
-            const payUrl = `${window.location.origin}${window.location.pathname}?pay=${invoiceData.invoiceId || 'N/A'}&amt=${total.toFixed(2)}&id=${payId}&method=${subMethod}&pn=${encodeURIComponent(shopSettings.name)}&exp=${expiryTime}`;
-            return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(payUrl)}" style="width: 80px; height: 80px; border: 1px solid #f1f5f9; padding: 5px; border-radius: 8px;" />
-                    <p style="font-size: 8px; font-weight: bold; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Scan to Pay Online</p>`;
-          })() : ''}
-          </div>
+        <div class="section-header">BILL TO</div>
+        <div class="section-content">
+          ${invoiceData.client || invoiceData.customer || 'Walk-in Customer'}
         </div>
 
-        <table class="items" style="margin-top: 10px;">
-          <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+        <table class="items-table">
+          <thead>
             <tr>
-              <th style="color: #475569; padding: 14px 15px; width: 60%;">${t('description')}</th>
-              <th class="center" style="color: #475569; padding: 14px 15px;">${t('qty')}</th>
-              <th class="right" style="color: #475569; padding: 14px 15px;">${t('amount')}</th>
+              <th style="width: 60%">DESCRIPTION</th>
+              <th class="center">TAXED</th>
+              <th class="right">AMOUNT</th>
             </tr>
           </thead>
           <tbody>
             ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
             <tr>
-              <td style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: 500;">
-                 ${item.name}
-                 ${item.serial ? `<div style="font-size: 9px; color: #94a3b8; font-family: monospace;">SN: ${item.serial}</div>` : ''}
-              </td>
-              <td class="center" style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #64748b;">${item.qty || item.quantity || 1}</td>
-              <td class="right" style="padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b;">${formatCurrency(Number(item.price || item.sellPrice || 0) * Number(item.qty || item.quantity || 1))}</td>
+              <td>${item.name}</td>
+              <td class="center">X</td>
+              <td class="right">${formatCurrency(Number(item.price || item.sellPrice || 0) * Number(item.qty || item.quantity || 1))}</td>
             </tr>
-            `).join('') : `<tr><td colspan="3" style="padding: 12px 15px; text-align: center; color: #94a3b8;">${invoiceData.items}</td></tr>`}
+            `).join('') : `<tr><td>${invoiceData.items}</td><td class="center">-</td><td class="right">${formatCurrency(subtotal)}</td></tr>`}
           </tbody>
         </table>
 
-        <div class="totals-section" style="margin-top: 40px;">
-          <div class="comments" style="background: #f8fafc; border-radius: 12px; border: 1px dashed #e2e8f0;">
-            <div class="comments-title" style="background: none; color: #475569; font-size: 11px;">${t('notes') || 'NOTES / REMARKS'}</div>
-            <div class="comments-content" style="border: none; font-size: 10px; color: #64748b;">
-              ${invoiceData.notes || t('thankYou')}
-              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f5f9;">
-                ${t('soldBy')}: <strong>${invoiceData.soldBy || 'Admin'}</strong>
-              </div>
+        <div class="bottom-layout">
+          <div class="comments-box">
+            <div class="section-header" style="margin-top: 0">COMMENTS</div>
+            <div class="section-content" style="min-height: 100px;">
+              <p>1. Total payment due in 30 days</p>
+              <p>2. Please include the invoice number on your check</p>
+              ${invoiceData.notes ? `<p>${invoiceData.notes}</p>` : ''}
             </div>
           </div>
-          <div class="totals">
-            <div class="totals-row">
-              <span style="color: #94a3b8;">${t('subtotal')}</span>
-              <span style="font-weight: 600;">${formatCurrency(subtotal)}</span>
-            </div>
-            ${(invoiceData.discount > 0) ? `
-            <div class="totals-row">
-              <span style="color: #94a3b8;">${t('discount') || 'Discount'}</span>
-              <span style="color: #ef4444; font-weight: 600;">-${formatCurrency(invoiceData.discount)}</span>
-            </div>` : ''}
-            <div class="totals-row total" style="background: #1e293b; color: #fff; border: none; border-radius: 8px; margin-top: 10px; padding: 12px 15px;">
-              <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;">${t('total')}</span>
-              <span style="font-size: 18px;">${formatCurrency(total)}</span>
-            </div>
+          <div class="totals-box">
+            <table class="totals-table">
+              <tr><td class="label">Subtotal</td><td class="right">${formatCurrency(subtotal)}</td></tr>
+              <tr><td class="label">Tax/VAT</td><td class="right">${formatCurrency(subtotal * 0.0625)}</td></tr>
+              <tr><td class="label">Tax rate</td><td class="right">6.250%</td></tr>
+              <tr class="total-row"><td>TOTAL</td><td class="right">${formatCurrency(total)}</td></tr>
+            </table>
           </div>
         </div>
 
-        <div class="footer" style="position: absolute; bottom: 50px; left: 50px; right: 50px;">
-           <div style="display: flex; justify-content: space-between; border-top: 2px solid #f1f5f9; padding-top: 30px;">
-              <div style="text-align: left;">
-                 <p style="font-size: 9px; font-weight: bold; color: #94a3b8; margin-bottom: 40px;">AUTHORIZED SIGNATURE</p>
-                 <div style="width: 150px; height: 1px; background: #e2e8f0;"></div>
-              </div>
-              <div style="text-align: right;">
-                 <p style="font-size: 10px; font-weight: bold; color: #1e293b;">${shopSettings.name}</p>
-                 <p style="font-size: 9px; color: #64748b;">${shopSettings.phone} | ${shopSettings.address}</p>
-                 <p style="font-size: 9px; color: #94a3b8; margin-top: 8px;">THANK YOU FOR YOUR TRUST</p>
-              </div>
-           </div>
+        <div style="text-align: right; margin-top: 20px;">
+          ${(invoiceData.paymentMethod === 'Online') ? (() => {
+            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
+            const payId = subMethod === 'InstaPay' ? shopSettings.instapayId : shopSettings.upiId;
+            if (!payId) return '';
+            const directPayUrl = subMethod === 'InstaPay' 
+              ? payId 
+              : `upi://pay?pa=${payId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`;
+            return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(directPayUrl)}" style="width: 100px; height: 100px; border: 1px solid #000; padding: 5px;" />
+                    <p style="font-size: 8px; font-weight: bold; margin-top: 4px; text-transform: uppercase;">Scan to Pay Online</p>`;
+          })() : ''}
+        </div>
+
+        <div class="footer">
+          THANK YOU FOR YOUR BUSINESS!
         </div>
       </div>
         `;
@@ -3666,10 +3630,10 @@ export default function App() {
     let interval;
     if (paymentMethod === 'Online' && cart.length > 0 && activeTab === 'sales_purchases') {
       setShowUpiQr(true);
-      setUpiQrTimer(15);
-      timer = setTimeout(() => setShowUpiQr(false), 15000);
+      setUpiQrTimer(600); // 10 minutes (600 seconds)
+      timer = setTimeout(() => setShowUpiQr(false), 600000);
       interval = setInterval(() => {
-        setUpiQrTimer(prev => Math.max(0, prev - 1));
+        setUpiQrTimer(prev => Math.max(0, prev - 1)); // Decrement 1 second per second
       }, 1000);
       return () => {
         clearTimeout(timer);
@@ -6796,57 +6760,88 @@ export default function App() {
 
                 {/* Sub Tab: HISTORY */}
                 {serviceSubTab === 'history' && (
-                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 animate-in fade-in zoom-in-95 duration-700">
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                      <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('serviceHistory') || 'Repair History'}</h2>
-                      <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
-                        <Calendar size={18} className="text-slate-400 ml-2" />
-                        <input
-                          type="date"
-                          value={serviceHistoryDateFilter}
-                          onChange={(e) => setServiceHistoryDateFilter(e.target.value)}
-                          className="bg-transparent border-none text-xs font-black uppercase tracking-widest outline-none focus:ring-0 text-slate-600 cursor-pointer"
+                  <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 px-2 gap-4">
+                      <h3 className="text-gray-900 text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                        <Clock size={24} className="text-blue-600" />
+                        {serviceHistoryDateFilter === new Date().toISOString().split('T')[0] ? (t('todaysServices') || "Today's Services") : (t('servicesOn') || 'Services on') + ' ' + serviceHistoryDateFilter}
+                      </h3>
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <input 
+                          type="date" 
+                          value={serviceHistoryDateFilter} 
+                          onChange={(e) => setServiceHistoryDateFilter(e.target.value)} 
+                          className="w-full sm:w-auto bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" 
                         />
-                        {serviceHistoryDateFilter && (
-                          <button onClick={() => setServiceHistoryDateFilter('')} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
-                            <X size={14} className="text-slate-400" />
-                          </button>
-                        )}
                       </div>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead>
-                          <tr className="border-b-2 border-slate-100">
-                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest pl-4">ID</th>
-                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('date')}</th>
-                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('customer')}</th>
-                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('device')}</th>
-                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('status')}</th>
-                            <th className="py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right pr-4">{t('cost')}</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                          {serviceTickets
-                            .filter(t => t.status === 'Delivered')
-                            .filter(t => !serviceHistoryDateFilter || (t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] === serviceHistoryDateFilter))
-                            .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds)
-                            .map(ticket => (
-                            <tr key={ticket.id} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="py-4 pl-4 font-mono text-xs font-bold text-slate-400">#{ticket.id.slice(0, 6)}</td>
-                              <td className="py-4 text-xs font-medium text-slate-600">{ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleDateString() : '-'}</td>
-                              <td className="py-4 font-bold text-sm text-gray-900">{ticket.customerName}</td>
-                              <td className="py-4 text-sm font-medium text-slate-700">{ticket.brand} {ticket.model}</td>
-                              <td className="py-4">
-                                <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${ticket.status === 'Delivered' || ticket.status === 'Ready' ? 'bg-emerald-50 text-emerald-600' :
-                                  'bg-slate-100 text-slate-600'
-                                  }`}>{ticket.status}</span>
-                              </td>
-                              <td className="py-4 pr-4 text-right font-mono font-black text-gray-900">{formatCurrency(ticket.estimatedCost || 0)}</td>
+
+                    <div className="overflow-x-auto px-1">
+                      {/* Desktop View */}
+                      <div className="hidden md:block">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <tr>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')} #</th>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('cost')}</th>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('details') || 'Details'}</th>
+                              <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
                             </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {serviceTickets
+                              .filter(t => t.status === 'Delivered')
+                              .filter(t => !serviceHistoryDateFilter || (t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] === serviceHistoryDateFilter))
+                              .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+                              .map(ticket => (
+                                <tr key={ticket.id} className="hover:bg-slate-50/50 transition-colors group">
+                                  <td className="p-4 text-slate-500 font-bold">{ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</td>
+                                  <td className="p-4 font-mono text-xs text-blue-600 font-black">#{ticket.id.slice(0, 6)}</td>
+                                  <td className="p-4 font-mono font-black text-slate-900">{formatCurrency(ticket.estimatedCost || 0)}</td>
+                                  <td className="p-4">
+                                     <div className="text-xs font-bold text-gray-900">{ticket.customerName}</div>
+                                     <div className="text-[10px] text-slate-400 font-medium">{ticket.brand} {ticket.model}</div>
+                                  </td>
+                                  <td className="p-4 text-right">
+                                    <button onClick={() => handlePrintInvoice(ticket, 'Service Invoice')} className="p-2 border border-slate-100 text-slate-400 hover:text-blue-600 rounded-lg transition-all shadow-sm">
+                                      <Printer size={16} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Mobile View */}
+                      <div className="md:hidden space-y-4">
+                        {serviceTickets
+                          .filter(t => t.status === 'Delivered')
+                          .filter(t => !serviceHistoryDateFilter || (t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] === serviceHistoryDateFilter))
+                          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+                          .map(ticket => (
+                            <div key={ticket.id} className="p-4 border border-slate-100 rounded-3xl bg-slate-50/50 flex justify-between items-center">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{ticket.createdAt ? new Date(ticket.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</span>
+                                  <span className="text-[10px] font-mono font-bold text-blue-600">#{ticket.id.slice(0, 6)}</span>
+                                </div>
+                                <div className="text-sm font-bold text-gray-900">{ticket.customerName}</div>
+                                <div className="text-xs text-slate-500">{ticket.brand} {ticket.model}</div>
+                                <div className="font-mono font-black text-slate-900 mt-1">{formatCurrency(ticket.estimatedCost || 0)}</div>
+                              </div>
+                              <button onClick={() => handlePrintInvoice(ticket, 'Service Invoice')} className="p-3 bg-white border border-slate-100 text-slate-600 rounded-2xl shadow-sm"><Printer size={20} /></button>
+                            </div>
                           ))}
-                        </tbody>
-                      </table>
+                      </div>
+
+                      {serviceTickets.filter(t => t.status === 'Delivered' && (!serviceHistoryDateFilter || (t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] === serviceHistoryDateFilter))).length === 0 && (
+                        <div className="p-20 text-center">
+                          <History size={40} className="mx-auto mb-4 text-slate-200" />
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noHistory')}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -9032,7 +9027,7 @@ export default function App() {
               <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-600 transition-all duration-1000 ease-linear rounded-full"
-                  style={{ width: `${(upiQrTimer / 15) * 100}%` }}
+                  style={{ width: `${(upiQrTimer / 600) * 100}%` }}
                 ></div>
               </div>
               <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
