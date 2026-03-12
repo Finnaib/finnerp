@@ -9494,7 +9494,7 @@ export default function App() {
                           key={item.id}
                           onClick={() => {
                             const stock = Number(item.quantity) || 0;
-                            const isRecipe = recipe.find(r => r.id === item.id)?.ingredients;
+                            const isRecipe = item.ingredients;
                             
                             // For recipes, we just allow adding and check at checkout OR perform a shallow check here if we want to be fancy.
                             // For now, let's just do direct item check.
