@@ -430,7 +430,13 @@ export default function App() {
       setUser(currentUser);
       setAuthLoading(false);
 
-      if (!currentUser) {
+      if (currentUser) {
+        // Force PIN check on refresh/login
+        setCurrentMode('Cashier');
+        setShowSensitiveData(false);
+        setPinAction('switchMode');
+        setIsPinModalOpen(true);
+      } else {
         // Clear all state data on logout to prevent leakage
         setEmployees([]);
         setSites([]);
