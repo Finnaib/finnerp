@@ -5182,24 +5182,25 @@ export default function App() {
                         <p className="text-xs mt-1 text-gray-400">{t('selectItems')}</p>
                       </div>
                     ) : (
-                      <div className="divide-y divide-gray-50">
+                      <div className="divide-y divide-gray-100">
                         {cart.map(item => (
-                          <div key={item.id} className="p-3 flex gap-3 group hover:bg-gray-50 transition-colors">
+                          <div key={item.id} className="p-2.5 flex items-center gap-2 group hover:bg-gray-50 transition-colors">
                             <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-start">
-                                <h4 className="font-medium text-gray-900 text-sm truncate pr-2">{item.name}</h4>
-                                <span className="font-mono font-bold text-gray-900 text-sm">{formatCurrency(item.price * item.quantity)}</span>
+                              <div className="flex justify-between items-center mb-0.5">
+                                <h4 className="font-bold text-gray-800 text-[11px] sm:text-xs truncate pr-2 uppercase tracking-wide">{item.name}</h4>
+                                <span className="font-mono font-black text-gray-900 text-xs">{formatCurrency(item.price * item.quantity)}</span>
                               </div>
-                              <div className="text-xs text-gray-500 mt-0.5">{formatCurrency(item.price)} / unit</div>
+                              <div className="text-[10px] text-gray-400 font-medium">{formatCurrency(item.price)} / unit</div>
                             </div>
 
-                            <div className="flex items-center gap-3 self-center">
-                              <div className="flex items-center border border-gray-200 rounded-lg bg-white h-7 shadow-sm">
-                                <button onClick={() => updateCartQuantity(item.id, -1)} className="px-2 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-l-lg transition-colors">-</button>
-                                <span className="w-6 text-center text-xs font-semibold text-gray-700">{item.quantity}</span>
-                                <button onClick={() => updateCartQuantity(item.id, 1)} className="px-2 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg transition-colors">+</button>
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center border border-gray-200 rounded-lg bg-white h-6 shadow-sm">
+                                <button onClick={() => updateCartQuantity(item.id, -1)} className="px-1.5 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-l-lg transition-colors font-bold text-xs">-</button>
+                                <span className="w-5 text-center text-[10px] font-black text-gray-700">{item.quantity}</span>
+                                <button onClick={() => updateCartQuantity(item.id, 1)} className="px-1.5 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg transition-colors font-bold text-xs">+</button>
                               </div>
-                              <button onClick={() => removeFromCart(item.id)} className="text-gray-300 hover:text-red-500 transition-colors p-1">
+                              <button onClick={() => removeFromCart(item.id)} className="text-gray-300 hover:text-rose-500 transition-colors p-1 group/del">
+                                <X size={12} className="group-active/del:scale-90" />
                               </button>
                             </div>
                           </div>
@@ -5209,7 +5210,7 @@ export default function App() {
                   </div>
 
                   {/* Footer Section */}
-                  <div className="bg-gray-50 border-t border-gray-200 p-4 space-y-4">
+                  <div className="bg-gray-50/50 backdrop-blur-md border-t border-gray-200 p-3.5 space-y-3">
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-xs text-gray-500">
                         <div className="flex items-center gap-1.5">
@@ -5231,39 +5232,38 @@ export default function App() {
                           />
                         </div>
                       </div>
-                      <div className="pt-2 border-t border-gray-200 flex justify-between items-end">
-                        <span className="text-sm font-bold text-gray-700">{t('total')}</span>
-                        <span className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
+                      <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-[11px] font-black uppercase text-slate-400">
+                        <span>{t('total')}</span>
+                        <span className="text-xl font-black text-gray-900 leading-none">{formatCurrency(Math.max(0, calculateTotal() - cartDiscount))}</span>
                       </div>
                     </div>
                     {/* Sales Employee Selection */}
-                    <div className="mb-2">
+                    <div className="mb-1">
                       <button
                         onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                        className="w-full flex items-center justify-between p-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                        className="w-full flex items-center justify-between p-1.5 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-100 transition-colors shadow-sm"
                       >
                         <div className="flex items-center gap-2">
-                          <User size={18} className="text-blue-600" />
+                          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white"><User size={16} /></div>
                           <div className="text-left">
-                            <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">{t('salesEmployee')}</div>
-                            <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : t('selectEmployee') || 'Select Employee'}</div>
+                            <div className="text-[9px] text-blue-500 font-black uppercase tracking-widest leading-none mb-1">{t('salesEmployee')}</div>
+                            <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</div>
                           </div>
                         </div>
-                        <ChevronDown size={16} className="text-blue-400" />
+                        <ChevronDown size={14} className="text-blue-400 mr-1" />
                       </button>
                     </div>
 
                     {/* Order Type Toggle */}
-                    <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
+                    <div className="flex bg-slate-100 p-0.5 rounded-xl mb-1.5">
                       <button
                         onClick={() => {
                           setOrderType('Walk-in');
-                          // Set default if empty or matches previous default
                           if (!newSaleForm.customer || newSaleForm.customer === t('takeawayCustomer')) {
                             setNewSaleForm(prev => ({ ...prev, customer: t('walkInCustomer') }));
                           }
                         }}
-                        className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${orderType === 'Walk-in' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                       >
                         {t('walkIn')}
                       </button>
@@ -5274,32 +5274,31 @@ export default function App() {
                             setNewSaleForm(prev => ({ ...prev, customer: t('takeawayCustomer') }));
                           }
                         }}
-                        className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${orderType === 'Takeaway' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                       >
                         {t('takeaway')}
                       </button>
                     </div>
 
                     <input
-                      className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                      className="w-full mb-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
                       placeholder={t('customerNameOptional')}
                       value={newSaleForm.customer}
                       autoComplete="off"
                       onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
                     />
 
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-black text-gray-400 ml-1">{t('customerId')}</label>
+                    <div className="space-y-0.5">
                       <input
-                        className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                        className="w-full mb-2 px-3 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
                         placeholder={t('customerId') + " (" + t('optional') + ")"}
                         value={newSaleForm.customerId}
                         autoComplete="off"
                         onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
                       />
                     </div>
-                    <div className="space-y-3 mb-4">
-                      <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-2 mb-3">
+                      <div className="grid grid-cols-3 gap-1.5">
                         {['Cash', 'Visa', 'Online'].map(method => (
                           <button
                             key={method}
@@ -5307,9 +5306,9 @@ export default function App() {
                               setPaymentMethod(method);
                               if (method === 'Online') setShowUpiQr(true);
                             }}
-                            className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-[1.02]' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
+                            className={`py-1.5 text-[9px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 shadow-sm ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200'}`}
                           >
-                            {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
+                            {method === 'Online' ? 'Digital' : (t(method.toLowerCase()) || method)}
                           </button>
                         ))}
                       </div>
@@ -5332,9 +5331,9 @@ export default function App() {
                     <button
                       onClick={handleCheckout}
                       disabled={cart.length === 0}
-                      className="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 transition-all"
                     >
-                      <CheckCircle size={20} /> {t('checkout')}
+                      <CheckCircle size={18} /> {t('checkout')}
                     </button>
                   </div>
                 </div>
