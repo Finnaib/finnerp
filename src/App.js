@@ -1804,8 +1804,8 @@ export default function App() {
   };
 
   const handleDeleteSale = async (sale) => {
-    if (currentMode === 'Cashier') {
-      alert(t('permissionDenied') || 'Permission Denied. Switch to Manager or Owner mode.');
+    if (currentMode !== 'Owner') {
+      alert(t('permissionDeniedOwner') || 'Permission Denied. Only the Owner can delete sales history.');
       return;
     }
 
@@ -3986,25 +3986,29 @@ export default function App() {
 
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
           <SidebarItem icon={<LayoutDashboard size={20} />} label={t('menuDashboard')} active={activeTab === 'dashboard'} onClick={() => { setActiveTab('dashboard'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Users size={20} />} label={t('menuEmployees')} active={activeTab === 'employees'} onClick={() => { setActiveTab('employees'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
-          
-          <SidebarItem 
-            icon={<BarChart3 size={20} />} 
-            label={t('menuReports')} 
-            active={activeTab === 'reports'} 
-            onClick={() => { 
-              if (currentMode === 'Owner' || currentMode === 'Manager') {
-                setActiveTab('reports');
-                if (window.innerWidth < 768) setIsSidebarOpen(false);
-              } else {
-                setPinAction('accessReports'); 
-                setIsPinModalOpen(true); 
-              }
-            }} 
-          />
+          {/* Owner & Manager ERP Tabs */}
+          {currentMode !== 'Cashier' && (
+            <>
+              <SidebarItem icon={<Users size={20} />} label={t('menuEmployees')} active={activeTab === 'employees'} onClick={() => { setActiveTab('employees'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+              <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+              <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+              <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+              
+              {currentMode === 'Owner' && (
+                <SidebarItem icon={<Calculator size={20} />} label={t('menuAccounts')} active={activeTab === 'accounts'} onClick={() => { setActiveTab('accounts'); if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
+              )}
+
+              <SidebarItem 
+                icon={<BarChart3 size={20} />} 
+                label={t('menuReports')} 
+                active={activeTab === 'reports'} 
+                onClick={() => { 
+                  setActiveTab('reports');
+                  if (window.innerWidth < 768) setIsSidebarOpen(false);
+                }} 
+              />
+            </>
+          )}
 
           <div className="my-2 border-t border-slate-700/50"></div>
 
@@ -5302,20 +5306,22 @@ export default function App() {
                     <p className="text-sm text-gray-500">{t('inventorySubtitle')}</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (showSensitiveData) {
-                          setShowSensitiveData(false);
-                        } else {
-                          setPinAction('showCosts');
-                          setIsPinModalOpen(true);
-                        }
-                      }}
-                      className={`px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all w-full sm:w-auto ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                    >
-                      {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
-                    </button>
+                    {currentMode !== 'Cashier' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (showSensitiveData) {
+                            setShowSensitiveData(false);
+                          } else {
+                            setPinAction('showCosts');
+                            setIsPinModalOpen(true);
+                          }
+                        }}
+                        className={`px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all w-full sm:w-auto ${showSensitiveData ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                      >
+                        {showSensitiveData ? <Shield size={20} /> : <Shield size={20} />} {showSensitiveData ? t('hideCosts') : t('showCosts')}
+                      </button>
+                    )}
                     <div className="flex bg-gray-100 p-1 rounded-lg">
                       <button
                         onClick={() => setBarcodePrintMode('sticker')}
@@ -6000,16 +6006,18 @@ export default function App() {
                                 )}
                               </td>
                               <td className="px-6 py-4 text-right font-black font-mono text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
-                              {currentMode !== 'Cashier' && (
+                              {currentMode === 'Owner' && (
                                 <td className="px-6 py-4 text-right">
                                   {log.category === 'Sale' && (
-                                    <button 
-                                      onClick={() => handleDeleteSale(log.original)}
-                                      className="p-2 rounded-lg transition-all text-rose-500 hover:bg-rose-50"
-                                      title="Delete Bill"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
+                                    <div className="flex justify-end gap-2">
+                                      <button 
+                                        onClick={() => handleDeleteSale(log.original)}
+                                        className="p-2 rounded-lg transition-all text-rose-500 hover:bg-rose-50"
+                                        title="Delete Bill"
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </div>
                                   )}
                                 </td>
                               )}
@@ -6993,7 +7001,7 @@ export default function App() {
                                         >
                                           <Printer size={16} />
                                         </button>
-                                        {!h.isTicket && currentMode !== 'Cashier' && (
+                                        {!h.isTicket && currentMode === 'Owner' && (
                                           <button 
                                             onClick={() => handleDeleteSale(h.item)}
                                             className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-rose-400 hover:text-rose-600 hover:bg-rose-50"
