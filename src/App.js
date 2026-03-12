@@ -4131,7 +4131,7 @@ export default function App() {
         {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[65] md:hidden animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)}></div>}
 
         {/* Header */}
-        <header className="bg-white/95 backdrop-blur-2xl border-b border-gray-50 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[120] transition-all shadow-[0_10px_40px_rgba(0,0,0,0.06)] lg:rounded-none rounded-b-[2.5rem]">
+        <header className={`bg-white/95 backdrop-blur-2xl border-b border-gray-50 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[120] transition-all shadow-[0_10px_40px_rgba(0,0,0,0.06)] lg:rounded-none rounded-b-[2.5rem] ${activeTab === 'service' ? 'hidden lg:flex' : 'flex'}`}>
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2.5 -ml-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all active:scale-90 ${isSidebarOpen ? 'lg:hidden' : 'block'}`}><Menu size={26} /></button>
             <h2 className="text-xl font-black text-gray-900 flex items-center gap-3.5 tracking-tight group">
@@ -6212,8 +6212,9 @@ export default function App() {
           {/* ========================================================= */}
           {
             activeTab === 'service' && (
-              <div className="space-y-6 pb-32 lg:pb-0 animate-in fade-in duration-500">
-                <div className="flex gap-2 bg-white/80 backdrop-blur-xl shadow-xl shadow-gray-200/40 p-2 rounded-[2.5rem] w-full lg:w-fit border border-white mb-6 overflow-x-auto no-scrollbar snap-x">
+              <div className="flex flex-col lg:flex-row h-full min-h-0 overflow-hidden relative pb-24 lg:pb-0 animate-in fade-in duration-500">
+                <div className="flex-1 flex flex-col min-w-0 overflow-auto p-4 sm:p-6 lg:p-8 space-y-6">
+                  <div className="hidden lg:flex gap-2 bg-white/80 backdrop-blur-xl shadow-xl shadow-gray-200/40 p-2 rounded-[2.5rem] w-full lg:w-fit border border-white mb-6 overflow-x-auto no-scrollbar snap-x">
                   {[
                     { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={16} /> },
                     { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={16} /> },
@@ -6359,381 +6360,6 @@ export default function App() {
                   </div>
                 )}
                 {/* Sub Tab: SELL (SERVICE POS) */}
-                {serviceSubTab === 'sell' && (
-                  <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
-                    {/* Mobile Bottom Navigation for Service POS (Hidden as global service nav handles it) */}
-                    <div className="hidden lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-8 py-3 flex justify-between items-center z-[65] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
-                        <div className="flex gap-10">
-                          <button
-                            onClick={() => setIsMobileCartOpen(false)}
-                            className={`flex flex-col items-center gap-1.5 transition-all ${!isMobileCartOpen ? 'text-blue-600 scale-110' : 'text-gray-300 hover:text-gray-400'}`}
-                          >
-                            <div className={`p-2 rounded-xl transition-all ${!isMobileCartOpen ? 'bg-blue-50' : ''}`}><Wrench size={20} /></div>
-                            <span className="text-[9px] font-black uppercase tracking-[0.15em]">{t('repairs') || 'Repairs'}</span>
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => setIsMobileCartOpen(true)}
-                          className="relative -top-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 rounded-[2rem] shadow-[0_15px_40px_rgba(37,99,235,0.4)] transform active:scale-95 transition-all border-4 border-white group"
-                        >
-                          <ShoppingCart size={28} className="group-hover:rotate-12 transition-transform" />
-                          {serviceCart.length > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white animate-bounce shadow-md">
-                              {serviceCart.reduce((a, b) => a + (b.quantity||1), 0)}
-                            </span>
-                          )}
-                        </button>
-                    </div>
-
-                    {/* Left Side: Search & Items Grid */}
-                    <div className={`flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
-                      {/* Top Action Bar - Compact on Mobile */}
-                      <div className="p-4 sm:p-6 bg-white border-b border-gray-200">
-                        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center">
-                          <div className="hidden lg:flex items-center gap-4">
-                            <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
-                              <ShoppingCart size={24} />
-                            </div>
-                            <div>
-                              <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">{t('servicePOS') || 'Service POS'}</h2>
-                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('activeJobs') || 'Sales & Repairs'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="relative flex-1 flex gap-2">
-                              <div className="relative flex-1">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                <input
-                                  type="text"
-                                  placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'}
-                                  className="w-full pl-12 pr-4 py-3 bg-gray-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
-                                  value={serviceInventorySearch}
-                                  onChange={e => setServiceInventorySearch(e.target.value)}
-                                />
-                              </div>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => { setScannerMode('service_sell'); setIsScannerOpen(true); }}
-                                  className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all shadow-sm border border-blue-100 flex items-center justify-center"
-                                  title={t('scanBarcode')}
-                                >
-                                  <Scan size={20} />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    const name = prompt(t('enterItemName') || 'Enter Item Name:');
-                                    if (!name) return;
-                                    const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
-                                    if (!price || isNaN(price)) return;
-                                    setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
-                                  }}
-                                  className="px-4 py-3.5 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-500/20 active:scale-95"
-                                >
-                                  <Plus size={18} /> <span className="hidden sm:inline">{t('customItem') || 'Custom Item'}</span>
-                                </button>
-                              </div>
-                            </div>
-
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 custom-scrollbar">
-                        {/* 1. Active Repairs Section */}
-                        <section className="space-y-4">
-                          <div className="flex items-center justify-between px-2">
-                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                              <Wrench size={14} className="text-blue-500" /> {t('activeRepairs') || 'Active Repairs'}
-                            </h3>
-                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs</span>
-                          </div>
-                          
-                          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                            {serviceTickets
-                              .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') && 
-                                (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || 
-                                 ticket.id.toLowerCase().includes(serviceInventorySearch.toLowerCase()) ||
-                                 ticket.brand.toLowerCase().includes(serviceInventorySearch.toLowerCase())))
-                              .map(ticket => (
-                                <button
-                                  key={ticket.id}
-                                  onClick={() => {
-                                    const laborPrice = Number(ticket.estimatedCost || 0);
-                                    const items = [
-                                    { id: 'SRV-'+ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                                    ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
-                                    ];
-                                    setServiceCart([...serviceCart, ...items]);
-                                  }}
-                                  className="flex-shrink-0 w-[240px] text-left bg-white p-4 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/20 transition-all active:scale-95 group relative overflow-hidden"
-                                >
-                                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden sm:block">
-                                    <Wrench size={48} />
-                                  </div>
-                                  <div className="relative z-10 flex flex-col h-full justify-between">
-                                    <div>
-                                      <div className="flex justify-between items-start mb-2">
-                                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
-                                        <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>{ticket.status}</span>
-                                      </div>
-                                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
-                                    </div>
-                                    <div className="mt-4 flex justify-between items-end border-t border-gray-50 pt-3">
-                                      <div className="text-xl font-black text-blue-600 font-mono">{formatCurrency(ticket.estimatedCost)}</div>
-                                      <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 scale-90 group-hover:scale-100 transition-all duration-500">
-                                        <Plus size={18} />
-                                      </div>
-                                    </div>
-                                  </div>
-                                </button>
-                              ))}
-                          </div>
-                        </section>
-
-                        {/* 2. Parts & Inventory Section */}
-                        <section className="space-y-4">
-                          <div className="flex items-center justify-between px-2">
-                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                              <Package size={14} className="text-indigo-500" /> {t('inventoryParts') || 'Inventory Parts'}
-                            </h3>
-                            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 flex-1 justify-end">
-                              {['All', 'Phone Parts', 'PC Components', 'Accessories'].map(cat => (
-                                <button 
-                                  key={cat}
-                                  onClick={() => setServiceInventorySearch(cat === 'All' ? '' : cat)}
-                                  className={`text-[8px] font-black uppercase px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-400 hover:bg-gray-100'}`}
-                                >
-                                  {cat}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
-                            {inventory
-                              .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || (item.category || '').toLowerCase().includes(serviceInventorySearch.toLowerCase()))
-                              .map(item => (
-                                <button
-                                  key={item.id}
-                                  onClick={() => addToServiceCart(item)}
-                                  className="bg-white p-3 sm:p-4 rounded-[1.5rem] border border-gray-100 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-200/20 transition-all active:scale-95 group flex flex-col gap-2 sm:gap-3 text-left"
-                                >
-                                  <div className="bg-gray-50 aspect-square rounded-2xl overflow-hidden relative">
-                                    {item.photo ? (
-                                      <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                        <Package size={24} />
-                                      </div>
-                                    )}
-                                    <div className={`absolute top-2 right-2 px-2 py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-red-600 text-white' : 'bg-white/80'}`}>
-                                       {Number(item.quantity) <= 0 ? 'OUT OF STOCK' : `STOCK: ${item.quantity}`}
-                                    </div>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <h4 className="text-xs font-black text-gray-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
-                                    <div className="flex justify-between items-end">
-                                      <p className="text-sm font-black text-indigo-600 font-mono">{formatCurrency(item.sellPrice)}</p>
-                                      <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                        <Plus size={14} />
-                                      </div>
-                                    </div>
-                                  </div>
-                                </button>
-                              ))}
-                          </div>
-                        </section>
-                      </div>
-                    </div>
-
-                    {/* Right Side: Cart Sidebar (Fixed) */}
-                    {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[75] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
-                    <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[80] lg:z-20 transition-transform duration-300 ease-in-out transform shadow-[-10px_0_30px_rgba(0,0,0,0.02)] ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
-                      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-30">
-                        <div className="flex items-center gap-3">
-                          <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
-                             <ArrowLeft size={20} />
-                          </button>
-                          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-                            <ShoppingCart size={20} />
-                          </div>
-                          <h3 className="font-black text-lg uppercase tracking-tight">{t('currentBill')}</h3>
-                        </div>
-                        <span className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg shadow-blue-200">
-                          {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)} ITEMS
-                        </span>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                        {serviceCart.length === 0 ? (
-                          <div className="h-full flex flex-col items-center justify-center text-gray-300 p-8 text-center opacity-60">
-                            <div className="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mb-4 border border-dashed border-gray-200">
-                              <ShoppingBag size={32} className="opacity-20" />
-                            </div>
-                            <p className="text-sm font-black uppercase tracking-widest text-gray-400">{t('cartEmpty')}</p>
-                            <p className="text-[10px] uppercase font-bold text-gray-300 mt-2">{t('selectItems')}</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {serviceCart.map((item, i) => (
-                              <div key={`${item.id}-${i}`} className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-3 group border border-transparent hover:border-blue-100 hover:bg-white hover:shadow-xl hover:shadow-blue-200/10 transition-all active:scale-[0.98]">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <h4 className="text-[11px] font-black text-gray-800 uppercase tracking-tight leading-tight">{item.name}</h4>
-                                    <p className="text-[8px] text-gray-400 font-black uppercase mt-1 tracking-widest bg-white px-2 py-0.5 rounded-full inline-block border border-gray-100">{item.type === 'service' ? 'Maintenance Service' : 'Hardware Part'}</p>
-                                  </div>
-                                  <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-gray-300 hover:text-rose-500 transition-colors p-1"><X size={16} /></button>
-                                </div>
-                                <div className="flex justify-between items-center bg-white px-3 py-2 rounded-xl border border-gray-100">
-                                  <div className="flex items-center gap-3">
-                                    <button onClick={() => {
-                                      const newCart = [...serviceCart];
-                                      if (newCart[i].quantity > 1) {
-                                        newCart[i].quantity -= 1;
-                                        setServiceCart(newCart);
-                                      } else {
-                                        setServiceCart(serviceCart.filter((_, idx) => idx !== i));
-                                      }
-                                    }} className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100"><Minus size={14} /></button>
-                                    <span className="text-xs font-black font-mono w-4 text-center">{item.quantity}</span>
-                                    <button onClick={() => {
-                                      const newCart = [...serviceCart];
-                                      newCart[i].quantity += 1;
-                                      setServiceCart(newCart);
-                                    }} className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100"><Plus size={14} /></button>
-                                  </div>
-                                  <p className="text-sm font-black text-gray-900 font-mono tracking-tighter">{formatCurrency(item.sellPrice * item.quantity)}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="bg-gray-50 border-t border-gray-200 p-4 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center text-xs text-gray-500">
-                            <span className="font-bold">{t('subtotal')}</span>
-                            <span className="font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
-                          </div>
-                          <div className="pt-2 border-t border-gray-200 flex justify-between items-end">
-                            <span className="text-sm font-bold text-gray-700">{t('totalCost')}</span>
-                            <span className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
-                          </div>
-                        </div>
-
-                        {/* Sales Employee Selection */}
-                        <div className="mb-2">
-                          <button
-                            onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                            className="w-full flex items-center justify-between p-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
-                          >
-                            <div className="flex items-center gap-2">
-                              <User size={18} className="text-blue-600" />
-                              <div className="text-left">
-                                <div className="text-xs text-blue-500 font-bold uppercase tracking-wide">{t('salesEmployee')}</div>
-                                <div className="font-bold text-gray-900">{salesEmployee ? salesEmployee.name : t('selectEmployee') || 'Select Employee'}</div>
-                              </div>
-                            </div>
-                            <ChevronDown size={16} className="text-blue-400" />
-                          </button>
-                        </div>
-
-                        {/* Order Type Toggle */}
-                        <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
-                          <button
-                            onClick={() => setOrderType('Walk-in')}
-                            className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Walk-in' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                          >
-                            {t('walkIn')}
-                          </button>
-                          <button
-                            onClick={() => setOrderType('Takeaway')}
-                            className={`flex-1 py-1 text-sm font-medium rounded-md transition-all ${orderType === 'Takeaway' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                          >
-                            {t('takeaway')}
-                          </button>
-                        </div>
-
-                        <div className="flex gap-2 mb-2">
-                          <div className="relative flex-1">
-                            <input
-                              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                              placeholder={t('customerId') || 'Customer ID'}
-                              value={newSaleForm.customerId}
-                              onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
-                            />
-                          </div>
-                          <button
-                            onClick={() => { setScannerMode('customerID'); setIsScannerOpen(true); }}
-                            className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
-                            title={t('scanBarcode')}
-                          >
-                            <Scan size={18} />
-                          </button>
-                        </div>
-
-                        <input
-                          className="w-full mb-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                          placeholder={t('customerNameOptional') || 'Customer Name'}
-                          value={newSaleForm.customer}
-                          onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
-                        />
-
-                        <div className="grid grid-cols-3 gap-2 mb-2">
-                          {['Cash', 'Visa', 'Online'].map(method => (
-                            <button
-                              key={method}
-                              onClick={() => {
-                                setPaymentMethod(method);
-                                if (method === 'Online') setShowUpiQr(true);
-                              }}
-                              className={`py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}
-                            >
-                              {method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}
-                            </button>
-                          ))}
-                        </div>
-
-                        {paymentMethod === 'Online' && (
-                          <div className="flex flex-wrap gap-2 mb-4 animate-in slide-in-from-top-2 duration-300 p-2 bg-gray-50 rounded-2xl border border-gray-100">
-                            {['UPI', 'InstaPay', 'Other'].map(sub => (
-                              <button
-                                key={sub}
-                                onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
-                                className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${digitalSubMethod === sub ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 hover:text-gray-600'}`}
-                              >
-                                {t(sub.toLowerCase()) || sub}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        <div>
-                          <button
-                            onClick={() => {
-                              if (serviceCart.length > 0) {
-                                if (printFormat === 'Thermal') handleCheckoutServiceCart('Thermal');
-                                else handleCheckoutServiceCart('A4');
-                              }
-                            }}
-                            disabled={serviceCart.length === 0}
-                            className="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
-                          >
-                            <CheckCircle size={20} /> {t('checkout')}
-                          </button>
-                          
-                          <div className="grid grid-cols-2 gap-2 mt-2">
-                             <button onClick={() => setPrintFormat('Thermal')} className={`py-2 bg-white border rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${printFormat === 'Thermal' ? 'border-blue-500 text-blue-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                               <Printer size={14} /> {t('thermal')}
-                             </button>
-                             <button onClick={() => setPrintFormat('A4')} className={`py-2 bg-white border rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${printFormat === 'A4' ? 'border-blue-500 text-blue-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                               <FileText size={14} /> {t('a4') || 'A4'}
-                             </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
 
@@ -7282,6 +6908,82 @@ export default function App() {
                     </div>
                   </div>
                 )}
+                </div>
+
+                {/* Right Side: Shared Cart Sidebar (Persistent in Service) */}
+                <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[120] lg:z-20 transition-transform duration-300 ease-in-out transform shadow-[-10px_0_30px_rgba(0,0,0,0.02)] ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                  {isMobileCartOpen && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[-1] lg:hidden" onClick={() => setIsMobileCartOpen(false)}></div>}
+                  <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-30">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
+                          <ArrowLeft size={20} />
+                      </button>
+                      <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                        <ShoppingCart size={20} />
+                      </div>
+                      <h3 className="font-black text-lg uppercase tracking-tight">{t('currentBill')}</h3>
+                    </div>
+                    <span className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full">
+                      {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)} ITEMS
+                    </span>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-gray-50/50">
+                    {serviceCart.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-gray-300 p-8 text-center opacity-60">
+                        <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center mb-4 border border-dashed border-gray-200">
+                          <ShoppingBag size={32} className="opacity-20" />
+                        </div>
+                        <p className="text-sm font-black uppercase tracking-widest text-gray-400">{t('cartEmpty')}</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {serviceCart.map((item, i) => (
+                          <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm transition-all hover:shadow-md">
+                            <div className="flex justify-between items-start mb-3">
+                              <h4 className="text-[11px] font-black text-gray-800 uppercase leading-tight flex-1 pr-4">{item.name}</h4>
+                              <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-gray-300 hover:text-rose-500 transition-colors"><X size={16} /></button>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-2 py-1">
+                                <button onClick={() => {
+                                  const newCart = [...serviceCart];
+                                  if (newCart[i].quantity > 1) { newCart[i].quantity -= 1; setServiceCart(newCart); }
+                                  else { setServiceCart(serviceCart.filter((_, idx) => idx !== i)); }
+                                }} className="p-1 hover:text-rose-500"><Minus size={14} /></button>
+                                <span className="text-xs font-black w-4 text-center">{item.quantity}</span>
+                                <button onClick={() => {
+                                  const newCart = [...serviceCart];
+                                  newCart[i].quantity += 1;
+                                  setServiceCart(newCart);
+                                }} className="p-1 hover:text-blue-500"><Plus size={14} /></button>
+                              </div>
+                              <p className="text-sm font-black text-gray-900 mono">{formatCurrency(item.sellPrice * item.quantity)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {serviceCart.length > 0 && (
+                    <div className="p-6 bg-white border-t border-gray-100 space-y-4">
+                      <div className="flex justify-between items-end">
+                        <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('totalCost')}</span>
+                        <span className="text-2xl font-black text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (printFormat === 'Thermal') handleCheckoutServiceCart('Thermal');
+                          else handleCheckoutServiceCart('A4');
+                        }}
+                        className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-[0.98]"
+                      >
+                        {t('payNow') || 'Complete Payment'}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )
           }
@@ -9721,57 +9423,51 @@ export default function App() {
                   />
                 </div>
 
-                <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
-                  <Play size={18} fill="currentColor" /> {t('startSession')}
-                </button>
-              </form>
-            </div>
-          </div>
-        )
-      }
-
       {/* Service Module Specific Mobile Navigation */}
       {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-50 flex items-center z-[110] shadow-[0_-15px_50px_rgba(0,0,0,0.12)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 overflow-visible">
-          <div className="flex overflow-x-auto no-scrollbar px-4 py-2 w-full gap-2 snap-x">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-15px_60px_rgba(0,0,0,0.15)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 z-[110]">
+          <div className="grid grid-cols-6 gap-0 px-1 py-3 h-20 items-center">
             {[
               { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={18} /> },
               { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={18} /> },
               { id: 'active', label: t('activeJobs'), icon: <Wrench size={18} /> },
               { id: 'inventory', label: t('inventory'), icon: <HardDrive size={18} /> },
               { id: 'history', label: t('history'), icon: <History size={18} /> },
-              { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={18} /> },
-              ...(serviceSubTab === 'sell' && serviceCart.length > 0 ? [{ 
-                id: 'cart', 
-                label: t('checkout'), 
-                icon: (
-                  <div className="relative">
-                    <ShoppingBag size={18} />
-                    <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full animate-pulse border border-white">
-                      {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
-                    </span>
-                  </div>
-                ),
-                action: () => setIsMobileCartOpen(true)
-              }] : [])
+              { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={18} /> }
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => tab.action ? tab.action() : setServiceSubTab(tab.id)}
-                className={`flex-shrink-0 flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all snap-center ${serviceSubTab === tab.id ? 'text-blue-600' : 'text-gray-400'}`}
+                onClick={() => setServiceSubTab(tab.id)}
+                className={`flex flex-col items-center gap-1.5 transition-all outline-none ${serviceSubTab === tab.id ? 'text-blue-600' : 'text-gray-300'}`}
               >
-                <div className={`p-2.5 rounded-2xl transition-all ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-50'}`}>
+                <div className={`p-2.5 rounded-2xl transition-all ${serviceSubTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-transparent'}`}>
                   {tab.icon}
                 </div>
-                <span className={`text-[8px] font-black uppercase tracking-widest ${serviceSubTab === tab.id ? 'opacity-100' : 'opacity-40'}`}>{tab.label}</span>
+                <span className="text-[7px] font-black uppercase tracking-tight text-center w-full truncate px-1">{tab.label}</span>
               </button>
             ))}
           </div>
+          
+          {/* Global Cart FAB */}
+          {serviceCart.length > 0 && !isMobileCartOpen && (
+            <button 
+              onClick={() => setIsMobileCartOpen(true)}
+              className="fixed bottom-24 right-5 bg-rose-500 text-white p-4 rounded-full shadow-2xl shadow-rose-500/40 animate-in zoom-in duration-300 active:scale-90 z-[120] border-4 border-white"
+            >
+              <div className="relative">
+                <ShoppingBag size={24} />
+                <span className="absolute -top-1 -right-1 bg-white text-rose-500 text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-rose-500 animate-pulse">
+                  {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
+                </span>
+              </div>
+            </button>
+          )}
         </div>
       )}
-
     </div>
   );
 }
+
+export default App;
 
 
