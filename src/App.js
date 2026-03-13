@@ -5631,6 +5631,11 @@ export default function App() {
                                     {formatCurrency(item.sellPrice || 0)}
                                     <span className="text-[10px] text-gray-400 ml-1 font-normal opacity-50">/ UNIT</span>
                                   </div>
+                                  {currentMode !== 'Cashier' && (
+                                    <div className="font-mono text-[10px] text-amber-600 font-bold">
+                                      {t('buyPrice') || 'Buy'}: {showSensitiveData ? formatCurrency(item.buyPrice || 0) : '****'}
+                                    </div>
+                                  )}
                                 </div>
                                 <div className={`px-3 py-1 rounded-full text-[10px] font-black shadow-sm flex items-center gap-1 ${item.quantity <= 0 ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-gray-900 text-white'}`}>
                                   {item.quantity <= 0 ? (
@@ -5641,6 +5646,13 @@ export default function App() {
                                 </div>
                               </div>
                             </div>
+                            {currentMode !== 'Cashier' && (
+                              <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                                <button onClick={() => { setPrintConfigs([{ item, qty: 1 }]); setIsPrintBarcodeModalOpen(true); }} disabled={!item.barcode} className="flex-1 py-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-all flex items-center justify-center gap-1 border border-gray-100 text-[9px] font-black uppercase tracking-tighter disabled:opacity-30"><Printer size={12} /> {t('print')}</button>
+                                <button onClick={() => { setEditingItem(item); setIsAddItemModalOpen(true); }} className="flex-1 py-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all flex items-center justify-center gap-1 border border-gray-100 text-[9px] font-black uppercase tracking-tighter"><Edit size={12} /> {t('edit')}</button>
+                                <button onClick={() => handleDeleteWarehouseItem(item.id)} className="flex-1 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center justify-center gap-1 border border-gray-100 text-[9px] font-black uppercase tracking-tighter"><Trash2 size={12} /> {t('delete')}</button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
