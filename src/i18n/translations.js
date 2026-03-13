@@ -636,7 +636,10 @@ export const translations = {
     "allowPopups": "Please allow popups to print the receipt.",
     "sell": "Sell",
     "servicePOS": "Service POS",
+    "serviceCenter": "Service Center",
+    "repairManagement": "Repair Management",
     "activeRepairs": "Active Repairs",
+    "noRecentActivity": "No Recent Activity",
     "searchRepairsAndStock": "Search Repairs or Stock...",
     "morning8": "Morning (8h)",
     "night8": "Night (8h)",
@@ -1978,6 +1981,12 @@ export const translations = {
     "instapay": "انستا باي",
     "repairLabor": "عمل صيانة",
     "autoHide": "إخفاء تلقائي",
+    "sell": "بيع",
+    "servicePOS": "نقطة بيع الخدمة",
+    "serviceCenter": "مركز الخدمة",
+    "repairManagement": "إدارة الإصلاحات",
+    "activeRepairs": "إصلاحات نشطة",
+    "noRecentActivity": "لا يوجد نشاط أخير",
     "seconds": "ثانية"
   },
   "zh": {

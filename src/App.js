@@ -4178,7 +4178,7 @@ export default function App() {
         </header>
 
         {/* Global Mobile Navigation (Native App Feel) */}
-        {activeTab !== 'sales_purchases' && (
+        {activeTab !== 'sales_purchases' && activeTab !== 'service' && (
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
             <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
               <div className={`p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
@@ -5996,7 +5996,7 @@ export default function App() {
           {/* ========================================================= */}
           {
             activeTab === 'service' && (
-              <div className="space-y-6 animate-in fade-in duration-700 min-h-screen pb-32 lg:pb-8">
+              <div className="space-y-6 animate-in fade-in duration-700 min-h-screen pb-40 lg:pb-8">
                 {/* Mobile Header / Banner */}
                 <div className="lg:hidden -mx-4 -mt-6 mb-8 relative h-48 overflow-hidden rounded-b-[3rem] bg-indigo-950 px-6 pt-12">
                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -6178,7 +6178,7 @@ export default function App() {
                       {/* Top Action Bar */}
                       <div className="p-6 md:p-8 bg-white border-b border-gray-100">
                         <div className="flex flex-col md:flex-row gap-6 justify-between items-center">
-                          <div className="flex items-center gap-4">
+                          <div className="hidden md:flex items-center gap-4">
                             <div className="p-3.5 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-200">
                               <ShoppingCart size={24} strokeWidth={2.5} />
                             </div>
