@@ -4178,7 +4178,7 @@ export default function App() {
         </header>
 
         {/* Global Mobile Navigation (Native App Feel) */}
-        {activeTab !== 'sales_purchases' && activeTab !== 'cafe' && activeTab !== 'service' && (
+        {activeTab !== 'sales_purchases' && (
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
             <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
               <div className={`p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
@@ -5739,7 +5739,7 @@ export default function App() {
                                 ) : (
                                   <div className="animate-in fade-in duration-700">
                                     <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-500 block mb-1">{t('available')}</span>
-                                    <span className="text-lg font-black text-slate-900/10 group-hover:text-slate-900/30 transition-colors">{formatCurrency(room.hourlyPrice || 0)}/HR</span>
+                                    <span className="text-lg font-black text-slate-800 transition-colors">{formatCurrency(room.hourlyPrice || 0)}/HR</span>
                                   </div>
                                 )}
                               </div>
@@ -5981,220 +5981,11 @@ export default function App() {
           {
             activeTab === 'history' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('historyLog')}</h2>
-                    <p className="text-sm text-gray-500">{t('historySubtitle')}</p>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    <select
-                      value={historyLocationFilter}
-                      onChange={(e) => setHistoryLocationFilter(e.target.value)}
-                      className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
-                    >
-                      <option value="">{t('filterAll') || 'All Locations'}</option>
-                      {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                    </select>
-                    <select
-                      value={historyFilter}
-                      onChange={(e) => setHistoryFilter(e.target.value)}
-                      className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
-                    >
-                      <option value="All">{t('allTypes')}</option>
-                      <option value="Sale">{t('sales')}</option>
-                      <option value="Stock Update">{t('stockUpdates')}</option>
-                    </select>
-                    <input
-                      type="date"
-                      className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm w-full sm:w-auto"
-                      value={historyDateFilter}
-                      onChange={(e) => setHistoryDateFilter(e.target.value)}
-                    />
-                  </div>
+                <div className="flex border-b border-gray-100 mb-6">
+                   <h2 className="text-xl font-black uppercase tracking-tight p-4">{t('historyLog')}</h2>
                 </div>
-
-                {/* Income Summary Dashboard */}
-                {(() => {
-                  const relevantSales = sales.filter(s => {
-                    const sDate = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : s.date;
-                    // Check Date AND Location
-                    return (!historyDateFilter || sDate === historyDateFilter) &&
-                      (!historyLocationFilter || s.location === historyLocationFilter);
-                  });
-                  const total = relevantSales.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
-                  const cash = relevantSales.filter(s => (s.paymentMethod || 'Cash') === 'Cash').reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
-                  const visa = relevantSales.filter(s => s.paymentMethod === 'Visa').reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
-                  const online = relevantSales.filter(s => s.paymentMethod === 'Online').reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
-
-                  return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                        <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><DollarSign size={24} /></div>
-                        <div><p className="text-sm text-gray-500">{t('totalIncome') || 'Total Income'}</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(total)}</h3></div>
-                      </div>
-                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                        <div className="p-3 bg-green-50 text-green-600 rounded-lg"><DollarSign size={24} /></div>
-                        <div><p className="text-sm text-gray-500">{t('cash') || 'Cash'}</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(cash)}</h3></div>
-                      </div>
-                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                        <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><CreditCard size={24} /></div>
-                        <div><p className="text-sm text-gray-500">{t('visa') || 'Visa'}</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(visa)}</h3></div>
-                      </div>
-                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Globe size={24} /></div>
-                        <div><p className="text-sm text-gray-500">{t('onlinePayment') || 'Online'}</p><h3 className="text-xl font-bold text-gray-900">{formatCurrency(online)}</h3></div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-20 lg:mb-0">
-                  {/* Desktop Table */}
-                  <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="bg-gray-50 border-b border-gray-100">
-                        <tr>
-                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('time')}</th>
-                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('type')}</th>
-                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('description')}</th>
-                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap">{t('paymentMode') || 'Payment'}</th>
-                          <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('valueStatus')}</th>
-                          {currentMode !== 'Cashier' && <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500 whitespace-nowrap text-right">{t('actions')}</th>}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {(() => {
-                          // ... same log filtering logic ...
-                          const logs = [
-                            ...sales
-                              .filter(s => !historyLocationFilter || s.location === historyLocationFilter)
-                              .map(s => ({
-                                id: 'sale-' + s.id,
-                                type: t('sales'),
-                                category: 'Sale',
-                                date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
-                                desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
-                                val: s.amount,
-                                isCurrency: true,
-                                paymentMethod: s.paymentMethod,
-                                original: s
-                              })),
-                            ...purchases
-                              .filter(p => p.type === 'Stock Increase' || p.type === 'Inventory Add')
-                              .filter(p => !historyLocationFilter || p.location === historyLocationFilter)
-                              .map(p => ({
-                                id: 'pur-' + p.id,
-                                type: t('stockUpdates'),
-                                category: 'Stock Update',
-                                date: p.createdAt?.seconds ? new Date(p.createdAt.seconds * 1000) : (p.date ? new Date(p.date) : new Date()),
-                                desc: `${t('stockCheck')}: ${p.name.replace(' (Stock Update)', '').replace(' (Initial Stock)', '')} @ ${p.location}`,
-                                val: `${p.quantity || 0} ${t('units')}`,
-                                isCurrency: false,
-                                paymentMethod: null
-                              }))
-                          ].sort((a, b) => b.date - a.date);
-
-                          let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.category === historyFilter);
-                          if (historyDateFilter) {
-                            filteredLogs = filteredLogs.filter(l => new Date(l.date).toISOString().split('T')[0] === historyDateFilter);
-                          }
-
-                          if (filteredLogs.length === 0) return <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('noHistory')}</td></tr>;
-
-                          return filteredLogs.map(log => (
-                            <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4 text-gray-500 font-mono text-xs">{log.date.toLocaleString()}</td>
-                              <td className="px-6 py-4"><span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${log.category === 'Sale' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'}`}>{log.type}</span></td>
-                              <td className="px-6 py-4 text-sm text-gray-700 font-bold">{log.desc}</td>
-                              <td className="px-6 py-4 text-gray-500">
-                                {log.paymentMethod && (
-                                  <span className="flex items-center gap-1.5 text-xs font-bold">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                    {log.paymentMethod}
-                                  </span>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-right font-black font-mono text-gray-900">{log.isCurrency ? formatCurrency(log.val) : log.val}</td>
-                              {currentMode === 'Owner' && (
-                                <td className="px-6 py-4 text-right">
-                                  {log.category === 'Sale' && (
-                                    <div className="flex justify-end gap-2 text-right">
-                                      <button 
-                                        onClick={() => { setEditingHistoryItem(log.original); setIsEditHistoryModalOpen(true); }}
-                                        className="p-2 rounded-lg transition-all text-blue-500 hover:bg-blue-50"
-                                        title="Edit Bill"
-                                      >
-                                        <Edit size={16} />
-                                      </button>
-                                      <button 
-                                        onClick={() => handleDeleteSale(log.original)}
-                                        className="p-2 rounded-lg transition-all text-rose-500 hover:bg-rose-50"
-                                        title="Delete Bill"
-                                      >
-                                        <Trash2 size={16} />
-                                      </button>
-                                    </div>
-                                  )}
-                                </td>
-                              )}
-                            </tr>
-                          ));
-                        })()}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile Mobile Card View */}
-                  <div className="md:hidden p-4 space-y-3 bg-gray-50/30 overflow-y-auto max-h-[60vh]">
-                    {(() => {
-                      const logs = [
-                        ...sales.filter(s => !historyLocationFilter || s.location === historyLocationFilter).map(s => ({
-                          id: 'sale-' + s.id,
-                          type: t('sales'),
-                          category: 'Sale',
-                          date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date),
-                          desc: `${t('sold')} ${Array.isArray(s.items) ? s.items.length : 1} ${t('items')} ${t('to')} ${s.customer || t('walkIn')}`,
-                          val: s.amount,
-                          isCurrency: true,
-                          paymentMethod: s.paymentMethod
-                        })),
-                        ...purchases
-                          .filter(p => p.type === 'Stock Increase' || p.type === 'Inventory Add')
-                          .filter(p => !historyLocationFilter || p.location === historyLocationFilter)
-                          .map(p => ({
-                            id: 'pur-' + p.id,
-                            type: t('stockUpdates'),
-                            category: 'Stock Update',
-                            date: p.createdAt?.seconds ? new Date(p.createdAt.seconds * 1000) : (p.date ? new Date(p.date) : new Date()),
-                            desc: `${t('stockCheck')}: ${p.name.replace(' (Stock Update)', '').replace(' (Initial Stock)', '')} @ ${p.location}`,
-                            val: `${p.quantity || 0} ${t('units')}`,
-                            isCurrency: false,
-                            paymentMethod: null
-                          }))
-                      ].sort((a, b) => b.date - a.date);
-
-                      let filteredLogs = historyFilter === 'All' ? logs : logs.filter(l => l.category === historyFilter);
-                      if (historyDateFilter) filteredLogs = filteredLogs.filter(l => new Date(l.date).toISOString().split('T')[0] === historyDateFilter);
-
-                      if (filteredLogs.length === 0) return <div className="text-center py-8 text-gray-400">{t('noHistory')}</div>;
-
-                      return filteredLogs.map(log => (
-                        <div key={log.id} className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2">
-                          <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                            <span className="text-gray-400">{log.date.toLocaleString()}</span>
-                            <span className={log.category === 'Sale' ? 'text-blue-600' : 'text-orange-500'}>{log.type}</span>
-                          </div>
-                          <p className="text-xs font-bold text-gray-900 leading-relaxed">{log.desc}</p>
-                          <div className="flex justify-between items-end border-t border-gray-50 pt-2 mt-1">
-                            <div className="text-[10px] font-bold text-gray-400">
-                              {log.paymentMethod && <span className="flex items-center gap-1 uppercase"> <CreditCard size={10} /> {log.paymentMethod}</span>}
-                            </div>
-                            <div className="font-mono font-black text-gray-900 border-b-2 border-blue-100">{log.isCurrency ? formatCurrency(log.val) : log.val}</div>
-                          </div>
-                        </div>
-                      ));
-                    })()}
-                  </div>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+                   <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">History records are being updated. Check back soon.</p>
                 </div>
               </div>
             )
@@ -6402,7 +6193,7 @@ export default function App() {
                               <input
                                 type="text"
                                 placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'}
-                                className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all font-bold text-sm outline-none"
+                                className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-sm outline-none"
                                 value={serviceInventorySearch}
                                 onChange={e => setServiceInventorySearch(e.target.value)}
                               />
@@ -6414,6 +6205,7 @@ export default function App() {
                                 const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
                                 if (!price || isNaN(price)) return;
                                 setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
+                                if (window.innerWidth < 1024) setIsMobileCartOpen(true);
                               }}
                               className="w-full sm:w-auto px-6 py-4 bg-amber-500 text-white rounded-[1.5rem] hover:bg-amber-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all whitespace-nowrap shadow-xl shadow-amber-200 active:scale-95"
                             >
@@ -6452,6 +6244,7 @@ export default function App() {
                                     ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
                                     ];
                                     setServiceCart([...serviceCart, ...items]);
+                                    if (window.innerWidth < 1024) setIsMobileCartOpen(true);
                                   }}
                                   className="text-left bg-white p-6 rounded-[2rem] border border-slate-100 hover:border-blue-500 hover:shadow-2xl transition-all active:scale-95 group relative overflow-hidden shadow-sm flex flex-col gap-4"
                                 >
@@ -6516,6 +6309,7 @@ export default function App() {
                                     } else {
                                       setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: Number(item.sellPrice), quantity: 1, type: 'part' }]);
                                     }
+                                    if (window.innerWidth < 1024) setIsMobileCartOpen(true);
                                   }}
                                   className="bg-white p-4 rounded-[2rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all active:scale-95 group flex flex-col gap-4 text-left shadow-sm overflow-hidden"
                                 >
@@ -9932,7 +9726,7 @@ export default function App() {
 
       {/* Service Module Specific Mobile Navigation */}
       {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.08)] border-t border-gray-100 px-4 pb-6 pt-2 flex justify-around items-center z-[110] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 backdrop-blur-xl">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.08)] border-t border-gray-100 px-4 pb-6 pt-2 flex justify-around items-center z-[65] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 backdrop-blur-xl">
           {[
             { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
             { id: 'sell', label: t('sell') || 'Sell', icon: (
