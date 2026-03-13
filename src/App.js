@@ -6205,7 +6205,7 @@ export default function App() {
           {
             activeTab === 'service' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex gap-2 bg-white p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto scrollbar-hide no-scrollbar">
+                <div className="hidden lg:flex gap-2 bg-white p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto scrollbar-hide no-scrollbar">
                   {[
                     { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
                     { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
@@ -6228,75 +6228,91 @@ export default function App() {
                 {serviceSubTab === 'board' && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 px-0 sm:px-0">
                       {[
-                        { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <Zap className="text-amber-500" />, bg: 'bg-amber-50' },
-                        { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock className="text-orange-500" />, bg: 'bg-orange-50' },
-                        { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckSquare className="text-emerald-500" />, bg: 'bg-emerald-50' },
-                        { label: t('lowStock'), value: serviceInventory.filter(i => i.stock <= i.minStock).length, icon: <AlertTriangle className="text-rose-500" />, bg: 'bg-rose-50' },
-                        { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard className="text-blue-500" />, bg: 'bg-blue-50' }
+                        { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <Zap className="text-amber-500" />, bg: 'bg-amber-50', color: 'text-amber-600' },
+                        { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock className="text-orange-500" />, bg: 'bg-orange-50', color: 'text-orange-600' },
+                        { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckSquare className="text-emerald-500" />, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+                        { label: t('lowStock'), value: serviceInventory.filter(i => i.stock <= i.minStock).length, icon: <AlertTriangle className="text-rose-500" />, bg: 'bg-rose-50', color: 'text-rose-600' },
+                        { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard className="text-blue-500" />, bg: 'bg-blue-50', color: 'text-blue-600' }
                       ].map((stat, i) => (
-                        <div key={i} className={`bg-white p-3 sm:p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-5 hover:shadow-md transition-shadow ${i === 4 ? 'col-span-2 sm:col-span-1' : ''}`}>
-                          <div className={`p-2 sm:p-4 rounded-2xl ${stat.bg}`}>{stat.icon}</div>
+                        <div key={i} className={`bg-white p-4 sm:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-start gap-4 hover:shadow-md transition-shadow active:scale-[0.98] cursor-default group`}>
+                          <div className={`p-3 sm:p-4 rounded-2xl ${stat.bg} group-hover:scale-110 transition-transform`}>{stat.icon}</div>
                           <div>
-                            <p className="text-[8px] sm:text-[10px] font-black uppercase text-gray-400 tracking-widest leading-tight">{stat.label}</p>
-                            <h3 className="text-sm sm:text-lg font-black text-gray-900 leading-none mt-1">{stat.value}</h3>
+                            <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-[0.15em] leading-tight mb-1">{stat.label}</p>
+                            <h3 className={`text-xl sm:text-2xl font-black ${stat.color} leading-none font-mono`}>{stat.value}</h3>
                           </div>
                         </div>
                       ))}
                     </div>
 
                     {/* Quick Actions & Recent Activity */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-32">
                       <div className="lg:col-span-2 space-y-8">
                         {/* Quick Actions Grid */}
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                          <h3 className="text-sm font-black uppercase text-gray-900 tracking-widest mb-6 flex items-center gap-2">
-                            <Zap size={16} className="text-amber-500" /> {t('quickActions')}
+                        <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                          <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
+                            <Zap size={16} className="text-amber-500 fill-amber-500" /> {t('quickActions')}
                           </h3>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             {[
-                              { label: t('newTicket'), icon: <Wrench size={24} />, color: 'bg-blue-500', action: () => setServiceSubTab('new') },
-                              { label: t('addCustomer'), icon: <UserPlus size={24} />, color: 'bg-indigo-500', action: () => { setServiceSubTab('customers'); setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); } },
-                              { label: t('activeJobs'), icon: <Activity size={24} />, color: 'bg-emerald-500', action: () => setServiceSubTab('active') },
-                              { label: t('sales') || 'Sales', icon: <ShoppingCart size={24} />, color: 'bg-indigo-600', action: () => setServiceSubTab('sell') }
+                              { label: t('newTicket'), icon: <Plus size={28} />, color: 'bg-blue-600', shadow: 'shadow-blue-200', action: () => setServiceSubTab('new') },
+                              { label: t('addCustomer'), icon: <UserPlus size={28} />, color: 'bg-indigo-600', shadow: 'shadow-indigo-200', action: () => { setServiceSubTab('customers'); setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); } },
+                              { label: t('activeJobs'), icon: <Activity size={28} />, color: 'bg-emerald-600', shadow: 'shadow-emerald-200', action: () => setServiceSubTab('active') },
+                              { label: t('sales') || 'Sales', icon: <ShoppingCart size={28} />, color: 'bg-slate-900', shadow: 'shadow-slate-200', action: () => setServiceSubTab('sell') }
                             ].map((btn, i) => (
                               <button
                                 key={i}
                                 onClick={btn.action}
-                                className="group flex flex-col items-center gap-2 p-4 sm:p-6 rounded-3xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100"
+                                className="group flex flex-col items-center gap-3 p-4 rounded-[2rem] hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 active:scale-95"
                               >
-                                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${btn.color} text-white flex items-center justify-center shadow-lg transform group-hover:-translate-y-1 transition-transform`}>
+                                <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl ${btn.color} text-white flex items-center justify-center shadow-2xl ${btn.shadow} transform group-hover:-translate-y-1 transition-transform`}>
                                   {btn.icon}
                                 </div>
-                                <span className="text-[8px] sm:text-[10px] font-black uppercase text-gray-600 tracking-widest text-center leading-tight">{btn.label}</span>
+                                <span className="text-[10px] font-black uppercase text-slate-600 tracking-widest text-center leading-tight">{btn.label}</span>
                               </button>
                             ))}
                           </div>
                         </div>
 
                         {/* Recent Activity List */}
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                          <h3 className="text-sm font-black uppercase text-gray-900 tracking-widest mb-6 flex items-center gap-2">
-                            <History size={16} className="text-blue-500" /> {t('recentActivity')}
-                          </h3>
-                          <div className="space-y-4">
+                        <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                          <div className="flex justify-between items-center mb-8">
+                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-3">
+                              <History size={16} className="text-blue-500" /> {t('recentActivity')}
+                            </h3>
+                            <button onClick={() => setServiceSubTab('active')} className="text-[10px] font-black uppercase text-blue-600 hover:underline tracking-widest">{t('viewAll') || 'View All'}</button>
+                          </div>
+                          <div className="space-y-3">
                             {serviceTickets.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).slice(0, 5).map(ticket => (
-                              <div key={ticket.id} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group">
-                                <div className="p-3 bg-slate-100 rounded-xl text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                              <div 
+                                key={ticket.id} 
+                                onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}
+                                className="flex items-center gap-4 p-4 rounded-3xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group cursor-pointer active:scale-[0.99]"
+                              >
+                                <div className={`p-3 rounded-2xl transition-colors ${
+                                  ticket.status === 'Ready' ? 'bg-emerald-50 text-emerald-600' :
+                                  ticket.status === 'In Progress' ? 'bg-blue-50 text-blue-600' :
+                                  'bg-slate-100 text-slate-400'
+                                } group-hover:bg-white border border-transparent group-hover:border-slate-100 group-hover:shadow-sm`}>
                                   {ticket.deviceType === 'Mobile' ? <Smartphone size={20} /> : <Laptop size={20} />}
                                 </div>
-                                <div className="flex-1">
-                                  <h4 className="text-sm font-bold text-gray-900">{ticket.customerName} - {ticket.brand} {ticket.model}</h4>
-                                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-0.5">{ticket.status} • {ticket.createdAt?.seconds ? new Date(ticket.createdAt.seconds * 1000).toLocaleString() : 'Just now'}</p>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex justify-between items-start">
+                                    <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight truncate pr-2">{ticket.customerName}</h4>
+                                    <span className="text-[8px] font-black text-slate-300 font-mono">#{ticket.id.slice(0, 6)}</span>
+                                  </div>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 truncate">{ticket.brand} {ticket.model} • {ticket.status}</p>
                                 </div>
-                                <button onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }} className="p-2 text-gray-300 hover:text-blue-600 transition-colors"><ChevronRight size={20} /></button>
+                                <div className="p-2 text-slate-300 group-hover:text-blue-600 transition-colors">
+                                  <ChevronRight size={20} />
+                                </div>
                               </div>
                             ))}
                             {serviceTickets.length === 0 && (
-                              <div className="text-center py-12 opacity-30">
-                                <History size={48} className="mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest">No activities recorded yet</p>
+                              <div className="text-center py-16 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100">
+                                <Search size={40} className="mx-auto mb-4 text-slate-200" />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noRecentActivity') || 'No Recent Activity'}</p>
                               </div>
                             )}
                           </div>
@@ -6353,29 +6369,7 @@ export default function App() {
                 {/* Sub Tab: SELL (SERVICE POS) */}
                 {serviceSubTab === 'sell' && (
                   <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
-                    {/* Mobile Bottom Navigation for Service POS */}
-                    <div className="flex lg:hidden fixed bottom-6 left-6 right-6 bg-slate-900 text-white px-8 py-3 justify-between items-center z-[85] shadow-2xl rounded-[2.5rem] border border-white/10">
-                        <div className="flex gap-10">
-                          <button
-                            onClick={() => setIsMobileCartOpen(false)}
-                            className={`flex flex-col items-center gap-1 transition-all ${!isMobileCartOpen ? 'text-blue-400' : 'text-slate-500 hover:text-slate-400'}`}
-                          >
-                            <Wrench size={20} />
-                            <span className="text-[8px] font-black uppercase tracking-widest">{t('repairs') || 'Repairs'}</span>
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => setIsMobileCartOpen(true)}
-                          className={`relative bg-blue-600 text-white p-4 rounded-2xl shadow-xl transform active:scale-95 transition-all ${serviceCart.length > 0 ? 'animate-pulse' : ''}`}
-                        >
-                          <ShoppingCart size={24} />
-                          {serviceCart.length > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-slate-900 shadow-md">
-                              {serviceCart.reduce((a, b) => a + (b.quantity||1), 0)}
-                            </span>
-                          )}
-                        </button>
-                    </div>
+
 
                     {/* Left Side: Search & Items Grid */}
                     <div className={`flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
@@ -6734,103 +6728,143 @@ export default function App() {
 
                 {/* Sub Tab: NEW TICKET */}
                 {serviceSubTab === 'new' && (
-                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 animate-in fade-in zoom-in-95 duration-700">
-                    <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight mb-6">{t('createNewRepairTicket') || 'Create New Repair Ticket'}</h2>
+                  <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-gray-100 animate-in fade-in zoom-in-95 duration-700 max-w-4xl mx-auto">
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
+                        <Plus size={24} strokeWidth={3} />
+                      </div>
+                      <div>
+                        <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('createNewRepairTicket') || 'Create New Repair Ticket'}</h2>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{t('serviceModule') || 'Service Module'}</p>
+                      </div>
+                    </div>
 
                     <form onSubmit={async (e) => {
                       e.preventDefault();
                       try {
-                        await addDoc(collection(db, 'serviceTickets'), {
+                        const ticketData = {
                           ...serviceForm,
                           userId: user.uid,
                           createdAt: serverTimestamp(),
-                          statusLogs: [{ status: 'Received', date: new Date().toISOString(), by: 'System' }]
-                        });
+                          statusLogs: [{ status: 'Received', date: new Date().toISOString(), by: user.email || 'System' }]
+                        };
+                        await addDoc(collection(db, 'serviceTickets'), ticketData);
                         setServiceForm({ customerName: '', customerPhone: '', deviceType: 'Mobile', brand: '', model: '', serialNo: '', issue: '', priority: 'Normal', technician: '', estimatedCost: '', status: 'Received' });
                         setServiceSubTab('active');
                       } catch (err) { console.error(err); }
-                    }} className="space-y-6">
+                    }} className="space-y-8">
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('customerInfo') || 'Customer Info'}</label>
-                          <div className="relative group">
-                            <input
-                              className="input-field"
-                              placeholder={t('customerName') || 'Customer Name'}
-                              value={serviceForm.customerName}
-                              onChange={e => setServiceForm({ ...serviceForm, customerName: e.target.value })}
-                              required
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Customer Section */}
+                        <div className="space-y-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
+                          <label className="text-[10px] font-black uppercase text-blue-600 tracking-widest flex items-center gap-2">
+                             <User size={14} /> {t('customerInfo')}
+                          </label>
+                          <div className="space-y-3">
+                            <div className="relative group">
+                              <input
+                                className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                                placeholder={t('customerName') || 'Customer Name'}
+                                value={serviceForm.customerName}
+                                onChange={e => setServiceForm({ ...serviceForm, customerName: e.target.value })}
+                                required
+                              />
+                              {serviceForm.customerName.length > 1 && serviceCustomers.filter(c => c.name.toLowerCase().includes(serviceForm.customerName.toLowerCase())).length > 0 && (
+                                <div className="absolute top-full left-0 right-0 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 mt-2 max-h-48 overflow-y-auto overflow-x-hidden backdrop-blur-xl bg-white/95">
+                                  {serviceCustomers.filter(c => c.name.toLowerCase().includes(serviceForm.customerName.toLowerCase())).slice(0, 5).map(c => (
+                                    <button
+                                      key={c.id}
+                                      type="button"
+                                      onClick={() => setServiceForm({ ...serviceForm, customerName: c.name, customerPhone: c.phone })}
+                                      className="w-full text-left p-4 hover:bg-blue-50 transition-colors border-b border-gray-50 flex justify-between items-center"
+                                    >
+                                      <div>
+                                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{c.name}</p>
+                                        <p className="text-[10px] font-mono text-slate-400 mt-0.5">{c.phone}</p>
+                                      </div>
+                                      <ChevronRight size={16} className="text-slate-200" />
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <input 
+                              className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" 
+                              placeholder={t('phone') || 'Phone Number'} 
+                              value={serviceForm.customerPhone} 
+                              onChange={e => setServiceForm({ ...serviceForm, customerPhone: e.target.value })} 
+                              required 
                             />
-                            {serviceForm.customerName.length > 1 && serviceCustomers.filter(c => c.name.toLowerCase().includes(serviceForm.customerName.toLowerCase())).length > 0 && (
-                              <div className="absolute top-full left-0 right-0 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 mt-1 max-h-48 overflow-y-auto">
-                                {serviceCustomers.filter(c => c.name.toLowerCase().includes(serviceForm.customerName.toLowerCase())).slice(0, 5).map(c => (
-                                  <button
-                                    key={c.id}
-                                    type="button"
-                                    onClick={() => setServiceForm({ ...serviceForm, customerName: c.name, customerPhone: c.phone })}
-                                    className="w-full text-left p-4 hover:bg-slate-50 transition-colors border-b border-gray-50 flex flex-col"
-                                  >
-                                    <span className="text-sm font-bold text-gray-900">{c.name}</span>
-                                    <span className="text-[10px] font-mono text-slate-400">{c.phone}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
                           </div>
-                          <input className="input-field" placeholder={t('phone') || 'Phone Number'} value={serviceForm.customerPhone} onChange={e => setServiceForm({ ...serviceForm, customerPhone: e.target.value })} required />
                         </div>
 
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('deviceDetails') || 'Device Details'}</label>
-                          <select className="input-field" value={serviceForm.deviceType} onChange={e => setServiceForm({ ...serviceForm, deviceType: e.target.value })}>
-                            <option value="Mobile">{t('mobile') || 'Mobile Phone'}</option>
-                            <option value="PC">{t('pc') || 'PC / Laptop'}</option>
-                            <option value="Tablet">{t('tablet') || 'Tablet'}</option>
-                            <option value="Console">{t('console') || 'Gaming Console'}</option>
-                            <option value="Other">{t('other') || 'Other Electronics'}</option>
-                          </select>
-                          <div className="flex gap-2">
-                            <input className="input-field flex-1" placeholder={t('brand') || 'Brand'} value={serviceForm.brand} onChange={e => setServiceForm({ ...serviceForm, brand: e.target.value })} required />
-                            <input className="input-field flex-1" placeholder={t('model') || 'Model'} value={serviceForm.model} onChange={e => setServiceForm({ ...serviceForm, model: e.target.value })} required />
+                        {/* Device Section */}
+                        <div className="space-y-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
+                          <label className="text-[10px] font-black uppercase text-indigo-600 tracking-widest flex items-center gap-2">
+                            <Smartphone size={14} /> {t('deviceDetails')}
+                          </label>
+                          <div className="space-y-3">
+                            <select 
+                              className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none" 
+                              value={serviceForm.deviceType} 
+                              onChange={e => setServiceForm({ ...serviceForm, deviceType: e.target.value })}
+                            >
+                              <option value="Mobile">{t('mobile') || 'Mobile Phone'}</option>
+                              <option value="PC">{t('pc') || 'PC / Laptop'}</option>
+                              <option value="Tablet">{t('tablet') || 'Tablet'}</option>
+                              <option value="Console">{t('console') || 'Gaming Console'}</option>
+                              <option value="Other">{t('other') || 'Other Electronics'}</option>
+                            </select>
+                            <div className="flex gap-3">
+                              <input className="flex-1 px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" placeholder={t('brand') || 'Brand'} value={serviceForm.brand} onChange={e => setServiceForm({ ...serviceForm, brand: e.target.value })} required />
+                              <input className="flex-1 px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" placeholder={t('model') || 'Model'} value={serviceForm.model} onChange={e => setServiceForm({ ...serviceForm, model: e.target.value })} required />
+                            </div>
+                            <input className="w-full px-5 py-4 bg-white border border-dashed border-gray-200 rounded-2xl text-xs font-bold text-slate-400 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" placeholder={t('serialNo') || 'Serial / IMEI (Optional)'} value={serviceForm.serialNo} onChange={e => setServiceForm({ ...serviceForm, serialNo: e.target.value })} />
                           </div>
-                          <input className="input-field shadow-none border-dashed bg-gray-50" placeholder={t('serialNo') || 'Serial / IMEI (Optional)'} value={serviceForm.serialNo} onChange={e => setServiceForm({ ...serviceForm, serialNo: e.target.value })} />
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('issueDescription') || 'Issue Description'}</label>
-                        <textarea className="input-field min-h-[100px] resize-none" placeholder={t('describeIssue') || 'Describe the problem in detail...'} value={serviceForm.issue} onChange={e => setServiceForm({ ...serviceForm, issue: e.target.value })} required></textarea>
+                      <div className="space-y-3 bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
+                        <label className="text-[10px] font-black uppercase text-amber-600 tracking-widest flex items-center gap-2">
+                          <AlertTriangle size={14} /> {t('issueDescription')}
+                        </label>
+                        <textarea 
+                          className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black focus:ring-4 focus:ring-blue-500/10 transition-all outline-none min-h-[120px] resize-none" 
+                          placeholder={t('describeIssue') || 'Describe the problem in detail...'} 
+                          value={serviceForm.issue} 
+                          onChange={e => setServiceForm({ ...serviceForm, issue: e.target.value })} 
+                          required
+                        ></textarea>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('priority') || 'Priority'}</label>
-                          <select className="input-field text-blue-600 font-bold" value={serviceForm.priority} onChange={e => setServiceForm({ ...serviceForm, priority: e.target.value })}>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black uppercase text-rose-500 tracking-widest pl-2">{t('priority')}</label>
+                          <select className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black text-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all outline-none" value={serviceForm.priority} onChange={e => setServiceForm({ ...serviceForm, priority: e.target.value })}>
                             <option value="Low">{t('low')}</option>
                             <option value="Normal">{t('normal')}</option>
                             <option value="High">{t('high')} ⚡</option>
                             <option value="Urgent">{t('urgent')} 🔥</option>
                           </select>
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('assignedTechnician') || 'Assigned Technician'}</label>
-                          <select className="input-field" value={serviceForm.technician} onChange={e => setServiceForm({ ...serviceForm, technician: e.target.value })}>
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('assignedTechnician')}</label>
+                          <select className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceForm.technician} onChange={e => setServiceForm({ ...serviceForm, technician: e.target.value })}>
                             <option value="">{t('unassigned')}</option>
                             {employees.filter(e => e.dept === 'IT' || e.dept === 'Service' || e.role?.toLowerCase().includes('tech')).map(emp => (
                               <option key={emp.id} value={emp.name}>{emp.name}</option>
                             ))}
                           </select>
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{t('estimatedCost') || 'Estimated Cost'} ({currency})</label>
-                          <input type="number" className="input-field font-mono font-bold text-emerald-600" placeholder="0.00" value={serviceForm.estimatedCost} onChange={e => setServiceForm({ ...serviceForm, estimatedCost: e.target.value })} />
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black uppercase text-emerald-600 tracking-widest pl-2">{t('estimatedCost')} ({currency})</label>
+                          <input type="number" className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black text-emerald-600 font-mono focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none" placeholder="0.00" value={serviceForm.estimatedCost} onChange={e => setServiceForm({ ...serviceForm, estimatedCost: e.target.value })} />
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-gray-100 flex justify-end">
-                        <button type="submit" className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2">
-                          <Save size={18} /> {t('createTicket') || 'Create Repair Ticket'}
+                      <div className="pt-10 pb-20 sm:pb-0">
+                        <button type="submit" className="w-full sm:w-auto px-10 py-5 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 font-black uppercase tracking-widest shadow-2xl shadow-blue-200 transition-all flex items-center justify-center gap-3 transform active:scale-[0.98]">
+                          <Save size={24} /> {t('createTicket') || 'Create Repair Ticket'}
                         </button>
                       </div>
                     </form>
@@ -6867,60 +6901,85 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-2 sm:px-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-0 sm:px-0">
                       {serviceTickets
                         .filter(t => t.status !== 'Delivered')
                         .filter(t => !serviceStatusFilter || t.status === serviceStatusFilter)
                         .filter(t => !serviceSearch || t.customerName.toLowerCase().includes(serviceSearch.toLowerCase()) || t.brand?.toLowerCase().includes(serviceSearch.toLowerCase()) || t.model?.toLowerCase().includes(serviceSearch.toLowerCase()))
                         .map(ticket => (
-                          <div key={ticket.id} className="bg-white rounded-[2rem] p-4 sm:p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col group relative overflow-hidden">
-                            {ticket.priority === 'Urgent' && <div className="absolute top-0 inset-x-0 h-1 bg-red-500"></div>}
-                            {ticket.priority === 'High' && <div className="absolute top-0 inset-x-0 h-1 bg-orange-400"></div>}
+                          <div 
+                            key={ticket.id} 
+                            onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}
+                            className="bg-white rounded-[2.5rem] p-5 shadow-sm border border-gray-100/50 hover:shadow-xl hover:border-blue-200 transition-all flex flex-col group relative overflow-hidden active:scale-[0.98] cursor-pointer"
+                          >
+                            {/* Priority Indicator */}
+                            {(ticket.priority === 'Urgent' || ticket.priority === 'High') && (
+                              <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[8px] font-black uppercase tracking-widest text-white ${ticket.priority === 'Urgent' ? 'bg-red-500 animate-pulse' : 'bg-orange-500'}`}>
+                                {ticket.priority}
+                              </div>
+                            )}
 
                             <div className="flex justify-between items-start mb-4">
-                              <div>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] font-mono">#{ticket.id.slice(0, 6)}</span>
-                                <h3 className="font-bold text-gray-900 leading-tight mt-1">{ticket.customerName}</h3>
-                                <p className="text-xs text-blue-500 font-bold mt-0.5">{ticket.customerPhone}</p>
+                              <div className="flex-1 pr-12">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-[10px] font-black text-blue-600/40 uppercase tracking-[0.15em] font-mono">#{ticket.id.slice(0, 6)}</span>
+                                </div>
+                                <h3 className="font-black text-gray-900 leading-tight text-base uppercase tracking-tight">{ticket.customerName}</h3>
+                                <p className="text-xs text-blue-600 font-bold mt-1.5 flex items-center gap-1.5">
+                                  <Phone size={12} fill="currentColor" className="opacity-20" /> {ticket.customerPhone}
+                                </p>
                               </div>
-                              <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shrink-0 ${ticket.status === 'Ready' || ticket.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-50' :
-                                ticket.status === 'In Progress' || ticket.status === 'Waiting for Parts' ? 'bg-amber-100 text-amber-700 shadow-sm shadow-amber-50' :
-                                  'bg-rose-100 text-rose-700 shadow-sm shadow-rose-50'
-                                }`}>
-                                {t(ticket.status.toLowerCase().replace(/ /g, '')) || ticket.status}
-                              </span>
                             </div>
 
-                            <div className="bg-slate-50 rounded-xl p-3 mb-4 flex-1 border border-slate-100">
-                              <div className="flex items-center gap-2 mb-2">
-                                {ticket.deviceType === 'Mobile' ? <Smartphone size={16} className="text-slate-400" /> :
-                                  ticket.deviceType === 'PC' || ticket.deviceType === 'Tablet' ? <Laptop size={16} className="text-slate-400" /> :
-                                    <Database size={16} className="text-slate-400" />}
-                                <p className="text-sm font-bold text-slate-700">{ticket.brand} {ticket.model}</p>
+                            <div className="bg-slate-50/50 rounded-3xl p-4 mb-4 flex-1 border border-slate-100/50 backdrop-blur-sm">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2.5 bg-white rounded-xl shadow-sm text-blue-500">
+                                  {ticket.deviceType === 'Mobile' ? <Smartphone size={18} /> :
+                                    ticket.deviceType === 'PC' || ticket.deviceType === 'Tablet' ? <Laptop size={18} /> :
+                                      <Database size={18} />}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-black text-slate-800 uppercase tracking-tight">{ticket.brand} {ticket.model}</p>
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{ticket.serialNo || 'N/A'}</p>
+                                </div>
                               </div>
-                              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{ticket.issue}</p>
+                              <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed bg-white/50 p-2.5 rounded-xl border border-white italic">
+                                "{ticket.issue}"
+                              </p>
                               {ticket.photos && ticket.photos.length > 0 && (
-                                <div className="mt-2 flex gap-1 overflow-x-auto pb-1">
+                                <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                                   {ticket.photos.map((url, i) => (
-                                    <img key={i} src={url} alt="" className="w-8 h-8 rounded-lg object-cover border border-white shadow-sm" />
+                                    <div key={i} className="relative w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
+                                      <img src={url} alt="" className="w-full h-full object-cover" />
+                                    </div>
                                   ))}
                                 </div>
                               )}
                             </div>
 
-                            <div className="pt-3 border-t border-gray-50 flex items-center justify-between">
-                              <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('technician') || 'Tech'}</span>
-                                <span className="text-xs font-bold text-gray-900 truncate max-w-[100px]">{ticket.technician || '-'}</span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-black shadow-lg shadow-blue-200">
+                                  {ticket.technician ? ticket.technician[0].toUpperCase() : '?'}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">{t('technician')}</span>
+                                  <span className="text-[10px] font-black text-gray-900 truncate max-w-[80px]">{ticket.technician || t('unassigned')}</span>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                {ticket.estimatedCost && <span className="text-xs font-black text-emerald-600 font-mono">{formatCurrency(ticket.estimatedCost)}</span>}
-                                <button
-                                  onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}
-                                  className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
-                                >
-                                  <ChevronRight size={16} />
-                                </button>
+                              
+                              <div className="text-right">
+                                <div className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest inline-block mb-1.5 ${
+                                  ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' :
+                                  ticket.status === 'In Progress' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' :
+                                  ticket.status === 'Waiting for Parts' ? 'bg-rose-100 text-rose-600' :
+                                  'bg-slate-100 text-slate-500'
+                                }`}>
+                                  {t(ticket.status.toLowerCase().replace(/ /g, '')) || ticket.status}
+                                </div>
+                                {ticket.estimatedCost && (
+                                  <div className="text-sm font-black text-slate-900 font-mono tracking-tighter block">{formatCurrency(ticket.estimatedCost)}</div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -7026,28 +7085,37 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 pb-32 sm:pb-0">
                       {inventory
                         .filter(i => !serviceSearch || i.name?.toLowerCase().includes(serviceSearch.toLowerCase()))
                         .map(item => (
-                          <div key={item.id} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col group relative">
-                            {item.quantity <= (item.minStock || 5) && <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse shadow-sm shadow-rose-200"></div>}
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-                                <Package size={20} />
-                              </div>
+                          <div key={item.id} className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col group relative active:scale-[0.98] transition-all">
+                            {item.quantity <= (item.minStock || 5) && (
+                               <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 bg-rose-50 text-rose-500 rounded-full border border-rose-100 animate-pulse">
+                                  <AlertTriangle size={8} />
+                                  <span className="text-[7px] font-black uppercase tracking-widest leading-none">Low</span>
+                               </div>
+                            )}
+                            
+                            <div className="w-full aspect-square bg-slate-50 rounded-2xl mb-4 overflow-hidden flex items-center justify-center text-slate-300 relative group-hover:bg-blue-50 transition-colors">
+                              {item.photo ? (
+                                <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                              ) : (
+                                <Package size={32} strokeWidth={1.5} />
+                              )}
                             </div>
-                            <h4 className="text-xs font-black uppercase text-gray-900 tracking-tight line-clamp-2 min-h-[32px]">{item.name}</h4>
-                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1 mb-4">{item.category || 'Part'}</p>
 
-                            <div className="mt-auto space-y-3">
-                              <div className="flex justify-between items-end">
-                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('sellPrice')}</div>
-                                <div className="text-sm font-black text-blue-600 font-mono">{formatCurrency(item.sellPrice)}</div>
+                            <h4 className="text-[10px] font-black uppercase text-gray-900 tracking-tight line-clamp-2 min-h-[28px] leading-tight mb-1">{item.name}</h4>
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{item.category || 'Spare Part'}</p>
+
+                            <div className="mt-auto flex justify-between items-end bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                              <div>
+                                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{t('units')}</p>
+                                <p className={`text-xs font-black tabular-nums ${item.quantity <= (item.minStock || 5) ? 'text-rose-500' : 'text-slate-900'}`}>{item.quantity}</p>
                               </div>
-                              <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100/50">
-                                <span className={`text-[9px] font-black uppercase tracking-widest ${item.quantity <= (item.minStock || 5) ? 'text-rose-500' : 'text-slate-400'}`}>{t('units')}</span>
-                                <span className="text-xs font-black tabular-nums">{item.quantity}</span>
+                              <div className="text-right">
+                                <p className="text-[7px] font-black text-blue-400 uppercase tracking-widest mb-0.5">{currency}</p>
+                                <p className="text-sm font-black text-blue-600 font-mono tracking-tighter leading-none">{formatCurrency(item.sellPrice).replace(/[^\d.]/g, '')}</p>
                               </div>
                             </div>
                           </div>
@@ -7174,33 +7242,46 @@ export default function App() {
                             </div>
 
                             {/* Mobile View */}
-                            <div className="md:hidden space-y-3 px-1">
+                            <div className="md:hidden space-y-4 px-0 pb-32 sm:pb-0">
                               {historyItems.map(h => (
-                                <div key={h.id} className="bg-white p-4 rounded-[1.5rem] border border-gray-100 shadow-sm flex flex-col gap-3 relative overflow-hidden">
+                                <div key={h.id} className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col gap-4 relative overflow-hidden active:scale-[0.99] transition-all">
                                   <div className="flex justify-between items-start">
-                                    <div>
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{h.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                        <span className="text-[8px] font-mono font-black text-blue-600">#{h.invoiceId}</span>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <div className={`p-1.5 rounded-lg ${h.isTicket ? 'bg-blue-50 text-blue-600' : 'bg-indigo-50 text-indigo-600'}`}>
+                                          {h.isTicket ? <Wrench size={12} /> : <ShoppingCart size={12} />}
+                                        </div>
+                                        <span className="text-[10px] font-mono font-black text-slate-300">#{h.invoiceId}</span>
+                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-auto">{h.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                       </div>
-                                      <div className="text-xs font-black text-gray-900 uppercase tracking-tight">{h.customer}</div>
-                                      <p className="text-[10px] text-gray-400 font-medium line-clamp-1">{h.details}</p>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="text-sm font-black text-slate-900 font-mono tracking-tighter">{formatCurrency(h.amount)}</div>
-                                      <div className="text-[7px] font-black text-blue-500 uppercase tracking-widest mt-0.5">BY: {h.soldBy}</div>
+                                      <h4 className="text-[13px] font-black text-gray-900 uppercase tracking-tight mb-1">{h.customer}</h4>
+                                      <p className="text-[10px] text-gray-400 font-medium line-clamp-1 italic">"{h.details}"</p>
                                     </div>
                                   </div>
-                                  <div className="flex gap-2 pt-3 border-t border-gray-50">
-                                    <button onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')} className="flex-1 py-2 bg-slate-50 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 border border-slate-100"><Printer size={14} /> {t('print')}</button>
-                                    {!h.isTicket && currentMode !== 'Cashier' && (
-                                      <button 
-                                        onClick={() => handleDeleteSale(h.item)} 
-                                        className="px-3 py-2 bg-rose-50 text-rose-500 rounded-xl border border-rose-100"
-                                      >
-                                        <Trash2 size={16} />
-                                      </button>
-                                    )}
+                                  
+                                  <div className="flex justify-between items-end bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50">
+                                    <div className="text-right flex-1 flex justify-between items-center">
+                                      <div className="flex flex-col text-left">
+                                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Total Amount</span>
+                                        <span className="text-base font-black text-slate-900 font-mono tracking-tighter">{formatCurrency(h.amount)}</span>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <button 
+                                          onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')} 
+                                          className="p-3 bg-white text-slate-900 rounded-xl shadow-sm border border-slate-100 active:scale-95 transition-all"
+                                        >
+                                          <Printer size={18} />
+                                        </button>
+                                        {!h.isTicket && currentMode !== 'Cashier' && (
+                                          <button 
+                                            onClick={() => handleDeleteSale(h.item)} 
+                                            className="p-3 bg-rose-50 text-rose-500 rounded-xl border border-rose-100 active:scale-95 transition-all"
+                                          >
+                                            <Trash2 size={18} />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -7214,20 +7295,20 @@ export default function App() {
 
                 {/* Sub Tab: REPORTS */}
                 {serviceSubTab === 'reports' && (
-                  <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-0">
+                  <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700 pb-32">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-0 sm:px-0">
                       {/* Revenue Summary */}
-                      <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 shadow-sm">
-                        <h3 className="text-gray-900 text-lg font-black uppercase tracking-tight mb-6 flex items-center gap-2">
+                      <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                        <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
                           <CreditCard className="text-blue-600" size={20} /> {t('monthlyServiceRevenue')}
                         </h3>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           {[
-                            { label: t('totalRevenue') || 'Total Revenue', value: formatCurrency(serviceTickets.reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-blue-600' },
-                            { label: t('collected') || 'Collected', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Paid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-emerald-600' },
-                            { label: t('unpaid') || 'Unpaid', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Unpaid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-rose-600' }
+                            { label: t('totalRevenue') || 'Total Revenue', value: formatCurrency(serviceTickets.reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-blue-600', bg: 'bg-blue-50' },
+                            { label: t('collected') || 'Collected', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Paid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                            { label: t('unpaid') || 'Unpaid', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Unpaid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-rose-600', bg: 'bg-rose-50' }
                           ].map((stat, i) => (
-                            <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                            <div key={i} className={`flex justify-between items-center p-4 ${stat.bg}/30 rounded-2xl border border-${stat.color.split('-')[1]}-100/50`}>
                               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
                               <span className={`text-sm font-black mono ${stat.color}`}>{stat.value}</span>
                             </div>
@@ -7236,22 +7317,22 @@ export default function App() {
                       </div>
 
                       {/* Top Brands */}
-                      <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 shadow-sm">
-                        <h3 className="text-gray-900 text-lg font-black uppercase tracking-tight mb-6 flex items-center gap-2">
+                      <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                        <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
                           <Smartphone className="text-orange-600" size={20} /> {t('topRepairs')}
                         </h3>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           {Object.entries(serviceTickets.reduce((acc, t) => {
                             acc[t.brand] = (acc[t.brand] || 0) + 1;
                             return acc;
                           }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([brand, count], i) => (
-                            <div key={i} className="flex justify-between items-center group">
-                              <span className="text-xs font-bold text-slate-600">{brand || 'Unknown'}</span>
-                              <div className="flex items-center gap-3">
-                                <div className="h-1 bg-blue-100 rounded-full w-24 overflow-hidden">
-                                  <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${(count / (serviceTickets.length || 1)) * 100}%` }}></div>
-                                </div>
+                            <div key={i} className="flex flex-col gap-2 group">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs font-black text-slate-600 uppercase tracking-tight">{brand || 'Unknown'}</span>
                                 <span className="text-xs font-black text-slate-900">{count}</span>
+                              </div>
+                              <div className="h-2 bg-slate-50 rounded-full w-full overflow-hidden border border-slate-100 italic">
+                                <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${(count / (serviceTickets.length || 1)) * 100}%` }}></div>
                               </div>
                             </div>
                           ))}
@@ -7259,8 +7340,8 @@ export default function App() {
                       </div>
 
                       {/* Tech Performance */}
-                      <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 shadow-sm">
-                        <h3 className="text-gray-900 text-lg font-black uppercase tracking-tight mb-6 flex items-center gap-2">
+                      <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                        <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
                           <User className="text-indigo-600" size={20} /> {t('technicianRevenue')}
                         </h3>
                         <div className="space-y-3">
@@ -7270,8 +7351,13 @@ export default function App() {
                             }
                             return acc;
                           }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tech, revenue], i) => (
-                            <div key={i} className="flex justify-between items-center">
-                              <span className="text-xs font-bold text-slate-600">{tech}</span>
+                            <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 group hover:border-indigo-200 transition-all">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-indigo-600 border border-indigo-100 shadow-sm">
+                                  {tech[0].toUpperCase()}
+                                </div>
+                                <span className="text-xs font-black text-slate-600 uppercase tracking-tight">{tech}</span>
+                              </div>
                               <span className="text-xs font-black text-emerald-600 font-mono">{formatCurrency(revenue)}</span>
                             </div>
                           ))}
@@ -9730,23 +9816,46 @@ export default function App() {
 
       {/* Service Module Specific Mobile Navigation */}
       {activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-100 px-6 py-2 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.08)] border-t border-gray-100 px-4 pb-6 pt-2 flex justify-around items-center z-[110] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 backdrop-blur-xl">
           {[
             { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
-            { id: 'sell', label: t('sell') || 'Sell', icon: <ShoppingCart size={20} /> },
+            { id: 'sell', label: t('sell') || 'Sell', icon: (
+              <div className="relative">
+                <ShoppingCart size={20} />
+                {serviceSubTab === 'sell' && serviceCart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[7px] font-black w-4 h-4 flex items-center justify-center rounded-full border border-white">
+                    {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
+                  </span>
+                )}
+              </div>
+            ) },
+            { id: 'new', label: '', icon: (
+              <div className="bg-blue-600 text-white p-4 rounded-3xl shadow-xl shadow-blue-200 transform -translate-y-4 border-4 border-white active:scale-95 transition-all">
+                <Plus size={24} strokeWidth={3} />
+              </div>
+            ), isFab: true },
             { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
             { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} /> },
-            { id: 'exit', label: t('back') || 'Exit', icon: <LogOut size={20} />, action: () => setActiveTab('dashboard') }
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => tab.action ? tab.action() : setServiceSubTab(tab.id)}
-              className={`flex flex-col items-center gap-1 p-2 transition-all ${serviceSubTab === tab.id ? 'text-blue-600 scale-110' : 'text-gray-400 opacity-60'}`}
+              onClick={() => {
+                if (tab.id === 'sell' && serviceSubTab === 'sell' && serviceCart.length > 0) {
+                  setIsMobileCartOpen(!isMobileCartOpen);
+                } else {
+                  setServiceSubTab(tab.id);
+                  setIsMobileCartOpen(false);
+                }
+              }}
+              className={`flex flex-col items-center gap-1 transition-all ${tab.isFab ? '' : (serviceSubTab === tab.id ? 'text-blue-600' : 'text-gray-400')}`}
             >
-              <div className={`p-2 rounded-xl ${serviceSubTab === tab.id ? 'bg-blue-50' : ''}`}>
-                {tab.icon}
-              </div>
-              <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
+              {!tab.isFab && (
+                <div className={`p-2 rounded-xl transition-all ${serviceSubTab === tab.id ? 'bg-blue-50' : ''}`}>
+                  {tab.icon}
+                </div>
+              )}
+              {tab.isFab && tab.icon}
+              {tab.label && <span className="text-[9px] font-black uppercase tracking-widest">{tab.label}</span>}
             </button>
           ))}
         </div>
