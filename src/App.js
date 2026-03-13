@@ -5996,18 +5996,20 @@ export default function App() {
           {/* ========================================================= */}
           {
             activeTab === 'service' && (
-              <div className="space-y-6 animate-in fade-in duration-700 min-h-screen pb-40 lg:pb-8">
-                {/* Mobile Header / Banner */}
-                <div className="lg:hidden -mx-4 -mt-6 mb-8 relative h-48 overflow-hidden rounded-b-[3rem] bg-indigo-950 px-6 pt-12">
-                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                   <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
-                   <div className="relative z-10">
-                      <h2 className="text-white text-3xl font-black uppercase tracking-tight">{t('serviceCenter') || 'Tech Service'}</h2>
-                      <p className="text-blue-300 text-[10px] font-black uppercase tracking-[0.2em] mt-1">{t('repairManagement') || 'Repair & Parts Hub'}</p>
-                   </div>
-                </div>
+              <div className="min-h-screen pb-40 lg:pb-8">
+                {/* Mobile Header / Banner - Only show on main dashboard or when cart is closed */}
+                {(!isMobileCartOpen || serviceSubTab !== 'sell') && (
+                  <div className="lg:hidden -mx-4 -mt-6 mb-8 relative h-48 overflow-hidden rounded-b-[3rem] bg-indigo-950 px-6 pt-12 animate-in fade-in duration-700">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+                    <div className="relative z-10 text-white">
+                      <h2 className="text-3xl font-black uppercase tracking-tight leading-none mb-1">{t('serviceCenter') || 'Tech Service'}</h2>
+                      <p className="text-blue-300 text-[10px] font-black uppercase tracking-[0.2em]">{t('repairManagement') || 'Repair & Parts Hub'}</p>
+                    </div>
+                  </div>
+                )}
 
-                <div className="hidden lg:flex gap-2 bg-white p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto scrollbar-hide no-scrollbar">
+                <div className="hidden lg:flex gap-2 bg-white p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto no-scrollbar scroll-smooth">
                   {[
                     { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
                     { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
@@ -6170,11 +6172,11 @@ export default function App() {
                 )}
                 {/* Sub Tab: SELL (SERVICE POS) */}
                 {serviceSubTab === 'sell' && (
-                  <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
+                  <div className="flex flex-col lg:flex-row h-full bg-gray-50 lg:overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
 
 
                     {/* Left Side: Search & Items Grid */}
-                    <div className={`flex-1 flex flex-col h-full overflow-hidden border-r border-gray-100 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
+                    <div className={`flex-1 flex flex-col min-h-0 border-r border-gray-100 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
                       {/* Top Action Bar */}
                       <div className="p-6 md:p-8 bg-white border-b border-gray-100">
                         <div className="flex flex-col md:flex-row gap-6 justify-between items-center">
@@ -6215,7 +6217,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-10 no-scrollbar">
+                      <div className="flex-1 lg:overflow-y-auto p-6 md:p-8 space-y-10">
                         {/* 1. Active Repairs Section */}
                         <section className="space-y-6">
                           <div className="flex items-center justify-between px-2">
@@ -6342,8 +6344,8 @@ export default function App() {
                     </div>
 
                     {/* Right Side: Cart Sidebar (Fixed) */}
-                    {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[75] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
-                    <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[450px] bg-white lg:border-l border-slate-100 flex flex-col h-full z-[80] lg:z-20 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) transform shadow-[-20px_0_50px_rgba(0,0,0,0.05)] ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                    {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[999] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
+                    <div className={`fixed inset-0 lg:sticky lg:top-0 lg:h-[calc(100vh-100px)] right-0 w-full lg:w-[450px] bg-white lg:border-l border-slate-100 flex flex-col z-[1000] lg:z-20 transition-transform duration-500 transform shadow-2xl lg:shadow-none ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
                       <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-30">
                         <div className="flex items-center gap-4">
                           <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-3 -ml-2 bg-slate-50 text-slate-400 rounded-2xl active:scale-90 transition-all">
@@ -6362,9 +6364,9 @@ export default function App() {
                         </span>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4 no-scrollbar bg-slate-50/30">
+                      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4 bg-slate-50/30">
                         {serviceCart.length === 0 ? (
-                          <div className="h-full flex flex-col items-center justify-center text-slate-300 p-8 text-center">
+                          <div className="py-20 flex flex-col items-center justify-center text-slate-300 p-8 text-center">
                             <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mb-6 shadow-sm border border-slate-100/50">
                               <ShoppingBag size={40} className="text-slate-100" strokeWidth={1} />
                             </div>
