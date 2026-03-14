@@ -6177,9 +6177,18 @@ export default function App() {
 
                     {/* Left Side: Search & Items Grid */}
                     <div className={`flex-1 flex flex-col min-h-0 border-r border-gray-100 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
-                      {/* Top Action Bar */}
-                      <div className="p-6 md:p-8 bg-white border-b border-gray-100">
-                        <div className="flex flex-col md:flex-row gap-6 justify-between items-center">
+                      {/* Top Action Bar - mobile-optimized */}
+                      <div className="p-4 sm:p-6 md:p-8 bg-white border-b border-gray-100">
+                        <div className="flex flex-col md:flex-row gap-4 sm:gap-6 justify-between items-center">
+                          <div className="flex md:hidden items-center gap-3 w-full sm:w-auto">
+                            <div className="p-2.5 sm:p-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200 shrink-0">
+                              <ShoppingCart size={22} strokeWidth={2.5} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight uppercase leading-none truncate">{t('servicePOS') || 'Service POS'}</h2>
+                              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-0.5">{t('activeJobs') || 'Sales & Repairs'}</p>
+                            </div>
+                          </div>
                           <div className="hidden md:flex items-center gap-4">
                             <div className="p-3.5 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-200">
                               <ShoppingCart size={24} strokeWidth={2.5} />
@@ -6189,13 +6198,13 @@ export default function App() {
                               <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('activeJobs') || 'Sales & Repairs'}</p>
                             </div>
                           </div>
-                          <div className="flex flex-col sm:flex-row items-center gap-4 flex-1 w-full max-w-2xl">
-                            <div className="relative flex-1 w-full group">
-                              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={20} />
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-1 w-full max-w-2xl">
+                            <div className="relative flex-1 w-full group min-h-[44px] flex">
+                              <Search className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={20} />
                               <input
                                 type="text"
                                 placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'}
-                                className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-sm outline-none"
+                                className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-3.5 sm:py-4 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-sm outline-none touch-manipulation"
                                 value={serviceInventorySearch}
                                 onChange={e => setServiceInventorySearch(e.target.value)}
                               />
@@ -6209,7 +6218,7 @@ export default function App() {
                                 setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
                                 if (window.innerWidth < 1024) setIsMobileCartOpen(true);
                               }}
-                              className="w-full sm:w-auto px-6 py-4 bg-amber-500 text-white rounded-[1.5rem] hover:bg-amber-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all whitespace-nowrap shadow-xl shadow-amber-200 active:scale-95"
+                              className="w-full sm:w-auto min-h-[44px] px-5 sm:px-6 py-3.5 sm:py-4 bg-amber-500 text-white rounded-xl sm:rounded-[1.5rem] hover:bg-amber-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 sm:gap-3 transition-all whitespace-nowrap shadow-xl shadow-amber-200 active:scale-[0.98] touch-manipulation"
                             >
                               <Plus size={18} strokeWidth={3} /> {t('customItem')}
                             </button>
@@ -6217,20 +6226,20 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="flex-1 lg:overflow-y-auto p-6 md:p-8 space-y-10">
+                      <div className="flex-1 lg:overflow-y-auto p-4 sm:p-6 md:p-8 space-y-8 sm:space-y-10 pb-28 sm:pb-32">
                         {/* 1. Active Repairs Section */}
-                        <section className="space-y-6">
-                          <div className="flex items-center justify-between px-2">
-                            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-3">
-                              <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600"><Wrench size={12} /></div>
-                              {t('activeRepairs') || 'Active Repairs'}
+                        <section className="space-y-4 sm:space-y-6">
+                          <div className="flex items-center justify-between px-1 sm:px-2">
+                            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2 sm:gap-3">
+                              <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600 shrink-0"><Wrench size={12} /></div>
+                              <span className="truncate">{t('activeRepairs') || 'Active Repairs'}</span>
                             </h3>
-                            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100/50 uppercase tracking-widest">
+                            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 sm:px-4 py-1.5 rounded-full border border-blue-100/50 uppercase tracking-widest shrink-0">
                                {serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs
                             </span>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
                             {serviceTickets
                               .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') && 
                                 (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || 
@@ -6248,7 +6257,7 @@ export default function App() {
                                     setServiceCart([...serviceCart, ...items]);
                                     if (window.innerWidth < 1024) setIsMobileCartOpen(true);
                                   }}
-                                  className="text-left bg-white p-6 rounded-[2rem] border border-slate-100 hover:border-blue-500 hover:shadow-2xl transition-all active:scale-95 group relative overflow-hidden shadow-sm flex flex-col gap-4"
+                                  className="text-left bg-white p-4 sm:p-6 rounded-xl sm:rounded-[2rem] border border-slate-100 hover:border-blue-500 hover:shadow-2xl transition-all active:scale-[0.98] group relative overflow-hidden shadow-sm flex flex-col gap-3 sm:gap-4 min-h-[88px] touch-manipulation"
                                 >
                                   <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity -rotate-12 translate-x-4 -translate-y-4">
                                     <Wrench size={64} />
@@ -6261,9 +6270,9 @@ export default function App() {
                                       </div>
                                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
                                     </div>
-                                    <div className="flex justify-between items-center bg-slate-50 group-hover:bg-blue-50 p-4 rounded-2xl border border-slate-100/50 group-hover:border-blue-200/50 transition-all">
-                                      <div className="text-xl font-black text-blue-600 font-mono tracking-tighter leading-none">{formatCurrency(ticket.estimatedCost)}</div>
-                                      <div className="p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200 group-active:scale-90 transition-all">
+                                    <div className="flex justify-between items-center bg-slate-50 group-hover:bg-blue-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100/50 group-hover:border-blue-200/50 transition-all min-h-[48px]">
+                                      <div className="text-base sm:text-xl font-black text-blue-600 font-mono tracking-tighter leading-none">{formatCurrency(ticket.estimatedCost)}</div>
+                                      <div className="p-2.5 sm:p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200 group-active:scale-90 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
                                         <Plus size={16} strokeWidth={3} />
                                       </div>
                                     </div>
@@ -6274,18 +6283,18 @@ export default function App() {
                         </section>
 
                         {/* 2. Parts & Inventory Section */}
-                        <section className="space-y-6 pb-32">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
-                            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-3">
+                        <section className="space-y-4 sm:space-y-6">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-1 sm:px-2">
+                            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2 sm:gap-3 shrink-0">
                               <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600"><Package size={12} /></div>
-                              {t('inventoryParts') || 'Inventory Parts'}
+                              <span className="truncate">{t('inventoryParts') || 'Inventory Parts'}</span>
                             </h3>
-                            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 -mx-1 px-1 scroll-smooth touch-pan-x">
                               {['All', 'Phone Parts', 'PC Components', 'Accessories'].map(cat => (
                                 <button 
                                   key={cat}
                                   onClick={() => setServiceInventorySearch(cat === 'All' ? '' : cat)}
-                                  className={`text-[9px] font-black uppercase px-4 py-2 rounded-full transition-all whitespace-nowrap shadow-sm border ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
+                                  className={`text-[9px] font-black uppercase px-4 py-2.5 sm:py-2 rounded-full transition-all whitespace-nowrap shadow-sm border min-h-[40px] touch-manipulation flex items-center ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 active:scale-95'}`}
                                 >
                                   {cat}
                                 </button>
@@ -6293,7 +6302,7 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                             {inventory
                               .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || (item.category || '').toLowerCase().includes(serviceInventorySearch.toLowerCase()))
                               .map(item => (
@@ -6313,9 +6322,9 @@ export default function App() {
                                     }
                                     if (window.innerWidth < 1024) setIsMobileCartOpen(true);
                                   }}
-                                  className="bg-white p-4 rounded-[2rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all active:scale-95 group flex flex-col gap-4 text-left shadow-sm overflow-hidden"
+                                  className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-[2rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all active:scale-[0.98] group flex flex-col gap-2 sm:gap-4 text-left shadow-sm overflow-hidden touch-manipulation"
                                 >
-                                  <div className="bg-slate-50 aspect-square rounded-[1.5rem] overflow-hidden relative border border-slate-100/50">
+                                  <div className="bg-slate-50 aspect-square rounded-xl sm:rounded-[1.5rem] overflow-hidden relative border border-slate-100/50">
                                     {item.photo ? (
                                       <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                     ) : (
@@ -6323,15 +6332,15 @@ export default function App() {
                                         <Package size={24} strokeWidth={1.5} />
                                       </div>
                                     )}
-                                    <div className={`absolute bottom-2 right-2 px-2 py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-rose-600 text-white' : 'bg-white/90 text-slate-900 border border-slate-100'}`}>
+                                    <div className={`absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-rose-600 text-white' : 'bg-white/90 text-slate-900 border border-slate-100'}`}>
                                        {Number(item.quantity) <= 0 ? 'OUT' : `QTY: ${item.quantity}`}
                                     </div>
                                   </div>
-                                  <div className="space-y-2 flex-1 flex flex-col justify-between">
-                                    <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors uppercase">{item.name}</h4>
-                                    <div className="flex justify-between items-center bg-slate-50 group-hover:bg-indigo-50 p-2 rounded-xl transition-all border border-transparent group-hover:border-indigo-100">
-                                      <p className="text-xs font-black text-indigo-600 font-mono tracking-tighter pl-1">{formatCurrency(item.sellPrice)}</p>
-                                      <div className="p-1.5 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-100 group-active:scale-90 transition-all">
+                                  <div className="space-y-1.5 sm:space-y-2 flex-1 flex flex-col justify-between min-h-0">
+                                    <h4 className="text-[10px] sm:text-[11px] font-black text-slate-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
+                                    <div className="flex justify-between items-center bg-slate-50 group-hover:bg-indigo-50 p-2 sm:p-2 rounded-lg sm:rounded-xl transition-all border border-transparent group-hover:border-indigo-100 min-h-[44px]">
+                                      <p className="text-[10px] sm:text-xs font-black text-indigo-600 font-mono tracking-tighter pl-0.5 sm:pl-1">{formatCurrency(item.sellPrice)}</p>
+                                      <div className="p-2 sm:p-1.5 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-100 group-active:scale-90 transition-all min-w-[40px] min-h-[40px] flex items-center justify-center">
                                         <Plus size={14} strokeWidth={3} />
                                       </div>
                                     </div>
@@ -6341,30 +6350,50 @@ export default function App() {
                           </div>
                         </section>
                       </div>
+
+                      {/* Mobile: Sticky "View cart" bar when cart has items */}
+                      {serviceCart.length > 0 && (
+                        <div className="lg:hidden fixed bottom-20 left-0 right-0 z-[60] px-4 pb-2 pointer-events-none">
+                          <button
+                            onClick={() => setIsMobileCartOpen(true)}
+                            className="pointer-events-auto w-full py-4 px-5 bg-slate-900 text-white rounded-2xl shadow-2xl shadow-slate-900/30 flex items-center justify-between gap-4 active:scale-[0.98] transition-transform touch-manipulation border border-slate-700"
+                          >
+                            <span className="flex items-center gap-2 text-left">
+                              <ShoppingBag size={22} strokeWidth={2.5} className="text-blue-300 shrink-0" />
+                              <span className="text-sm font-black uppercase tracking-tight">
+                                {t('viewCart') || 'View cart'} ({serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)})
+                              </span>
+                            </span>
+                            <span className="text-lg font-black font-mono tracking-tighter text-blue-300 shrink-0">
+                              {formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}
+                            </span>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Right Side: Cart Sidebar (Fixed) */}
                     {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[999] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
-                    <div className={`fixed inset-0 lg:sticky lg:top-0 lg:h-[calc(100vh-100px)] right-0 w-full lg:w-[450px] bg-white lg:border-l border-slate-100 flex flex-col z-[1000] lg:z-20 transition-transform duration-500 transform shadow-2xl lg:shadow-none ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
-                      <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-30">
-                        <div className="flex items-center gap-4">
-                          <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-3 -ml-2 bg-slate-50 text-slate-400 rounded-2xl active:scale-90 transition-all">
+                    <div className={`fixed inset-0 lg:sticky lg:top-0 lg:h-[calc(100vh-100px)] right-0 w-full lg:w-[450px] max-w-full bg-white lg:border-l border-slate-100 flex flex-col z-[1000] lg:z-20 transition-transform duration-500 transform shadow-2xl lg:shadow-none ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                      <div className="p-4 sm:p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-30 shrink-0">
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                          <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-3 -ml-1 bg-slate-50 text-slate-400 rounded-xl active:scale-95 transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label={t('back') || 'Back'}>
                              <ArrowLeft size={20} strokeWidth={3} />
                           </button>
-                          <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl shadow-sm border border-blue-100/50">
-                            <ShoppingBag size={24} strokeWidth={2.5} />
+                          <div className="p-2.5 sm:p-3 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl shadow-sm border border-blue-100/50 shrink-0">
+                            <ShoppingBag size={22} className="sm:w-6 sm:h-6" strokeWidth={2.5} />
                           </div>
-                          <div>
-                            <h3 className="font-black text-xl uppercase tracking-tight text-slate-800">{t('currentBill')}</h3>
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">Checkout</p>
+                          <div className="min-w-0">
+                            <h3 className="font-black text-lg sm:text-xl uppercase tracking-tight text-slate-800 truncate">{t('currentBill')}</h3>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-0.5">Checkout</p>
                           </div>
                         </div>
-                        <span className="bg-slate-900 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg shadow-slate-200 uppercase tracking-widest active:scale-95 transition-all">
+                        <span className="bg-slate-900 text-white text-[10px] font-black px-3 sm:px-4 py-2 rounded-full shadow-lg shadow-slate-200 uppercase tracking-widest active:scale-95 transition-all shrink-0">
                           {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)} ITEMS
                         </span>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4 bg-slate-50/30">
+                      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8 space-y-4 bg-slate-50/30">
                         {serviceCart.length === 0 ? (
                           <div className="py-20 flex flex-col items-center justify-center text-slate-300 p-8 text-center">
                             <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mb-6 shadow-sm border border-slate-100/50">
@@ -6374,22 +6403,20 @@ export default function App() {
                             <p className="text-[10px] uppercase font-bold text-slate-300 mt-2 tracking-widest">{t('selectItems')}</p>
                           </div>
                         ) : (
-                          <div className="space-y-4">
+                          <div className="space-y-3 sm:space-y-4">
                             {serviceCart.map((item, i) => (
-                              <div key={`${item.id}-${i}`} className="bg-white rounded-[2rem] p-5 flex flex-col gap-4 shadow-sm border border-slate-100/50 hover:shadow-xl hover:shadow-blue-500/5 transition-all active:scale-[0.98] group">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1 space-y-1">
-                                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-tight leading-tight">{item.name}</h4>
-                                    <div className="flex items-center gap-2">
-                                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${item.type === 'service' ? 'bg-blue-50 text-blue-600 border-blue-100/50' : 'bg-indigo-50 text-indigo-600 border-indigo-100/50'}`}>
-                                        {item.type === 'service' ? 'Maintenance Service' : 'Hardware Part'}
-                                      </span>
-                                    </div>
+                              <div key={`${item.id}-${i}`} className="bg-white rounded-xl sm:rounded-[2rem] p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 shadow-sm border border-slate-100/50 hover:shadow-xl hover:shadow-blue-500/5 transition-all active:scale-[0.98] group">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="flex-1 space-y-1 min-w-0">
+                                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-tight leading-tight line-clamp-2">{item.name}</h4>
+                                    <span className={`inline-block text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${item.type === 'service' ? 'bg-blue-50 text-blue-600 border-blue-100/50' : 'bg-indigo-50 text-indigo-600 border-indigo-100/50'}`}>
+                                      {item.type === 'service' ? 'Service' : 'Part'}
+                                    </span>
                                   </div>
-                                  <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="p-2 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><X size={18} strokeWidth={3} /></button>
+                                  <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="p-2.5 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1"><X size={18} strokeWidth={3} /></button>
                                 </div>
-                                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-[1.5rem] border border-slate-100/50">
-                                  <div className="flex items-center gap-4">
+                                <div className="flex justify-between items-center bg-slate-50 p-2.5 sm:p-3 rounded-xl sm:rounded-[1.5rem] border border-slate-100/50">
+                                  <div className="flex items-center gap-2 sm:gap-4">
                                     <button onClick={() => {
                                       const newCart = [...serviceCart];
                                       if (newCart[i].quantity > 1) {
@@ -6398,15 +6425,15 @@ export default function App() {
                                       } else {
                                         setServiceCart(serviceCart.filter((_, idx) => idx !== i));
                                       }
-                                    }} className="w-9 h-9 rounded-xl bg-white text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all shadow-sm border border-slate-100 active:scale-90"><Minus size={16} strokeWidth={3} /></button>
-                                    <span className="text-sm font-black font-mono w-4 text-center text-slate-700">{item.quantity}</span>
+                                    }} className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl bg-white text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all shadow-sm border border-slate-100 active:scale-95 touch-manipulation"><Minus size={16} strokeWidth={3} /></button>
+                                    <span className="text-sm font-black font-mono w-6 sm:w-4 text-center text-slate-700 tabular-nums">{item.quantity}</span>
                                     <button onClick={() => {
                                       const newCart = [...serviceCart];
                                       newCart[i].quantity += 1;
                                       setServiceCart(newCart);
-                                    }} className="w-9 h-9 rounded-xl bg-white text-slate-400 flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm border border-slate-100 active:scale-90"><Plus size={16} strokeWidth={3} /></button>
+                                    }} className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl bg-white text-slate-400 flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm border border-slate-100 active:scale-95 touch-manipulation"><Plus size={16} strokeWidth={3} /></button>
                                   </div>
-                                  <p className="text-base font-black text-slate-900 font-mono tracking-tighter">{formatCurrency(item.sellPrice * item.quantity)}</p>
+                                  <p className="text-sm sm:text-base font-black text-slate-900 font-mono tracking-tighter">{formatCurrency(item.sellPrice * item.quantity)}</p>
                                 </div>
                               </div>
                             ))}
@@ -6414,34 +6441,34 @@ export default function App() {
                         )}
                       </div>
 
-                      <div className="bg-white border-t border-slate-100 p-6 md:p-8 space-y-6 shadow-[0_-20px_40px_rgba(0,0,0,0.02)]">
+                      <div className="bg-white border-t border-slate-100 p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 shadow-[0_-20px_40px_rgba(0,0,0,0.02)] pb-[max(1.5rem,env(safe-area-inset-bottom))] shrink-0">
                         <div className="space-y-3">
-                          <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">
+                          <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 tracking-widest px-1 sm:px-2">
                             <span>{t('subtotal')}</span>
                             <span className="font-mono text-sm tracking-tight">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
                           </div>
-                          <div className="bg-slate-900 p-6 rounded-[2rem] flex justify-between items-center shadow-2xl shadow-slate-200 text-white">
+                          <div className="bg-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-[2rem] flex justify-between items-center shadow-2xl shadow-slate-200 text-white">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t('totalCost')}</span>
-                            <span className="text-3xl font-black font-mono tracking-tighter">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                            <span className="text-2xl sm:text-3xl font-black font-mono tracking-tighter">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
                           </div>
                         </div>
 
-                        {/* Order & Customer Details - Modernized */}
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-3">
+                        {/* Order & Customer Details - mobile-friendly */}
+                        <div className="space-y-3 sm:space-y-4">
+                          <div className="grid grid-cols-2 gap-2 sm:gap-3">
                              <button
                                onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                               className="flex flex-col gap-1 p-4 bg-slate-50 border border-slate-100 rounded-2xl text-left active:scale-95 transition-all"
+                               className="flex flex-col gap-0.5 sm:gap-1 p-3 sm:p-4 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-left active:scale-[0.98] transition-all touch-manipulation min-h-[52px]"
                              >
                                 <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">{t('salesEmployee')}</span>
                                 <span className="text-xs font-black text-slate-700 truncate">{salesEmployee ? salesEmployee.name : t('select') || 'Select'}</span>
                              </button>
-                             <div className="flex bg-slate-100 p-1.5 rounded-2xl">
+                             <div className="flex bg-slate-100 p-1.5 rounded-xl sm:rounded-2xl min-h-[52px]">
                                 {['Walk-in', 'Takeaway'].map(type => (
                                   <button
                                     key={type}
                                     onClick={() => setOrderType(type)}
-                                    className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${orderType === type ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                                    className={`flex-1 py-2.5 sm:py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all touch-manipulation ${orderType === type ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
                                   >
                                     {type === 'Walk-in' ? t('walkIn') : t('takeaway')}
                                   </button>
@@ -6449,12 +6476,12 @@ export default function App() {
                              </div>
                           </div>
 
-                          <div className="flex flex-col gap-3">
-                            <div className="flex gap-3">
-                              <div className="relative flex-1 group">
-                                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                          <div className="flex flex-col gap-2 sm:gap-3">
+                            <div className="flex gap-2 sm:gap-3">
+                              <div className="relative flex-1 group min-h-[44px]">
+                                <User size={16} className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
                                 <input
-                                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                                  className="w-full pl-10 sm:pl-11 pr-4 py-3 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all touch-manipulation"
                                   placeholder={t('customerId') || 'Customer ID'}
                                   value={newSaleForm.customerId}
                                   onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
@@ -6462,13 +6489,14 @@ export default function App() {
                               </div>
                               <button
                                 onClick={() => { setScannerMode('customerID'); setIsScannerOpen(true); }}
-                                className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100/50 active:scale-90 transition-all shadow-sm"
+                                className="p-3 sm:p-3.5 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-sm touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                aria-label={t('scan') || 'Scan'}
                               >
                                 <Scan size={20} />
                               </button>
                             </div>
                             <input
-                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                              className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all touch-manipulation min-h-[44px]"
                               placeholder={t('customerNameOptional') || 'Customer Name'}
                               value={newSaleForm.customer}
                               onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
@@ -6476,9 +6504,9 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Payment Methods - Modernized */}
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">{t('paymentMethod')}</label>
+                        {/* Payment Methods - larger touch targets on mobile */}
+                        <div className="space-y-2 sm:space-y-3">
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1 sm:px-2 block">{t('paymentMethod')}</label>
                           <div className="grid grid-cols-3 gap-2">
                             {['Cash', 'Visa', 'Online'].map(method => (
                               <button
@@ -6487,12 +6515,12 @@ export default function App() {
                                   setPaymentMethod(method);
                                   if (method === 'Online') setShowUpiQr(true);
                                 }}
-                                className={`py-4 flex flex-col items-center gap-2 rounded-2xl border transition-all active:scale-95 ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
+                                className={`py-4 sm:py-4 flex flex-col items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border transition-all active:scale-[0.98] touch-manipulation min-h-[72px] ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
                               >
-                                {method === 'Cash' && <Banknote size={18} />}
-                                {method === 'Visa' && <CreditCard size={18} />}
-                                {method === 'Online' && <Smartphone size={18} />}
-                                <span className="text-[8px] font-black uppercase tracking-widest">{method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}</span>
+                                {method === 'Cash' && <Banknote size={18} className="shrink-0" />}
+                                {method === 'Visa' && <CreditCard size={18} className="shrink-0" />}
+                                {method === 'Online' && <Smartphone size={18} className="shrink-0" />}
+                                <span className="text-[8px] font-black uppercase tracking-widest leading-tight">{method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}</span>
                               </button>
                             ))}
                           </div>
@@ -6504,7 +6532,7 @@ export default function App() {
                               <button
                                 key={sub}
                                 onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
-                                className={`py-2 text-[8px] font-black uppercase tracking-widest rounded-xl border transition-all active:scale-95 ${digitalSubMethod === sub ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'bg-slate-50 text-slate-400 border-slate-100'}`}
+                                className={`py-2.5 sm:py-2 text-[8px] font-black uppercase tracking-widest rounded-xl border transition-all active:scale-95 touch-manipulation min-h-[40px] ${digitalSubMethod === sub ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'bg-slate-50 text-slate-400 border-slate-100'}`}
                               >
                                 {t(sub.toLowerCase()) || sub}
                               </button>
@@ -6515,10 +6543,10 @@ export default function App() {
                         <button
                           onClick={() => handleCheckoutServiceCart(printFormat)}
                           disabled={serviceCart.length === 0}
-                          className="w-full py-5 bg-blue-600 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-4 mt-2"
+                          className="w-full py-4 sm:py-5 bg-blue-600 text-white rounded-xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-3 sm:gap-4 touch-manipulation min-h-[52px]"
                         >
-                          <CreditCard size={20} strokeWidth={3} />
-                          {t('checkout') || 'Checkout'} — {formatCurrency(serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0))}
+                          <CreditCard size={20} strokeWidth={3} className="shrink-0" />
+                          <span className="truncate">{t('checkout') || 'Checkout'} — {formatCurrency(serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0))}</span>
                         </button>
                       </div>
                     </div>
