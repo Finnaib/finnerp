@@ -1,6 +1,8 @@
 {
   "name": "finn-erp",
   "version": "1.0.0",
+  "author": "Finn ERP",
+  "description": "Professional POS and ERP System",
   "homepage": ".",
   "private": true,
   "dependencies": {
@@ -19,11 +21,48 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
+  "main": "build/electron.js",
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
+    "build": "set CI=false&& react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron public/electron.js\"",
+    "electron-build": "npm run build && electron-builder",
+    "electron-build:msi": "npm run build && electron-builder --win msi"
+  },
+  "build": {
+    "appId": "com.finn.erp",
+    "productName": "Finn ERP - POS",
+    "extends": null,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "build/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "public/icon.png",
+      "target": [
+        "nsis",
+        "msi"
+      ],
+      "forceCodeSigning": false,
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "msi": {
+      "oneClick": false,
+      "perMachine": false,
+      "createDesktopShortcut": true
+    }
   },
   "eslintConfig": {
     "extends": [
@@ -45,7 +84,12 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
+    "concurrently": "^9.2.1",
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1",
+    "electron-is-dev": "^3.0.1",
     "postcss": "^8.4.32",
-    "tailwindcss": "^3.4.0"
+    "tailwindcss": "^3.4.0",
+    "wait-on": "^9.0.4"
   }
 }

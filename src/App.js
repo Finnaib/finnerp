@@ -79,6 +79,10 @@ import {
   Calendar,
   HardDrive,
   Banknote,
+  UserCheck,
+  ArrowRight,
+  ChevronLeft,
+  Home,
   Tablet,
 } from 'lucide-react';
 import { auth, db, storage } from './firebase'; // Firebase
@@ -93,7 +97,9 @@ import {
   signInWithPopup,
   sendPasswordResetEmail,
   linkWithPopup,
-  signInAnonymously
+  signInAnonymously,
+  setPersistence,
+  indexedDBLocalPersistence
 } from 'firebase/auth';
 
 import {
@@ -170,6 +176,11 @@ function StatusBadge({ status, lateHours, t }) {
 
 
 export default function App() {
+  // Initialize Auth Persistence for Electron
+  useEffect(() => {
+    setPersistence(auth, indexedDBLocalPersistence).catch(err => console.error("Persistence Error:", err));
+  }, []);
+
   // --- Auth & UI State (Moved to top to fix TDZ) ---
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -222,7 +233,7 @@ export default function App() {
           setActiveTab(pinAction === 'accessReports' ? 'reports' : 'accounts');
           if (window.innerWidth < 768) setIsSidebarOpen(false);
         } else {
-          alert("Access Denied: Admin PIN Required.");
+          alert(t('adminPinRequired'));
         }
       }
     } else {
@@ -237,7 +248,8 @@ export default function App() {
     address: '',
     phone: '',
     upiId: '',
-    instapayId: ''
+    instapayId: '',
+    logo: '' // Base64 or URL
   });
   const [cameras, setCameras] = useState([]);
   const [activeCameraId, setActiveCameraId] = useState(null);
@@ -250,8 +262,20 @@ export default function App() {
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   const [barcodePrintMode, setBarcodePrintMode] = useState('sticker'); // 'sticker' or 'a4'
   const [selectedInventoryItems, setSelectedInventoryItems] = useState([]);
+  const [isKiosk, setIsKiosk] = useState(() => localStorage.getItem('isKiosk') === 'true');
+  const [kioskTab, setKioskTab] = useState('home');
+  const [kioskTime, setKioskTime] = useState(new Date());
+  useEffect(() => {
+    localStorage.setItem('isKiosk', isKiosk);
+    if (!isKiosk) setKioskTab('home');
+  }, [isKiosk]);
+  useEffect(() => {
+    const timer = setInterval(() => setKioskTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
   const [externalPayment, setExternalPayment] = useState(null); // { invoiceId, amount, upiId, expiry }
   useEffect(() => { localStorage.setItem('currency', currency); }, [currency]);
+
 
   // --- Barcode / Scanner Buffering (Hardware Scanners) ---
   const barcodeBuffer = useRef('');
@@ -973,20 +997,41 @@ export default function App() {
       );
 
       // 1. Branding Header
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
-      doc.setTextColor(15, 23, 42);
-      doc.text(shopSettings.name?.toUpperCase() || (t('companyName') || 'FINN ERP'), 15, 20);
+      let currentY = 20;
+      if (shopSettings.logo) {
+         try {
+            // Increased logo size and adjusted position to prevent overlap
+            doc.addImage(shopSettings.logo, 'PNG', 15, 10, 20, 20); 
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(22);
+            doc.setTextColor(15, 23, 42);
+            // Enforce "FINN ERP" as requested
+            doc.text('FINN ERP', 40, 20);
+         } catch (e) {
+            console.error("PDF Logo Error:", e);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(22);
+            doc.setTextColor(15, 23, 42);
+            doc.text('FINN ERP', 15, 20);
+         }
+      } else {
+         doc.setFont('helvetica', 'bold');
+         doc.setFontSize(22);
+         doc.setTextColor(15, 23, 42);
+         doc.text('FINN ERP', 15, 20);
+      }
 
       doc.setFontSize(11);
       doc.setTextColor(59, 130, 246);
       const subTitle = filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase();
-      doc.text(subTitle, 15, 27);
+      // Adjusted X to 40 to match the new logo width
+      const labelX = shopSettings.logo ? 40 : 15;
+      doc.text(subTitle, labelX, 27);
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(100, 116, 139);
-      doc.text(`${t('date')}: ${new Date().toLocaleString()}`, 15, 33);
+      doc.text(`${t('date')}: ${new Date().toLocaleString()}`, labelX, 33);
 
       if (extraMetadata.length > 0) {
         doc.text(extraMetadata.join('  |  '), 15, 38);
@@ -2140,7 +2185,8 @@ export default function App() {
       // Let's us Site Name if available, or Company Name.
       // Actually, maybe show Company Name AND Site Name?
       // User said "my site name also show...".
-      const printName = shopSettings.name + (site.name ? ` - ${site.name}` : '');
+      // User explicitly asked for "FINN ERP" and not appending the site name
+      const printName = 'FINN ERP';
       const printAddress = site.address || shopSettings.address;
       const printPhone = site.phone || shopSettings.phone;
 
@@ -2174,6 +2220,7 @@ export default function App() {
         ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
         
         <div class="header">
+          ${shopSettings.logo ? `<img src="${shopSettings.logo}" style="height: 80px; width: auto; max-width: 100%; margin-bottom: 12px; object-fit: contain;" alt="Logo" />` : ''}
           <div class="title">${printName}</div>
           <div class="subtitle">${printAddress} | ${printPhone}</div>
         </div>
@@ -2264,10 +2311,14 @@ export default function App() {
         
         <div class="header">
           <div class="brand-info">
-            <h1>${printName}</h1>
-            <p>${site.address_ar || 'شارع احمد عصمت'}</p>
-            <p>Phone: ${printPhone}</p>
-            <p>Finnaib</p>
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+               ${shopSettings.logo ? `<img src="${shopSettings.logo}" style="height: 80px; width: auto; max-height: 80px; object-fit: contain;" />` : ''}
+               <div>
+                  <h1 style="font-size: 38px; color: #1e293b; margin: 0;">${printName}</h1>
+                  <p style="color: #64748b; font-size: 14px; margin-top: 5px;">${printAddress}</p>
+                  <p style="color: #64748b; font-size: 14px;">Phone: ${printPhone}</p>
+               </div>
+            </div>
           </div>
           <div class="invoice-title-box">
             <h2>INVOICE</h2>
@@ -2804,7 +2855,7 @@ export default function App() {
       handlePrintInvoice({ ...invData, id: saleRef.id }, format === 'Thermal' ? 'Service Receipt' : 'Service Invoice', format);
       setServiceCart([]);
       setNewSaleForm({ ...newSaleForm, customer: '', customerId: '' });
-      alert('Sale Completed!');
+      alert(t('saleCompleted'));
     } catch (e) { 
       console.error(e); 
       alert(e.message);
@@ -3876,8 +3927,10 @@ export default function App() {
         <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20">
           <div className="p-8">
             <div className="text-center mb-8">
-              <div className="inline-flex p-4 bg-blue-50 text-blue-600 rounded-2xl mb-4 shadow-inner">
-                <Shield size={48} />
+              <div className="inline-flex mb-6 drop-shadow-md">
+                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-200">
+                  <Shield size={32} className="text-white" />
+                </div>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{showForgotPassword ? t('resetPassword') : (authMode === 'login' ? t('welcome') : t('createAccount'))}</h1>
               <p className="text-gray-500 mt-2 text-sm">{showForgotPassword ? t('enterEmail') : t('signInToAccess')}</p>
@@ -3891,7 +3944,7 @@ export default function App() {
                     <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input
                       type="email"
-                      className="pl-10 input-field"
+                      className="pl-12 input-field"
                       placeholder="name@example.com"
                       value={resetEmail}
                       onChange={e => setResetEmail(e.target.value)}
@@ -3917,7 +3970,7 @@ export default function App() {
                       <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
                       <input
                         type="email"
-                        className="pl-10 input-field"
+                        className="pl-12 input-field"
                         placeholder="name@example.com"
                         value={authForm.email}
                         onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
@@ -3933,7 +3986,7 @@ export default function App() {
                       <div className="absolute left-3 top-3 text-gray-400"><Shield size={18} /></div>
                       <input
                         type="password"
-                        className="pl-10 input-field"
+                        className="pl-12 input-field"
                         placeholder="••••••••"
                         value={authForm.password}
                         onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
@@ -4001,24 +4054,93 @@ export default function App() {
       </div >
     );
   }
+  const renderKioskView = () => {
+    if (kioskTab === 'home') {
+      return (
+        <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+          <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:40px_40px]"></div>
+          <div className="relative z-10 w-full max-w-5xl flex flex-col items-center text-center">
+             <div className="bg-white/5 backdrop-blur-xl p-10 rounded-[4rem] border border-white/10 mb-12 shadow-2xl flex flex-col items-center">
+                {(selectedSite?.logo || shopSettings.logo) ? (
+                  <img src={selectedSite?.logo || shopSettings.logo} alt="Logo" className="h-24 w-auto mb-6 drop-shadow-2xl" />
+                ) : (
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+                    <Shield size={40} className="text-white" />
+                  </div>
+                )}
+                <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase mb-4 italic">
+                  {shopSettings.name || 'FINN ERP'}
+                </h1>
+                <div className="h-1.5 w-32 bg-blue-500 rounded-full"></div>
+             </div>
+              <div className="mb-12">
+                <p className="text-6xl md:text-8xl font-black text-white tabular-nums tracking-tighter">
+                  {kioskTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                </p>
+                <p className="text-blue-400 text-xs font-bold uppercase tracking-[0.3em] mt-2">
+                  {kioskTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
+                {[
+                  { id: 'pos', label: t('menuSalesPurchases'), icon: <ShoppingCart size={40} />, color: 'blue', tab: 'sales_purchases' },
+                  { id: 'service', label: t('menuService'), icon: <Wrench size={40} />, color: 'rose', tab: 'service' },
+                  { id: 'warehouse', label: t('menuWarehouses') || 'Warehouse', icon: <Package size={40} />, color: 'emerald', tab: 'warehouses' },
+                  { id: 'cafe', label: t('menuCafe') || 'Cafe', icon: <Coffee size={40} />, color: 'orange', tab: 'cafe' },
+                  { id: 'history', label: t('menuInvoices'), icon: <Clock size={40} />, color: 'purple', tab: 'history' }
+                ].map(action => (
+                  <button
+                    key={action.id}
+                    onClick={() => { setKioskTab(action.id); setActiveTab(action.tab); }}
+                    className="group bg-white p-6 rounded-[2rem] shadow-xl hover:-translate-y-2 transition-all duration-300 text-left border-b-4 border-gray-100 hover:border-blue-500 active:scale-95 flex flex-col items-center text-center"
+                  >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-slate-50 text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-all`}>
+                      {React.cloneElement(action.icon, { size: 24 })}
+                    </div>
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-1 leading-tight">{action.label}</h3>
+                    <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{t('tapToStart') || 'Tap to start'}</p>
+                  </button>
+                ))}
+              </div>
+             <button
+               onDoubleClick={() => setIsKiosk(false)}
+               className="mt-20 text-[10px] font-black text-white/20 uppercase tracking-[0.5em] hover:text-white/40 transition-colors"
+             >
+               Double click to exit kiosk
+             </button>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  if (isKiosk && kioskTab === 'home') {
+    return renderKioskView();
+  }
+
   return (
-    <div className="flex h-screen bg-gray-50 font-sans text-gray-900 overflow-hidden">
+    <div className={`flex h-screen bg-gray-50 font-sans text-gray-900 overflow-hidden ${isKiosk ? 'kiosk-active' : ''}`}>
       <SpeedInsights />
       <Analytics />
       {/* Sidebar (Responsive & High Z-Index) */}
-      <aside className={`fixed md:relative inset-y-0 left-0 bg-[#0f172a] text-white flex flex-col shadow-2xl z-[150] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full opacity-0 md:w-0'}`}>
+      {!isKiosk && (
+        <aside className={`fixed md:relative inset-y-0 left-0 bg-[#0f172a] text-white flex flex-col shadow-2xl z-[150] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full opacity-0 md:w-0'}`}>
+
         <div className="p-7 border-b border-slate-800/50 flex justify-between items-center bg-slate-900/50 backdrop-blur-2xl sticky top-0 z-10">
           <div className="flex items-center gap-3.5">
-            <div className={`p-2.5 rounded-2xl shadow-lg ring-4 ${currentMode === 'Owner' ? 'bg-rose-500 ring-rose-500/10' : currentMode === 'Manager' ? 'bg-amber-500 ring-amber-500/10' : 'bg-blue-600 ring-blue-600/10'} transform hover:scale-105 transition-transform`}>
-              <Shield 
-                size={22} 
-                className="text-white cursor-pointer" 
-                onDoubleClick={() => { setPinAction('switchMode'); setIsPinModalOpen(true); }}
-                title="Double Click for Admin"
-              />
+            <div 
+              className={`p-1 rounded-lg shadow-sm border ${currentMode === 'Owner' ? 'bg-rose-500/10 border-rose-500/20' : currentMode === 'Manager' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-blue-600/10 border-blue-600/20'} transform hover:scale-110 transition-transform overflow-hidden flex items-center justify-center w-8 h-8 flex-shrink-0 cursor-pointer`}
+              onDoubleClick={() => { setPinAction('switchMode'); setIsPinModalOpen(true); }}
+            >
+              <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                <Shield size={14} className="text-white" />
+              </div>
             </div>
-            <div className="overflow-hidden">
-              <h1 className="font-black text-sm uppercase tracking-widest truncate text-white/90">{shopSettings.name || t('appName')}</h1>
+            <div className="overflow-hidden flex-1">
+              <h1 className="font-black text-[11px] uppercase tracking-[0.2em] text-white/95">
+                FINN ERP
+              </h1>
               <div 
                 className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg transition-all ${
                   currentMode === 'Owner' ? 'text-rose-400' : 
@@ -4028,7 +4150,7 @@ export default function App() {
               >
                 <div className={`w-1.5 h-1.5 rounded-full ${currentMode === 'Owner' ? 'bg-rose-500' : currentMode === 'Manager' ? 'bg-amber-500' : 'bg-blue-500'} animate-pulse`}></div>
                 <span className="text-[10px] font-black uppercase tracking-widest">
-                  {t(currentMode.toLowerCase()) || currentMode}
+                  {t(currentMode.toLowerCase() + 'Mode') || currentMode}
                 </span>
                 {currentMode !== 'Cashier' && (
                   <button 
@@ -4081,24 +4203,31 @@ export default function App() {
         </nav>
 
         <div className="p-6 border-t border-slate-800/50 space-y-4 bg-slate-900/20">
+          <button onClick={() => setIsKiosk(true)} className="flex items-center w-full px-4 py-3 text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-2xl transition-all group">
+            <Tablet size={18} className="mr-3 group-hover:scale-110 transition-transform duration-500" />
+            {t('menuKiosk') || 'Kiosk Mode'}
+          </button>
           <button onClick={() => setShowSettings(true)} className="flex items-center w-full px-4 py-3 text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-2xl transition-all group">
             <Settings size={18} className="mr-3 group-hover:rotate-90 transition-transform duration-500" />
             {t('settings')}
           </button>
+
           <button onClick={handleLogout} className="flex items-center w-full px-4 py-3 text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-2xl transition-all">
             <LogOut size={18} className="mr-3" />
             {t('logout')}
           </button>
         </div>
       </aside>
-
+      )}
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden relative pb-20 lg:pb-0">
         {/* Mobile Sidebar Overlay with Blur Effect */}
         {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[65] md:hidden animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)}></div>}
 
         {/* Header */}
-        <header className="bg-white/90 backdrop-blur-2xl border-b border-gray-100 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[100] transition-all">
+        {!isKiosk ? (
+          <header className="bg-white/90 backdrop-blur-2xl border-b border-gray-100 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[50] transition-all">
+
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2.5 -ml-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all active:scale-90 ${isSidebarOpen ? 'lg:hidden' : 'block'}`}><Menu size={26} /></button>
             <h2 className="text-xl font-black text-gray-900 flex items-center gap-3.5 tracking-tight group">
@@ -4176,9 +4305,22 @@ export default function App() {
             </div>
           </div>
         </header>
+        ) : (
+          <header className="bg-slate-900 text-white h-20 flex items-center justify-between px-10 sticky top-0 z-[100] border-b border-white/10 shadow-2xl shrink-0">
+             <button onClick={() => setKioskTab('home')} className="flex items-center gap-3 bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl transition-all font-black uppercase tracking-widest text-sm">
+                <ChevronLeft size={20} /> {t('backToKiosk') || 'Back to Kiosk'}
+             </button>
+             <div className="flex flex-col items-center">
+                <h2 className="text-xl font-black uppercase italic tracking-tighter">{shopSettings.name || 'FINN ERP'}</h2>
+                <p className="text-[10px] text-blue-400 font-bold uppercase tracking-[0.3em] font-mono whitespace-nowrap">{kioskTime.toLocaleTimeString([], { hour12: false })}</p>
+             </div>
+             <div className="w-[100px]"></div> {/* Spacer */}
+          </header>
+        )}
+
 
         {/* Global Mobile Navigation (Native App Feel) */}
-        {activeTab !== 'sales_purchases' && activeTab !== 'service' && (
+        {!isKiosk && activeTab !== 'sales_purchases' && activeTab !== 'service' && (
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
             <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
               <div className={`p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
@@ -4219,7 +4361,7 @@ export default function App() {
         )}
 
         {/* Views */}
-        <div className={`flex-1 overflow-auto bg-gray-50 ${activeTab === 'sales_purchases' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
+        <div className={`flex-1 overflow-auto bg-gray-50 ${(activeTab === 'sales_purchases' || activeTab === 'service') ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
 
           {activeTab === 'dashboard' && (
             <div className="space-y-8 animate-in fade-in duration-700 max-w-7xl mx-auto">
@@ -5981,11 +6123,178 @@ export default function App() {
           {
             activeTab === 'history' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex border-b border-gray-100 mb-6">
-                   <h2 className="text-xl font-black uppercase tracking-tight p-4">{t('historyLog')}</h2>
+                {/* Header with Filters */}
+                <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                      <History size={24} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black uppercase tracking-tight text-slate-800">{t('historyLog')}</h2>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('reviewPastSales') || 'Review Past Sales'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-48">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+                      <input 
+                        type="text" 
+                        placeholder={t('searchHistory') || 'Search customer...'} 
+                        className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                        onChange={(e) => setHistoryLocationFilter(e.target.value)}
+                      />
+                    </div>
+                    <input 
+                      type="date" 
+                      value={historyDateFilter} 
+                      onChange={(e) => setHistoryDateFilter(e.target.value)} 
+                      className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                    />
+                    <select 
+                      value={historyFilter} 
+                      onChange={(e) => setHistoryFilter(e.target.value)}
+                      className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer"
+                    >
+                       <option value="All">{t('allTransactions') || 'All'}</option>
+                       <option value="Cash">{t('cash')}</option>
+                       <option value="Visa">{t('visa')}</option>
+                       <option value="Online">{t('onlinePayment')}</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-                   <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">History records are being updated. Check back soon.</p>
+
+                {/* Sales Table */}
+                <div className="bg-white rounded-[2rem] border border-gray-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                          <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
+                          <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')}</th>
+                          <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('customer')}</th>
+                          <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('payment')}</th>
+                          <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('amount')}</th>
+                          <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {(() => {
+                          const allHistory = [
+                            ...sales.map(s => ({
+                              ...s,
+                              type: 'Retail',
+                              dateStr: s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
+                              customerName: s.client || s.customer || t('walkInCustomer'),
+                              itemsSummary: Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : (s.items || '-'),
+                              invoiceId: s.invoiceId || s.id.slice(0, 6)
+                            })),
+                            ...serviceTickets.filter(t => t.status === 'Delivered').map(t => ({
+                              ...t,
+                              type: 'Repair',
+                              dateStr: (t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
+                              customerName: t.customerName,
+                              itemsSummary: `${t.brand} ${t.model} (${t.issue})`,
+                              amount: Number(t.estimatedCost || 0),
+                              invoiceId: t.id.slice(0, 6)
+                            }))
+                          ];
+
+                          return allHistory
+                            .filter(s => {
+                              const matchDate = !historyDateFilter || s.dateStr === historyDateFilter;
+                              const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter;
+                              const matchSearch = !historyLocationFilter || 
+                                (s.customerName && s.customerName.toLowerCase().includes(historyLocationFilter.toLowerCase())) || 
+                                (s.invoiceId && s.invoiceId.toLowerCase().includes(historyLocationFilter.toLowerCase()));
+                              return matchDate && matchType && matchSearch;
+                            })
+                            .sort((a, b) => {
+                              const dateA = a.createdAt?.seconds || 0;
+                              const dateB = b.createdAt?.seconds || 0;
+                              return dateB - dateA;
+                            })
+                            .map(item => (
+                              <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                                <td className="p-5">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase">{item.time || (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</span>
+                                </td>
+                                <td className="p-5">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${item.type === 'Repair' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
+                                    <span className="text-xs font-black text-slate-900 font-mono tracking-tighter">#{item.invoiceId}</span>
+                                  </div>
+                                </td>
+                                <td className="p-5">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-slate-700">{item.customerName}</span>
+                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                      {item.type === 'Repair' ? <Wrench size={8} className="text-orange-400" /> : <ShoppingCart size={8} className="text-blue-400" />}
+                                      <p className="text-[9px] text-slate-300 font-black uppercase tracking-tight truncate max-w-[180px]">
+                                        {item.itemsSummary}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-5">
+                                  <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                    item.paymentMethod === 'Cash' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                    item.paymentMethod === 'Visa' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                    'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                                  }`}>
+                                    {t((item.paymentMethod || 'Cash').toLowerCase()) || (item.paymentMethod || 'Cash')}
+                                  </span>
+                                </td>
+                                <td className="p-5">
+                                  <span className="text-sm font-black text-slate-900 font-mono">{formatCurrency(item.amount)}</span>
+                                </td>
+                                <td className="p-5 text-right">
+                                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button 
+                                      onClick={() => handlePrintInvoice(item, item.type === 'Repair' ? 'Service Receipt' : 'retail')} 
+                                      className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-slate-100"
+                                      title={t('reprint')}
+                                    >
+                                      <Printer size={16} />
+                                    </button>
+                                    {currentMode === 'Owner' && (
+                                      <button 
+                                        onClick={() => item.type === 'Repair' ? alert('Delete via Service Active Jobs') : handleDeleteSale(item)} 
+                                        className="p-2 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-slate-100"
+                                        title={t('delete')}
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ));
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {(() => {
+                    const count = [
+                      ...sales,
+                      ...serviceTickets.filter(t => t.status === 'Delivered')
+                    ].filter(s => {
+                      const dateStr = s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : '');
+                      const matchDate = !historyDateFilter || dateStr === historyDateFilter;
+                      const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter;
+                      return matchDate && matchType;
+                    }).length;
+                    
+                    return count === 0 && (
+                      <div className="p-20 text-center">
+                        <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-slate-100">
+                          <History size={32} className="text-slate-200" />
+                        </div>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{t('noHistoryInPeriod') || 'No records found for this period'}</p>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )
@@ -5996,37 +6305,27 @@ export default function App() {
           {/* ========================================================= */}
           {
             activeTab === 'service' && (
-              <div className="min-h-screen pb-40 lg:pb-8">
-                {/* Mobile Header / Banner - Only show on main dashboard or when cart is closed */}
-                {(!isMobileCartOpen || serviceSubTab !== 'sell') && (
-                  <div className="lg:hidden -mx-4 -mt-6 mb-8 relative h-48 overflow-hidden rounded-b-[3rem] bg-indigo-950 px-6 pt-12 animate-in fade-in duration-700">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
-                    <div className="relative z-10 text-white">
-                      <h2 className="text-3xl font-black uppercase tracking-tight leading-none mb-1">{t('serviceCenter') || 'Tech Service'}</h2>
-                      <p className="text-blue-300 text-[10px] font-black uppercase tracking-[0.2em]">{t('repairManagement') || 'Repair & Parts Hub'}</p>
-                    </div>
+              <div className="min-h-screen flex flex-col">
+                <div className={serviceSubTab === 'sell' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}>
+                  {/* Sub Tab Navigation - ERP Style */}
+                  <div className={`hidden lg:flex gap-2 p-1 bg-white border border-gray-100 rounded-2xl w-fit shadow-sm ${serviceSubTab === 'sell' ? 'mx-4 my-3 mb-1' : 'mb-8'}`}>
+                    {[
+                      { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
+                      { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
+                      { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
+                      { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
+                      { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
+                      { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setServiceSubTab(tab.id)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-tight transition-all ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
+                      >
+                        {tab.icon} {tab.label}
+                      </button>
+                    ))}
                   </div>
-                )}
-
-                <div className="hidden lg:flex gap-2 bg-white p-1 rounded-2xl w-full lg:w-fit border border-gray-100 mb-6 overflow-x-auto no-scrollbar scroll-smooth">
-                  {[
-                    { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
-                    { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
-                    { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
-                    { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
-                    { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
-                    { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setServiceSubTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
-                    >
-                      {tab.icon} {tab.label}
-                    </button>
-                  ))}
-                </div>
 
                 {/* Sub Tab: BOARD (DASHBOARD) */}
                 {serviceSubTab === 'board' && (
@@ -6170,58 +6469,47 @@ export default function App() {
                     </div>
                   </div>
                 )}
+
                 {/* Sub Tab: SELL (SERVICE POS) */}
                 {serviceSubTab === 'sell' && (
-                  <div className="flex flex-col lg:flex-row h-full bg-gray-50 lg:overflow-hidden relative min-h-[calc(100vh-200px)] lg:-m-6">
-
-
+                  <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-screen">
                     {/* Left Side: Search & Items Grid */}
                     <div className={`flex-1 flex flex-col min-h-0 border-r border-gray-100 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
-                      {/* Top Action Bar - mobile-optimized */}
-                      <div className="p-4 sm:p-6 md:p-8 bg-white border-b border-gray-100">
-                        <div className="flex flex-col md:flex-row gap-4 sm:gap-6 justify-between items-center">
-                          <div className="flex md:hidden items-center gap-3 w-full sm:w-auto">
-                            <div className="p-2.5 sm:p-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200 shrink-0">
-                              <ShoppingCart size={22} strokeWidth={2.5} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight uppercase leading-none truncate">{t('servicePOS') || 'Service POS'}</h2>
-                              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-0.5">{t('activeJobs') || 'Sales & Repairs'}</p>
-                            </div>
+                      {/* Top Action Bar - Optimized Header */}
+                      <div className="p-4 bg-white border-b border-gray-100">
+                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center max-w-7xl mx-auto">
+                          <div className="flex items-center gap-4">
+                             <div className="flex flex-col text-center md:text-left">
+                               <h2 className="text-lg font-black text-slate-800 tracking-tight leading-none uppercase">{t('servicePOS') || 'Service POS'}</h2>
+                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1.5">{t('terminal') || 'Terminal'}</p>
+                             </div>
+                             <div className="h-10 w-px bg-gray-100 mx-2 hidden md:block"></div>
+                             <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    const name = prompt(t('enterItemName') || 'Enter Item Name:');
+                                    if (!name) return;
+                                    const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
+                                    if (!price || isNaN(price)) return;
+                                    setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
+                                    if (window.innerWidth < 1024) setIsMobileCartOpen(true);
+                                  }}
+                                  className="flex items-center gap-2 bg-amber-500 text-white px-5 py-2.5 rounded-xl hover:bg-amber-600 text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-200 active:scale-95"
+                                >
+                                  <Plus size={14} strokeWidth={3} /> {t('customItem')}
+                                </button>
+                                <button
+                                  onClick={() => { setScannerMode('productBarcode'); setIsScannerOpen(true); }}
+                                  className="flex items-center gap-2 bg-blue-50 text-blue-600 border border-blue-100 px-5 py-2.5 rounded-xl hover:bg-blue-100 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                                >
+                                  <Scan size={14} strokeWidth={3} /> {t('scan')}
+                                </button>
+                             </div>
                           </div>
-                          <div className="hidden md:flex items-center gap-4">
-                            <div className="p-3.5 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-200">
-                              <ShoppingCart size={24} strokeWidth={2.5} />
-                            </div>
-                            <div>
-                              <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-none">{t('servicePOS') || 'Service POS'}</h2>
-                              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('activeJobs') || 'Sales & Repairs'}</p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-1 w-full max-w-2xl">
-                            <div className="relative flex-1 w-full group min-h-[44px] flex">
-                              <Search className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={20} />
-                              <input
-                                type="text"
-                                placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'}
-                                className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-3.5 sm:py-4 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-sm outline-none touch-manipulation"
-                                value={serviceInventorySearch}
-                                onChange={e => setServiceInventorySearch(e.target.value)}
-                              />
-                            </div>
-                            <button
-                              onClick={() => {
-                                const name = prompt(t('enterItemName') || 'Enter Item Name:');
-                                if (!name) return;
-                                const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
-                                if (!price || isNaN(price)) return;
-                                setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
-                                if (window.innerWidth < 1024) setIsMobileCartOpen(true);
-                              }}
-                              className="w-full sm:w-auto min-h-[44px] px-5 sm:px-6 py-3.5 sm:py-4 bg-amber-500 text-white rounded-xl sm:rounded-[1.5rem] hover:bg-amber-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 sm:gap-3 transition-all whitespace-nowrap shadow-xl shadow-amber-200 active:scale-[0.98] touch-manipulation"
-                            >
-                              <Plus size={18} strokeWidth={3} /> {t('customItem')}
-                            </button>
+                          
+                          <div className="relative flex-1 w-full max-w-md group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                            <input type="text" placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'} className="w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold shadow-sm" value={serviceInventorySearch} onChange={e => setServiceInventorySearch(e.target.value)} />
                           </div>
                         </div>
                       </div>
@@ -6266,8 +6554,15 @@ export default function App() {
                                     <div className="space-y-1">
                                       <div className="flex justify-between items-start gap-2">
                                         <p className="text-sm font-black text-slate-800 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
-                                        <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-lg shrink-0 ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>{ticket.status}</span>
-                                      </div>
+                                         <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-lg shrink-0 ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>
+                                           {ticket.status === 'Ready' ? t('readyPickup') : 
+                                            ticket.status === 'InProgress' ? t('inProgress') : 
+                                            ticket.status === 'WaitingParts' ? t('waitingParts') : 
+                                            ticket.status === 'Received' ? t('received') : 
+                                            ticket.status === 'Delivered' ? t('delivered') : 
+                                            ticket.status}
+                                         </span>
+                                       </div>
                                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
                                     </div>
                                     <div className="flex justify-between items-center bg-slate-50 group-hover:bg-blue-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100/50 group-hover:border-blue-200/50 transition-all min-h-[48px]">
@@ -6290,16 +6585,21 @@ export default function App() {
                               <span className="truncate">{t('inventoryParts') || 'Inventory Parts'}</span>
                             </h3>
                             <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 -mx-1 px-1 scroll-smooth touch-pan-x">
-                              {['All', 'Phone Parts', 'PC Components', 'Accessories'].map(cat => (
-                                <button 
-                                  key={cat}
-                                  onClick={() => setServiceInventorySearch(cat === 'All' ? '' : cat)}
-                                  className={`text-[9px] font-black uppercase px-4 py-2.5 sm:py-2 rounded-full transition-all whitespace-nowrap shadow-sm border min-h-[40px] touch-manipulation flex items-center ${serviceInventorySearch === cat ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 active:scale-95'}`}
-                                >
-                                  {cat}
-                                </button>
-                              ))}
-                            </div>
+                               {[
+                                 { id: 'all', label: t('all'), val: '' },
+                                 { id: 'phoneParts', label: t('phoneParts'), val: 'Phone Parts' },
+                                 { id: 'pcComponents', label: t('pcComponents'), val: 'PC Components' },
+                                 { id: 'accessories', label: t('accessories'), val: 'Accessories' }
+                               ].map(cat => (
+                                 <button 
+                                   key={cat.id}
+                                   onClick={() => setServiceInventorySearch(cat.val)}
+                                   className={`text-[9px] font-black uppercase px-4 py-2.5 sm:py-2 rounded-full transition-all whitespace-nowrap shadow-sm border min-h-[40px] touch-manipulation flex items-center ${serviceInventorySearch === cat.val ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 active:scale-95'}`}
+                                 >
+                                   {cat.label}
+                                 </button>
+                               ))}
+                             </div>
                           </div>
 
                           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
@@ -6353,7 +6653,7 @@ export default function App() {
 
                       {/* Mobile: Sticky "View cart" bar when cart has items */}
                       {serviceCart.length > 0 && (
-                        <div className="lg:hidden fixed bottom-20 left-0 right-0 z-[60] px-4 pb-2 pointer-events-none">
+                        <div className="lg:hidden fixed bottom-[90px] left-0 right-0 z-[120] px-4 pb-2 pointer-events-none">
                           <button
                             onClick={() => setIsMobileCartOpen(true)}
                             className="pointer-events-auto w-full py-4 px-5 bg-slate-900 text-white rounded-2xl shadow-2xl shadow-slate-900/30 flex items-center justify-between gap-4 active:scale-[0.98] transition-transform touch-manipulation border border-slate-700"
@@ -6373,50 +6673,44 @@ export default function App() {
                     </div>
 
                     {/* Right Side: Cart Sidebar (Fixed) */}
-                    {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[999] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
-                    <div className={`fixed inset-0 lg:sticky lg:top-0 lg:h-[calc(100vh-100px)] right-0 w-full lg:w-[450px] max-w-full bg-white lg:border-l border-slate-100 flex flex-col z-[1000] lg:z-20 transition-transform duration-500 transform shadow-2xl lg:shadow-none ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
-                      <div className="p-4 sm:p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-30 shrink-0">
-                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                          <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-3 -ml-1 bg-slate-50 text-slate-400 rounded-xl active:scale-95 transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label={t('back') || 'Back'}>
-                             <ArrowLeft size={20} strokeWidth={3} />
+                    {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[1040] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
+                    <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[1050] lg:z-20 transition-transform duration-300 ease-in-out transform ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                      <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-white">
+                        <div className="flex items-center gap-3 text-gray-800">
+                          <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-rose-50 hover:text-rose-600 rounded-full transition-colors">
+                            <X size={24} />
                           </button>
-                          <div className="p-2.5 sm:p-3 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl shadow-sm border border-blue-100/50 shrink-0">
-                            <ShoppingBag size={22} className="sm:w-6 sm:h-6" strokeWidth={2.5} />
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="font-black text-lg sm:text-xl uppercase tracking-tight text-slate-800 truncate">{t('currentBill')}</h3>
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-0.5">Checkout</p>
-                          </div>
+                          <ShoppingBag size={20} className="text-blue-600" />
+                          <h3 className="font-bold text-lg tracking-tight">{t('currentBill')}</h3>
                         </div>
-                        <span className="bg-slate-900 text-white text-[10px] font-black px-3 sm:px-4 py-2 rounded-full shadow-lg shadow-slate-200 uppercase tracking-widest active:scale-95 transition-all shrink-0">
-                          {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)} ITEMS
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-full shadow-lg shadow-blue-200">{serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}</span>
+                        </div>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8 space-y-4 bg-slate-50/30">
+                      <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
                         {serviceCart.length === 0 ? (
-                          <div className="py-20 flex flex-col items-center justify-center text-slate-300 p-8 text-center">
-                            <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mb-6 shadow-sm border border-slate-100/50">
-                              <ShoppingBag size={40} className="text-slate-100" strokeWidth={1} />
+                          <div className="h-full flex flex-col items-center justify-center text-gray-300 p-6 text-center">
+                            <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                              <ShoppingBag size={20} className="opacity-50" />
                             </div>
-                            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{t('cartEmpty')}</p>
-                            <p className="text-[10px] uppercase font-bold text-slate-300 mt-2 tracking-widest">{t('selectItems')}</p>
+                            <p className="font-bold text-gray-500 text-xs">{t('cartEmpty')}</p>
+                            <p className="text-[10px] mt-0.5 text-gray-400">{t('selectItems')}</p>
                           </div>
                         ) : (
-                          <div className="space-y-3 sm:space-y-4">
+                          <div className="divide-y divide-gray-100">
                             {serviceCart.map((item, i) => (
-                              <div key={`${item.id}-${i}`} className="bg-white rounded-xl sm:rounded-[2rem] p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 shadow-sm border border-slate-100/50 hover:shadow-xl hover:shadow-blue-500/5 transition-all active:scale-[0.98] group">
-                                <div className="flex justify-between items-start gap-2">
-                                  <div className="flex-1 space-y-1 min-w-0">
-                                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-tight leading-tight line-clamp-2">{item.name}</h4>
-                                    <span className={`inline-block text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${item.type === 'service' ? 'bg-blue-50 text-blue-600 border-blue-100/50' : 'bg-indigo-50 text-indigo-600 border-indigo-100/50'}`}>
-                                      {item.type === 'service' ? 'Service' : 'Part'}
-                                    </span>
+                              <div key={`${item.id}-${i}`} className="p-2.5 flex items-center gap-2 group hover:bg-gray-50 transition-colors">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex justify-between items-center mb-0.5">
+                                    <h4 className="font-bold text-gray-800 text-[11px] sm:text-xs truncate pr-2 uppercase tracking-wide">{item.name}</h4>
+                                    <span className="font-mono font-black text-gray-900 text-xs">{formatCurrency(item.sellPrice * (item.quantity || 1))}</span>
                                   </div>
-                                  <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="p-2.5 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1"><X size={18} strokeWidth={3} /></button>
+                                  <div className="text-[10px] text-gray-400 font-medium">{formatCurrency(item.sellPrice)} / unit</div>
                                 </div>
-                                <div className="flex justify-between items-center bg-slate-50 p-2.5 sm:p-3 rounded-xl sm:rounded-[1.5rem] border border-slate-100/50">
-                                  <div className="flex items-center gap-2 sm:gap-4">
+
+                                <div className="flex items-center gap-2">
+                                  <div className="flex items-center border border-gray-200 rounded-lg bg-white h-6 shadow-sm">
                                     <button onClick={() => {
                                       const newCart = [...serviceCart];
                                       if (newCart[i].quantity > 1) {
@@ -6425,15 +6719,17 @@ export default function App() {
                                       } else {
                                         setServiceCart(serviceCart.filter((_, idx) => idx !== i));
                                       }
-                                    }} className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl bg-white text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all shadow-sm border border-slate-100 active:scale-95 touch-manipulation"><Minus size={16} strokeWidth={3} /></button>
-                                    <span className="text-sm font-black font-mono w-6 sm:w-4 text-center text-slate-700 tabular-nums">{item.quantity}</span>
+                                    }} className="px-1.5 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-l-lg transition-colors font-bold text-xs">-</button>
+                                    <span className="w-5 text-center text-[10px] font-black text-gray-700">{item.quantity}</span>
                                     <button onClick={() => {
                                       const newCart = [...serviceCart];
                                       newCart[i].quantity += 1;
                                       setServiceCart(newCart);
-                                    }} className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl bg-white text-slate-400 flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm border border-slate-100 active:scale-95 touch-manipulation"><Plus size={16} strokeWidth={3} /></button>
+                                    }} className="px-1.5 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg transition-colors font-bold text-xs">+</button>
                                   </div>
-                                  <p className="text-sm sm:text-base font-black text-slate-900 font-mono tracking-tighter">{formatCurrency(item.sellPrice * item.quantity)}</p>
+                                  <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-gray-300 hover:text-rose-500 transition-colors p-1 group/del">
+                                    <X size={12} className="group-active/del:scale-90" />
+                                  </button>
                                 </div>
                               </div>
                             ))}
@@ -6441,72 +6737,65 @@ export default function App() {
                         )}
                       </div>
 
-                      <div className="bg-white border-t border-slate-100 p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 shadow-[0_-20px_40px_rgba(0,0,0,0.02)] pb-[max(1.5rem,env(safe-area-inset-bottom))] shrink-0">
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 tracking-widest px-1 sm:px-2">
-                            <span>{t('subtotal')}</span>
-                            <span className="font-mono text-sm tracking-tight">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                      <div className="bg-gray-50/50 backdrop-blur-md border-t border-gray-200 p-3.5 space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-xs text-gray-500">
+                             <span>{t('subtotal')}</span>
+                             <span className="font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * (b.quantity || 1)), 0))}</span>
                           </div>
-                          <div className="bg-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-[2rem] flex justify-between items-center shadow-2xl shadow-slate-200 text-white">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t('totalCost')}</span>
-                            <span className="text-2xl sm:text-3xl font-black font-mono tracking-tighter">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}</span>
+                          <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-[11px] font-black uppercase text-slate-400">
+                            <span>{t('total')}</span>
+                            <span className="text-xl font-black text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * (b.quantity || 1)), 0))}</span>
                           </div>
                         </div>
 
-                        {/* Order & Customer Details - mobile-friendly */}
-                        <div className="space-y-3 sm:space-y-4">
-                          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                             <button
-                               onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                               className="flex flex-col gap-0.5 sm:gap-1 p-3 sm:p-4 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-left active:scale-[0.98] transition-all touch-manipulation min-h-[52px]"
-                             >
-                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">{t('salesEmployee')}</span>
-                                <span className="text-xs font-black text-slate-700 truncate">{salesEmployee ? salesEmployee.name : t('select') || 'Select'}</span>
-                             </button>
-                             <div className="flex bg-slate-100 p-1.5 rounded-xl sm:rounded-2xl min-h-[52px]">
-                                {['Walk-in', 'Takeaway'].map(type => (
-                                  <button
-                                    key={type}
-                                    onClick={() => setOrderType(type)}
-                                    className={`flex-1 py-2.5 sm:py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all touch-manipulation ${orderType === type ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-                                  >
-                                    {type === 'Walk-in' ? t('walkIn') : t('takeaway')}
-                                  </button>
-                                ))}
+                        <div className="mb-1">
+                          <button
+                             onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
+                             className="w-full flex items-center justify-between p-1.5 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-100 transition-colors shadow-sm"
+                           >
+                             <div className="flex items-center gap-2">
+                               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white"><User size={16} /></div>
+                               <div className="text-left">
+                                 <div className="text-[9px] text-blue-500 font-black uppercase tracking-widest leading-none mb-1">{t('salesEmployee')}</div>
+                                 <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</div>
+                               </div>
                              </div>
-                          </div>
-
-                          <div className="flex flex-col gap-2 sm:gap-3">
-                            <div className="flex gap-2 sm:gap-3">
-                              <div className="relative flex-1 group min-h-[44px]">
-                                <User size={16} className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
-                                <input
-                                  className="w-full pl-10 sm:pl-11 pr-4 py-3 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all touch-manipulation"
-                                  placeholder={t('customerId') || 'Customer ID'}
-                                  value={newSaleForm.customerId}
-                                  onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
-                                />
-                              </div>
-                              <button
-                                onClick={() => { setScannerMode('customerID'); setIsScannerOpen(true); }}
-                                className="p-3 sm:p-3.5 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-sm touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
-                                aria-label={t('scan') || 'Scan'}
-                              >
-                                <Scan size={20} />
-                              </button>
-                            </div>
-                            <input
-                              className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all touch-manipulation min-h-[44px]"
-                              placeholder={t('customerNameOptional') || 'Customer Name'}
-                              value={newSaleForm.customer}
-                              onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
-                            />
-                          </div>
+                             <ChevronDown size={14} className="text-blue-400 mr-1" />
+                           </button>
                         </div>
 
-                        {/* Payment Methods - larger touch targets on mobile */}
-                        <div className="space-y-2 sm:space-y-3">
-                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1 sm:px-2 block">{t('paymentMethod')}</label>
+                        <div className="flex bg-slate-100 p-0.5 rounded-xl mb-1.5">
+                          {['Walk-in', 'Takeaway'].map(type => (
+                            <button
+                              key={type}
+                              onClick={() => setOrderType(type)}
+                              className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${orderType === type ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                            >
+                              {type === 'Walk-in' ? t('walkIn') : t('takeaway')}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <div className="relative group">
+                             <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
+                             <input
+                               className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                               placeholder={t('customerId') || 'Customer ID'}
+                               value={newSaleForm.customerId}
+                               onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
+                             />
+                          </div>
+                          <input
+                             className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                             placeholder={t('customerNameOptional') || 'Customer Name'}
+                             value={newSaleForm.customer}
+                             onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
+                           />
+                        </div>
+
+                        <div className="space-y-2">
                           <div className="grid grid-cols-3 gap-2">
                             {['Cash', 'Visa', 'Online'].map(method => (
                               <button
@@ -6515,12 +6804,12 @@ export default function App() {
                                   setPaymentMethod(method);
                                   if (method === 'Online') setShowUpiQr(true);
                                 }}
-                                className={`py-4 sm:py-4 flex flex-col items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border transition-all active:scale-[0.98] touch-manipulation min-h-[72px] ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
+                                className={`py-2 flex flex-col items-center gap-1 rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-white text-gray-400 border-gray-100'}`}
                               >
-                                {method === 'Cash' && <Banknote size={18} className="shrink-0" />}
-                                {method === 'Visa' && <CreditCard size={18} className="shrink-0" />}
-                                {method === 'Online' && <Smartphone size={18} className="shrink-0" />}
-                                <span className="text-[8px] font-black uppercase tracking-widest leading-tight">{method === 'Online' ? (t('digitalPayment') || 'Digital') : (t(method.toLowerCase()) || method)}</span>
+                                {method === 'Cash' && <Banknote size={16} />}
+                                {method === 'Visa' && <CreditCard size={16} />}
+                                {method === 'Online' && <Smartphone size={16} />}
+                                <span className="text-[9px] font-black uppercase">{t(method.toLowerCase()) || method}</span>
                               </button>
                             ))}
                           </div>
@@ -6546,7 +6835,7 @@ export default function App() {
                           className="w-full py-4 sm:py-5 bg-blue-600 text-white rounded-xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-3 sm:gap-4 touch-manipulation min-h-[52px]"
                         >
                           <CreditCard size={20} strokeWidth={3} className="shrink-0" />
-                          <span className="truncate">{t('checkout') || 'Checkout'} — {formatCurrency(serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0))}</span>
+                          <span className="truncate">{t('checkout') || 'Checkout'} - {formatCurrency(serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0))}</span>
                         </button>
                       </div>
                     </div>
@@ -6971,7 +7260,7 @@ export default function App() {
                             </div>
 
                             <h4 className="text-[10px] font-black uppercase text-gray-900 tracking-tight line-clamp-2 min-h-[28px] leading-tight mb-1">{item.name}</h4>
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{item.category || 'Spare Part'}</p>
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{item.category || (t('sparePart') || 'Spare Part')}</p>
 
                             <div className="mt-auto flex justify-between items-end bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
                               <div>
@@ -7228,11 +7517,31 @@ export default function App() {
                     </div>
                   </div>
                 )}
+                {/* Mobile Bottom Navigation for Service Tab */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
+                  <button onClick={() => setServiceSubTab('board')} className={`flex flex-col items-center gap-1 transition-all ${serviceSubTab === 'board' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
+                    <div className={`p-2 rounded-xl ${serviceSubTab === 'board' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
+                    <span className="text-[9px] font-black uppercase tracking-widest">{t('dashboard')}</span>
+                  </button>
+                  <button onClick={() => setServiceSubTab('sell')} className={`flex flex-col items-center gap-1 transition-all ${serviceSubTab === 'sell' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
+                    <div className={`p-2 rounded-xl ${serviceSubTab === 'sell' ? 'bg-blue-50' : ''}`}><ShoppingCart size={20} /></div>
+                    <span className="text-[9px] font-black uppercase tracking-widest">{t('sales')}</span>
+                  </button>
+                  <button onClick={() => setServiceSubTab('active')} className={`flex flex-col items-center gap-1 transition-all ${serviceSubTab === 'active' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
+                    <div className={`p-2 rounded-xl ${serviceSubTab === 'active' ? 'bg-blue-50' : ''}`}><Wrench size={20} /></div>
+                    <span className="text-[9px] font-black uppercase tracking-widest">{t('activeJobs')}</span>
+                  </button>
+                  <button onClick={() => setServiceSubTab('history')} className={`flex flex-col items-center gap-1 transition-all ${serviceSubTab === 'history' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
+                    <div className={`p-2 rounded-xl ${serviceSubTab === 'history' ? 'bg-blue-50' : ''}`}><Clock size={20} /></div>
+                    <span className="text-[9px] font-black uppercase tracking-widest">{t('history')}</span>
+                  </button>
+                </div>
               </div>
-            )
-          }
-          </div>
-        </main>
+            </div>
+          )
+        }
+        </div>
+      </main>
 
       {/* --- Modals --- */}
 
@@ -7240,7 +7549,7 @@ export default function App() {
       {
         isTicketModalOpen && editingTicket && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] lg:p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet max-h-[90vh]">
               {/* Mobile Pull Indicator */}
               <div className="lg:hidden w-full pt-4 shrink-0">
                 <div className="pull-indicator"></div>
@@ -7256,7 +7565,16 @@ export default function App() {
                     <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('ticketId') || 'Ticket'}: #{editingTicket.id.slice(0, 8)}</p>
                   </div>
                 </div>
-                <button onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
+                <button 
+                  onClick={(e) => { 
+                    e.stopPropagation();
+                    setIsTicketModalOpen(false); 
+                    setEditingTicket(null); 
+                  }} 
+                  className="p-3 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-2xl transition-all active:scale-95 border border-slate-100 flex items-center justify-center cursor-pointer group"
+                >
+                  <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 no-scrollbar pb-32 lg:pb-8">
@@ -7330,7 +7648,7 @@ export default function App() {
                               'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-200') : 
                              'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
                          >
-                           {p}
+                           {t(p.toLowerCase()) || p}
                          </button>
                        ))}
                     </div>
@@ -7360,7 +7678,7 @@ export default function App() {
                     <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={editingTicket.paymentMethod || 'Cash'} onChange={e => setEditingTicket({ ...editingTicket, paymentMethod: e.target.value })}>
                       <option value="Cash">{t('cash')}</option>
                       <option value="Card">{t('creditCard')}</option>
-                      <option value="Digital Wallet">Digital Wallet (Vodafone/Instapay)</option>
+                      <option value="Digital Wallet">{t('digitalPayment')}</option>
                     </select>
                   </div>
                 </div>
@@ -7392,16 +7710,16 @@ export default function App() {
                           onClick={() => {
                             const val = document.getElementById('part-search-input').value;
                             if (!val) return;
-                            const price = prompt(`Enter price for ${val}:`);
+                            const price = prompt(`${t('enterItemPrice')} for ${val}:`);
                             if (price) {
                               setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: 'man-'+Date.now(), name: val, price: Number(price), quantity: 1, fromInventory: false }] });
                               document.getElementById('part-search-input').value = '';
                               setPartSearchResults([]);
                             }
                           }}
-                          className="bg-slate-900 text-white px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg"
+                          className="bg-slate-900 text-white px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg hover:bg-black transition-colors"
                         >
-                          Manual
+                          {t('manual')}
                         </button>
                       </div>
 
@@ -7506,35 +7824,37 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="p-6 md:p-8 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-4 bg-white shrink-0 sticky bottom-0 z-10 shadow-[0_-20px_40px_rgba(255,255,255,0.8)] rounded-t-[2.5rem] lg:rounded-none">
-                <div className="flex gap-3 w-full sm:w-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0">
-                  {editingTicket.status === 'Delivered' && (
-                    <button onClick={async () => {
-                      if (window.confirm('Delete this ticket entirely?')) {
-                        await deleteDoc(doc(db, 'serviceTickets', editingTicket.id));
-                        setIsTicketModalOpen(false); setEditingTicket(null);
-                      }
-                    }} className="p-4 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all active:scale-90 shadow-sm border border-rose-100">
-                      <Trash2 size={24} />
-                    </button>
-                  )}
-                  <button onClick={() => {
-                    const laborPrice = Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0);
-                    const repairItems = [
-                      { id: 'SRV-'+editingTicket.id + '-LB', name: `Repair Labor: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                      ...(editingTicket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
-                    ];
-                    setServiceCart([...serviceCart, ...repairItems]);
-                    setServiceSubTab('sell');
-                    setIsTicketModalOpen(false);
-                    setEditingTicket(null);
-                  }} className="flex-1 sm:flex-none px-8 py-4 bg-slate-900 text-white rounded-[1.5rem] hover:bg-black font-black uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 whitespace-nowrap active:scale-95">
-                    <ShoppingCart size={18} strokeWidth={3} /> {t('billToPOS') || 'Bill to POS'}
-                  </button>
-                </div>
-                
-                <div className="flex gap-3 w-full sm:ml-auto">
-                  <button type="button" onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="flex-1 px-8 py-4 bg-white text-slate-400 rounded-[1.5rem] hover:bg-slate-50 font-black uppercase tracking-widest text-[10px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
+              <div className="p-6 md:p-8 border-t border-gray-100 bg-white shrink-0 sticky bottom-0 z-20 shadow-[0_-20px_40px_rgba(255,255,255,0.95)] rounded-t-[2.5rem] lg:rounded-none">
+                <div className="grid grid-cols-2 lg:flex lg:flex-row gap-3 w-full items-center">
+                  <div className="col-span-2 lg:col-auto lg:flex-1">
+                    {editingTicket.status === 'Delivered' && (
+                      <button onClick={async () => {
+                        if (window.confirm('Delete this ticket entirely?')) {
+                          await deleteDoc(doc(db, 'serviceTickets', editingTicket.id));
+                          setIsTicketModalOpen(false); setEditingTicket(null);
+                        }
+                      }} className="w-full lg:w-16 h-14 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all active:scale-95 shadow-sm border border-rose-100 flex items-center justify-center">
+                        <Trash2 size={24} />
+                      </button>
+                    )}
+                    {! (editingTicket.status === 'Delivered') && (
+                      <button onClick={() => {
+                        const laborPrice = Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0);
+                        const repairItems = [
+                          { id: 'SRV-'+editingTicket.id + '-LB', name: `Repair Labor: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                          ...(editingTicket.partsUsed || []).map(p => ({ id: p.id || 'man-'+Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                        ];
+                        setServiceCart([...serviceCart, ...repairItems]);
+                        setServiceSubTab('sell');
+                        setIsTicketModalOpen(false);
+                        setEditingTicket(null);
+                      }} className="w-full px-6 h-14 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[9px] transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 whitespace-nowrap active:scale-95">
+                        <ShoppingCart size={18} strokeWidth={3} /> {t('billToPOS') || 'Bill to POS'}
+                      </button>
+                    )}
+                  </div>
+                  
+                  <button type="button" onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="px-6 h-14 bg-gray-50 text-slate-400 rounded-2xl hover:bg-gray-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
                   <button onClick={async () => {
                     try {
                       const origTicket = serviceTickets.find(t => t.id === editingTicket.id);
@@ -7874,9 +8194,9 @@ export default function App() {
                   </select>
                 </div>
 
-                <div className="pt-2 flex gap-3">
-                  <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{t('addEmployee')}</button>
+                <div className="pt-2 grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
+                  <button type="submit" className="px-4 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-black uppercase tracking-widest text-[9px] shadow-lg shadow-blue-600/20 transition-all active:scale-95">{t('addEmployee')}</button>
                 </div>
               </form>
             </div>
@@ -7889,27 +8209,26 @@ export default function App() {
         isAddSiteModalOpen && (
           <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">{t('createLocation')}</h3>
-                <button onClick={() => setIsAddSiteModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('createLocation')}</h3>
+                <button onClick={() => setIsAddSiteModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
               </div>
               <form onSubmit={handleAddSite} className="p-6 space-y-4">
                 <input className="input-field" placeholder={t('siteName')} value={newSiteForm.name} onChange={e => setNewSiteForm({ ...newSiteForm, name: e.target.value })} required />
                 <input className="input-field" placeholder={t('city')} value={newSiteForm.city} onChange={e => setNewSiteForm({ ...newSiteForm, city: e.target.value })} required />
                 <input className="input-field" placeholder={t('manager')} value={newSiteForm.manager} onChange={e => setNewSiteForm({ ...newSiteForm, manager: e.target.value })} />
-                <input className="input-field" placeholder={t('shopAddress') || 'Address'} value={newSiteForm.address || ''} onChange={e => setNewSiteForm({ ...newSiteForm, address: e.target.value })} />
                 <input className="input-field" placeholder={t('phone') || 'Phone'} value={newSiteForm.phone || ''} onChange={e => setNewSiteForm({ ...newSiteForm, phone: e.target.value })} />
-
+                
                 <select className="input-field" value={newSiteForm.status} onChange={e => setNewSiteForm({ ...newSiteForm, status: e.target.value })}>
-                  <option value="Operational">Operational</option>
-                  <option value="Renovating">Renovating</option>
-                  <option value="Active">Active</option>
-                  <option value="Closed">Closed</option>
+                  <option value="Operational">{t('operational')}</option>
+                  <option value="Renovating">{t('renovating')}</option>
+                  <option value="Active">{t('active')}</option>
+                  <option value="Closed">{t('closed')}</option>
                 </select>
 
-                <div className="pt-2 flex gap-3">
-                  <button type="button" onClick={() => setIsAddSiteModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                  <button type="submit" className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-lg shadow-emerald-600/20">{t('createLocation')}</button>
+                <div className="pt-2 grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => setIsAddSiteModalOpen(false)} className="px-4 py-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
+                  <button type="submit" className="px-4 py-3 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 font-black uppercase tracking-widest text-[9px] shadow-lg shadow-emerald-600/20 transition-all active:scale-95">{t('createLocation')}</button>
                 </div>
               </form>
             </div>
@@ -7920,306 +8239,157 @@ export default function App() {
       {/* Detail Sidebar (Employee/Site) */}
       {
         (selectedEmployee || selectedSite) && (
-          <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-40 transform transition-transform duration-300 ease-in-out border-l border-gray-100 overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-xl text-gray-900">{selectedEmployee ? t('details') : t('manageDetails')}</h3>
-                <button onClick={() => { setSelectedEmployee(null); setSelectedSite(null); }} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[1040] md:hidden animate-in fade-in duration-300" onClick={() => { setSelectedEmployee(null); setSelectedSite(null); }}></div>
+        )
+      }
+      {
+        (selectedEmployee || selectedSite) && (
+          <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-2xl z-[1050] transform transition-transform duration-500 ease-out border-l border-gray-100 flex flex-col translate-x-0">
+            <div className="p-6 border-b-2 border-slate-100 flex justify-between items-center shrink-0 bg-white sticky top-0 z-[1060]">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-3 h-3 rounded-full bg-blue-600 animate-pulse shadow-lg shadow-blue-200"></div>
+                <h3 className="font-black text-slate-800 uppercase tracking-[0.2em] text-xs">
+                  {selectedEmployee ? t('employeeDetails') : t('locationDetails')}
+                </h3>
               </div>
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation();
+                  setSelectedEmployee(null); 
+                  setSelectedSite(null); 
+                }} 
+                className="w-14 h-14 flex items-center justify-center bg-rose-600 text-white hover:bg-rose-700 rounded-2xl shadow-xl transition-all active:scale-90 cursor-pointer group hover:rotate-90"
+                aria-label="Close"
+              >
+                <X size={28} strokeWidth={3} />
+              </button>
+            </div>
 
-              {selectedEmployee && (
-                <div className="space-y-6">
-                  <div className="flex flex-col items-center">
-                    <div className="relative group cursor-pointer" >
-                      <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden border-4 border-white shadow-md mb-3">
-                        {selectedEmployee.photo ? <img src={selectedEmployee.photo} alt={selectedEmployee.name} className="w-full h-full object-cover" /> : <User size={40} className="text-gray-300 m-auto mt-6" />}
+              <div className="flex-1 overflow-y-auto no-scrollbar p-6 pb-32 space-y-8">
+                {selectedEmployee && (
+                  <div className="space-y-8">
+                    <div className="flex flex-col items-center">
+                      <div className="relative group p-1 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
+                        <div className="w-24 h-24 rounded-full bg-white overflow-hidden border-2 border-white shadow-inner">
+                          {selectedEmployee.photo ? <img src={selectedEmployee.photo} alt={selectedEmployee.name} className="w-full h-full object-cover" /> : <User size={40} className="text-slate-200 m-auto mt-6" />}
+                        </div>
+                        <label className="absolute bottom-1 right-1 bg-white p-2 rounded-full text-blue-600 shadow-lg cursor-pointer hover:bg-blue-50 transition-all border border-blue-100 active:scale-90">
+                          <Camera size={14} />
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpdateEmployeeImage(selectedEmployee.id, e)} />
+                        </label>
                       </div>
-                      <label className="absolute bottom-3 right-0 bg-blue-600 p-1.5 rounded-full text-white shadow-sm cursor-pointer hover:bg-blue-700 transition-colors">
-                        <Camera size={14} />
-                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpdateEmployeeImage(selectedEmployee.id, e)} />
-                      </label>
+                      <input
+                        className="text-xl font-black text-slate-900 text-center bg-transparent border-b-2 border-transparent focus:border-blue-500 focus:outline-none transition-all w-full uppercase tracking-tight"
+                        value={selectedEmployee.name}
+                        onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'name', e.target.value)}
+                      />
+                      <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-2 px-3 py-1 bg-blue-50 rounded-full">{t(selectedEmployee.role.toLowerCase()) || selectedEmployee.role}</span>
                     </div>
-                    <input
-                      className="text-xl font-bold text-gray-900 text-center bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none transition-colors w-full"
-                      value={selectedEmployee.name}
-                      onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'name', e.target.value)}
-                    />
-                    <span className="text-sm font-medium text-slate-500">{t(selectedEmployee.role.toLowerCase()) || selectedEmployee.role}</span>
+
+                    <div className="space-y-4">
+                      <div className="p-5 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
+                        <div className="flex justify-between items-center py-1">
+                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('dept')}</span>
+                          <select
+                            className="text-xs font-black bg-transparent text-right outline-none text-slate-700"
+                            value={selectedEmployee.dept || ''}
+                            onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'dept', e.target.value)}
+                          >
+                            {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => (
+                              <option key={d} value={d}>{translations[language]?.[d.toLowerCase()] || d}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex justify-between items-center py-1">
+                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('location')}</span>
+                          <select className="text-xs font-black bg-transparent text-right outline-none text-slate-700" value={selectedEmployee.location || ''} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'location', e.target.value)}>
+                            <option value="">{t('selectLocation')}</option>
+                            {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                          </select>
+                        </div>
+                        <div className="flex justify-between items-center py-1">
+                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('shift')}</span>
+                          <select className="text-xs font-black bg-transparent text-right outline-none text-slate-700" value={selectedEmployee.shift} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'shift', e.target.value)}>
+                            {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="p-5 bg-blue-50/50 rounded-[2rem] border border-blue-100 space-y-4">
+                        <h4 className="text-[10px] font-black text-blue-900 uppercase tracking-widest flex items-center gap-2 mb-2"><DollarSign size={14} /> {t('compensation')}</h4>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-blue-700">{t('salary')}</span>
+                          <input type="number" className="w-24 text-right bg-white rounded-lg px-2 py-1.5 text-xs font-mono border border-blue-100" value={selectedEmployee.salary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salary', Number(e.target.value))} />
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-red-500">{t('advance')}</span>
+                          <input type="number" className="w-24 text-right bg-white rounded-lg px-2 py-1.5 text-xs font-mono border border-red-100 text-red-600" value={selectedEmployee.advanceSalary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'advanceSalary', Number(e.target.value))} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => handleDeleteEmployee(selectedEmployee.id)} 
+                      className="w-full bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 group"
+                    >
+                      <Trash2 size={16} className="group-hover:animate-bounce" /> {t('terminateService')}
+                    </button>
                   </div>
+                )}
 
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                        <span className="text-sm text-gray-500">{t('dept')}</span>
-                        <select
-                          className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600"
-                          value={selectedEmployee.dept || ''}
-                          onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'dept', e.target.value)}
-                        >
-                          {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => (
-                            <option key={d} value={d}>{translations[language]?.[d.toLowerCase()] || d}</option>
-                          ))}
-                        </select>
-                      </div>
-                      {/* Location Select for Update */}
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                        <span className="text-sm text-gray-500">{t('location')}</span>
-                        <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.location || ''} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'location', e.target.value)}>
-                          <option value="">{t('selectLocation') || 'Select Location'}</option>
-                          {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                        <span className="text-sm text-gray-500">{t('shift')}</span>
-                        <select className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600" value={selectedEmployee.shift} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'shift', e.target.value)}>
-                          {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
-                        </select>
-                      </div>
-                      {/* Replacement Field (Dropdown) */}
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                        <span className="text-sm text-gray-500">{t('replacementFor')}</span>
-                        <select
-                          className="text-sm font-medium bg-transparent text-right outline-none cursor-pointer hover:text-blue-600 max-w-[150px]"
-                          value={selectedEmployee.replacementFor || ''}
-                          onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'replacementFor', e.target.value)}
-                        >
-                          <option value="">{t('none')}</option>
-                          {employees.filter(e => e.id !== selectedEmployee.id && e.location === selectedEmployee.location).map(emp => (
-                            <option key={emp.id} value={emp.name}>{emp.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Month Period Indicator */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 rounded-lg p-3 flex items-center gap-3 shadow-sm mb-4">
-                      <div className="bg-blue-600 p-2 rounded-lg">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="text-xs text-blue-600 font-semibold uppercase tracking-wide">{t('payPeriod')}</div>
-                        <div className="text-sm font-bold text-gray-900 mt-0.5">
-                          {new Date(employeeMonthFilter + '-01').toLocaleDateString(language === 'ar' ? 'ar-EG' : language === 'hi' ? 'hi-IN' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'long', year: 'numeric' })}
+                {selectedSite && !selectedEmployee && (
+                  <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
+                    <div className="space-y-6">
+                      <div className="p-6 bg-slate-50/80 rounded-[2rem] border border-slate-100 space-y-5">
+                        <div className="flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('siteName')}</label>
+                          <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.name} onChange={(e) => handleUpdateSite(selectedSite.id, 'name', e.target.value)} />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('city')}</label>
+                          <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.city} onChange={(e) => handleUpdateSite(selectedSite.id, 'city', e.target.value)} />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('manager')}</label>
+                          <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.manager} onChange={(e) => handleUpdateSite(selectedSite.id, 'manager', e.target.value)} />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('operationalStatus')}</label>
+                          <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-widest focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.status} onChange={(e) => handleUpdateSite(selectedSite.id, 'status', e.target.value)}>
+                            <option value="Operational">{t('operational')}</option>
+                            <option value="Renovating">{t('renovating')}</option>
+                            <option value="Active">{t('active')}</option>
+                            <option value="Closed">{t('closed')}</option>
+                          </select>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                      <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2"><DollarSign size={16} /> {t('compensation')}</h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-blue-700">{t('salary')}</span>
-                          <div className="flex gap-1 items-center">
-                            <input
-                              type="number"
-                              className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200"
-                              value={selectedEmployee.salary}
-                              onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salary', Number(e.target.value))}
-                            />
-                            <select
-                              className="text-[10px] bg-white border border-blue-100 rounded p-0.5 font-bold"
-                              value={selectedEmployee.salaryMethod || 'Monthly'}
-                              onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salaryMethod', e.target.value)}
-                            >
-                              <option value="Monthly">M</option>
-                              <option value="Weekly">W</option>
-                              <option value="Daily">D</option>
-                              <option value="Hourly">H</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-blue-700">{t('bonus')}</span>
-                          <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.bonus} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'bonus', Number(e.target.value))} />
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-blue-700">{t('overtime')}</span>
-                          <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-blue-200" value={selectedEmployee.overtime} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'overtime', Number(e.target.value))} />
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-red-500">{t('advance')}</span>
-                          <input type="number" className="w-20 text-right bg-white rounded px-1 text-sm border-red-200 text-red-600 font-medium" value={selectedEmployee.advanceSalary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'advanceSalary', Number(e.target.value))} />
-                        </div>
-
-
-
-
-                        {/* Deductions in Sidebar - Filtered by Selected Month */}
-                        {(() => {
-                          let baseSalary = Number(selectedEmployee.salary) || 0;
-                          let bonus = Number(selectedEmployee.bonus) || 0;
-                          let overtime = Number(selectedEmployee.overtime) || 0;
-                          let deductionAmount = 0;
-                          let lateDeduction = 0;
-                          let absentDeduction = 0;
-
-                          // Filter attendance by selected month (same logic as Payroll tab)
-                          const empAttendance = attendance.filter(a => {
-                            if (a.name !== selectedEmployee.name) return false;
-                            if (!a.date) return false;
-
-                            // Handle different date formats
-                            let attendanceMonth;
-                            if (typeof a.date === 'string') {
-                              attendanceMonth = a.date.substring(0, 7); // YYYY-MM
-                            } else if (a.date.toDate) {
-                              // Firestore Timestamp
-                              attendanceMonth = a.date.toDate().toISOString().substring(0, 7);
-                            } else if (a.date instanceof Date) {
-                              attendanceMonth = a.date.toISOString().substring(0, 7);
-                            } else {
-                              return false;
-                            }
-
-                            return attendanceMonth === employeeMonthFilter;
-                          });
-
-                          empAttendance.forEach(record => {
-                            if (record.status === 'Late') {
-                              // Hourly Rate = Salary / 360
-                              const hourlyRate = baseSalary / 360;
-                              const lateCost = (Number(record.lateHours) || 0) * hourlyRate;
-                              if (lateCost > 0) {
-                                lateDeduction += lateCost;
-                                deductionAmount += lateCost;
-                              }
-                            }
-                            if (record.status === 'Absent') {
-                              const cost = baseSalary / 30;
-                              absentDeduction += cost;
-                              deductionAmount += cost;
-                            }
-                          });
-
-                          // Add Manual Hourly Deductions
-                          const hourlyRate = baseSalary / 360;
-                          const manualDeduction = (Number(selectedEmployee.deductionHours) || 0) * hourlyRate;
-
-                          // Check for Stored Payroll Record for selected month
-                          const storedRecord = payrolls.find(p => p.employeeId === selectedEmployee.id && p.month === employeeMonthFilter);
-
-                          if (storedRecord) {
-                            baseSalary = Number(storedRecord.salary) || baseSalary;
-                            bonus = Number(storedRecord.bonus) || 0;
-                            overtime = Number(storedRecord.overtime) || 0;
-                          }
-
-                          const effectiveManualDeduction = storedRecord ? (Number(storedRecord.deductions) || 0) : manualDeduction;
-                          const effectiveAdvance = storedRecord ? (Number(storedRecord.advance) || 0) : (Number(selectedEmployee.advanceSalary) || 0);
-
-                          deductionAmount = lateDeduction + absentDeduction + effectiveManualDeduction + effectiveAdvance;
-
-                          const netPay = baseSalary + bonus + overtime - deductionAmount;
-
-                          return (
-                            <>
-
-
-                              {lateDeduction > 0 && (
-                                <div className="flex justify-between text-sm text-amber-600">
-                                  <span>{t('lateDeductions')}</span>
-                                  <span>-{formatCurrency(lateDeduction)}</span>
-                                </div>
-                              )}
-                              {absentDeduction > 0 && (
-                                <div className="flex justify-between text-sm text-red-600">
-                                  <span>{t('absentDeductions')}</span>
-                                  <span>-{formatCurrency(absentDeduction)}</span>
-                                </div>
-                              )}
-
-                              {effectiveAdvance > 0 && (
-                                <div className="flex justify-between text-sm text-red-500 font-medium pt-1">
-                                  <span>{t('advance')}</span>
-                                  <span>-{formatCurrency(effectiveAdvance)}</span>
-                                </div>
-                              )}
-
-                              <div className="flex justify-between text-sm text-red-600 font-bold pt-2 border-t border-red-100 mt-1">
-                                <span>{t('totalDeductions')}</span>
-                                <span>-{formatCurrency(deductionAmount)}</span>
+                      <div className="p-6 bg-emerald-50/50 rounded-[2rem] border border-emerald-100 space-y-4">
+                        <h4 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest flex items-center gap-2 mb-2"><Users size={16} /> {t('assignedStaff') || 'Assigned Staff'}</h4>
+                        <div className="space-y-3">
+                          {employees.filter(e => e.location === selectedSite.name).map(e => (
+                            <div key={e.id} className="flex items-center justify-between bg-white/80 p-3 rounded-xl border border-emerald-50 shadow-sm">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] font-black text-emerald-700">{e.name?.[0].toUpperCase()}</div>
+                                <span className="text-xs font-black text-slate-700 uppercase tracking-tight">{e.name}</span>
                               </div>
-
-                              <div className="flex justify-between text-lg text-blue-900 font-bold pt-3 border-t-2 border-blue-100 mt-2">
-                                <span>{t('netPay')}</span>
-                                <span>{formatCurrency(netPay)}</span>
-                              </div>
-                            </>
-                          );
-                        })()}
+                              <span className="text-[8px] font-black text-emerald-500 uppercase px-2 py-0.5 bg-emerald-50 rounded-full">{t(e.role?.toLowerCase()) || e.role}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="pt-4 border-t border-gray-100">
-
-
-                      <button onClick={() => handleDeleteEmployee(selectedEmployee.id)} className="w-full mt-4 text-red-600 hover:bg-red-50 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
-                        <Trash2 size={18} /> {t('terminateService')}
+                      <button 
+                        onClick={() => handleDeleteSite(selectedSite.id, selectedSite.name)} 
+                        className="w-full bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
+                      >
+                        <Trash2 size={16} /> {t('deleteLocation')}
                       </button>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {selectedSite && (
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-bold uppercase text-gray-400">{t('siteName')}</label>
-                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.name} onChange={(e) => handleUpdateSite(selectedSite.id, 'name', e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-bold uppercase text-gray-400">{t('city')}</label>
-                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.city} onChange={(e) => handleUpdateSite(selectedSite.id, 'city', e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-bold uppercase text-gray-400">{t('manager')}</label>
-                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.manager} onChange={(e) => handleUpdateSite(selectedSite.id, 'manager', e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-bold uppercase text-gray-400">{t('shopAddress') || 'Address'}</label>
-                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.address || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'address', e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-bold uppercase text-gray-400">{t('phone') || 'Phone'}</label>
-                        <input className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.phone || ''} onChange={(e) => handleUpdateSite(selectedSite.id, 'phone', e.target.value)} />
-                      </div>
-
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-bold uppercase text-gray-400">{t('operationalStatus')}</label>
-                        <select className="bg-white border border-gray-200 rounded p-2 text-sm font-medium" value={selectedSite.status} onChange={(e) => handleUpdateSite(selectedSite.id, 'status', e.target.value)}>
-                          <option value="Operational">{t('operational')}</option>
-                          <option value="Renovating">{t('renovating')}</option>
-                          <option value="Active">{t('active')}</option>
-                          <option value="Closed">{t('closed')}</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                      <h4 className="font-bold text-emerald-900 mb-2 flex items-center gap-2"><Users size={16} /> {t('assignedGuards')}</h4>
-                      <div className="space-y-2">
-                        {employees.filter(e => e.location === selectedSite.name).map(e => (
-                          <div key={e.id} className="flex items-center gap-2 text-sm text-emerald-800 bg-white/50 p-2 rounded">
-                            <div className="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center text-xs font-bold text-emerald-700">{e.name[0]}</div>
-                            <span>{e.name}</span>
-                          </div>
-                        ))}
-                        {employees.filter(e => e.location === selectedSite.name).length === 0 && <p className="text-sm text-emerald-600 italic">No guards assigned.</p>}
-                      </div>
-                    </div>
-
-                    <button onClick={() => handleDeleteSite(selectedSite.id, selectedSite.name)} className="w-full text-red-600 hover:bg-red-50 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors mt-auto">
-                      <Trash2 size={18} /> {t('deleteLocation')}
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
         )
       }
 
@@ -8228,13 +8398,6 @@ export default function App() {
         showSettings && (
           <div className="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-[150] backdrop-blur-xl p-0 sm:p-4 animate-in fade-in duration-300">
             <div className="bg-white sm:rounded-[2.5rem] w-full max-w-2xl h-full sm:h-[85vh] shadow-2xl overflow-hidden flex flex-col border border-white/20 relative">
-              {/* Fixed Close Button for Mobile Accessibility */}
-              <button
-                onClick={() => setShowSettings(false)}
-                className="absolute top-6 right-6 z-20 p-2.5 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all shadow-sm border border-gray-100"
-              >
-                <X size={24} />
-              </button>
 
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-32 sm:pb-8">
                 {/* Header - Fixed */}
@@ -8398,6 +8561,52 @@ export default function App() {
                               value={shopSettings.instapayId || ''}
                               onChange={(e) => setShopSettings({ ...shopSettings, instapayId: e.target.value })}
                             />
+                          </div>
+                          <div className="pt-2">
+                             <label className="block text-xs font-medium text-gray-500 mb-2">{t('shopLogo') || 'Shop Logo'}</label>
+                             <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm shrink-0">
+                                   {shopSettings.logo ? (
+                                     <img src={shopSettings.logo} alt="Logo preview" className="w-full h-full object-contain" />
+                                   ) : (
+                                     <Shield size={20} className="text-slate-300" />
+                                   )}
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                   <input 
+                                     type="file" 
+                                     id="shop-logo-upload" 
+                                     className="hidden" 
+                                     accept="image/*"
+                                     onChange={(e) => {
+                                       const file = e.target.files[0];
+                                       if (file) {
+                                         if (file.size > 2 * 1024 * 1024) {
+                                           alert(t('logoSizeError'));
+                                           return;
+                                         }
+                                         const reader = new FileReader();
+                                         reader.onloadend = () => {
+                                           setShopSettings({ ...shopSettings, logo: reader.result });
+                                         };
+                                         reader.readAsDataURL(file);
+                                       }
+                                     }}
+                                   />
+                                   <label htmlFor="shop-logo-upload" className="block text-center py-2 px-4 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-lg cursor-pointer hover:bg-slate-50 hover:border-blue-300 transition-all">
+                                      {shopSettings.logo ? (t('changeLogo') || 'Change Logo') : (t('uploadLogo') || 'Upload Logo')}
+                                   </label>
+                                   {shopSettings.logo && (
+                                     <button 
+                                       type="button"
+                                       onClick={() => setShopSettings({...shopSettings, logo: ''})}
+                                       className="w-full text-[9px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+                                     >
+                                       {t('removeLogo') || 'Remove Logo'}
+                                     </button>
+                                   )}
+                                </div>
+                             </div>
                           </div>
                           <button
                             onClick={async () => {
@@ -9755,7 +9964,7 @@ export default function App() {
       }
 
       {/* Service Module Specific Mobile Navigation */}
-      {activeTab === 'service' && (
+      {!isKiosk && activeTab === 'service' && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.08)] border-t border-gray-100 px-4 pb-6 pt-2 flex justify-around items-center z-[65] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 backdrop-blur-xl">
           {[
             { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },

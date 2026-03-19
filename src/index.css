@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -60,7 +60,10 @@ body {
 /* Input Field Utility */
 .input-field {
   width: 100%;
-  padding: 0.625rem 0.75rem;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
   font-size: 0.875rem;
@@ -218,9 +221,45 @@ body {
   animation: shimmer 2s infinite;
 }
 
+
+/* Premium Ripple effect */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.5s, opacity 1s;
+}
+
+.ripple:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
 }
 
 /* Haptic-like Active States */
@@ -237,4 +276,443 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* POS-Specific Premium Styling */
+:root {
+  --pos-dark: #2f3439;
+  --pos-offwhite: #fcf0ed;
+  --pos-red: #ed4425;
+  --pos-blue: #00b8de;
+}
+
+/* uniCenta oPOS Premium Theme */
+.opos-theme {
+  --opos-bg: #f2f2f2;
+  --opos-border: #cccccc;
+  --opos-accent: #0080ff;
+  --opos-text: #333333;
+  --opos-header-bg: #e6e6e6;
+  --opos-button-hover: #e0f0ff;
+}
+
+.opos-grid-container {
+  display: grid;
+  grid-template-areas: 
+    "header header header"
+    "actions cart numpad"
+    "categories products numpad";
+  grid-template-rows: auto 1fr 1fr;
+  grid-template-columns: 180px 1fr 340px;
+  height: 100vh;
+  gap: 4px;
+  background-color: var(--opos-bg);
+}
+
+.opos-header {
+  grid-area: header;
+  background: linear-gradient(to bottom, #fcfcfc, #e6e6e6);
+  border-bottom: 2px solid #bbb;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+}
+
+.opos-sidebar-actions {
+  grid-area: actions;
+  background: white;
+  border-right: 1px solid var(--opos-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+
+.opos-cart {
+  grid-area: cart;
+  background: white;
+  border: 1px solid var(--opos-border);
+  overflow-y: auto;
+  position: relative;
+}
+
+.opos-numpad {
+  grid-area: numpad;
+  background: #f8f8f8;
+  border-left: 1px solid var(--opos-border);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opos-categories {
+  grid-area: categories;
+  background: #f0f0f0;
+  border: 1px solid var(--opos-border);
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.opos-products {
+  grid-area: products;
+  background: white;
+  border: 1px solid var(--opos-border);
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.opos-btn {
+  background: white;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 #ccc, 0 4px 10px rgba(0,0,0,0.05);
+  transition: all 0.1s;
+  cursor: pointer;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.opos-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #ccc;
+}
+
+.opos-btn-action {
+  aspect-ratio: 1;
+  width: 100%;
+}
+
+.opos-btn-nav {
+  height: 48px;
+  width: 60px;
+  color: var(--opos-accent);
+}
+
+.opos-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.opos-table th {
+  background: var(--opos-bg);
+  padding: 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--opos-border);
+  text-align: left;
+}
+
+.opos-table td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.opos-num-btn {
+  background: white;
+  font-size: 24px;
+  height: 60px;
+  border-radius: 8px;
+  border: 1px solid var(--opos-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.opos-num-btn.active {
+  background: var(--opos-accent);
+  color: white;
+  border-color: var(--opos-accent);
+}
+
+.opos-cat-btn {
+  width: 100%;
+  padding: 18px 12px;
+  text-align: center;
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #444;
+  box-shadow: 0 4px 0 #ddd, 0 6px 10px rgba(0,0,0,0.05);
+  transition: all 0.1s ease;
+}
+
+.opos-cat-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #ddd;
+}
+
+.opos-cat-btn.active {
+  background: #0070e0;
+  color: white;
+  border-color: #0056b3;
+  box-shadow: 0 4px 0 #0056b3, 0 8px 15px rgba(0, 112, 224, 0.3);
+}
+
+.opos-prod-btn {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1.1;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.opos-prod-btn:hover {
+  border-color: #0080ff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 128, 255, 0.1);
+}
+
+.opos-prod-btn:active {
+  transform: scale(0.95);
+  filter: brightness(0.95);
+}
+
+.opos-subtotal-panel {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: var(--opos-bg);
+  border-top: 1px solid var(--opos-border);
+}
+
+.opos-value-box {
+  background: white;
+  border: 1px solid var(--opos-border);
+  flex: 1;
+  padding: 4px 12px;
+  text-align: right;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.opos-value-box label {
+  font-size: 9px;
+  font-weight: black;
+  text-transform: uppercase;
+  color: #888;
+  display: block;
+}
+
+.opos-value-box span {
+  font-size: 16px;
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.pos-card-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.pos-card-gradient:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border-color: var(--pos-blue);
+  box-shadow: 0 20px 25px -5px rgba(0, 184, 222, 0.1), 0 10px 10px -5px rgba(0, 184, 222, 0.04);
+}
+
+.pos-btn-action {
+  background-color: var(--pos-blue);
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 184, 222, 0.4);
+}
+
+.pos-btn-action:hover {
+  background-color: #00a4c7;
+  transform: translateY(-1px);
+}
+
+.glass-white {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-blue {
+  background: rgba(0, 184, 222, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 184, 222, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+/* Industrial & POS Design System Expansion */
+:root {
+  --steel-50: #f8fafc;
+  --steel-100: #f1f5f9;
+  --steel-200: #e2e8f0;
+  --steel-300: #cbd5e1;
+  --steel-400: #94a3b8;
+  --steel-500: #64748b;
+  --steel-600: #475569;
+  --steel-700: #334155;
+  --steel-800: #1e293b;
+  --steel-900: #0f172a;
+  
+  --pos-accent: #3b82f6;
+  --pos-accent-dark: #1d4ed8;
+  --pos-surface: #ffffff;
+  --pos-sidebar: #1e293b;
+}
+
+/* Premium Dashboard Stats */
+.opos-stat-card {
+  @apply bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/20 transition-all duration-500 relative overflow-hidden;
+}
+
+.opos-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pos-accent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.opos-stat-card:hover {
+  @apply -translate-y-2 shadow-2xl shadow-blue-500/10 border-blue-100;
+}
+
+.opos-stat-card:hover::before {
+  opacity: 1;
+}
+
+.opos-stat-value {
+  @apply font-black text-3xl tracking-tighter text-slate-900 font-mono;
+}
+
+.opos-stat-label {
+  @apply text-[10px] font-black uppercase tracking-[0.2em] text-slate-400;
+}
+
+/* Sidebar Drawer Navigation */
+.pos-drawer-item {
+  @apply flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 relative;
+}
+
+.pos-drawer-item-active {
+  @apply bg-blue-600 text-white shadow-lg shadow-blue-500/20;
+}
+
+.pos-drawer-item-inactive {
+  @apply text-slate-400 hover:text-slate-900 hover:bg-slate-50;
+}
+
+.pos-drawer-indicator {
+  @apply absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-blue-600 rounded-r-full opacity-0 scale-0 transition-all duration-300;
+}
+
+.pos-drawer-item-active .pos-drawer-indicator {
+  @apply opacity-100 scale-100;
+}
+
+/* Industrial Buttons (Refined) */
+.opos-btn-industrial {
+  @apply bg-white border-2 border-slate-200 rounded-2xl p-4 font-black uppercase tracking-widest text-[10px] transition-all duration-200 flex items-center justify-center gap-3 shadow-[0_4px_0_theme(colors.slate.200)] active:translate-y-1 active:shadow-none hover:border-blue-500 hover:text-blue-600 hover:shadow-[0_4px_0_theme(colors.blue.100)];
+}
+
+.opos-btn-primary {
+  @apply bg-blue-600 text-white border-blue-700 shadow-[0_4px_0_theme(colors.blue.800)] hover:bg-blue-500 hover:border-blue-600;
+}
+
+/* Status Badges */
+.opos-status {
+  @apply px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border;
+}
+
+.opos-status-active {
+  @apply bg-emerald-50 text-emerald-600 border-emerald-100;
+}
+
+.opos-status-warning {
+  @apply bg-amber-50 text-amber-600 border-amber-100;
+}
+
+.opos-status-danger {
+  @apply bg-rose-50 text-rose-600 border-rose-100;
+}
+
+/* Table Enhancements */
+.opos-industrial-table {
+  @apply w-full border-separate border-spacing-0;
+}
+
+.opos-industrial-table th {
+  @apply bg-slate-50 pb-4 px-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100;
+}
+
+.opos-industrial-table td {
+  @apply py-4 px-4 text-sm font-medium text-slate-600 border-b border-slate-50 transition-colors;
+}
+
+.opos-industrial-table tr:hover td {
+  @apply bg-blue-50/30 text-slate-900 border-blue-100/30;
+}
+
+/* Kiosk UI Utilities */
+.kiosk-btn {
+  @apply bg-white border-4 border-slate-100 p-10 rounded-[3rem] flex flex-col items-center gap-6 shadow-2xl transition-all active:scale-95 hover:border-blue-500 hover:shadow-blue-500/10;
+}
+
+.kiosk-clock {
+  font-family: 'Orbitron', sans-serif;
+  @apply text-6xl font-black tracking-tighter text-slate-900;
+}
+
+/* Receipt Theme */
+.receipt-paper {
+  @apply bg-white shadow-2xl p-10 relative overflow-hidden;
+  background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}
+
+.receipt-edge {
+  background-image: 
+    linear-gradient(135deg, #fff 25%, transparent 25%),
+    linear-gradient(225deg, #fff 25%, transparent 25%);
+  background-position: 0 0, 0 0;
+  background-size: 20px 20px;
+  background-repeat: repeat-x;
+}
+
+/* Glass & Glow */
+.glow-blue {
+  box-shadow: 0 0 40px rgba(59, 130, 246, 0.2);
+}
+
+/* Orbitron Utility */
+.font-orbitron {
+  font-family: 'Orbitron', sans-serif;
 }
