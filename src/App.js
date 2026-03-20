@@ -4361,7 +4361,7 @@ export default function App() {
         )}
 
         {/* Views */}
-        <div className={`flex-1 overflow-auto bg-gray-50 ${(activeTab === 'sales_purchases' || activeTab === 'service') ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
+        <div className={`flex-1 overflow-auto bg-gray-50 pb-32 lg:pb-0 ${(activeTab === 'sales_purchases' || activeTab === 'service') ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
 
           {activeTab === 'dashboard' && (
             <div className="space-y-8 animate-in fade-in duration-700 max-w-7xl mx-auto">
@@ -5073,37 +5073,6 @@ export default function App() {
           {
             activeTab === 'sales_purchases' && (
               <div className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-gray-50">
-                {/* Mobile Bottom Navigation (Premium Glassmorphism) */}
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-8 py-3 flex justify-between items-center z-[65] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
-                  <div className="flex gap-10">
-                    <button
-                      onClick={() => setIsMobileCartOpen(false)}
-                      className={`flex flex-col items-center gap-1.5 transition-all ${!isMobileCartOpen ? 'text-blue-600 scale-110' : 'text-gray-300 hover:text-gray-400'}`}
-                    >
-                      <div className={`p-2 rounded-xl transition-all ${!isMobileCartOpen ? 'bg-blue-50' : ''}`}><Package size={20} /></div>
-                      <span className="text-[9px] font-black uppercase tracking-[0.15em]">{t('products')}</span>
-                    </button>
-                    <button
-                      onClick={() => setIsScannerOpen(true)}
-                      className="flex flex-col items-center gap-1.5 text-gray-300 hover:text-gray-600 transition-all"
-                    >
-                      <div className="p-2 rounded-xl"><Scan size={20} /></div>
-                      <span className="text-[9px] font-black uppercase tracking-[0.15em]">{t('scanner')}</span>
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => setIsMobileCartOpen(true)}
-                    className="relative -top-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 rounded-[2rem] shadow-[0_15px_40px_rgba(37,99,235,0.4)] transform active:scale-95 transition-all border-4 border-white group"
-                  >
-                    <ShoppingCart size={28} className="group-hover:rotate-12 transition-transform" />
-                    {cart.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white animate-bounce shadow-md">
-                        {cart.reduce((a, b) => a + b.quantity, 0)}
-                      </span>
-                    )}
-                  </button>
-                </div>
-
                 {/* Left: Product Grid */}
                 <div className={`flex-1 flex flex-col h-full overflow-hidden ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
                   <div className="p-4 flex-shrink-0 bg-white border-b border-gray-200">
@@ -6362,6 +6331,8 @@ export default function App() {
                               { label: t('newTicket'), icon: <Plus size={28} />, color: 'bg-blue-600', shadow: 'shadow-blue-200', action: () => setServiceSubTab('new') },
                               { label: t('addCustomer'), icon: <UserPlus size={28} />, color: 'bg-indigo-600', shadow: 'shadow-indigo-200', action: () => { setServiceSubTab('customers'); setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); } },
                               { label: t('activeJobs'), icon: <Activity size={28} />, color: 'bg-emerald-600', shadow: 'shadow-emerald-200', action: () => setServiceSubTab('active') },
+                              { label: t('inventory'), icon: <Package size={28} />, color: 'bg-purple-600', shadow: 'shadow-purple-200', action: () => setServiceSubTab('inventory') },
+                              { label: t('menuReports'), icon: <BarChart3 size={28} />, color: 'bg-rose-500', shadow: 'shadow-rose-200', action: () => setServiceSubTab('reports') },
                               { label: t('sales') || 'Sales', icon: <ShoppingCart size={28} />, color: 'bg-slate-900', shadow: 'shadow-slate-200', action: () => setServiceSubTab('sell') }
                             ].map((btn, i) => (
                               <button
@@ -7517,25 +7488,7 @@ export default function App() {
                     </div>
                   </div>
                 )}
-                {/* Mobile Bottom Navigation for Service Tab */}
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
-                  <button onClick={() => setServiceSubTab('board')} className={`flex flex-col items-center gap-1 transition-all ${serviceSubTab === 'board' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
-                    <div className={`p-2 rounded-xl ${serviceSubTab === 'board' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
-                    <span className="text-[9px] font-black uppercase tracking-widest">{t('dashboard')}</span>
-                  </button>
-                  <button onClick={() => setServiceSubTab('sell')} className={`flex flex-col items-center gap-1 transition-all ${serviceSubTab === 'sell' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
-                    <div className={`p-2 rounded-xl ${serviceSubTab === 'sell' ? 'bg-blue-50' : ''}`}><ShoppingCart size={20} /></div>
-                    <span className="text-[9px] font-black uppercase tracking-widest">{t('sales')}</span>
-                  </button>
-                  <button onClick={() => setServiceSubTab('active')} className={`flex flex-col items-center gap-1 transition-all ${serviceSubTab === 'active' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
-                    <div className={`p-2 rounded-xl ${serviceSubTab === 'active' ? 'bg-blue-50' : ''}`}><Wrench size={20} /></div>
-                    <span className="text-[9px] font-black uppercase tracking-widest">{t('activeJobs')}</span>
-                  </button>
-                  <button onClick={() => setServiceSubTab('history')} className={`flex flex-col items-center gap-1 transition-all ${serviceSubTab === 'history' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
-                    <div className={`p-2 rounded-xl ${serviceSubTab === 'history' ? 'bg-blue-50' : ''}`}><Clock size={20} /></div>
-                    <span className="text-[9px] font-black uppercase tracking-widest">{t('history')}</span>
-                  </button>
-                </div>
+
               </div>
             </div>
           )
@@ -9964,49 +9917,128 @@ export default function App() {
       }
 
       {/* Service Module Specific Mobile Navigation */}
-      {!isKiosk && activeTab === 'service' && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.08)] border-t border-gray-100 px-4 pb-6 pt-2 flex justify-around items-center z-[65] rounded-t-[2.5rem] animate-in slide-in-from-bottom duration-500 backdrop-blur-xl">
-          {[
-            { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={20} /> },
-            { id: 'sell', label: t('sell') || 'Sell', icon: (
-              <div className="relative">
-                <ShoppingCart size={20} />
-                {serviceSubTab === 'sell' && serviceCart.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[7px] font-black w-4 h-4 flex items-center justify-center rounded-full border border-white">
-                    {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
-                  </span>
-                )}
-              </div>
-            ) },
-            { id: 'new', label: '', icon: (
-              <div className="bg-blue-600 text-white p-4 rounded-3xl shadow-xl shadow-blue-200 transform -translate-y-4 border-4 border-white active:scale-95 transition-all">
-                <Plus size={24} strokeWidth={3} />
-              </div>
-            ), isFab: true },
-            { id: 'active', label: t('activeJobs'), icon: <Wrench size={20} /> },
-            { id: 'inventory', label: t('inventory'), icon: <HardDrive size={20} /> },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                if (tab.id === 'sell' && serviceSubTab === 'sell' && serviceCart.length > 0) {
-                  setIsMobileCartOpen(!isMobileCartOpen);
-                } else {
-                  setServiceSubTab(tab.id);
-                  setIsMobileCartOpen(false);
-                }
-              }}
-              className={`flex flex-col items-center gap-1 transition-all ${tab.isFab ? '' : (serviceSubTab === tab.id ? 'text-blue-600' : 'text-gray-400')}`}
-            >
-              {!tab.isFab && (
-                <div className={`p-2 rounded-xl transition-all ${serviceSubTab === tab.id ? 'bg-blue-50' : ''}`}>
-                  {tab.icon}
-                </div>
-              )}
-              {tab.isFab && tab.icon}
-              {tab.label && <span className="text-[9px] font-black uppercase tracking-widest">{tab.label}</span>}
-            </button>
-          ))}
+      {/* Global Mobile Bottom Navigation (Universal) */}
+      {!isKiosk && !isPinModalOpen && !showSettings && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-2xl border-t border-gray-100/50 px-4 pb-8 pt-4 flex justify-around items-center z-[65] rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] animate-in slide-in-from-bottom duration-500">
+           {(() => {
+             const navs = {
+               dashboard: [
+                 { id: 'home', label: t('menuDashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') },
+                 { id: 'settings', label: t('settings'), icon: <Settings size={22} />, onClick: () => setShowSettings(true) },
+               ],
+               employees: [
+                 { id: 'all', label: t('allEmployees'), icon: <Users size={22} />, onClick: () => setActiveTab('employees') },
+                 { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddModalOpen(true) },
+                 { id: 'sites', label: t('menuSites'), icon: <MapPin size={22} />, onClick: () => setActiveTab('sites') }
+               ],
+               sites: [
+                 { id: 'all', label: t('filterAll'), icon: <MapPin size={22} />, onClick: () => setActiveTab('sites') },
+                 { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddSiteModalOpen(true) },
+                 { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
+               ],
+               attendance: [
+                 { id: 'daily', label: t('menuAttendance'), icon: <Clock size={22} />, onClick: () => setActiveTab('attendance') },
+                 { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddAttendanceModalOpen(true) },
+                 { id: 'export', label: t('export'), icon: <Download size={22} />, onClick: handleExportAttendance }
+               ],
+               payroll: [
+                 { id: 'mgmt', label: t('menuPayroll'), icon: <DollarSign size={22} />, onClick: () => setActiveTab('payroll') },
+                 { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => { /* No direct add yet */ } },
+                 { id: 'export', label: t('export'), icon: <Download size={22} />, onClick: handleExportPayroll }
+               ],
+               reports: [
+                 { id: 'dashboard', label: t('summary'), icon: <BarChart3 size={22} />, onClick: () => setActiveTab('reports') },
+                 { id: 'download', isFab: true, icon: <Download size={24} strokeWidth={3} />, onClick: () => downloadReport('all') },
+                 { id: 'pl', label: t('profit_loss'), icon: <DollarSign size={22} />, onClick: () => setProfitPeriod('Monthly') }
+               ],
+               sales_purchases: [
+                 { id: 'pos', label: t('products'), icon: <Package size={22} />, onClick: () => { setActiveTab('sales_purchases'); setIsMobileCartOpen(false); } },
+                 { id: 'scanner', label: t('scanner'), icon: <Scan size={22} />, onClick: () => setIsScannerOpen(true) },
+                 { id: 'cart', isFab: true, icon: (
+                   <div className="relative">
+                     <ShoppingCart size={24} strokeWidth={3} />
+                     {cart.length > 0 && (
+                       <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">{cart.reduce((a,b)=>a+b.quantity,0)}</span>
+                     )}
+                   </div>
+                 ), onClick: () => setIsMobileCartOpen(true) },
+                 { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setActiveTab('history') }
+               ],
+               cafe: [
+                 { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setCafeSubTab('board') },
+                 { id: 'rooms', label: t('rooms'), icon: <Monitor size={22} />, onClick: () => setCafeSubTab('rooms') },
+                 { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setCafeSubTab('rooms') },
+                 { id: 'recipes', label: t('recipes'), icon: <History size={22} />, onClick: () => setCafeSubTab('recipes') },
+                 { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setCafeSubTab('history') }
+               ],
+               service: [
+                 { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setServiceSubTab('board') },
+                 { id: 'sell', label: t('sell'), icon: (
+                   <div className="relative">
+                     <ShoppingCart size={22} />
+                     {serviceCart.length > 0 && (
+                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[7px] w-4 h-4 flex items-center justify-center rounded-full border border-white">
+                         {serviceCart.reduce((a,b)=>a+(b.quantity||1),0)}
+                       </span>
+                     )}
+                   </div>
+                 ), onClick: () => {
+                   if (serviceSubTab === 'sell' && serviceCart.length > 0) setIsMobileCartOpen(!isMobileCartOpen);
+                   else setServiceSubTab('sell');
+                 } },
+                 { id: 'new', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setServiceSubTab('new') },
+                 { id: 'active', label: t('activeJobs'), icon: <Wrench size={22} />, onClick: () => setServiceSubTab('active') },
+                 { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setServiceSubTab('history') }
+               ],
+               warehouses: [
+                 { id: 'stock', label: t('inventory'), icon: <Package size={22} />, onClick: () => setActiveTab('warehouses') },
+                 { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddItemModalOpen(true) },
+                 { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setActiveTab('history') }
+               ],
+               history: [
+                 { id: 'invoices', label: t('menuInvoices'), icon: <Receipt size={22} />, onClick: () => setActiveTab('history') },
+                 { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
+               ],
+               accounts: [
+                 { id: 'all', label: t('menuAccounts'), icon: <Calculator size={22} />, onClick: () => setActiveTab('accounts') },
+                 { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddAccountModalOpen(true) },
+                 { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
+               ]
+             };
+
+             const currentNav = navs[activeTab] || navs.dashboard;
+             return currentNav.map(tab => {
+               const isActive = tab.isFab ? false : (
+                 (activeTab === 'service' && serviceSubTab === tab.id) ||
+                 (activeTab === 'cafe' && cafeSubTab === tab.id) ||
+                 (activeTab === 'sales_purchases' && tab.id === 'pos' && !isMobileCartOpen) ||
+                 (activeTab === 'sales_purchases' && tab.id === 'cart' && isMobileCartOpen) ||
+                 (activeTab === tab.id && !['service', 'cafe', 'sales_purchases'].includes(activeTab))
+               );
+
+               return (
+                 <button
+                   key={tab.id}
+                   onClick={() => {
+                     tab.onClick();
+                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                   }}
+                   className={`flex flex-col items-center gap-1 transition-all ${tab.isFab ? '' : (isActive ? 'text-blue-600' : 'text-gray-400')}`}
+                 >
+                   {tab.isFab ? (
+                     <div className="bg-blue-600 text-white p-5 rounded-[2rem] shadow-xl shadow-blue-200 transform -translate-y-8 border-4 border-white active:scale-90 transition-all">
+                       {tab.icon}
+                     </div>
+                   ) : (
+                     <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-blue-50' : ''}`}>
+                       {tab.icon}
+                     </div>
+                   )}
+                   {tab.label && !tab.isFab && <span className="text-[9px] font-black uppercase tracking-widest">{tab.label}</span>}
+                 </button>
+               );
+             });
+           })()}
         </div>
       )}
 
