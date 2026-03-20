@@ -1749,7 +1749,7 @@ export default function App() {
       console.error(err);
       alert("Checkout Error: " + err.message);
     }
-  }, [user, cart, salesEmployee, orderType, t, calculateTotal, posLocationFilter, shopSettings.name, shopSettings.address, shopSettings.phone, shopSettings.logo, digitalSubMethod, cartDiscount, newItemForm, inventory]);
+  }, [user, cart, salesEmployee, orderType, t, calculateTotal, posLocationFilter, shopSettings.name, shopSettings.address, shopSettings.phone, shopSettings.logo, digitalSubMethod, cartDiscount, newItemForm, inventory, handlePrintInvoice, newSaleForm.customer, newSaleForm.customerId, paymentMethod]);
 
   // --- Cafe Handlers ---
   const handleStartCafeSession = (room) => {

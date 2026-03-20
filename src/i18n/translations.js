@@ -1402,9 +1402,6 @@ export const translations = {
 
     "repair": "मरम्मत",
     "noHistoryInPeriod": "इस अवधि के लिए कोई रिकॉर्ड नहीं मिला",
-    "ownerMode": "मालिक मोड",
-    "managerMode": "प्रबंधक मोड",
-    "cashierMode": "कैशियर मोड",
     "siteLogo": "साइट लोगो",
     "systemLogo": "सिस्टम लोगो",
     "uploadSiteLogo": "साइट लोगो अपलोड करें",
