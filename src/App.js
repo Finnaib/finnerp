@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-import { Html5QrcodeScanner, Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { QRCodeSVG } from 'qrcode.react';
 
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -46,12 +45,10 @@ import {
   Calculator, // General Accounts
   ShoppingCart, // Sales & Purchases
   Package, // Warehouses
-  FileText as InvoiceIcon, // Electronic Invoice
   CreditCard,
   Printer,
   Scan,
   QrCode,
-  Sparkles,
   Zap,
   ArrowLeft,
   RefreshCw,
@@ -65,24 +62,14 @@ import {
   Wrench,
   Smartphone,
   Laptop,
-  ClipboardList,
   CheckSquare,
   AlertTriangle,
   Tag,
-  Hammer,
   UserPlus,
   Activity,
   ShoppingBag,
-  PlusCircle,
-  CheckCircle2,
-  Smartphone as MobileIcon,
-  Calendar,
-  HardDrive,
   Banknote,
-  UserCheck,
-  ArrowRight,
   ChevronLeft,
-  Home,
   Tablet,
 } from 'lucide-react';
 import { auth, db, storage } from './firebase'; // Firebase
@@ -352,7 +339,7 @@ export default function App() {
         customer: orderType === 'Walk-in' ? t('walkInCustomer') : t('takeawayCustomer')
       }));
     }
-  }, [language, orderType, t]);
+  }, [language, orderType, t, newSaleForm.customer]);
   // Sync Settings from Firestore
   useEffect(() => {
     if (user) {
@@ -399,7 +386,7 @@ export default function App() {
   // [Added] Location Filters for new modules
   const [warehouseLocationFilter, setWarehouseLocationFilter] = useState('');
   const [posLocationFilter, setPosLocationFilter] = useState('');
-  const [posSubTab, setPosSubTab] = useState('products'); // 'products' or 'services'
+
   const [homeLocationFilter, setHomeLocationFilter] = useState('');
   const [historyLocationFilter, setHistoryLocationFilter] = useState('');
   const [reportLocationFilter, setReportLocationFilter] = useState('');
@@ -493,7 +480,8 @@ export default function App() {
       }
     });
     return () => unsubscribe();
-  }, [auth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [cafeSessions, setCafeSessions] = useState([]);
   const [recipes, setRecipes] = useState([]);
@@ -526,7 +514,7 @@ export default function App() {
   const [selectedServiceCustomer, setSelectedServiceCustomer] = useState(null);
   const [serviceCustomerForm, setServiceCustomerForm] = useState({ name: '', phone: '', email: '', address: '', notes: '' });
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-  const [serviceInventory, setServiceInventory] = useState([]);
+  const [serviceInventory] = useState([]);
   const [isServiceInventoryModalOpen, setIsServiceInventoryModalOpen] = useState(false);
   const [editingServiceInventory, setEditingServiceInventory] = useState(null); // Added this
   const [serviceInventoryForm, setServiceInventoryForm] = useState({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 });
@@ -997,7 +985,7 @@ export default function App() {
       );
 
       // 1. Branding Header
-      let currentY = 20;
+
       if (shopSettings.logo) {
          try {
             // Increased logo size and adjusted position to prevent overlap
@@ -1597,7 +1585,7 @@ export default function App() {
     }
   }, [sites, posLocationFilter]);
 
-  const addToCart = (item) => {
+  const addToCart = useCallback((item) => {
     // 1. Check if item has any stock at all
     if (item.quantity <= 0) {
       alert(t('outOfStock') || "This item is out of stock!");
@@ -1629,7 +1617,7 @@ export default function App() {
       }
       return [...prev, { ...item, quantity: 1, price: Number(item.sellPrice) || 0, barcode: item.barcode || '' }];
     });
-  };
+  }, [cart, t, posLocationFilter]);
 
 
 
@@ -1659,9 +1647,9 @@ export default function App() {
     }));
   };
 
-  const calculateTotal = () => cart.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+  const calculateTotal = useCallback(() => cart.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0), [cart]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = useCallback(async () => {
     if (!user || cart.length === 0) return;
 
     if (!salesEmployee) {
@@ -1761,7 +1749,7 @@ export default function App() {
       console.error(err);
       alert("Checkout Error: " + err.message);
     }
-  };
+  }, [user, cart, salesEmployee, orderType, t, calculateTotal, posLocationFilter, shopSettings.name, shopSettings.address, shopSettings.phone, shopSettings.logo, digitalSubMethod, cartDiscount, newItemForm, inventory]);
 
   // --- Cafe Handlers ---
   const handleStartCafeSession = (room) => {
@@ -1823,7 +1811,7 @@ export default function App() {
       const start = session.startTime?.seconds ? new Date(session.startTime.seconds * 1000) : new Date();
       const durationMs = Math.max(1, end - start);
       const durationMins = Math.floor(durationMs / 60000);
-      const durationHours = durationMins / 60;
+
 
       const rate = Number(session.hourlyRate);
 
@@ -2633,7 +2621,7 @@ export default function App() {
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
 
-    const isSticker = mode === 'sticker';
+
 
     const content = `
       <html>
@@ -3459,7 +3447,7 @@ export default function App() {
 
   // --- High-Speed POS & Scanner Features (Grouped here to avoid TDZ) ---
 
-  const handleHoldCart = () => {
+  const handleHoldCart = useCallback(() => {
     if (cart.length === 0) return;
     setHeldCarts(prev => [...prev, {
       id: Date.now(),
@@ -3473,7 +3461,7 @@ export default function App() {
     setCart([]);
     setCartDiscount(0);
     setSalesEmployee(null);
-  };
+  }, [cart, cartDiscount, salesEmployee, newSaleForm.customer, orderType]);
 
   const handleResumeCart = (heldId) => {
     const held = heldCarts.find(h => h.id === heldId);
@@ -3778,7 +3766,7 @@ export default function App() {
       setHasZoom(false);
       setCurrentZoom(1);
     }
-  }, [isScannerOpen, activeCameraId]); // Only restart if camera ID or Open state changes explicitly
+  }, [isScannerOpen, activeCameraId, onScanSuccess, onScanError]); // Only restart if camera ID or Open state changes explicitly
 
   const handleZoomChange = async (e) => {
     const value = parseFloat(e.target.value);
