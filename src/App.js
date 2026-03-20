@@ -398,18 +398,340 @@ export default function App() {
 
   const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
 
-  const formatCurrency = (val) => {
+  const formatCurrency = useCallback((val) => {
     try {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(Number(val) || 0);
     } catch (e) {
       return currency + ' ' + (Number(val) || 0).toLocaleString();
     }
-  };
+  }, [currency]);
 
+  const handlePrintInvoice = useCallback((invoiceData, type = 'Invoice', formatOverride = null) => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
 
+    const currentFormat = formatOverride || printFormat;
 
+    const styles = currentFormat === 'Thermal' ? `
+      @page { margin: 0; }
+      body { font-family: 'Courier New', monospace; width: 80mm; padding: 10px; margin: 0 auto; color: #000; background: #fff; }
+      .page { padding-bottom: 20px; display: block; position: relative; }
+      .page-break { page-break-after: always; }
+      
+      /* Header */
+      .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px; }
+      .title { font-size: 1.1em; font-weight: bold; text-transform: uppercase; margin-bottom: 3px; }
+      .subtitle { font-size: 0.75em; line-height: 1.3; margin: 2px 0; }
+      .invoice-title { font-size: 1em; font-weight: bold; margin: 8px 0; text-decoration: underline; }
+      .seller-info { font-size: 0.75em; border: 1px dashed #000; padding: 4px; margin: 5px 0; text-align: center; }
+      
+      /* Details */
+      .details { font-size: 0.8em; margin: 10px 0; line-height: 1.4; }
+      .details p { margin: 3px 0; }
+      .details strong { font-weight: bold; }
+      
+      /* Table */
+      table { width: 100%; font-size: 0.75em; border-collapse: collapse; margin: 10px 0; }
+      thead { border-bottom: 1px dashed #000; }
+      th { text-align: left; padding: 5px 2px; font-weight: bold; }
+      th.right { text-align: right; }
+      td { padding: 5px 2px; border-bottom: 1px dotted #ccc; }
+      td.right { text-align: right; }
+      tbody tr:last-child td { border-bottom: none; }
+      
+      /* Totals */
+      .totals { margin-top: 10px; border-top: 1px dashed #000; padding-top: 8px; }
+      .totals-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.8em; }
+      .totals-row.subtotal { font-weight: normal; }
+      .totals-row.total { font-weight: bold; font-size: 1em; border-top: 1px solid #000; margin-top: 5px; padding-top: 5px; }
+      
+      /* Footer */
+      .footer { text-align: center; font-size: 0.7em; margin-top: 15px; border-top: 1px dashed #000; padding-top: 8px; font-style: italic; }
+      .copy-label { text-align: center; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.75em; border: 1px solid #000; display: inline-block; padding: 3px 8px; }
+      .big-id { font-size: 3.5em; font-weight: 900; text-align: center; margin: 8px 0; border: 3px solid #000; padding: 5px; background: #fff; letter-spacing: 1px; line-height: 1; }
+      .big-id-label { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; display: block; margin-bottom: 2px; letter-spacing: 1px; color: #000; }
+    ` : `
+      @page { margin: 10mm; size: A4; }
+      body { font-family: 'Arial', sans-serif; color: #000; background: #fff; line-height: 1.4; }
+      .page { padding: 40px; position: relative; border: 1px solid #000; border-bottom: none; }
+      .page:last-child { border-bottom: 2px solid #000; }
+      .page-break { page-break-after: always; }
 
+      /* Header */
+      .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+      .brand-info { flex: 1; }
+      .brand-info h1 { font-size: 32px; font-weight: 900; margin: 0; text-transform: uppercase; }
+      .brand-info p { margin: 2px 0; font-size: 14px; font-weight: bold; }
 
+      .invoice-title-box { text-align: right; }
+      .invoice-title-box h2 { font-size: 48px; font-weight: 900; margin: 0 0 10px 0; text-transform: uppercase; }
+      .info-table { border-collapse: collapse; min-width: 200px; }
+      .info-table td { border: 2px solid #000; padding: 6px 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+      .info-table td:first-child { background: #fff; text-align: right; width: 40%; }
+      .info-table td:last-child { background: #fff; text-align: left; }
+
+      /* Sections */
+      .section-header { background: #000; color: #fff; padding: 10px 15px; font-weight: 900; text-transform: uppercase; font-size: 14px; margin: 20px 0 0 0; }
+      .section-content { border: 2px solid #000; padding: 15px; font-weight: bold; font-size: 14px; margin-bottom: 20px; }
+
+      /* Items Table */
+      .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      .items-table th { background: #000; color: #fff; padding: 12px 15px; text-align: left; font-size: 14px; font-weight: 900; text-transform: uppercase; }
+      .items-table td { border: 2px solid #000; padding: 12px 15px; font-size: 14px; font-weight: bold; }
+      .center { text-align: center; }
+      .right { text-align: right; }
+
+      /* Totals & Comments */
+      .bottom-layout { display: flex; justify-content: space-between; margin-top: 30px; }
+      .comments-box { width: 60%; }
+      .comments-box p { font-size: 12px; font-style: italic; margin: 5px 0; font-weight: bold; }
+      
+      .totals-box { width: 35%; }
+      .totals-table { width: 100%; border-collapse: collapse; }
+      .totals-table td { padding: 8px 10px; font-size: 14px; font-weight: bold; }
+      .totals-table tr.total-row td { border: 3px solid #000; font-size: 18px; font-weight: 900; text-transform: uppercase; }
+      .totals-table .label { color: #666; }
+
+      .footer { margin-top: 50px; border-top: 2px solid #000; padding-top: 10px; text-align: center; font-size: 10px; font-weight: bold; }
+      .copy-label { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; border: 1px solid #000; padding: 2px 5px; }
+    `;
+
+    const getPageContent = (copyLabel, isFirstPage) => {
+      // Resolve Site Details
+      const site = sites.find(s => s.name === invoiceData.location) || {};
+      const printName = 'FINN ERP';
+      const printAddress = site.address || shopSettings.address;
+      const printPhone = site.phone || shopSettings.phone;
+
+      // Resolve Time
+      let printTime = new Date().toLocaleTimeString();
+      if (invoiceData.createdAt && invoiceData.createdAt.seconds) {
+        printTime = new Date(invoiceData.createdAt.seconds * 1000).toLocaleTimeString();
+      } else if (invoiceData.time) {
+        printTime = invoiceData.time;
+      }
+
+      // Resolve Translated Payment Method
+      const paymentMethodKey = (invoiceData.paymentMethod || 'Cash').toLowerCase().includes('visa') ? 'visa' :
+        (invoiceData.paymentMethod || 'Cash').toLowerCase().includes('online') ? 'onlinePayment' : 'cash';
+      const printPaymentMethod = t(paymentMethodKey);
+
+      // Enhanced Calculation to handle different data structures
+      const subtotal = Array.isArray(invoiceData.items)
+        ? invoiceData.items.reduce((sum, item) => {
+            const price = Number(item.price || item.sellPrice || 0);
+            const qty = Number(item.qty || item.quantity || 1);
+            return sum + (price * qty);
+          }, 0)
+        : Number(invoiceData.amount || 0);
+      
+      const total = subtotal - Number(invoiceData.discount || 0); 
+
+      if (printFormat === 'Thermal') {
+        return `
+      <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
+        ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
+        
+        <div class="header">
+          ${shopSettings.logo ? `<img src="${shopSettings.logo}" style="height: 80px; width: auto; max-width: 100%; margin-bottom: 12px; object-fit: contain;" alt="Logo" />` : ''}
+          <div class="title">${printName}</div>
+          <div class="subtitle">${printAddress} | ${printPhone}</div>
+        </div>
+        <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
+        
+        ${invoiceData.type === 'sale' ? `
+        <div class="big-id">
+          <span class="big-id-label">${t('orderNumber')}</span>
+          ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
+        </div>
+        ` : ''}
+
+        <div class="invoice-title">${t('retailInvoice')}</div>
+
+        <div class="details">
+          <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
+          <p><strong>${t('time')}:</strong> ${printTime}</p>
+          <p><strong>${invoiceData.client || invoiceData.customer || t('customer')}</strong></p>
+          <p><strong>ID:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
+          <p><strong>${t('paymentMode')}:</strong> ${printPaymentMethod}</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>${t('item')}</th>
+              <th class="right">${t('qty')}</th>
+              <th class="right">${t('amt')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
+            <tr>
+              <td>${item.name}</td>
+              <td class="right">${item.qty || item.quantity || 1}</td>
+              <td class="right">${formatCurrency(Number(item.price || item.sellPrice || 0) * Number(item.qty || item.quantity || 1))}</td>
+            </tr>
+            `).join('') : `<tr><td colspan="3">${invoiceData.items}</td></tr>`}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="totals-row subtotal">
+            <span>${t('subtotal')}</span>
+            <span>${formatCurrency(subtotal)}</span>
+          </div>
+          ${(invoiceData.discount > 0) ? `
+          <div class="totals-row discount">
+             <span>${t('discount') || 'Discount'}</span>
+             <span>-${formatCurrency(invoiceData.discount)}</span>
+          </div>` : ''}
+          <div class="totals-row total">
+            <span>${t('total')}</span>
+            <span>${formatCurrency(total)}</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>${t('thankYou')}</p>
+        </div>
+
+        ${(invoiceData.paymentMethod === 'Online') ? (() => {
+            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
+            const payId = subMethod === 'InstaPay' ? shopSettings.instapayId : shopSettings.upiId;
+
+            if (!payId) return '';
+
+            const label = subMethod === 'UPI' ? t('payWithUPI') : t('payWithInstapay');
+            const directPayUrl = subMethod === 'InstaPay' 
+              ? payId 
+              : `upi://pay?pa=${payId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`;
+
+            return `
+          <div style="text-align: center; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(directPayUrl)}" style="width: 120px; height: 120px;" />
+            <p style="font-size: 0.6em; margin-top: 5px; font-weight: bold;">${label || 'Scan to Pay'}</p>
+            <p style="font-size: 0.5em; color: #666; margin-top: 2px;">(Valid for 10 minutes)</p>
+          </div>
+          `;
+          })() : ''}
+      </div>
+        `;
+      } else {
+        return `
+      <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
+        ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
+        
+        <div class="header">
+          <div class="brand-info">
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+               ${shopSettings.logo ? `<img src="${shopSettings.logo}" style="height: 80px; width: auto; max-height: 80px; object-fit: contain;" />` : ''}
+               <div>
+                  <h1 style="font-size: 38px; color: #1e293b; margin: 0;">${printName}</h1>
+                  <p style="color: #64748b; font-size: 14px; margin-top: 5px;">${printAddress}</p>
+                  <p style="color: #64748b; font-size: 14px;">Phone: ${printPhone}</p>
+               </div>
+            </div>
+          </div>
+          <div class="invoice-title-box">
+            <h2>INVOICE</h2>
+            <table class="info-table">
+              <tr><td>DATE</td><td>${invoiceData.date || new Date().toISOString().split('T')[0]}</td></tr>
+              <tr><td>TIME</td><td>${printTime}</td></tr>
+              <tr><td>INVOICE #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
+              <tr><td>CUSTOMER ID</td><td>${invoiceData.customerId || '123'}</td></tr>
+              <tr><td>PAYMENT MODE</td><td>${printPaymentMethod.toUpperCase()}</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="section-header">BILL TO</div>
+        <div class="section-content">
+          ${invoiceData.client || invoiceData.customer || 'Walk-in Customer'}
+        </div>
+
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width: 60%">DESCRIPTION</th>
+              <th class="center">TAXED</th>
+              <th class="right">AMOUNT</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
+            <tr>
+              <td>${item.name}</td>
+              <td class="center">X</td>
+              <td class="right">${formatCurrency(Number(item.price || item.sellPrice || 0) * Number(item.qty || item.quantity || 1))}</td>
+            </tr>
+            `).join('') : `<tr><td>${invoiceData.items}</td><td class="center">-</td><td class="right">${formatCurrency(subtotal)}</td></tr>`}
+          </tbody>
+        </table>
+
+        <div class="bottom-layout">
+          <div class="comments-box">
+            <div class="section-header" style="margin-top: 0">COMMENTS</div>
+            <div class="section-content" style="min-height: 100px;">
+              <p>1. Total payment due in 30 days</p>
+              <p>2. Please include the invoice number on your check</p>
+              ${invoiceData.notes ? `<p>${invoiceData.notes}</p>` : ''}
+            </div>
+          </div>
+          <div class="totals-box">
+            <table class="totals-table">
+              <tr><td class="label">Subtotal</td><td class="right">${formatCurrency(subtotal)}</td></tr>
+              <tr><td class="label">Tax/VAT</td><td class="right">${formatCurrency(subtotal * 0.0625)}</td></tr>
+              <tr><td class="label">Tax rate</td><td class="right">6.250%</td></tr>
+              <tr class="total-row"><td>TOTAL</td><td class="right">${formatCurrency(total)}</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div style="text-align: right; margin-top: 20px;">
+          ${(invoiceData.paymentMethod === 'Online') ? (() => {
+            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
+            const payId = subMethod === 'InstaPay' ? shopSettings.instapayId : shopSettings.upiId;
+            if (!payId) return '';
+            const directPayUrl = subMethod === 'InstaPay' 
+              ? payId 
+              : `upi://pay?pa=${payId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`;
+            return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(directPayUrl)}" style="width: 100px; height: 100px; border: 1px solid #000; padding: 5px;" />
+                    <p style="font-size: 8px; font-weight: bold; margin-top: 4px; text-transform: uppercase;">Scan to Pay Online</p>`;
+          })() : ''}
+        </div>
+
+        <div class="footer">
+          THANK YOU FOR YOUR BUSINESS!
+        </div>
+      </div>
+        `;
+      }
+    };
+
+    let finalHtml = getPageContent(printDual ? t('customerCopy') : '', true);
+    if (printDual) {
+      finalHtml += getPageContent(t('shopCopy'), false);
+    }
+
+    const content = `
+      <html>
+        <head>
+          <title>Print ${type}</title>
+          <style>${styles}</style>
+        </head>
+        <body>
+          ${finalHtml}
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(content);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  }, [printFormat, sites, shopSettings, digitalSubMethod, t, formatCurrency, printDual]);
 
 
 
@@ -1749,7 +2071,7 @@ export default function App() {
       console.error(err);
       alert("Checkout Error: " + err.message);
     }
-  }, [user, cart, salesEmployee, orderType, t, calculateTotal, posLocationFilter, shopSettings.name, shopSettings.address, shopSettings.phone, shopSettings.logo, digitalSubMethod, cartDiscount, newItemForm, inventory, handlePrintInvoice, newSaleForm.customer, newSaleForm.customerId, paymentMethod]);
+  }, [user, cart, salesEmployee, orderType, t, calculateTotal, posLocationFilter, digitalSubMethod, cartDiscount, inventory, handlePrintInvoice, newSaleForm.customer, newSaleForm.customerId, paymentMethod]);
 
   // --- Cafe Handlers ---
   const handleStartCafeSession = (room) => {
@@ -2075,340 +2397,7 @@ export default function App() {
     }
   };
 
-  const handlePrintInvoice = (invoiceData, type = 'Invoice', formatOverride = null) => {
-    const printWindow = window.open('', '', 'width=800,height=600');
-    if (!printWindow) return;
 
-    const currentFormat = formatOverride || printFormat;
-
-    const styles = currentFormat === 'Thermal' ? `
-      @page { margin: 0; }
-      body { font-family: 'Courier New', monospace; width: 80mm; padding: 10px; margin: 0 auto; color: #000; background: #fff; }
-      .page { padding-bottom: 20px; display: block; position: relative; }
-      .page-break { page-break-after: always; }
-      
-      /* Header */
-      .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px; }
-      .title { font-size: 1.1em; font-weight: bold; text-transform: uppercase; margin-bottom: 3px; }
-      .subtitle { font-size: 0.75em; line-height: 1.3; margin: 2px 0; }
-      .invoice-title { font-size: 1em; font-weight: bold; margin: 8px 0; text-decoration: underline; }
-      .seller-info { font-size: 0.75em; border: 1px dashed #000; padding: 4px; margin: 5px 0; text-align: center; }
-      
-      /* Details */
-      .details { font-size: 0.8em; margin: 10px 0; line-height: 1.4; }
-      .details p { margin: 3px 0; }
-      .details strong { font-weight: bold; }
-      
-      /* Table */
-      table { width: 100%; font-size: 0.75em; border-collapse: collapse; margin: 10px 0; }
-      thead { border-bottom: 1px dashed #000; }
-      th { text-align: left; padding: 5px 2px; font-weight: bold; }
-      th.right { text-align: right; }
-      td { padding: 5px 2px; border-bottom: 1px dotted #ccc; }
-      td.right { text-align: right; }
-      tbody tr:last-child td { border-bottom: none; }
-      
-      /* Totals */
-      .totals { margin-top: 10px; border-top: 1px dashed #000; padding-top: 8px; }
-      .totals-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.8em; }
-      .totals-row.subtotal { font-weight: normal; }
-      .totals-row.total { font-weight: bold; font-size: 1em; border-top: 1px solid #000; margin-top: 5px; padding-top: 5px; }
-      
-      /* Footer */
-      .footer { text-align: center; font-size: 0.7em; margin-top: 15px; border-top: 1px dashed #000; padding-top: 8px; font-style: italic; }
-      .copy-label { text-align: center; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.75em; border: 1px solid #000; display: inline-block; padding: 3px 8px; }
-      .big-id { font-size: 3.5em; font-weight: 900; text-align: center; margin: 8px 0; border: 3px solid #000; padding: 5px; background: #fff; letter-spacing: 1px; line-height: 1; }
-      .big-id-label { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; display: block; margin-bottom: 2px; letter-spacing: 1px; color: #000; }
-    ` : `
-      @page { margin: 10mm; size: A4; }
-      body { font-family: 'Arial', sans-serif; color: #000; background: #fff; line-height: 1.4; }
-      .page { padding: 40px; position: relative; border: 1px solid #000; border-bottom: none; }
-      .page:last-child { border-bottom: 2px solid #000; }
-      .page-break { page-break-after: always; }
-
-      /* Header */
-      .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-      .brand-info { flex: 1; }
-      .brand-info h1 { font-size: 32px; font-weight: 900; margin: 0; text-transform: uppercase; }
-      .brand-info p { margin: 2px 0; font-size: 14px; font-weight: bold; }
-
-      .invoice-title-box { text-align: right; }
-      .invoice-title-box h2 { font-size: 48px; font-weight: 900; margin: 0 0 10px 0; text-transform: uppercase; }
-      .info-table { border-collapse: collapse; min-width: 200px; }
-      .info-table td { border: 2px solid #000; padding: 6px 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-      .info-table td:first-child { background: #fff; text-align: right; width: 40%; }
-      .info-table td:last-child { background: #fff; text-align: left; }
-
-      /* Sections */
-      .section-header { background: #000; color: #fff; padding: 10px 15px; font-weight: 900; text-transform: uppercase; font-size: 14px; margin: 20px 0 0 0; }
-      .section-content { border: 2px solid #000; padding: 15px; font-weight: bold; font-size: 14px; margin-bottom: 20px; }
-
-      /* Items Table */
-      .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-      .items-table th { background: #000; color: #fff; padding: 12px 15px; text-align: left; font-size: 14px; font-weight: 900; text-transform: uppercase; }
-      .items-table td { border: 2px solid #000; padding: 12px 15px; font-size: 14px; font-weight: bold; }
-      .center { text-align: center; }
-      .right { text-align: right; }
-
-      /* Totals & Comments */
-      .bottom-layout { display: flex; justify-content: space-between; margin-top: 30px; }
-      .comments-box { width: 60%; }
-      .comments-box p { font-size: 12px; font-style: italic; margin: 5px 0; font-weight: bold; }
-      
-      .totals-box { width: 35%; }
-      .totals-table { width: 100%; border-collapse: collapse; }
-      .totals-table td { padding: 8px 10px; font-size: 14px; font-weight: bold; }
-      .totals-table tr.total-row td { border: 3px solid #000; font-size: 18px; font-weight: 900; text-transform: uppercase; }
-      .totals-table .label { color: #666; }
-
-      .footer { margin-top: 50px; border-top: 2px solid #000; padding-top: 10px; text-align: center; font-size: 10px; font-weight: bold; }
-      .copy-label { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; border: 1px solid #000; padding: 2px 5px; }
-    `;
-
-    const getPageContent = (copyLabel, isFirstPage) => {
-      // Resolve Site Details
-      const site = sites.find(s => s.name === invoiceData.location) || {};
-      // Logic: Use Site Name/Address/Phone if available, else fallback to Shop Settings
-      // For Name: If Site Name exists, append it? Or replace? User asked for "details of that site".
-      // Let's us Site Name if available, or Company Name.
-      // Actually, maybe show Company Name AND Site Name?
-      // User said "my site name also show...".
-      // User explicitly asked for "FINN ERP" and not appending the site name
-      const printName = 'FINN ERP';
-      const printAddress = site.address || shopSettings.address;
-      const printPhone = site.phone || shopSettings.phone;
-
-      // Resolve Time
-      let printTime = new Date().toLocaleTimeString();
-      if (invoiceData.createdAt && invoiceData.createdAt.seconds) {
-        printTime = new Date(invoiceData.createdAt.seconds * 1000).toLocaleTimeString();
-      } else if (invoiceData.time) {
-        printTime = invoiceData.time;
-      }
-
-      // Resolve Translated Payment Method
-      const paymentMethodKey = (invoiceData.paymentMethod || 'Cash').toLowerCase().includes('visa') ? 'visa' :
-        (invoiceData.paymentMethod || 'Cash').toLowerCase().includes('online') ? 'onlinePayment' : 'cash';
-      const printPaymentMethod = t(paymentMethodKey);
-
-      // Enhanced Calculation to handle different data structures
-      const subtotal = Array.isArray(invoiceData.items)
-        ? invoiceData.items.reduce((sum, item) => {
-            const price = Number(item.price || item.sellPrice || 0);
-            const qty = Number(item.qty || item.quantity || 1);
-            return sum + (price * qty);
-          }, 0)
-        : Number(invoiceData.amount || 0);
-      
-      const total = subtotal - Number(invoiceData.discount || 0); // Correct total by subtracting discount
-
-      if (printFormat === 'Thermal') {
-        return `
-      <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
-        ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
-        
-        <div class="header">
-          ${shopSettings.logo ? `<img src="${shopSettings.logo}" style="height: 80px; width: auto; max-width: 100%; margin-bottom: 12px; object-fit: contain;" alt="Logo" />` : ''}
-          <div class="title">${printName}</div>
-          <div class="subtitle">${printAddress} | ${printPhone}</div>
-        </div>
-        <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
-        
-        ${invoiceData.type === 'sale' ? `
-        <div class="big-id">
-          <span class="big-id-label">${t('orderNumber')}</span>
-          ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
-        </div>
-        ` : ''}
-
-        <div class="invoice-title">${t('retailInvoice')}</div>
-
-        <div class="details">
-          <p><strong>${t('date')}:</strong> ${invoiceData.date || new Date().toLocaleDateString()}</p>
-          <p><strong>${t('time')}:</strong> ${printTime}</p>
-          <p><strong>${invoiceData.client || invoiceData.customer || t('customer')}</strong></p>
-          <p><strong>ID:</strong> ${invoiceData.invoiceId || 'N/A'}</p>
-          <p><strong>${t('paymentMode')}:</strong> ${printPaymentMethod}</p>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>${t('item')}</th>
-              <th class="right">${t('qty')}</th>
-              <th class="right">${t('amt')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
-            <tr>
-              <td>${item.name}</td>
-              <td class="right">${item.qty || item.quantity || 1}</td>
-              <td class="right">${formatCurrency(Number(item.price || item.sellPrice || 0) * Number(item.qty || item.quantity || 1))}</td>
-            </tr>
-            `).join('') : `<tr><td colspan="3">${invoiceData.items}</td></tr>`}
-          </tbody>
-        </table>
-
-        <div class="totals">
-          <div class="totals-row subtotal">
-            <span>${t('subtotal')}</span>
-            <span>${formatCurrency(subtotal)}</span>
-          </div>
-          ${(invoiceData.discount > 0) ? `
-          <div class="totals-row discount">
-             <span>${t('discount') || 'Discount'}</span>
-             <span>-${formatCurrency(invoiceData.discount)}</span>
-          </div>` : ''}
-          <div class="totals-row total">
-            <span>${t('total')}</span>
-            <span>${formatCurrency(total)}</span>
-          </div>
-        </div>
-
-        <div class="footer">
-          <p>${t('thankYou')}</p>
-        </div>
-
-        ${(invoiceData.paymentMethod === 'Online') ? (() => {
-            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
-            const payId = subMethod === 'InstaPay' ? shopSettings.instapayId : shopSettings.upiId;
-
-            if (!payId) return '';
-
-            const label = subMethod === 'UPI' ? t('payWithUPI') : t('payWithInstapay');
-            const directPayUrl = subMethod === 'InstaPay' 
-              ? payId 
-              : `upi://pay?pa=${payId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`;
-
-            return `
-          <div style="text-align: center; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(directPayUrl)}" style="width: 120px; height: 120px;" />
-            <p style="font-size: 0.6em; margin-top: 5px; font-weight: bold;">${label || 'Scan to Pay'}</p>
-            <p style="font-size: 0.5em; color: #666; margin-top: 2px;">(Valid for 10 minutes)</p>
-          </div>
-          `;
-          })() : ''}
-      </div>
-        `;
-      } else {
-        // A4 Format (Improved Professional Layout)
-        return `
-      <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
-        ${copyLabel ? `<div class="copy-label">${copyLabel}</div>` : ''}
-        
-        <div class="header">
-          <div class="brand-info">
-            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
-               ${shopSettings.logo ? `<img src="${shopSettings.logo}" style="height: 80px; width: auto; max-height: 80px; object-fit: contain;" />` : ''}
-               <div>
-                  <h1 style="font-size: 38px; color: #1e293b; margin: 0;">${printName}</h1>
-                  <p style="color: #64748b; font-size: 14px; margin-top: 5px;">${printAddress}</p>
-                  <p style="color: #64748b; font-size: 14px;">Phone: ${printPhone}</p>
-               </div>
-            </div>
-          </div>
-          <div class="invoice-title-box">
-            <h2>INVOICE</h2>
-            <table class="info-table">
-              <tr><td>DATE</td><td>${invoiceData.date || new Date().toISOString().split('T')[0]}</td></tr>
-              <tr><td>TIME</td><td>${printTime}</td></tr>
-              <tr><td>INVOICE #</td><td>${invoiceData.invoiceId || 'N/A'}</td></tr>
-              <tr><td>CUSTOMER ID</td><td>${invoiceData.customerId || '123'}</td></tr>
-              <tr><td>PAYMENT MODE</td><td>${printPaymentMethod.toUpperCase()}</td></tr>
-            </table>
-          </div>
-        </div>
-
-        <div class="section-header">BILL TO</div>
-        <div class="section-content">
-          ${invoiceData.client || invoiceData.customer || 'Walk-in Customer'}
-        </div>
-
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th style="width: 60%">DESCRIPTION</th>
-              <th class="center">TAXED</th>
-              <th class="right">AMOUNT</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${Array.isArray(invoiceData.items) ? invoiceData.items.map(item => `
-            <tr>
-              <td>${item.name}</td>
-              <td class="center">X</td>
-              <td class="right">${formatCurrency(Number(item.price || item.sellPrice || 0) * Number(item.qty || item.quantity || 1))}</td>
-            </tr>
-            `).join('') : `<tr><td>${invoiceData.items}</td><td class="center">-</td><td class="right">${formatCurrency(subtotal)}</td></tr>`}
-          </tbody>
-        </table>
-
-        <div class="bottom-layout">
-          <div class="comments-box">
-            <div class="section-header" style="margin-top: 0">COMMENTS</div>
-            <div class="section-content" style="min-height: 100px;">
-              <p>1. Total payment due in 30 days</p>
-              <p>2. Please include the invoice number on your check</p>
-              ${invoiceData.notes ? `<p>${invoiceData.notes}</p>` : ''}
-            </div>
-          </div>
-          <div class="totals-box">
-            <table class="totals-table">
-              <tr><td class="label">Subtotal</td><td class="right">${formatCurrency(subtotal)}</td></tr>
-              <tr><td class="label">Tax/VAT</td><td class="right">${formatCurrency(subtotal * 0.0625)}</td></tr>
-              <tr><td class="label">Tax rate</td><td class="right">6.250%</td></tr>
-              <tr class="total-row"><td>TOTAL</td><td class="right">${formatCurrency(total)}</td></tr>
-            </table>
-          </div>
-        </div>
-
-        <div style="text-align: right; margin-top: 20px;">
-          ${(invoiceData.paymentMethod === 'Online') ? (() => {
-            const subMethod = invoiceData.digitalSubMethod || digitalSubMethod || 'UPI';
-            const payId = subMethod === 'InstaPay' ? shopSettings.instapayId : shopSettings.upiId;
-            if (!payId) return '';
-            const directPayUrl = subMethod === 'InstaPay' 
-              ? payId 
-              : `upi://pay?pa=${payId}&pn=${shopSettings.name}&am=${total.toFixed(2)}&cu=INR`;
-            return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(directPayUrl)}" style="width: 100px; height: 100px; border: 1px solid #000; padding: 5px;" />
-                    <p style="font-size: 8px; font-weight: bold; margin-top: 4px; text-transform: uppercase;">Scan to Pay Online</p>`;
-          })() : ''}
-        </div>
-
-        <div class="footer">
-          THANK YOU FOR YOUR BUSINESS!
-        </div>
-      </div>
-        `;
-      }
-    };
-
-    // Explicitly handle dual printing by concatenating copies
-    let finalHtml = getPageContent(printDual ? t('customerCopy') : '', true);
-    if (printDual) {
-      finalHtml += getPageContent(t('shopCopy'), false);
-    }
-
-    const content = `
-      <html>
-        <head>
-          <title>Print ${type}</title>
-          <style>${styles}</style>
-        </head>
-        <body>
-          ${finalHtml}
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(content);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 250);
-  };
 
   // Print Payroll Slip
   const handlePrintPayrollSlip = (employee, payrollData, month) => {
