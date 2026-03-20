@@ -4101,7 +4101,7 @@ export default function App() {
       <Analytics />
       {/* Sidebar (Responsive & High Z-Index) */}
       {!isKiosk && (
-        <aside className={`fixed md:relative inset-y-0 left-0 bg-[#0f172a] text-white flex flex-col shadow-2xl z-[150] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full opacity-0 md:w-0'}`}>
+        <aside className={`fixed md:relative inset-y-0 left-0 bg-[#0f172a] text-white flex flex-col shadow-2xl z-[600] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full md:w-0'}`}>
 
         <div className="p-7 border-b border-slate-800/50 flex justify-between items-center bg-slate-900/50 backdrop-blur-2xl sticky top-0 z-10">
           <div className="flex items-center gap-3.5">
@@ -4196,13 +4196,13 @@ export default function App() {
       </aside>
       )}
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden relative pb-20 lg:pb-0">
+      <main className="flex-1 flex flex-col overflow-hidden relative">
         {/* Mobile Sidebar Overlay with Blur Effect */}
-        {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[65] md:hidden animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)}></div>}
+        {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[550] md:hidden animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)}></div>}
 
         {/* Header */}
         {!isKiosk ? (
-          <header className="bg-white/90 backdrop-blur-2xl border-b border-gray-100 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[50] transition-all">
+          <header className="bg-white/95 backdrop-blur-2xl border-b border-gray-100/50 h-16 sm:h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-[60] transition-all shrink-0">
 
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2.5 -ml-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all active:scale-90 ${isSidebarOpen ? 'lg:hidden' : 'block'}`}><Menu size={26} /></button>
@@ -4295,27 +4295,6 @@ export default function App() {
         )}
 
 
-        {/* Global Mobile Navigation (Native App Feel) */}
-        {!isKiosk && activeTab !== 'sales_purchases' && activeTab !== 'service' && (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2rem] animate-in slide-in-from-bottom duration-500">
-            <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
-              <div className={`p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-blue-50' : ''}`}><LayoutDashboard size={20} /></div>
-              <span className="text-[9px] font-black uppercase tracking-widest">{t('menuDashboard')}</span>
-            </button>
-            <button onClick={() => setActiveTab('sales_purchases')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'sales_purchases' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
-              <div className={`p-2 rounded-xl ${activeTab === 'sales_purchases' ? 'bg-blue-50' : ''}`}><ShoppingCart size={20} /></div>
-              <span className="text-[9px] font-black uppercase tracking-widest">{t('menuSalesPurchases')}</span>
-            </button>
-            <button onClick={() => setActiveTab('service')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'service' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
-              <div className={`p-2 rounded-xl ${activeTab === 'service' ? 'bg-blue-50' : ''}`}><Wrench size={20} /></div>
-              <span className="text-[9px] font-black uppercase tracking-widest">{t('menuService')}</span>
-            </button>
-            <button onClick={() => setActiveTab('history')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'history' ? 'text-blue-600 scale-110' : 'text-gray-400'}`}>
-              <div className={`p-2 rounded-xl ${activeTab === 'history' ? 'bg-blue-50' : ''}`}><Clock size={20} /></div>
-              <span className="text-[9px] font-black uppercase tracking-widest">{t('menuInvoices')}</span>
-            </button>
-          </div>
-        )}
 
         {/* Global Error Banner */}
         {globalError && (
@@ -4336,15 +4315,20 @@ export default function App() {
           </div>
         )}
 
-        {/* Views */}
-        <div className={`flex-1 overflow-auto bg-gray-50 pb-32 lg:pb-0 ${(activeTab === 'sales_purchases' || activeTab === 'service') ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
+        {/* Views Container - The Heart of the App */}
+        <div className="flex-1 overflow-hidden bg-gray-50 flex flex-col relative">
+          
+          {/* Scrollable Zone 1: Standard Management Tabs */}
+          {['dashboard', 'employees', 'sites', 'attendance', 'payroll', 'reports', 'accounts'].includes(activeTab) && (
+            <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
+              <div className="p-4 sm:p-6 md:p-8 lg:p-10 pb-[140px] lg:pb-10 max-w-[1600px] mx-auto w-full transition-all duration-500">
 
           {activeTab === 'dashboard' && (
             <div className="space-y-8 animate-in fade-in duration-700 max-w-7xl mx-auto">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
                 <div>
-                  <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('menuDashboard')}</h1>
-                  <p className="text-sm text-gray-500 font-medium">{t('welcome')}, {t('admin')}</p>
+                  <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight leading-none mb-2">{t('menuDashboard')}</h1>
+                  <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">{t('welcome')}, {t('admin')}</p>
                 </div>
                 <div className="relative group w-full sm:w-auto">
                   <select
@@ -4528,49 +4512,52 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {sites.map(site => {
                   const guardCount = employees.filter(e => e.location === site.name).length;
                   return (
-                    <div key={site.id} onClick={() => setSelectedSite(site)} className="group bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-lg transition-all cursor-pointer hover:border-emerald-500 relative overflow-hidden">
-                      <div className={`absolute top-0 left-0 w-1 h-full ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    <div 
+                      key={site.id} 
+                      onClick={() => setSelectedSite(site)} 
+                      className="group bg-white rounded-3xl shadow-sm border border-gray-100 p-5 hover:shadow-xl transition-all cursor-pointer hover:border-blue-500/30 relative overflow-hidden active-haptic"
+                    >
+                      <div className={`absolute top-0 left-0 w-1.5 h-full ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-500' : 'bg-amber-500'}`} />
 
                       <div className="flex justify-between items-start mb-4 pl-2">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2.5 rounded-lg ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                            <Building2 size={20} />
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-2xl ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                            <Building2 size={24} />
                           </div>
                           <div>
-                            <h4 className="font-bold text-gray-900 leading-tight">{site.name}</h4>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                            <h4 className="font-black text-gray-900 leading-tight uppercase tracking-tight text-sm sm:text-base">{site.name}</h4>
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest mt-1.5 ${(site.status === 'Operational' || site.status === 'Active') ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
                               {t(site.status.toLowerCase()) || site.status}
                             </span>
                           </div>
                         </div>
-                        <div className="text-gray-300 group-hover:text-emerald-600 transition-colors">
+                        <div className="text-gray-300 group-hover:text-blue-600 transition-colors p-2 bg-gray-50 rounded-xl">
                           <ChevronRight size={20} />
                         </div>
                       </div>
 
-                      <div className="space-y-2 pl-2 text-sm text-gray-500">
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-2"><MapPin size={14} /> {site.city}</span>
+                      <div className="space-y-4 pl-2">
+                        <div className="flex items-center justify-between text-xs sm:text-sm">
+                          <span className="flex items-center gap-2 text-slate-500 font-medium"><MapPin size={14} className="text-blue-500" /> {site.city}</span>
+                          {site.phone && (
+                            <span className="flex items-center gap-2 text-emerald-600 font-black"><Phone size={14} /> {site.phone}</span>
+                          )}
                         </div>
-                        <div className="flex items-center justify-between border-t border-gray-50 pt-2 mt-2">
-                          <div className="flex flex-col">
-                            <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">{t('manager')}</span>
-                            <span className="text-gray-700 font-medium">{site.manager || '-'}</span>
+                        
+                        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-50">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{t('manager')}</span>
+                            <span className="text-gray-900 font-bold truncate text-xs">{site.manager || '-'}</span>
                           </div>
-                          <div className="flex flex-col text-right">
-                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">{t('siteEmployees')}</span>
-                            <span className="text-gray-700 font-medium">{guardCount}</span>
+                          <div className="flex flex-col gap-1 text-right">
+                            <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{t('siteEmployees')}</span>
+                            <span className="text-blue-600 font-black text-sm">{guardCount}</span>
                           </div>
                         </div>
-                        {site.phone && (
-                          <div className="flex items-center gap-2 pt-1 text-xs text-emerald-600">
-                            <Phone size={12} /> {site.phone}
-                          </div>
-                        )}
                       </div>
                     </div>
                   );
@@ -4624,16 +4611,17 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-                <table className="w-full text-sm text-left min-w-[640px]">
+               {/* Desktop Table */}
+              <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table className="w-full text-sm text-left">
                   <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
                     <tr>
-                      <th className="px-6 py-3 font-medium">{t('name')}</th>
-                      <th className="px-6 py-3 font-medium">{t('location')}</th>
-                      <th className="px-6 py-3 font-medium">{t('selectDate')}</th>
-                      <th className="px-6 py-3 font-medium">{t('coveringFor')}</th>
-                      <th className="px-6 py-3 font-medium">{t('status')}</th>
-                      <th className="px-6 py-3 font-medium text-right">{t('actions')}</th>
+                      <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">{t('name')}</th>
+                      <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">{t('location')}</th>
+                      <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">{t('selectDate')}</th>
+                      <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">{t('coveringFor')}</th>
+                      <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">{t('status')}</th>
+                      <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px] text-right">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -4641,21 +4629,20 @@ export default function App() {
                       (attendanceSiteFilter === 'All' || getEmployeeLocation(r.name) === attendanceSiteFilter) &&
                       (r.date === attendanceDateFilter)
                     ).map(record => (
-                      <tr key={record.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-medium text-gray-900">{record.name}</td>
-                        <td className="px-6 py-4 text-gray-500">{getEmployeeLocation(record.name)}</td>
-                        <td className="px-6 py-4 text-gray-500 font-mono">{record.date}</td>
-                        <td className="px-6 py-4 text-gray-500 italic">{record.replacementFor || '-'}</td>
+                      <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-gray-900">{record.name}</td>
+                        <td className="px-6 py-4 text-gray-500 font-medium">{getEmployeeLocation(record.name)}</td>
+                        <td className="px-6 py-4 text-gray-400 font-mono text-xs">{record.date}</td>
+                        <td className="px-6 py-4 text-gray-400 italic text-xs">{record.replacementFor || '-'}</td>
                         <td className="px-6 py-4">
                           <StatusBadge status={record.status} lateHours={record.lateHours} t={t} />
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => setEditingAttendance(record)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                              {/* Edit Icon */}
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            <button onClick={() => setEditingAttendance(record)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm border border-gray-100 bg-white">
+                              <Edit size={16} />
                             </button>
-                            <button onClick={() => handleDeleteAttendance(record.id)} className="p-1 text-red-600 hover:bg-red-50 rounded">
+                            <button onClick={() => handleDeleteAttendance(record.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm border border-gray-100 bg-white">
                               <Trash2 size={16} />
                             </button>
                           </div>
@@ -4664,6 +4651,55 @@ export default function App() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4 pb-20">
+                {attendance.filter(r =>
+                  (attendanceSiteFilter === 'All' || getEmployeeLocation(r.name) === attendanceSiteFilter) &&
+                  (r.date === attendanceDateFilter)
+                ).map(record => (
+                  <div key={record.id} className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm space-y-4 relative overflow-hidden">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-sm">
+                          {record.name?.[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="font-black text-gray-900 uppercase tracking-tight text-sm">{record.name}</h4>
+                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">{getEmployeeLocation(record.name)}</p>
+                        </div>
+                      </div>
+                      <StatusBadge status={record.status} lateHours={record.lateHours} t={t} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{t('selectDate')}</span>
+                        <span className="text-xs font-mono font-bold text-gray-600">{record.date}</span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{t('coveringFor')}</span>
+                        <span className="text-xs font-bold text-gray-600 italic truncate block">{record.replacementFor || '-'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button onClick={() => setEditingAttendance(record)} className="flex-1 py-2.5 bg-blue-50 text-blue-600 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 active-haptic">
+                        <Edit size={14} /> {t('edit')}
+                      </button>
+                      <button onClick={() => handleDeleteAttendance(record.id)} className="flex-1 py-2.5 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 active-haptic">
+                        <Trash2 size={14} /> {t('delete')}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {attendance.length === 0 && (
+                  <div className="bg-white p-12 rounded-[2.5rem] border border-dashed border-gray-200 text-center">
+                    <Clock size={40} className="mx-auto text-gray-200 mb-4" />
+                    <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">{t('noAttendanceToday') || 'No records for today'}</p>
+                  </div>
+                )}
               </div>
             </div>
           )
@@ -4722,22 +4758,23 @@ export default function App() {
                 </div>
 
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-                  <table className="w-full text-sm text-left min-w-[900px]">
-                    <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
+                 {/* Desktop Table View */}
+                <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50 text-gray-500 border-b border-gray-100 uppercase tracking-widest text-[10px] font-black">
                       <tr>
-                        <th className="px-6 py-3">{t('name')}</th>
-                        <th className="px-6 py-3">{t('location')}</th>
-                        <th className="px-6 py-3">{t('role')}</th>
-                        <th className="px-6 py-3 text-right">{t('salary')}</th>
-                        <th className="px-6 py-3 text-right">{t('bonus')}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">{t('overtime')}</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900 text-red-600">{t('advance')}</th>
-                        <th className="px-6 py-4 font-semibold text-right text-amber-600">{t('late')}</th>
-                        <th className="px-6 py-3 text-right text-red-600">{t('absent')}</th>
-                        <th className="px-6 py-3 text-right text-red-800">{t('deductions')}</th>
-                        <th className="px-6 py-3 text-right">{t('netPay')}</th>
-                        <th className="px-6 py-3 text-center">{t('actions')}</th>
+                        <th className="px-6 py-4">{t('name')}</th>
+                        <th className="px-6 py-4">{t('location')}</th>
+                        <th className="px-6 py-4">{t('role')}</th>
+                        <th className="px-6 py-4 text-right">{t('salary')}</th>
+                        <th className="px-6 py-4 text-right">{t('bonus')}</th>
+                        <th className="px-6 py-4">{t('overtime')}</th>
+                        <th className="px-6 py-4 text-red-600">{t('advance')}</th>
+                        <th className="px-6 py-4 text-right text-amber-600">{t('late')}</th>
+                        <th className="px-6 py-4 text-right text-red-600">{t('absent')}</th>
+                        <th className="px-6 py-4 text-right text-red-800">{t('deductions')}</th>
+                        <th className="px-6 py-4 text-right">{t('netPay')}</th>
+                        <th className="px-6 py-4 text-center">{t('actions')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -4751,39 +4788,29 @@ export default function App() {
                           let lateDeduction = 0;
                           let absentDeduction = 0;
 
-                          // Filter attendance by selected month
                           const empAttendance = attendance.filter(a => {
                             if (a.name !== emp.name) return false;
-                            // Check if attendance date is in selected month
                             if (!a.date) return false;
-
-                            // Handle different date formats
                             let attendanceMonth;
                             if (typeof a.date === 'string') {
-                              attendanceMonth = a.date.substring(0, 7); // YYYY-MM
+                              attendanceMonth = a.date.substring(0, 7);
                             } else if (a.date.toDate) {
-                              // Firestore Timestamp
                               attendanceMonth = a.date.toDate().toISOString().substring(0, 7);
                             } else if (a.date instanceof Date) {
                               attendanceMonth = a.date.toISOString().substring(0, 7);
                             } else {
                               return false;
                             }
-
                             return attendanceMonth === payrollMonthFilter;
                           });
 
                           empAttendance.forEach(record => {
                             if (record.status === 'Late') {
-                              // Hourly Rate = Salary / 360
                               const hourlyRate = baseSalary / 360;
                               const lateCost = (Number(record.lateHours) || 0) * hourlyRate;
                               if (lateCost > 0) {
                                 lateDeduction += lateCost;
                                 deductionAmount += lateCost;
-                              } else {
-                                // Fallback if no hours set but late? Maybe 0 or assume 1 hour? 
-                                // Let's assume 0 for now as user explicitely asked for "chosen" hours.
                               }
                             }
                             if (record.status === 'Absent') {
@@ -4793,85 +4820,59 @@ export default function App() {
                             }
                           });
 
-                          // Add Manual Hourly Deductions
-                          // Hourly Rate = Salary / 30 / 12 (assuming 12 hour shift, 30 days) => Salary / 360
                           const hourlyRate = baseSalary / 360;
                           const manualDeduction = (Number(emp.deductionHours) || 0) * hourlyRate;
 
-                          // [Modified] Check for Stored Payroll Record
                           const storedRecord = payrolls.find(p => p.employeeId === emp.id && p.month === payrollMonthFilter);
 
                           if (storedRecord) {
                             baseSalary = Number(storedRecord.salary) || baseSalary;
                             bonus = Number(storedRecord.bonus) || 0;
                             overtime = Number(storedRecord.overtime) || 0;
-                            // Stored deductions in record usually implies "Manual/Other" deductions
-                            // We will assume storedRecord.deductions replaces the manualDeduction part
-                            // BUT Late/Absent is usually calculated from attendance unless we freeze that too.
-                            // For valid snapshot, if record exists, we should probably stick to what's in record?
-                            // But the prompt says "salary... automatic get normally ... until changes happen".
-                            // This suggests "changes" are the overrides.
-                            // Let's use stored values for the editable fields.
-
-                            // We will still calculate Late/Absent dynamically for display context, 
-                            // BUT the total net pay should ideally rely on the saved record if we want it "Frozen".
-                            // However, keeping Late/Absent dynamic allows correcting attendance to fix payroll.
-
-                            // Let's just override the manual components:
-                            // deductionAmount (Total) = Late + Absent + Manual(Stored or Default)
                           }
 
                           const effectiveManualDeduction = storedRecord ? (Number(storedRecord.deductions) || 0) : manualDeduction;
                           const effectiveAdvance = storedRecord ? (Number(storedRecord.advance) || 0) : (Number(emp.advanceSalary) || 0);
 
                           deductionAmount = lateDeduction + absentDeduction + effectiveManualDeduction + effectiveAdvance;
-
                           const netPay = baseSalary + bonus + overtime - deductionAmount;
 
                           return (
-                            <tr key={emp.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 font-medium text-gray-900">
-                                <div>{emp.name}</div>
-                                <div className="text-xs text-gray-500">{emp.dept}</div>
+                            <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4">
+                                <span className="font-black text-gray-900 uppercase tracking-tight block">{emp.name}</span>
+                                <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">{emp.dept}</span>
                               </td>
-                              <td className="px-6 py-4 text-gray-500">{emp.location}</td>
-                              <td className="px-6 py-4 text-gray-500">{t(emp.role.toLowerCase()) || emp.role}</td>
-                              <td className="px-6 py-4 text-right font-mono">{formatCurrency(baseSalary)}</td>
-                              <td className="px-6 py-4 text-right font-mono text-green-600">+{formatCurrency(bonus)}</td>
-                              <td className="px-6 py-4 text-right font-mono text-orange-600">+{formatCurrency(overtime)}</td>
-                              <td className="px-6 py-4 text-right font-mono text-red-600">-{formatCurrency(effectiveAdvance)}</td>
-
-                              {/* Detailed Deductions Columns */}
+                              <td className="px-6 py-4 text-gray-500 font-medium">{emp.location}</td>
+                              <td className="px-6 py-4 text-gray-400 text-xs font-bold uppercase tracking-widest">{t(emp.role.toLowerCase()) || emp.role}</td>
+                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(baseSalary)}</td>
+                              <td className="px-6 py-4 text-right font-mono text-green-600 font-bold">+{formatCurrency(bonus)}</td>
+                              <td className="px-6 py-4 text-right font-mono text-indigo-600 font-bold">+{formatCurrency(overtime)}</td>
+                              <td className="px-6 py-4 text-right font-mono text-red-500 font-bold">-{formatCurrency(effectiveAdvance)}</td>
                               <td className="px-6 py-4 text-right font-mono text-amber-600">
                                 {lateDeduction > 0 ? `-${formatCurrency(lateDeduction)}` : '-'}
                               </td>
                               <td className="px-6 py-4 text-right font-mono text-red-600">
                                 {absentDeduction > 0 ? `-${formatCurrency(absentDeduction)}` : '-'}
                               </td>
-                              <td className="px-6 py-4 text-right font-mono text-red-800 font-bold">-{formatCurrency(deductionAmount)}</td>
-                              <td className="px-6 py-4 text-right font-bold text-gray-900">{formatCurrency(netPay)}</td>
-                              <td className="px-6 py-4 text-center">
+                              <td className="px-6 py-4 text-right font-mono text-red-900 font-black">-{formatCurrency(deductionAmount)}</td>
+                              <td className="px-6 py-4 text-right font-black text-blue-600 text-base">{formatCurrency(netPay)}</td>
+                              <td className="px-6 py-4">
                                 <div className="flex items-center justify-center gap-2">
                                   <button
                                     onClick={() => handleManagePayroll(emp, payrollMonthFilter, lateDeduction, absentDeduction)}
-                                    className={`p-2 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium ${storedRecord ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'text-gray-600 hover:bg-gray-100'}`}
+                                    className={`p-2.5 rounded-xl transition-all shadow-sm border ${storedRecord ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-white text-slate-600 border-gray-100 hover:bg-slate-50'}`}
                                     title={t('manageEditMonth')}
                                   >
-                                    <Edit size={16} /> {storedRecord ? t('edit') : t('management')}
+                                    <Edit size={16} />
                                   </button>
                                   <button
                                     onClick={() => handlePrintPayrollSlip(emp, {
-                                      baseSalary,
-                                      bonus,
-                                      overtime,
-                                      lateDeduction,
-                                      absentDeduction,
-                                      manualDeduction: effectiveManualDeduction,
-                                      deductionAmount,
-                                      advanceSalary: effectiveAdvance,
-                                      netPay
+                                      baseSalary, bonus, overtime, lateDeduction, absentDeduction,
+                                      manualDeduction: effectiveManualDeduction, deductionAmount,
+                                      advanceSalary: effectiveAdvance, netPay
                                     }, payrollMonthFilter)}
-                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1 text-sm font-medium"
+                                    className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100"
                                     title={t('printPayrollSlip')}
                                   >
                                     <Printer size={16} />
@@ -4883,6 +4884,108 @@ export default function App() {
                         })}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4 pb-20">
+                  {employees
+                    .filter(emp => !payrollLocationFilter || emp.location === payrollLocationFilter)
+                    .map(emp => {
+                      let baseSalary = Number(emp.salary) || 0;
+                      let bonus = Number(emp.bonus) || 0;
+                      let overtime = Number(emp.overtime) || 0;
+                      let deductionAmount = 0;
+                      let lateDeduction = 0;
+                      let absentDeduction = 0;
+
+                      // Filter attendance by selected month
+                      const empAttendance = attendance.filter(a => {
+                        if (a.name !== emp.name) return false;
+                        if (!a.date) return false;
+                        let attendanceMonth = typeof a.date === 'string' ? a.date.substring(0, 7) : a.date.toISOString().substring(0, 7);
+                        return attendanceMonth === payrollMonthFilter;
+                      });
+
+                      empAttendance.forEach(record => {
+                        if (record.status === 'Late') {
+                          const hourlyRate = baseSalary / 360;
+                          const lateCost = (Number(record.lateHours) || 0) * hourlyRate;
+                          if (lateCost > 0) {
+                            lateDeduction += lateCost;
+                            deductionAmount += lateCost;
+                          }
+                        }
+                        if (record.status === 'Absent') {
+                          const cost = baseSalary / 30;
+                          absentDeduction += cost;
+                          deductionAmount += cost;
+                        }
+                      });
+
+                      const hourlyRate = baseSalary / 360;
+                      const manualDeduction = (Number(emp.deductionHours) || 0) * hourlyRate;
+                      const storedRecord = payrolls.find(p => p.employeeId === emp.id && p.month === payrollMonthFilter);
+
+                      if (storedRecord) {
+                        baseSalary = Number(storedRecord.salary) || baseSalary;
+                        bonus = Number(storedRecord.bonus) || 0;
+                        overtime = Number(storedRecord.overtime) || 0;
+                      }
+
+                      const effectiveManualDeduction = storedRecord ? (Number(storedRecord.deductions) || 0) : manualDeduction;
+                      const effectiveAdvance = storedRecord ? (Number(storedRecord.advance) || 0) : (Number(emp.advanceSalary) || 0);
+
+                      deductionAmount = lateDeduction + absentDeduction + effectiveManualDeduction + effectiveAdvance;
+                      const netPay = baseSalary + bonus + overtime - deductionAmount;
+
+                      return (
+                        <div key={emp.id} className="bg-white p-5 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex gap-3">
+                              <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-sm uppercase">
+                                {emp.name?.[0]}
+                              </div>
+                              <div>
+                                <h4 className="font-black text-gray-900 uppercase tracking-tight text-sm">{emp.name}</h4>
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">{emp.dept} • {emp.location}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('netPay')}</p>
+                              <p className="font-black text-blue-600 text-base">{formatCurrency(netPay)}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                             <div className="flex justify-between items-center text-[10px]">
+                               <span className="text-slate-500 font-bold uppercase">{t('salary')}</span>
+                               <span className="font-mono font-black text-gray-900">{formatCurrency(baseSalary)}</span>
+                             </div>
+                             <div className="flex justify-between items-center text-[10px]">
+                               <span className="text-green-600 font-bold uppercase">{t('bonus')}</span>
+                               <span className="font-mono font-black text-green-600">+{formatCurrency(bonus)}</span>
+                             </div>
+                             <div className="flex justify-between items-center text-[10px]">
+                               <span className="text-red-600 font-bold uppercase">{t('deductions')}</span>
+                               <span className="font-mono font-black text-red-600">-{formatCurrency(deductionAmount)}</span>
+                             </div>
+                             <div className="flex justify-between items-center text-[10px]">
+                               <span className="text-indigo-600 font-bold uppercase">{t('overtime')}</span>
+                               <span className="font-mono font-black text-indigo-600">+{formatCurrency(overtime)}</span>
+                             </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                             <button onClick={() => handleManagePayroll(emp, payrollMonthFilter, lateDeduction, absentDeduction)} className="flex-1 py-3 bg-white border border-gray-100 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 active-haptic shadow-sm">
+                               <Edit size={14} /> {storedRecord ? t('edit') : t('management')}
+                             </button>
+                             <button onClick={() => handlePrintPayrollSlip(emp, { baseSalary, bonus, overtime, lateDeduction, absentDeduction, manualDeduction: effectiveManualDeduction, deductionAmount, advanceSalary: effectiveAdvance, netPay }, payrollMonthFilter)} className="flex-1 py-3 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 active-haptic shadow-lg shadow-blue-500/20">
+                               <Printer size={14} /> {t('print')}
+                             </button>
+                          </div>
+                        </div>
+                      )
+                    })}
                 </div>
               </div >
             )
@@ -5018,36 +5121,67 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-                  <table className="w-full text-left min-w-[500px]">
-                    <thead className="bg-gray-50 border-b border-gray-100">
+                 {/* Desktop View */}
+                <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b border-gray-100 font-black uppercase tracking-widest text-[10px] text-slate-500">
                       <tr>
-                        <th className="px-6 py-4 font-semibold text-gray-900">Account Name</th>
-                        <th className="px-6 py-4 font-semibold text-gray-900">Type</th>
-                        <th className="px-6 py-4 font-semibold text-right text-gray-900">Balance</th>
+                        <th className="px-6 py-4 tracking-widest">{t('accountName') || 'Account Name'}</th>
+                        <th className="px-6 py-4 tracking-widest">{t('type') || 'Type'}</th>
+                        <th className="px-6 py-4 text-right tracking-widest">{t('balance') || 'Balance'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {accounts.length === 0 ? (
-                        <tr><td colSpan="3" className="px-6 py-8 text-center text-gray-500">No accounts found. Add one to get started.</td></tr>
+                        <tr><td colSpan="3" className="px-6 py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">{t('noAccountsFound') || 'No accounts found'}</td></tr>
                       ) : (
                         accounts.map(acc => (
-                          <tr key={acc.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 font-medium text-gray-900">{acc.name}</td>
-                            <td className="px-6 py-4 text-gray-500"><span className={`px-2 py-1 rounded text-xs font-bold ${acc.type === 'Asset' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{acc.type}</span></td>
-                            <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(acc.balance)}</td>
+                          <tr key={acc.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 font-black text-gray-900 uppercase tracking-tight">{acc.name}</td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${acc.type === 'Asset' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}`}>{acc.type}</span>
+                            </td>
+                            <td className="px-6 py-4 text-right font-mono font-black text-gray-900 text-lg">{formatCurrency(acc.balance)}</td>
                           </tr>
                         ))
                       )}
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )
-          }
 
-          {
-            activeTab === 'sales_purchases' && (
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4 pb-20">
+                    {accounts.map(acc => (
+                      <div key={acc.id} className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex items-center justify-between transition-all active-haptic">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${acc.type === 'Asset' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                            <Calculator size={24} />
+                          </div>
+                          <div>
+                            <h4 className="font-black text-gray-900 uppercase tracking-tight text-sm">{acc.name}</h4>
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${acc.type === 'Asset' ? 'text-emerald-500' : 'text-rose-500'}`}>{acc.type}</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">{t('balance')}</p>
+                          <p className="font-black text-gray-900 text-lg font-mono">{formatCurrency(acc.balance)}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {accounts.length === 0 && (
+                      <div className="bg-white p-12 rounded-[2.5rem] border border-dashed border-gray-200 text-center">
+                        <Calculator size={40} className="mx-auto text-gray-200 mb-4" />
+                        <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">{t('noAccountsFound')}</p>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Full-Screen Zone: Sales & Purchases */}
+          {activeTab === 'sales_purchases' && (
+            <div className="flex-1 overflow-hidden h-full flex flex-col bg-slate-50">
               <div className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-gray-50">
                 {/* Left: Product Grid */}
                 <div className={`flex-1 flex flex-col h-full overflow-hidden ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
@@ -5464,12 +5598,13 @@ export default function App() {
                   </div>
                 </div>
               </div>
-            )
-          }
+            </div>
+          )}
 
-          {
-            activeTab === 'warehouses' && (
-              <div className="space-y-6 animate-in fade-in duration-500">
+          {/* Scrollable Zone 2: Warehouse & History */}
+          {['warehouses', 'history'].includes(activeTab) && (
+            <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
+              <div className="p-4 sm:p-6 md:p-8 lg:p-10 pb-[140px] lg:pb-10 max-w-[1600px] mx-auto w-full transition-all duration-500">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <div>
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('menuWarehouses')}</h2>
@@ -5760,17 +5895,18 @@ export default function App() {
           {
             activeTab === 'cafe' && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                {/* Sub-tab Navigation - ERP Style */}
-                <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-fit border border-gray-200 mb-8 overflow-x-auto shadow-sm">
+                {/* Sub-tab Navigation - Swipeable on mobile */}
+                <div className="flex gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl w-full lg:w-fit border border-gray-200 mb-8 overflow-x-auto no-scrollbar shadow-sm">
                   {[
                     { id: 'board', label: t('liveBoard'), icon: <LayoutDashboard size={14} /> },
                     { id: 'rooms', label: t('manageUnits'), icon: <Plus size={14} /> },
-                    { id: 'recipes', label: t('menuRecipes'), icon: <Database size={14} /> }
+                    { id: 'recipes', label: t('menuRecipes'), icon: <Database size={14} /> },
+                    { id: 'history', label: t('history'), icon: <Clock size={14} /> }
                   ].map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setCafeSubTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${cafeSubTab === tab.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
+                      className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap active-haptic ${cafeSubTab === tab.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
                     >
                       {tab.icon} {tab.label}
                     </button>
@@ -6240,18 +6376,15 @@ export default function App() {
                       </div>
                     );
                   })()}
-                </div>
               </div>
-            )
-          }
+            </div>
+          )}
 
-          {/* ========================================================= */}
-          {/* ================= SERVICE / REPAIR SHOP TAB ================= */}
-          {/* ========================================================= */}
-          {
-            activeTab === 'service' && (
-              <div className="min-h-screen flex flex-col">
-                <div className={serviceSubTab === 'sell' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}>
+          {/* Full-Screen Zone: Service & Repairs */}
+          {activeTab === 'service' && (
+              <div className="flex-1 overflow-hidden h-full flex flex-col bg-white">
+                <div className="flex-1 overflow-y-auto no-scrollbar pb-[140px] lg:pb-0">
+                  <div className={serviceSubTab === 'sell' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}>
                   {/* Sub Tab Navigation - ERP Style */}
                   <div className={`hidden lg:flex gap-2 p-1 bg-white border border-gray-100 rounded-2xl w-fit shadow-sm ${serviceSubTab === 'sell' ? 'mx-4 my-3 mb-1' : 'mb-8'}`}>
                     {[
@@ -7469,8 +7602,6 @@ export default function App() {
             </div>
           )
         }
-        </div>
-      </main>
 
       {/* --- Modals --- */}
 
@@ -7971,6 +8102,9 @@ export default function App() {
         </div>
       )}
 
+          </div> {/* End of Views Container (4319) */}
+        </main> {/* End of Main Content (4199) */}
+
       {/* Barcode Print Configuration Modal */}
       {
         isPrintBarcodeModalOpen && (
@@ -8071,13 +8205,14 @@ export default function App() {
       {/* Employee Modal (Premium) */}
       {
         isAddModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">{t('addEmployee')}</h3>
-                <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('addEmployee')}</h3>
+                <button onClick={() => setIsAddModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
               </div>
-              <form onSubmit={handleAddEmployee} className="p-6 space-y-4">
+              <form onSubmit={handleAddEmployee} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
                 <div className="flex justify-center mb-4">
                   <label className="relative cursor-pointer group">
                     <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors">
@@ -8136,13 +8271,14 @@ export default function App() {
       {/* Site Modal (Premium) */}
       {
         isAddSiteModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                 <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('createLocation')}</h3>
                 <button onClick={() => setIsAddSiteModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
               </div>
-              <form onSubmit={handleAddSite} className="p-6 space-y-4">
+              <form onSubmit={handleAddSite} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
                 <input className="input-field" placeholder={t('siteName')} value={newSiteForm.name} onChange={e => setNewSiteForm({ ...newSiteForm, name: e.target.value })} required />
                 <input className="input-field" placeholder={t('city')} value={newSiteForm.city} onChange={e => setNewSiteForm({ ...newSiteForm, city: e.target.value })} required />
                 <input className="input-field" placeholder={t('manager')} value={newSiteForm.manager} onChange={e => setNewSiteForm({ ...newSiteForm, manager: e.target.value })} />
@@ -8883,13 +9019,14 @@ export default function App() {
       {/* Add Account Modal */}
       {
         isAddAccountModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">{t('addAccount')}</h3>
-                <button onClick={() => setIsAddAccountModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('addAccount')}</h3>
+                <button onClick={() => setIsAddAccountModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
               </div>
-              <form onSubmit={handleAddAccount} className="p-6 space-y-4">
+              <form onSubmit={handleAddAccount} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
                 <input className="input-field" placeholder={t('accountName')} value={newAccountForm.name} onChange={e => setNewAccountForm({ ...newAccountForm, name: e.target.value })} required />
 
                 <select className="input-field" value={newAccountForm.type} onChange={e => setNewAccountForm({ ...newAccountForm, type: e.target.value })}>
@@ -8914,13 +9051,14 @@ export default function App() {
       {/* Add / Edit Item Modal */}
       {
         isAddItemModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">{editingItem ? t('editItem') : t('addInventoryItem')}</h3>
-                <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{editingItem ? t('editItem') : t('addInventoryItem')}</h3>
+                <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
               </div>
-              <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4">
+              <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
                 {/* Image Upload */}
                 <div className="flex justify-center mb-4">
                   <label className="relative cursor-pointer group">
@@ -9050,13 +9188,14 @@ export default function App() {
       }
       {
         isAddSaleModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">{t('newSale')}</h3>
-                <button onClick={() => setIsAddSaleModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('newSale')}</h3>
+                <button onClick={() => setIsAddSaleModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
               </div>
-              <form onSubmit={handleAddSale} className="p-6 space-y-4">
+              <form onSubmit={handleAddSale} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
                 <input className="input-field" placeholder={t('customerName')} value={newSaleForm.customer} onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })} required />
                 <input type="number" className="input-field" placeholder={t('totalAmount')} value={newSaleForm.amount} onChange={e => setNewSaleForm({ ...newSaleForm, amount: Number(e.target.value) })} required />
                 <select className="input-field" value={newSaleForm.status} onChange={e => setNewSaleForm({ ...newSaleForm, status: e.target.value })}>
@@ -9079,13 +9218,14 @@ export default function App() {
       {/* Add Purchase Modal */}
       {
         isAddPurchaseModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-900">{t('newPurchase')}</h3>
-                <button onClick={() => setIsAddPurchaseModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('newPurchase')}</h3>
+                <button onClick={() => setIsAddPurchaseModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
               </div>
-              <form onSubmit={handleAddPurchase} className="p-6 space-y-4">
+              <form onSubmit={handleAddPurchase} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
                 <input className="input-field" placeholder={t('supplierName')} value={newPurchaseForm.supplier} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, supplier: e.target.value })} required />
                 <input type="number" className="input-field" placeholder={t('totalCost')} value={newPurchaseForm.amount} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, amount: Number(e.target.value) })} required />
                 <select className="input-field" value={newPurchaseForm.status} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, status: e.target.value })}>
@@ -9893,9 +10033,9 @@ export default function App() {
       }
 
       {/* Service Module Specific Mobile Navigation */}
-      {/* Global Mobile Bottom Navigation (Universal) */}
+      {/* Global Ethereal Command Center - Native Phone UI Core */}
       {!isKiosk && !isPinModalOpen && !showSettings && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-2xl border-t border-gray-100/50 px-4 pb-8 pt-4 flex justify-around items-center z-[65] rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] animate-in slide-in-from-bottom duration-500">
+        <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-sm bg-white/80 backdrop-blur-3xl border border-white/20 p-2.5 flex justify-around items-center z-[500] rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] animate-in slide-in-from-bottom-10 duration-700">
            {(() => {
              const navs = {
                dashboard: [
@@ -9928,7 +10068,7 @@ export default function App() {
                  { id: 'pl', label: t('profit_loss'), icon: <DollarSign size={22} />, onClick: () => setProfitPeriod('Monthly') }
                ],
                sales_purchases: [
-                 { id: 'pos', label: t('products'), icon: <Package size={22} />, onClick: () => { setActiveTab('sales_purchases'); setIsMobileCartOpen(false); } },
+                 { id: 'pos', label: t('products'), icon: <ShoppingCart size={22} />, onClick: () => { setActiveTab('sales_purchases'); setIsMobileCartOpen(false); } },
                  { id: 'scanner', label: t('scanner'), icon: <Scan size={22} />, onClick: () => setIsScannerOpen(true) },
                  { id: 'cart', isFab: true, icon: (
                    <div className="relative">
@@ -9941,7 +10081,7 @@ export default function App() {
                  { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setActiveTab('history') }
                ],
                cafe: [
-                 { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setCafeSubTab('board') },
+                 { id: 'board', label: t('dashboard'), icon: <Coffee size={22} />, onClick: () => setCafeSubTab('board') },
                  { id: 'rooms', label: t('rooms'), icon: <Monitor size={22} />, onClick: () => setCafeSubTab('rooms') },
                  { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setCafeSubTab('rooms') },
                  { id: 'recipes', label: t('recipes'), icon: <History size={22} />, onClick: () => setCafeSubTab('recipes') },
