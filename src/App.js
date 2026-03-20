@@ -248,8 +248,37 @@ export default function App() {
   const [digitalSubMethod, setDigitalSubMethod] = useState('UPI');
   const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'EGP');
   const [barcodePrintMode, setBarcodePrintMode] = useState('sticker'); // 'sticker' or 'a4'
+
+  // --- State with Firestore Integration ---
+  const [employees, setEmployees] = useState([]);
+  const [sites, setSites] = useState([]);
+  const [attendance, setAttendance] = useState([]);
+  const [payrolls, setPayrolls] = useState([]); // [New] Monthly Payroll Records
+
+  const [accounts, setAccounts] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [purchases, setPurchases] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [selectedInventoryItems, setSelectedInventoryItems] = useState([]);
+
+  // --- Sales UI & Filter States ---
+  const [salesEmployee, setSalesEmployee] = useState(null);
+
+  const [cart, setCart] = useState([]);
+  const [cartDiscount, setCartDiscount] = useState(0);
+
   const [isKiosk, setIsKiosk] = useState(() => localStorage.getItem('isKiosk') === 'true');
+  const [isSelectSalesEmployeeModalOpen, setIsSelectSalesEmployeeModalOpen] = useState(false);
+  const [pinAction, setPinAction] = useState('showCosts'); // 'showCosts' | 'changeSalesEmployee'
+  const [paymentMethod, setPaymentMethod] = useState('Cash'); // 'Cash' | 'Visa' | 'Online'
+  const [posLocationFilter, setPosLocationFilter] = useState('');
+  const [warehouseLocationFilter, setWarehouseLocationFilter] = useState('');
+  const [homeLocationFilter, setHomeLocationFilter] = useState('');
+  const [historyLocationFilter, setHistoryLocationFilter] = useState('');
+  const [reportLocationFilter, setReportLocationFilter] = useState('');
+  const [historyFilter, setHistoryFilter] = useState('All');
+  const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
+
   const [kioskTab, setKioskTab] = useState('home');
   const [kioskTime, setKioskTime] = useState(new Date());
   useEffect(() => {
@@ -377,26 +406,7 @@ export default function App() {
     }
   };
 
-  const [isSelectSalesEmployeeModalOpen, setIsSelectSalesEmployeeModalOpen] = useState(false);
-  const [salesEmployee, setSalesEmployee] = useState(null);
-  const [pinAction, setPinAction] = useState('showCosts'); // 'showCosts' | 'changeSalesEmployee'
-  const [paymentMethod, setPaymentMethod] = useState('Cash'); // 'Cash' | 'Visa' | 'Online'
 
-
-  // [Added] Location Filters for new modules
-  const [warehouseLocationFilter, setWarehouseLocationFilter] = useState('');
-  const [posLocationFilter, setPosLocationFilter] = useState('');
-
-  const [homeLocationFilter, setHomeLocationFilter] = useState('');
-  const [historyLocationFilter, setHistoryLocationFilter] = useState('');
-  const [reportLocationFilter, setReportLocationFilter] = useState('');
-  const [historyFilter, setHistoryFilter] = useState('All');
-
-
-
-
-
-  const [historyDateFilter, setHistoryDateFilter] = useState(new Date().toISOString().split('T')[0]);
 
   const formatCurrency = useCallback((val) => {
     try {
@@ -1165,11 +1175,6 @@ export default function App() {
   // --- Initial Data (Only used if localStorage is empty) ---
 
 
-  // --- State with Firestore Integration ---
-  const [employees, setEmployees] = useState([]);
-  const [sites, setSites] = useState([]);
-  const [attendance, setAttendance] = useState([]);
-  const [payrolls, setPayrolls] = useState([]); // [New] Monthly Payroll Records
 
   // --- Firestore Listeners ---
   useEffect(() => {
@@ -1219,10 +1224,6 @@ export default function App() {
   }, [user]);
 
   // --- New Modules State & Listeners ---
-  const [accounts, setAccounts] = useState([]);
-  const [sales, setSales] = useState([]);
-  const [purchases, setPurchases] = useState([]);
-  const [inventory, setInventory] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -1897,8 +1898,6 @@ export default function App() {
   const [posHistoryDate, setPosHistoryDate] = useState(new Date().toISOString().split('T')[0]);
 
 
-  const [cart, setCart] = useState([]);
-  const [cartDiscount, setCartDiscount] = useState(0);
 
   // Auto-select first location for Strict Mode
   useEffect(() => {
