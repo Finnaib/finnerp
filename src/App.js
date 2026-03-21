@@ -356,7 +356,7 @@ export default function App() {
     const defaults = {
       en: { walkIn: 'Walk-in Customer', takeaway: 'Takeaway Customer' },
       ar: { walkIn: 'عميل محلي', takeaway: 'عميل تيك أواي' },
-      hi: { walkIn: 'कैश ग्राहक (Walk-in)', takeaway: 'ले जाने वाला ग्राहक (Takeaway)' },
+      hi: { walkIn: 'वॉक-इन ग्राहक', takeaway: 'टेकअवे ग्राहक' },
       zh: { walkIn: '散客', takeaway: '外带客户' }
     };
     const isCurrentDefault = Object.values(defaults).some(d =>
