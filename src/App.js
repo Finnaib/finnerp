@@ -5174,7 +5174,7 @@ export default function App() {
           {/* Full-Screen Zone: Sales & Purchases */}
           {activeTab === 'sales_purchases' && (
             <div className="flex-1 overflow-hidden h-full flex flex-col bg-slate-50">
-              <div className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-gray-50">
+              <div className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-gray-50 pb-32 lg:pb-0">
                 {/* Left: Product Grid */}
                 <div className={`flex-1 flex flex-col h-full overflow-hidden ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
                   <div className="p-4 flex-shrink-0 bg-white border-b border-gray-200">
@@ -5315,7 +5315,7 @@ export default function App() {
                   </div>
 
                   {/* Daily History Toggle / View - Responsive Card/Table */}
-                  <div className="bg-white p-4 mx-4 mb-20 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-64 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
+                  <div className="bg-white p-4 mx-4 mb-40 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-64 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-gray-900 flex items-center gap-2 truncate">
                         <Clock size={18} className="text-blue-600" />
@@ -6207,116 +6207,162 @@ export default function App() {
                         </select>
                       </div>
                     </div>
-
-                    {/* Sales Table */}
+                    {/* History List - Responsive */}
                     <div className="bg-white rounded-[2rem] border border-gray-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
-                            <tr>
-                              <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
-                              <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')}</th>
-                              <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('customer')}</th>
-                              <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('payment')}</th>
-                              <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('amount')}</th>
-                              <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {(() => {
-                              const allHistory = [
-                                ...sales.map(s => ({
-                                  ...s,
-                                  type: 'Retail',
-                                  dateStr: s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
-                                  customerName: s.client || s.customer || t('walkInCustomer'),
-                                  itemsSummary: Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : (s.items || '-'),
-                                  invoiceId: s.invoiceId || s.id.slice(0, 6)
-                                })),
-                                ...serviceTickets.filter(t => t.status === 'Delivered').map(t => ({
-                                  ...t,
-                                  type: 'Repair',
-                                  dateStr: (t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
-                                  customerName: t.customerName,
-                                  itemsSummary: `${t.brand} ${t.model} (${t.issue})`,
-                                  amount: Number(t.estimatedCost || 0),
-                                  invoiceId: t.id.slice(0, 6)
-                                }))
-                              ];
+                      {(() => {
+                        const allHistory = [
+                          ...sales.map(s => ({
+                            ...s,
+                            type: 'Retail',
+                            dateStr: s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
+                            customerName: s.client || s.customer || t('walkInCustomer'),
+                            itemsSummary: Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : (s.items || '-'),
+                            invoiceId: s.invoiceId || s.id.slice(0, 6)
+                          })),
+                          ...serviceTickets.filter(t => t.status === 'Delivered').map(t => ({
+                            ...t,
+                            type: 'Repair',
+                            dateStr: (t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
+                            customerName: t.customerName,
+                            itemsSummary: `${t.brand} ${t.model} (${t.issue})`,
+                            amount: Number(t.estimatedCost || 0),
+                            invoiceId: t.id.slice(0, 6)
+                          }))
+                        ];
 
-                              return allHistory
-                                .filter(s => {
-                                  const matchDate = !historyDateFilter || s.dateStr === historyDateFilter;
-                                  const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter;
-                                  const matchSearch = !historyLocationFilter ||
-                                    (s.customerName && s.customerName.toLowerCase().includes(historyLocationFilter.toLowerCase())) ||
-                                    (s.invoiceId && s.invoiceId.toLowerCase().includes(historyLocationFilter.toLowerCase()));
-                                  return matchDate && matchType && matchSearch;
-                                })
-                                .sort((a, b) => {
-                                  const dateA = a.createdAt?.seconds || 0;
-                                  const dateB = b.createdAt?.seconds || 0;
-                                  return dateB - dateA;
-                                })
-                                .map(item => (
-                                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="p-5">
-                                      <span className="text-[10px] font-black text-slate-400 uppercase">{item.time || (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</span>
-                                    </td>
-                                    <td className="p-5">
-                                      <div className="flex items-center gap-2">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${item.type === 'Repair' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
-                                        <span className="text-xs font-black text-slate-900 font-mono tracking-tighter">#{item.invoiceId}</span>
-                                      </div>
-                                    </td>
-                                    <td className="p-5">
-                                      <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-slate-700">{item.customerName}</span>
-                                        <div className="flex items-center gap-1.5 mt-0.5">
-                                          {item.type === 'Repair' ? <Wrench size={8} className="text-orange-400" /> : <ShoppingCart size={8} className="text-blue-400" />}
-                                          <p className="text-[9px] text-slate-300 font-black uppercase tracking-tight truncate max-w-[180px]">
-                                            {item.itemsSummary}
-                                          </p>
+                        const filteredHistory = allHistory
+                          .filter(s => {
+                            const matchDate = !historyDateFilter || s.dateStr === historyDateFilter;
+                            const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter;
+                            const matchSearch = !historyLocationFilter ||
+                              (s.customerName && s.customerName.toLowerCase().includes(historyLocationFilter.toLowerCase())) ||
+                              (s.invoiceId && s.invoiceId.toLowerCase().includes(historyLocationFilter.toLowerCase()));
+                            return matchDate && matchType && matchSearch;
+                          })
+                          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                        return (
+                          <>
+                            {/* Desktop View Table */}
+                            <div className="hidden lg:block overflow-x-auto">
+                              <table className="w-full text-left">
+                                <thead className="bg-slate-50 border-b border-slate-100">
+                                  <tr>
+                                    <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
+                                    <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')}</th>
+                                    <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('customer')}</th>
+                                    <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('payment')}</th>
+                                    <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('amount')}</th>
+                                    <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                  {filteredHistory.map(item => (
+                                    <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                                      <td className="p-5">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase">{item.time || (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</span>
+                                      </td>
+                                      <td className="p-5">
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-1.5 h-1.5 rounded-full ${item.type === 'Repair' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
+                                          <span className="text-xs font-black text-slate-900 font-mono tracking-tighter">#{item.invoiceId}</span>
                                         </div>
+                                      </td>
+                                      <td className="p-5">
+                                        <div className="flex flex-col">
+                                          <span className="text-xs font-bold text-slate-700">{item.customerName}</span>
+                                          <div className="flex items-center gap-1.5 mt-0.5">
+                                            {item.type === 'Repair' ? <Wrench size={8} className="text-orange-400" /> : <ShoppingCart size={8} className="text-blue-400" />}
+                                            <p className="text-[9px] text-slate-300 font-black uppercase tracking-tight truncate max-w-[180px]">
+                                              {item.itemsSummary}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </td>
+                                      <td className="p-5">
+                                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${item.paymentMethod === 'Cash' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                          item.paymentMethod === 'Visa' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                            'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                                          }`}>
+                                          {t((item.paymentMethod || 'Cash').toLowerCase()) || (item.paymentMethod || 'Cash')}
+                                        </span>
+                                      </td>
+                                      <td className="p-5">
+                                        <span className="text-sm font-black text-slate-900 font-mono">{formatCurrency(item.amount)}</span>
+                                      </td>
+                                      <td className="p-5 text-right">
+                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button
+                                            onClick={() => handlePrintInvoice(item, item.type === 'Repair' ? 'Service Receipt' : 'retail')}
+                                            className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-slate-100"
+                                            title={t('reprint')}
+                                          >
+                                            <Printer size={16} />
+                                          </button>
+                                          {currentMode === 'Owner' && (
+                                            <button
+                                              onClick={() => item.type === 'Repair' ? alert('Delete via Service Active Jobs') : handleDeleteSale(item)}
+                                              className="p-2 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-slate-100"
+                                              title={t('delete')}
+                                            >
+                                              <Trash2 size={16} />
+                                            </button>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Mobile View Card List */}
+                            <div className="lg:hidden divide-y divide-slate-100 no-scrollbar overflow-y-auto max-h-[60vh] pb-[100px]">
+                              {filteredHistory.map(item => (
+                                <div key={item.id} className="p-5 hover:bg-slate-50 active:bg-slate-100 transition-all group flex items-center justify-between gap-4">
+                                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                                    <div className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border ${item.type === 'Repair' ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
+                                      {item.type === 'Repair' ? <Wrench size={22} /> : <Receipt size={22} />}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-black text-slate-400 font-mono">#{item.invoiceId}</span>
+                                        <span className="text-[10px] text-slate-300 font-black uppercase">
+                                          {item.time || (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}
+                                        </span>
                                       </div>
-                                    </td>
-                                    <td className="p-5">
-                                      <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${item.paymentMethod === 'Cash' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                                        item.paymentMethod === 'Visa' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                                          'bg-indigo-50 text-indigo-600 border border-indigo-100'
-                                        }`}>
+                                      <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight truncate">{item.customerName}</h4>
+                                      <p className="text-[10px] text-slate-400 truncate mt-0.5 line-clamp-1 italic">{item.itemsSummary}</p>
+                                    </div>
+                                  </div>
+                                  <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                                    <span className="text-base font-black text-slate-900 font-mono">{formatCurrency(item.amount)}</span>
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest ${item.paymentMethod === 'Cash' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
                                         {t((item.paymentMethod || 'Cash').toLowerCase()) || (item.paymentMethod || 'Cash')}
                                       </span>
-                                    </td>
-                                    <td className="p-5">
-                                      <span className="text-sm font-black text-slate-900 font-mono">{formatCurrency(item.amount)}</span>
-                                    </td>
-                                    <td className="p-5 text-right">
-                                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                          onClick={() => handlePrintInvoice(item, item.type === 'Repair' ? 'Service Receipt' : 'retail')}
-                                          className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-slate-100"
-                                          title={t('reprint')}
-                                        >
-                                          <Printer size={16} />
-                                        </button>
-                                        {currentMode === 'Owner' && (
-                                          <button
-                                            onClick={() => item.type === 'Repair' ? alert('Delete via Service Active Jobs') : handleDeleteSale(item)}
-                                            className="p-2 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-slate-100"
-                                            title={t('delete')}
-                                          >
-                                            <Trash2 size={16} />
-                                          </button>
-                                        )}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))
-                            })()}
-                          </tbody>
-                        </table>
-                      </div>
+                                      <button
+                                        onClick={() => handlePrintInvoice(item, item.type === 'Repair' ? 'Service Receipt' : 'retail')}
+                                        className="p-1.5 bg-slate-50 text-slate-400 rounded-lg active:scale-95 transition-all"
+                                      >
+                                        <Printer size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              {filteredHistory.length === 0 && (
+                                <div className="p-12 text-center">
+                                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <History size={24} className="text-slate-300" />
+                                  </div>
+                                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('noRecentActivity')}</p>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {(() => {
