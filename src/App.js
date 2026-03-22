@@ -7710,7 +7710,7 @@ export default function App() {
       {/* Service / Repair Ticket Edit Modal */}
       {
         isTicketModalOpen && editingTicket && (
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] lg:p-4 animate-in fade-in duration-300">
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[600] lg:p-4 animate-in fade-in duration-300">
             <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet max-h-[90vh]">
               {/* Mobile Pull Indicator */}
               <div className="lg:hidden w-full pt-4 shrink-0">
@@ -10135,7 +10135,7 @@ export default function App() {
           {/* Service Module Specific Mobile Navigation */ }
   {/* Global Ethereal Command Center - Native Phone UI Core */ }
   {
-    !isKiosk && !isPinModalOpen && !showSettings && (
+    !isKiosk && !isPinModalOpen && !showSettings && !isTicketModalOpen && (
       <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-sm bg-white/80 backdrop-blur-3xl border border-white/20 p-2.5 flex justify-around items-center z-[500] rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] animate-in slide-in-from-bottom-10 duration-700">
         {(() => {
           const navs = {
