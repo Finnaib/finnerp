@@ -4119,8 +4119,8 @@ export default function App() {
                 </h1>
                 <div
                   className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg transition-all ${currentMode === 'Owner' ? 'text-rose-400' :
-                      currentMode === 'Manager' ? 'text-amber-400' :
-                        'text-blue-400'
+                    currentMode === 'Manager' ? 'text-amber-400' :
+                      'text-blue-400'
                     }`}
                 >
                   <div className={`w-1.5 h-1.5 rounded-full ${currentMode === 'Owner' ? 'bg-rose-500' : currentMode === 'Manager' ? 'bg-amber-500' : 'bg-blue-500'} animate-pulse`}></div>
@@ -6282,8 +6282,8 @@ export default function App() {
                                     </td>
                                     <td className="p-5">
                                       <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${item.paymentMethod === 'Cash' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                                          item.paymentMethod === 'Visa' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                                            'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                                        item.paymentMethod === 'Visa' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                          'bg-indigo-50 text-indigo-600 border border-indigo-100'
                                         }`}>
                                         {t((item.paymentMethod || 'Cash').toLowerCase()) || (item.paymentMethod || 'Cash')}
                                       </span>
@@ -6319,3204 +6319,3342 @@ export default function App() {
                       </div>
                     </div>
 
-                      {(() => {
-                        const count = [
-                          ...sales,
-                          ...serviceTickets.filter(t => t.status === 'Delivered')
-                        ].filter(s => {
-                          const dateStr = s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : '');
-                          const matchDate = !historyDateFilter || dateStr === historyDateFilter;
-                          const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter;
-                          return matchDate && matchType;
-                        }).length;
+                    {(() => {
+                      const count = [
+                        ...sales,
+                        ...serviceTickets.filter(t => t.status === 'Delivered')
+                      ].filter(s => {
+                        const dateStr = s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : '');
+                        const matchDate = !historyDateFilter || dateStr === historyDateFilter;
+                        const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter;
+                        return matchDate && matchType;
+                      }).length;
 
-                        return count === 0 && (
-                          <div className="p-20 text-center">
-                            <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-slate-100">
-                              <History size={32} className="text-slate-200" />
-                            </div>
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{t('noHistoryInPeriod') || 'No records found for this period'}</p>
+                      return count === 0 && (
+                        <div className="p-20 text-center">
+                          <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-slate-100">
+                            <History size={32} className="text-slate-200" />
                           </div>
-                        );
-                      })()}
+                          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{t('noHistoryInPeriod') || 'No records found for this period'}</p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
             </div>
           )}
 
-              {/* Full-Screen Zone: Service & Repairs */}
-              {activeTab === 'service' && (
-                <div className="flex-1 overflow-hidden h-full flex flex-col bg-white">
-                  <div className="flex-1 overflow-y-auto no-scrollbar pb-[140px] lg:pb-0">
-                    <div className={serviceSubTab === 'sell' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}>
-                      {/* Sub Tab Navigation - ERP Style */}
-                      <div className={`hidden lg:flex gap-2 p-1 bg-white border border-gray-100 rounded-2xl w-fit shadow-sm ${serviceSubTab === 'sell' ? 'mx-4 my-3 mb-1' : 'mb-8'}`}>
+          {/* Full-Screen Zone: Service & Repairs */}
+          {activeTab === 'service' && (
+            <div className="flex-1 overflow-hidden h-full flex flex-col bg-white">
+              <div className="flex-1 overflow-y-auto no-scrollbar pb-[140px] lg:pb-0">
+                <div className={serviceSubTab === 'sell' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}>
+                  {/* Sub Tab Navigation - ERP Style */}
+                  <div className={`hidden lg:flex gap-2 p-1 bg-white border border-gray-100 rounded-2xl w-fit shadow-sm ${serviceSubTab === 'sell' ? 'mx-4 my-3 mb-1' : 'mb-8'}`}>
+                    {[
+                      { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
+                      { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
+                      { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
+                      { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
+                      { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
+                      { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setServiceSubTab(tab.id)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-tight transition-all ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
+                      >
+                        {tab.icon} {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Sub Tab: BOARD (DASHBOARD) */}
+                  {serviceSubTab === 'board' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 px-0 sm:px-0">
                         {[
-                          { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
-                          { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
-                          { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
-                          { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
-                          { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
-                          { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
-                        ].map(tab => (
-                          <button
-                            key={tab.id}
-                            onClick={() => setServiceSubTab(tab.id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-tight transition-all ${serviceSubTab === tab.id ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
-                          >
-                            {tab.icon} {tab.label}
-                          </button>
+                          { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <Zap className="text-amber-500" />, bg: 'bg-amber-50', color: 'text-amber-600' },
+                          { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock className="text-orange-500" />, bg: 'bg-orange-50', color: 'text-orange-600' },
+                          { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckSquare className="text-emerald-500" />, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+                          { label: t('lowStock'), value: (inventory || []).filter(i => i.quantity <= (i.minStock || 5)).length, icon: <AlertTriangle className="text-rose-500" />, bg: 'bg-rose-50', color: 'text-rose-600' },
+                          { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard className="text-blue-500" />, bg: 'bg-blue-50', color: 'text-blue-600' }
+                        ].map((stat, i) => (
+                          <div key={i} className={`bg-white p-4 sm:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-start gap-4 hover:shadow-md transition-shadow active:scale-[0.98] cursor-default group`}>
+                            <div className={`p-3 sm:p-4 rounded-2xl ${stat.bg} group-hover:scale-110 transition-transform`}>{stat.icon}</div>
+                            <div>
+                              <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-[0.15em] leading-tight mb-1">{stat.label}</p>
+                              <h3 className={`text-xl sm:text-2xl font-black ${stat.color} leading-none font-mono`}>{stat.value}</h3>
+                            </div>
+                          </div>
                         ))}
                       </div>
 
-                      {/* Sub Tab: BOARD (DASHBOARD) */}
-                      {serviceSubTab === 'board' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                          {/* Stats Grid */}
-                          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 px-0 sm:px-0">
-                            {[
-                              { label: t('todaysRevenue') || "Today's Revenue", value: formatCurrency(serviceTickets.filter(t => t.status === 'Delivered' && t.createdAt?.seconds && new Date(t.createdAt.seconds * 1000).toDateString() === new Date().toDateString()).reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), icon: <Zap className="text-amber-500" />, bg: 'bg-amber-50', color: 'text-amber-600' },
-                              { label: t('pendingRepairs'), value: serviceTickets.filter(t => t.status === 'Received' || t.status === 'In Progress').length, icon: <Clock className="text-orange-500" />, bg: 'bg-orange-50', color: 'text-orange-600' },
-                              { label: t('readyPickup'), value: serviceTickets.filter(t => t.status === 'Ready').length, icon: <CheckSquare className="text-emerald-500" />, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-                              { label: t('lowStock'), value: (inventory || []).filter(i => i.quantity <= (i.minStock || 5)).length, icon: <AlertTriangle className="text-rose-500" />, bg: 'bg-rose-50', color: 'text-rose-600' },
-                              { label: t('pendingPayments'), value: serviceTickets.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length, icon: <CreditCard className="text-blue-500" />, bg: 'bg-blue-50', color: 'text-blue-600' }
-                            ].map((stat, i) => (
-                              <div key={i} className={`bg-white p-4 sm:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-start gap-4 hover:shadow-md transition-shadow active:scale-[0.98] cursor-default group`}>
-                                <div className={`p-3 sm:p-4 rounded-2xl ${stat.bg} group-hover:scale-110 transition-transform`}>{stat.icon}</div>
-                                <div>
-                                  <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-[0.15em] leading-tight mb-1">{stat.label}</p>
-                                  <h3 className={`text-xl sm:text-2xl font-black ${stat.color} leading-none font-mono`}>{stat.value}</h3>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Quick Actions & Recent Activity */}
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-32">
-                            <div className="lg:col-span-2 space-y-8">
-                              {/* Quick Actions Grid */}
-                              <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                                <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
-                                  <Zap size={16} className="text-amber-500 fill-amber-500" /> {t('quickActions')}
-                                </h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                  {[
-                                    { label: t('newTicket'), icon: <Plus size={28} />, color: 'bg-blue-600', shadow: 'shadow-blue-200', action: () => setServiceSubTab('new') },
-                                    { label: t('addCustomer'), icon: <UserPlus size={28} />, color: 'bg-indigo-600', shadow: 'shadow-indigo-200', action: () => { setServiceSubTab('customers'); setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); } },
-                                    { label: t('activeJobs'), icon: <Activity size={28} />, color: 'bg-emerald-600', shadow: 'shadow-emerald-200', action: () => setServiceSubTab('active') },
-                                    { label: t('inventory'), icon: <Package size={28} />, color: 'bg-purple-600', shadow: 'shadow-purple-200', action: () => setServiceSubTab('inventory') },
-                                    { label: t('menuReports'), icon: <BarChart3 size={28} />, color: 'bg-rose-500', shadow: 'shadow-rose-200', action: () => setServiceSubTab('reports') },
-                                    { label: t('sales') || 'Sales', icon: <ShoppingCart size={28} />, color: 'bg-slate-900', shadow: 'shadow-slate-200', action: () => setServiceSubTab('sell') }
-                                  ].map((btn, i) => (
-                                    <button
-                                      key={i}
-                                      onClick={btn.action}
-                                      className="group flex flex-col items-center gap-3 p-4 rounded-[2rem] hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 active:scale-95"
-                                    >
-                                      <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl ${btn.color} text-white flex items-center justify-center shadow-2xl ${btn.shadow} transform group-hover:-translate-y-1 transition-transform`}>
-                                        {btn.icon}
-                                      </div>
-                                      <span className="text-[10px] font-black uppercase text-slate-600 tracking-widest text-center leading-tight">{btn.label}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-
-                              {/* Recent Activity List */}
-                              <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                                <div className="flex justify-between items-center mb-8">
-                                  <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-3">
-                                    <History size={16} className="text-blue-500" /> {t('recentActivity')}
-                                  </h3>
-                                  <button onClick={() => setServiceSubTab('active')} className="text-[10px] font-black uppercase text-blue-600 hover:underline tracking-widest">{t('viewAll') || 'View All'}</button>
-                                </div>
-                                <div className="space-y-3">
-                                  {serviceTickets.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).slice(0, 5).map(ticket => (
-                                    <div
-                                      key={ticket.id}
-                                      onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}
-                                      className="flex items-center gap-4 p-4 rounded-3xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group cursor-pointer active:scale-[0.99]"
-                                    >
-                                      <div className={`p-3 rounded-2xl transition-colors ${ticket.status === 'Ready' ? 'bg-emerald-50 text-emerald-600' :
-                                          ticket.status === 'In Progress' ? 'bg-blue-50 text-blue-600' :
-                                            'bg-slate-100 text-slate-400'
-                                        } group-hover:bg-white border border-transparent group-hover:border-slate-100 group-hover:shadow-sm`}>
-                                        {ticket.deviceType === 'Mobile' ? <Smartphone size={20} /> : <Laptop size={20} />}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-start">
-                                          <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight truncate pr-2">{ticket.customerName}</h4>
-                                          <span className="text-[8px] font-black text-slate-300 font-mono">#{ticket.id.slice(0, 6)}</span>
-                                        </div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 truncate">{ticket.brand} {ticket.model} • {ticket.status}</p>
-                                      </div>
-                                      <div className="p-2 text-slate-300 group-hover:text-blue-600 transition-colors">
-                                        <ChevronRight size={20} />
-                                      </div>
-                                    </div>
-                                  ))}
-                                  {serviceTickets.length === 0 && (
-                                    <div className="text-center py-16 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100">
-                                      <Search size={40} className="mx-auto mb-4 text-slate-200" />
-                                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noRecentActivity') || 'No Recent Activity'}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Side Section: Priority & Low Stock */}
-                            <div className="space-y-8">
-                              <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-xl shadow-slate-200">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-slate-400">{t('urgent')} & {t('high')}</h3>
-                                <div className="space-y-4">
-                                  {serviceTickets.filter(t => t.priority === 'Urgent' || t.priority === 'High').slice(0, 3).map(ticket => (
-                                    <div key={ticket.id} className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/5 group hover:bg-white/20 transition-all cursor-pointer" onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}>
-                                      <div className="flex justify-between items-start mb-2">
-                                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${ticket.priority === 'Urgent' ? 'bg-red-500 text-white' : 'bg-orange-400 text-slate-900'}`}>{ticket.priority}</span>
-                                        <span className="text-[8px] font-mono text-slate-500">#{ticket.id.slice(0, 6)}</span>
-                                      </div>
-                                      <h4 className="text-xs font-bold truncate">{ticket.customerName}</h4>
-                                      <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{ticket.issue}</p>
-                                    </div>
-                                  ))}
-                                  {serviceTickets.filter(t => t.priority === 'Urgent' || t.priority === 'High').length === 0 && (
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase py-4">All high priority jobs cleared!</p>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="bg-white p-8 rounded-[2.5rem] border border-rose-100 shadow-sm border-dashed">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-rose-500 flex items-center gap-2">
-                                  <AlertTriangle size={14} /> {t('lowStockAlerts')}
-                                </h3>
-                                <div className="space-y-4">
-                                  {serviceInventory.filter(i => i.stock <= i.minStock).slice(0, 4).map(item => (
-                                    <div key={item.id} className="flex justify-between items-center group">
-                                      <div>
-                                        <h4 className="text-xs font-bold text-gray-800 uppercase tracking-tight">{item.name}</h4>
-                                        <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{item.category}</p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="text-xs font-black text-rose-600 tabular-nums">{item.stock} / {item.minStock}</p>
-                                        <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{t('lowStock')}</p>
-                                      </div>
-                                    </div>
-                                  ))}
-                                  {serviceInventory.filter(i => i.stock <= i.minStock).length === 0 && (
-                                    <p className="text-[10px] text-slate-300 font-bold uppercase py-4">Inventory is healthy</p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Sub Tab: SELL (SERVICE POS) */}
-                      {serviceSubTab === 'sell' && (
-                        <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-screen">
-                          {/* Left Side: Search & Items Grid */}
-                          <div className={`flex-1 flex flex-col min-h-0 border-r border-gray-100 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
-                            {/* Top Action Bar - Optimized Header */}
-                            <div className="p-4 bg-white border-b border-gray-100">
-                              <div className="flex flex-col md:flex-row gap-4 justify-between items-center max-w-7xl mx-auto">
-                                <div className="flex items-center gap-4">
-                                  <div className="flex flex-col text-center md:text-left">
-                                    <h2 className="text-lg font-black text-slate-800 tracking-tight leading-none uppercase">{t('servicePOS') || 'Service POS'}</h2>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1.5">{t('terminal') || 'Terminal'}</p>
-                                  </div>
-                                  <div className="h-10 w-px bg-gray-100 mx-2 hidden md:block"></div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() => {
-                                        const name = prompt(t('enterItemName') || 'Enter Item Name:');
-                                        if (!name) return;
-                                        const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
-                                        if (!price || isNaN(price)) return;
-                                        setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
-                                        if (window.innerWidth < 1024) setIsMobileCartOpen(true);
-                                      }}
-                                      className="flex items-center gap-2 bg-amber-500 text-white px-5 py-2.5 rounded-xl hover:bg-amber-600 text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-200 active:scale-95"
-                                    >
-                                      <Plus size={14} strokeWidth={3} /> {t('customItem')}
-                                    </button>
-                                    <button
-                                      onClick={() => { setScannerMode('productBarcode'); setIsScannerOpen(true); }}
-                                      className="flex items-center gap-2 bg-blue-50 text-blue-600 border border-blue-100 px-5 py-2.5 rounded-xl hover:bg-blue-100 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
-                                    >
-                                      <Scan size={14} strokeWidth={3} /> {t('scan')}
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <div className="relative flex-1 w-full max-w-md group">
-                                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
-                                  <input type="text" placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'} className="w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold shadow-sm" value={serviceInventorySearch} onChange={e => setServiceInventorySearch(e.target.value)} />
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex-1 lg:overflow-y-auto p-4 sm:p-6 md:p-8 space-y-8 sm:space-y-10 pb-28 sm:pb-32">
-                              {/* 1. Active Repairs Section */}
-                              <section className="space-y-4 sm:space-y-6">
-                                <div className="flex items-center justify-between px-1 sm:px-2">
-                                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2 sm:gap-3">
-                                    <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600 shrink-0"><Wrench size={12} /></div>
-                                    <span className="truncate">{t('activeRepairs') || 'Active Repairs'}</span>
-                                  </h3>
-                                  <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 sm:px-4 py-1.5 rounded-full border border-blue-100/50 uppercase tracking-widest shrink-0">
-                                    {serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs
-                                  </span>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
-                                  {serviceTickets
-                                    .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') &&
-                                      (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) ||
-                                        ticket.id.toLowerCase().includes(serviceInventorySearch.toLowerCase()) ||
-                                        ticket.brand.toLowerCase().includes(serviceInventorySearch.toLowerCase())))
-                                    .map(ticket => (
-                                      <button
-                                        key={ticket.id}
-                                        onClick={() => {
-                                          const laborPrice = Number(ticket.estimatedCost || 0);
-                                          const items = [
-                                            { id: 'SRV-' + ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                                            ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-' + Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
-                                          ];
-                                          setServiceCart([...serviceCart, ...items]);
-                                          if (window.innerWidth < 1024) setIsMobileCartOpen(true);
-                                        }}
-                                        className="text-left bg-white p-4 sm:p-6 rounded-xl sm:rounded-[2rem] border border-slate-100 hover:border-blue-500 hover:shadow-2xl transition-all active:scale-[0.98] group relative overflow-hidden shadow-sm flex flex-col gap-3 sm:gap-4 min-h-[88px] touch-manipulation"
-                                      >
-                                        <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity -rotate-12 translate-x-4 -translate-y-4">
-                                          <Wrench size={64} />
-                                        </div>
-                                        <div className="relative z-10 flex flex-col h-full justify-between gap-4">
-                                          <div className="space-y-1">
-                                            <div className="flex justify-between items-start gap-2">
-                                              <p className="text-sm font-black text-slate-800 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
-                                              <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-lg shrink-0 ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>
-                                                {ticket.status === 'Ready' ? t('readyPickup') :
-                                                  ticket.status === 'InProgress' ? t('inProgress') :
-                                                    ticket.status === 'WaitingParts' ? t('waitingParts') :
-                                                      ticket.status === 'Received' ? t('received') :
-                                                        ticket.status === 'Delivered' ? t('delivered') :
-                                                          ticket.status}
-                                              </span>
-                                            </div>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
-                                          </div>
-                                          <div className="flex justify-between items-center bg-slate-50 group-hover:bg-blue-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100/50 group-hover:border-blue-200/50 transition-all min-h-[48px]">
-                                            <div className="text-base sm:text-xl font-black text-blue-600 font-mono tracking-tighter leading-none">{formatCurrency(ticket.estimatedCost)}</div>
-                                            <div className="p-2.5 sm:p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200 group-active:scale-90 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
-                                              <Plus size={16} strokeWidth={3} />
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </button>
-                                    ))}
-                                </div>
-                              </section>
-
-                              {/* 2. Parts & Inventory Section */}
-                              <section className="space-y-4 sm:space-y-6">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-1 sm:px-2">
-                                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2 sm:gap-3 shrink-0">
-                                    <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600"><Package size={12} /></div>
-                                    <span className="truncate">{t('inventoryParts') || 'Inventory Parts'}</span>
-                                  </h3>
-                                  <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 -mx-1 px-1 scroll-smooth touch-pan-x">
-                                    {[
-                                      { id: 'all', label: t('all'), val: '' },
-                                      { id: 'phoneParts', label: t('phoneParts'), val: 'Phone Parts' },
-                                      { id: 'pcComponents', label: t('pcComponents'), val: 'PC Components' },
-                                      { id: 'accessories', label: t('accessories'), val: 'Accessories' }
-                                    ].map(cat => (
-                                      <button
-                                        key={cat.id}
-                                        onClick={() => setServiceInventorySearch(cat.val)}
-                                        className={`text-[9px] font-black uppercase px-4 py-2.5 sm:py-2 rounded-full transition-all whitespace-nowrap shadow-sm border min-h-[40px] touch-manipulation flex items-center ${serviceInventorySearch === cat.val ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 active:scale-95'}`}
-                                      >
-                                        {cat.label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                                  {inventory
-                                    .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || (item.category || '').toLowerCase().includes(serviceInventorySearch.toLowerCase()))
-                                    .map(item => (
-                                      <button
-                                        key={item.id}
-                                        onClick={() => {
-                                          const stock = Number(item.quantity) || 0;
-                                          if (stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
-                                          const existing = serviceCart.find(c => c.id === item.id);
-                                          if (existing) {
-                                            if (existing.quantity + 1 > stock) {
-                                              return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
-                                            }
-                                            setServiceCart(serviceCart.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c));
-                                          } else {
-                                            setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: Number(item.sellPrice), quantity: 1, type: 'part' }]);
-                                          }
-                                          if (window.innerWidth < 1024) setIsMobileCartOpen(true);
-                                        }}
-                                        className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-[2rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all active:scale-[0.98] group flex flex-col gap-2 sm:gap-4 text-left shadow-sm overflow-hidden touch-manipulation"
-                                      >
-                                        <div className="bg-slate-50 aspect-square rounded-xl sm:rounded-[1.5rem] overflow-hidden relative border border-slate-100/50">
-                                          {item.photo ? (
-                                            <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                          ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-200">
-                                              <Package size={24} strokeWidth={1.5} />
-                                            </div>
-                                          )}
-                                          <div className={`absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-rose-600 text-white' : 'bg-white/90 text-slate-900 border border-slate-100'}`}>
-                                            {Number(item.quantity) <= 0 ? 'OUT' : `QTY: ${item.quantity}`}
-                                          </div>
-                                        </div>
-                                        <div className="space-y-1.5 sm:space-y-2 flex-1 flex flex-col justify-between min-h-0">
-                                          <h4 className="text-[10px] sm:text-[11px] font-black text-slate-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
-                                          <div className="flex justify-between items-center bg-slate-50 group-hover:bg-indigo-50 p-2 sm:p-2 rounded-lg sm:rounded-xl transition-all border border-transparent group-hover:border-indigo-100 min-h-[44px]">
-                                            <p className="text-[10px] sm:text-xs font-black text-indigo-600 font-mono tracking-tighter pl-0.5 sm:pl-1">{formatCurrency(item.sellPrice)}</p>
-                                            <div className="p-2 sm:p-1.5 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-100 group-active:scale-90 transition-all min-w-[40px] min-h-[40px] flex items-center justify-center">
-                                              <Plus size={14} strokeWidth={3} />
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </button>
-                                    ))}
-                                </div>
-                              </section>
-                            </div>
-
-                            {/* Mobile: Sticky "View cart" bar when cart has items */}
-                            {serviceCart.length > 0 && (
-                              <div className="lg:hidden fixed bottom-[90px] left-0 right-0 z-[120] px-4 pb-2 pointer-events-none">
+                      {/* Quick Actions & Recent Activity */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-32">
+                        <div className="lg:col-span-2 space-y-8">
+                          {/* Quick Actions Grid */}
+                          <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                            <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
+                              <Zap size={16} className="text-amber-500 fill-amber-500" /> {t('quickActions')}
+                            </h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                              {[
+                                { label: t('newTicket'), icon: <Plus size={28} />, color: 'bg-blue-600', shadow: 'shadow-blue-200', action: () => setServiceSubTab('new') },
+                                { label: t('activeJobs'), icon: <Activity size={28} />, color: 'bg-emerald-600', shadow: 'shadow-emerald-200', action: () => setServiceSubTab('active') },
+                                { label: t('menuReports'), icon: <BarChart3 size={28} />, color: 'bg-rose-500', shadow: 'shadow-rose-200', action: () => setServiceSubTab('reports') },
+                                { label: t('sales') || 'Sales', icon: <ShoppingCart size={28} />, color: 'bg-slate-900', shadow: 'shadow-slate-200', action: () => setServiceSubTab('sell') }
+                              ].map((btn, i) => (
                                 <button
-                                  onClick={() => setIsMobileCartOpen(true)}
-                                  className="pointer-events-auto w-full py-4 px-5 bg-slate-900 text-white rounded-2xl shadow-2xl shadow-slate-900/30 flex items-center justify-between gap-4 active:scale-[0.98] transition-transform touch-manipulation border border-slate-700"
+                                  key={i}
+                                  onClick={btn.action}
+                                  className="group flex flex-col items-center gap-3 p-4 rounded-[2rem] hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 active:scale-95"
                                 >
-                                  <span className="flex items-center gap-2 text-left">
-                                    <ShoppingBag size={22} strokeWidth={2.5} className="text-blue-300 shrink-0" />
-                                    <span className="text-sm font-black uppercase tracking-tight">
-                                      {t('viewCart') || 'View cart'} ({serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)})
-                                    </span>
-                                  </span>
-                                  <span className="text-lg font-black font-mono tracking-tighter text-blue-300 shrink-0">
-                                    {formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}
-                                  </span>
+                                  <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl ${btn.color} text-white flex items-center justify-center shadow-2xl ${btn.shadow} transform group-hover:-translate-y-1 transition-transform`}>
+                                    {btn.icon}
+                                  </div>
+                                  <span className="text-[10px] font-black uppercase text-slate-600 tracking-widest text-center leading-tight">{btn.label}</span>
                                 </button>
-                              </div>
-                            )}
+                              ))}
+                            </div>
                           </div>
 
-                          {/* Right Side: Cart Sidebar (Fixed) */}
-                          {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[1040] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
-                          <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[1050] lg:z-20 transition-transform duration-300 ease-in-out transform ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
-                            <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-white">
-                              <div className="flex items-center gap-3 text-gray-800">
-                                <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-rose-50 hover:text-rose-600 rounded-full transition-colors">
-                                  <X size={24} />
-                                </button>
-                                <ShoppingBag size={20} className="text-blue-600" />
-                                <h3 className="font-bold text-lg tracking-tight">{t('currentBill')}</h3>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-full shadow-lg shadow-blue-200">{serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}</span>
-                              </div>
+                          {/* Recent Activity List */}
+                          <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                            <div className="flex justify-between items-center mb-8">
+                              <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-3">
+                                <History size={16} className="text-blue-500" /> {t('recentActivity')}
+                              </h3>
+                              <button onClick={() => setServiceSubTab('active')} className="text-[10px] font-black uppercase text-blue-600 hover:underline tracking-widest">{t('viewAll') || 'View All'}</button>
                             </div>
-
-                            <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
-                              {serviceCart.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-gray-300 p-6 text-center">
-                                  <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3">
-                                    <ShoppingBag size={20} className="opacity-50" />
+                            <div className="space-y-3">
+                              {serviceTickets.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).slice(0, 5).map(ticket => (
+                                <div
+                                  key={ticket.id}
+                                  onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}
+                                  className="flex items-center gap-4 p-4 rounded-3xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group cursor-pointer active:scale-[0.99]"
+                                >
+                                  <div className={`p-3 rounded-2xl transition-colors ${ticket.status === 'Ready' ? 'bg-emerald-50 text-emerald-600' :
+                                    ticket.status === 'In Progress' ? 'bg-blue-50 text-blue-600' :
+                                      'bg-slate-100 text-slate-400'
+                                    } group-hover:bg-white border border-transparent group-hover:border-slate-100 group-hover:shadow-sm`}>
+                                    {ticket.deviceType === 'Mobile' ? <Smartphone size={20} /> : <Laptop size={20} />}
                                   </div>
-                                  <p className="font-bold text-gray-500 text-xs">{t('cartEmpty')}</p>
-                                  <p className="text-[10px] mt-0.5 text-gray-400">{t('selectItems')}</p>
-                                </div>
-                              ) : (
-                                <div className="divide-y divide-gray-100">
-                                  {serviceCart.map((item, i) => (
-                                    <div key={`${item.id}-${i}`} className="p-2.5 flex items-center gap-2 group hover:bg-gray-50 transition-colors">
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-center mb-0.5">
-                                          <h4 className="font-bold text-gray-800 text-[11px] sm:text-xs truncate pr-2 uppercase tracking-wide">{item.name}</h4>
-                                          <span className="font-mono font-black text-gray-900 text-xs">{formatCurrency(item.sellPrice * (item.quantity || 1))}</span>
-                                        </div>
-                                        <div className="text-[10px] text-gray-400 font-medium">{formatCurrency(item.sellPrice)} / unit</div>
-                                      </div>
-
-                                      <div className="flex items-center gap-2">
-                                        <div className="flex items-center border border-gray-200 rounded-lg bg-white h-6 shadow-sm">
-                                          <button onClick={() => {
-                                            const newCart = [...serviceCart];
-                                            if (newCart[i].quantity > 1) {
-                                              newCart[i].quantity -= 1;
-                                              setServiceCart(newCart);
-                                            } else {
-                                              setServiceCart(serviceCart.filter((_, idx) => idx !== i));
-                                            }
-                                          }} className="px-1.5 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-l-lg transition-colors font-bold text-xs">-</button>
-                                          <span className="w-5 text-center text-[10px] font-black text-gray-700">{item.quantity}</span>
-                                          <button onClick={() => {
-                                            const newCart = [...serviceCart];
-                                            newCart[i].quantity += 1;
-                                            setServiceCart(newCart);
-                                          }} className="px-1.5 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg transition-colors font-bold text-xs">+</button>
-                                        </div>
-                                        <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-gray-300 hover:text-rose-500 transition-colors p-1 group/del">
-                                          <X size={12} className="group-active/del:scale-90" />
-                                        </button>
-                                      </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-start">
+                                      <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight truncate pr-2">{ticket.customerName}</h4>
+                                      <span className="text-[8px] font-black text-slate-300 font-mono">#{ticket.id.slice(0, 6)}</span>
                                     </div>
-                                  ))}
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 truncate">{ticket.brand} {ticket.model} • {ticket.status}</p>
+                                  </div>
+                                  <div className="p-2 text-slate-300 group-hover:text-blue-600 transition-colors">
+                                    <ChevronRight size={20} />
+                                  </div>
+                                </div>
+                              ))}
+                              {serviceTickets.length === 0 && (
+                                <div className="text-center py-16 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100">
+                                  <Search size={40} className="mx-auto mb-4 text-slate-200" />
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noRecentActivity') || 'No Recent Activity'}</p>
                                 </div>
                               )}
                             </div>
+                          </div>
+                        </div>
 
-                            <div className="bg-gray-50/50 backdrop-blur-md border-t border-gray-200 p-3.5 space-y-3">
-                              <div className="space-y-2">
-                                <div className="flex justify-between items-center text-xs text-gray-500">
-                                  <span>{t('subtotal')}</span>
-                                  <span className="font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * (b.quantity || 1)), 0))}</span>
-                                </div>
-                                <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-[11px] font-black uppercase text-slate-400">
-                                  <span>{t('total')}</span>
-                                  <span className="text-xl font-black text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * (b.quantity || 1)), 0))}</span>
-                                </div>
-                              </div>
-
-                              <div className="mb-1">
-                                <button
-                                  onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
-                                  className="w-full flex items-center justify-between p-1.5 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-100 transition-colors shadow-sm"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white"><User size={16} /></div>
-                                    <div className="text-left">
-                                      <div className="text-[9px] text-blue-500 font-black uppercase tracking-widest leading-none mb-1">{t('salesEmployee')}</div>
-                                      <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</div>
-                                    </div>
+                        {/* Side Section: Priority & Low Stock */}
+                        <div className="space-y-8">
+                          <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-xl shadow-slate-200">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-slate-400">{t('urgent')} & {t('high')}</h3>
+                            <div className="space-y-4">
+                              {serviceTickets.filter(t => t.priority === 'Urgent' || t.priority === 'High').slice(0, 3).map(ticket => (
+                                <div key={ticket.id} className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/5 group hover:bg-white/20 transition-all cursor-pointer" onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}>
+                                  <div className="flex justify-between items-start mb-2">
+                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${ticket.priority === 'Urgent' ? 'bg-red-500 text-white' : 'bg-orange-400 text-slate-900'}`}>{ticket.priority}</span>
+                                    <span className="text-[8px] font-mono text-slate-500">#{ticket.id.slice(0, 6)}</span>
                                   </div>
-                                  <ChevronDown size={14} className="text-blue-400 mr-1" />
+                                  <h4 className="text-xs font-bold truncate">{ticket.customerName}</h4>
+                                  <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{ticket.issue}</p>
+                                </div>
+                              ))}
+                              {serviceTickets.filter(t => t.priority === 'Urgent' || t.priority === 'High').length === 0 && (
+                                <p className="text-[10px] text-slate-500 font-bold uppercase py-4">All high priority jobs cleared!</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="bg-white p-8 rounded-[2.5rem] border border-rose-100 shadow-sm border-dashed">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-rose-500 flex items-center gap-2">
+                              <AlertTriangle size={14} /> {t('lowStockAlerts')}
+                            </h3>
+                            <div className="space-y-4">
+                              {serviceInventory.filter(i => i.stock <= i.minStock).slice(0, 4).map(item => (
+                                <div key={item.id} className="flex justify-between items-center group">
+                                  <div>
+                                    <h4 className="text-xs font-bold text-gray-800 uppercase tracking-tight">{item.name}</h4>
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{item.category}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-xs font-black text-rose-600 tabular-nums">{item.stock} / {item.minStock}</p>
+                                    <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{t('lowStock')}</p>
+                                  </div>
+                                </div>
+                              ))}
+                              {serviceInventory.filter(i => i.stock <= i.minStock).length === 0 && (
+                                <p className="text-[10px] text-slate-300 font-bold uppercase py-4">Inventory is healthy</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub Tab: SELL (SERVICE POS) */}
+                  {serviceSubTab === 'sell' && (
+                    <div className="flex flex-col lg:flex-row h-full bg-gray-50 overflow-hidden relative min-h-screen">
+                      {/* Left Side: Search & Items Grid */}
+                      <div className={`flex-1 flex flex-col min-h-0 border-r border-gray-100 ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
+                        {/* Top Action Bar - Optimized Header */}
+                        <div className="p-4 bg-white border-b border-gray-100">
+                          <div className="flex flex-col md:flex-row gap-4 justify-between items-center max-w-7xl mx-auto">
+                            <div className="flex items-center gap-4">
+                              <div className="flex flex-col text-center md:text-left">
+                                <h2 className="text-lg font-black text-slate-800 tracking-tight leading-none uppercase">{t('servicePOS') || 'Service POS'}</h2>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1.5">{t('terminal') || 'Terminal'}</p>
+                              </div>
+                              <div className="h-10 w-px bg-gray-100 mx-2 hidden md:block"></div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    const name = prompt(t('enterItemName') || 'Enter Item Name:');
+                                    if (!name) return;
+                                    const price = prompt(t('enterItemPrice') || 'Enter Item Price:');
+                                    if (!price || isNaN(price)) return;
+                                    setServiceCart([...serviceCart, { id: 'CUSTOM-' + Date.now(), name, sellPrice: Number(price), quantity: 1, type: 'custom' }]);
+                                    if (window.innerWidth < 1024) setIsMobileCartOpen(true);
+                                  }}
+                                  className="flex items-center gap-2 bg-amber-500 text-white px-5 py-2.5 rounded-xl hover:bg-amber-600 text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-200 active:scale-95"
+                                >
+                                  <Plus size={14} strokeWidth={3} /> {t('customItem')}
+                                </button>
+                                <button
+                                  onClick={() => { setScannerMode('productBarcode'); setIsScannerOpen(true); }}
+                                  className="flex items-center gap-2 bg-blue-50 text-blue-600 border border-blue-100 px-5 py-2.5 rounded-xl hover:bg-blue-100 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                                >
+                                  <Scan size={14} strokeWidth={3} /> {t('scan')}
                                 </button>
                               </div>
+                            </div>
 
-                              <div className="flex bg-slate-100 p-0.5 rounded-xl mb-1.5">
-                                {['Walk-in', 'Takeaway'].map(type => (
+                            <div className="relative flex-1 w-full max-w-md group">
+                              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                              <input type="text" placeholder={t('searchRepairsAndStock') || 'Search Repairs or Stock...'} className="w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold shadow-sm" value={serviceInventorySearch} onChange={e => setServiceInventorySearch(e.target.value)} />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 lg:overflow-y-auto p-4 sm:p-6 md:p-8 space-y-8 sm:space-y-10 pb-28 sm:pb-32">
+                          {/* 1. Active Repairs Section */}
+                          <section className="space-y-4 sm:space-y-6">
+                            <div className="flex items-center justify-between px-1 sm:px-2">
+                              <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2 sm:gap-3">
+                                <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600 shrink-0"><Wrench size={12} /></div>
+                                <span className="truncate">{t('activeRepairs') || 'Active Repairs'}</span>
+                              </h3>
+                              <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 sm:px-4 py-1.5 rounded-full border border-blue-100/50 uppercase tracking-widest shrink-0">
+                                {serviceTickets.filter(t => t.status !== 'Completed' && t.status !== 'Delivered').length} Jobs
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
+                              {serviceTickets
+                                .filter(ticket => (ticket.status !== 'Completed' && ticket.status !== 'Delivered') &&
+                                  (ticket.customerName.toLowerCase().includes(serviceInventorySearch.toLowerCase()) ||
+                                    ticket.id.toLowerCase().includes(serviceInventorySearch.toLowerCase()) ||
+                                    ticket.brand.toLowerCase().includes(serviceInventorySearch.toLowerCase())))
+                                .map(ticket => (
                                   <button
-                                    key={type}
-                                    onClick={() => setOrderType(type)}
-                                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${orderType === type ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                                    key={ticket.id}
+                                    onClick={() => {
+                                      const laborPrice = Number(ticket.estimatedCost || 0);
+                                      const items = [
+                                        { id: 'SRV-' + ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                                        ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-' + Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                                      ];
+                                      setServiceCart([...serviceCart, ...items]);
+                                      if (window.innerWidth < 1024) setIsMobileCartOpen(true);
+                                    }}
+                                    className="text-left bg-white p-4 sm:p-6 rounded-xl sm:rounded-[2rem] border border-slate-100 hover:border-blue-500 hover:shadow-2xl transition-all active:scale-[0.98] group relative overflow-hidden shadow-sm flex flex-col gap-3 sm:gap-4 min-h-[88px] touch-manipulation"
                                   >
-                                    {type === 'Walk-in' ? t('walkIn') : t('takeaway')}
+                                    <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity -rotate-12 translate-x-4 -translate-y-4">
+                                      <Wrench size={64} />
+                                    </div>
+                                    <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                                      <div className="space-y-1">
+                                        <div className="flex justify-between items-start gap-2">
+                                          <p className="text-sm font-black text-slate-800 uppercase tracking-tight line-clamp-1">{ticket.customerName}</p>
+                                          <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-lg shrink-0 ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-amber-100 text-amber-700'}`}>
+                                            {ticket.status === 'Ready' ? t('readyPickup') :
+                                              ticket.status === 'InProgress' ? t('inProgress') :
+                                                ticket.status === 'WaitingParts' ? t('waitingParts') :
+                                                  ticket.status === 'Received' ? t('received') :
+                                                    ticket.status === 'Delivered' ? t('delivered') :
+                                                      ticket.status}
+                                          </span>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{ticket.brand} {ticket.model}</p>
+                                      </div>
+                                      <div className="flex justify-between items-center bg-slate-50 group-hover:bg-blue-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100/50 group-hover:border-blue-200/50 transition-all min-h-[48px]">
+                                        <div className="text-base sm:text-xl font-black text-blue-600 font-mono tracking-tighter leading-none">{formatCurrency(ticket.estimatedCost)}</div>
+                                        <div className="p-2.5 sm:p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200 group-active:scale-90 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
+                                          <Plus size={16} strokeWidth={3} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))}
+                            </div>
+                          </section>
+
+                          {/* 2. Parts & Inventory Section */}
+                          <section className="space-y-4 sm:space-y-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-1 sm:px-2">
+                              <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2 sm:gap-3 shrink-0">
+                                <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600"><Package size={12} /></div>
+                                <span className="truncate">{t('inventoryParts') || 'Inventory Parts'}</span>
+                              </h3>
+                              <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 -mx-1 px-1 scroll-smooth touch-pan-x">
+                                {[
+                                  { id: 'all', label: t('all'), val: '' },
+                                  { id: 'phoneParts', label: t('phoneParts'), val: 'Phone Parts' },
+                                  { id: 'pcComponents', label: t('pcComponents'), val: 'PC Components' },
+                                  { id: 'accessories', label: t('accessories'), val: 'Accessories' }
+                                ].map(cat => (
+                                  <button
+                                    key={cat.id}
+                                    onClick={() => setServiceInventorySearch(cat.val)}
+                                    className={`text-[9px] font-black uppercase px-4 py-2.5 sm:py-2 rounded-full transition-all whitespace-nowrap shadow-sm border min-h-[40px] touch-manipulation flex items-center ${serviceInventorySearch === cat.val ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 active:scale-95'}`}
+                                  >
+                                    {cat.label}
                                   </button>
                                 ))}
                               </div>
+                            </div>
 
-                              <div className="flex flex-col gap-2">
-                                <div className="relative group">
-                                  <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
-                                  <input
-                                    className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
-                                    placeholder={t('customerId') || 'Customer ID'}
-                                    value={newSaleForm.customerId}
-                                    onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
-                                  />
-                                </div>
-                                <input
-                                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
-                                  placeholder={t('customerNameOptional') || 'Customer Name'}
-                                  value={newSaleForm.customer}
-                                  onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
-                                />
+                            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                              {inventory
+                                .filter(item => item.name.toLowerCase().includes(serviceInventorySearch.toLowerCase()) || (item.category || '').toLowerCase().includes(serviceInventorySearch.toLowerCase()))
+                                .map(item => (
+                                  <button
+                                    key={item.id}
+                                    onClick={() => {
+                                      const stock = Number(item.quantity) || 0;
+                                      if (stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
+                                      const existing = serviceCart.find(c => c.id === item.id);
+                                      if (existing) {
+                                        if (existing.quantity + 1 > stock) {
+                                          return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
+                                        }
+                                        setServiceCart(serviceCart.map(c => c.id === item.id ? { ...c, quantity: (c.quantity || 1) + 1 } : c));
+                                      } else {
+                                        setServiceCart([...serviceCart, { id: item.id, name: item.name, sellPrice: Number(item.sellPrice), quantity: 1, type: 'part' }]);
+                                      }
+                                      if (window.innerWidth < 1024) setIsMobileCartOpen(true);
+                                    }}
+                                    className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-[2rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all active:scale-[0.98] group flex flex-col gap-2 sm:gap-4 text-left shadow-sm overflow-hidden touch-manipulation"
+                                  >
+                                    <div className="bg-slate-50 aspect-square rounded-xl sm:rounded-[1.5rem] overflow-hidden relative border border-slate-100/50">
+                                      {item.photo ? (
+                                        <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                          <Package size={24} strokeWidth={1.5} />
+                                        </div>
+                                      )}
+                                      <div className={`absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 backdrop-blur-md rounded-lg text-[8px] font-black ${Number(item.quantity) <= 0 ? 'bg-rose-600 text-white' : 'bg-white/90 text-slate-900 border border-slate-100'}`}>
+                                        {Number(item.quantity) <= 0 ? 'OUT' : `QTY: ${item.quantity}`}
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1.5 sm:space-y-2 flex-1 flex flex-col justify-between min-h-0">
+                                      <h4 className="text-[10px] sm:text-[11px] font-black text-slate-800 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">{item.name}</h4>
+                                      <div className="flex justify-between items-center bg-slate-50 group-hover:bg-indigo-50 p-2 sm:p-2 rounded-lg sm:rounded-xl transition-all border border-transparent group-hover:border-indigo-100 min-h-[44px]">
+                                        <p className="text-[10px] sm:text-xs font-black text-indigo-600 font-mono tracking-tighter pl-0.5 sm:pl-1">{formatCurrency(item.sellPrice)}</p>
+                                        <div className="p-2 sm:p-1.5 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-100 group-active:scale-90 transition-all min-w-[40px] min-h-[40px] flex items-center justify-center">
+                                          <Plus size={14} strokeWidth={3} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))}
+                            </div>
+                          </section>
+                        </div>
+
+                        {/* Mobile: Sticky "View cart" bar when cart has items */}
+                        {serviceCart.length > 0 && (
+                          <div className="lg:hidden fixed bottom-[90px] left-0 right-0 z-[120] px-4 pb-2 pointer-events-none">
+                            <button
+                              onClick={() => setIsMobileCartOpen(true)}
+                              className="pointer-events-auto w-full py-4 px-5 bg-slate-900 text-white rounded-2xl shadow-2xl shadow-slate-900/30 flex items-center justify-between gap-4 active:scale-[0.98] transition-transform touch-manipulation border border-slate-700"
+                            >
+                              <span className="flex items-center gap-2 text-left">
+                                <ShoppingBag size={22} strokeWidth={2.5} className="text-blue-300 shrink-0" />
+                                <span className="text-sm font-black uppercase tracking-tight">
+                                  {t('viewCart') || 'View cart'} ({serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)})
+                                </span>
+                              </span>
+                              <span className="text-lg font-black font-mono tracking-tighter text-blue-300 shrink-0">
+                                {formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * b.quantity), 0))}
+                              </span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right Side: Cart Sidebar (Fixed) */}
+                      {isMobileCartOpen && serviceSubTab === 'sell' && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[1040] lg:hidden animate-in fade-in duration-300" onClick={() => setIsMobileCartOpen(false)}></div>}
+                      <div className={`fixed inset-y-0 right-0 lg:relative lg:inset-auto w-full lg:w-[420px] bg-white lg:border-l border-gray-200 flex flex-col h-full z-[1050] lg:z-20 transition-transform duration-300 ease-in-out transform ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                        <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-white">
+                          <div className="flex items-center gap-3 text-gray-800">
+                            <button onClick={() => setIsMobileCartOpen(false)} className="lg:hidden p-2 -ml-2 hover:bg-rose-50 hover:text-rose-600 rounded-full transition-colors">
+                              <X size={24} />
+                            </button>
+                            <ShoppingBag size={20} className="text-blue-600" />
+                            <h3 className="font-bold text-lg tracking-tight">{t('currentBill')}</h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-full shadow-lg shadow-blue-200">{serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
+                          {serviceCart.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-gray-300 p-6 text-center">
+                              <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                                <ShoppingBag size={20} className="opacity-50" />
                               </div>
+                              <p className="font-bold text-gray-500 text-xs">{t('cartEmpty')}</p>
+                              <p className="text-[10px] mt-0.5 text-gray-400">{t('selectItems')}</p>
+                            </div>
+                          ) : (
+                            <div className="divide-y divide-gray-100">
+                              {serviceCart.map((item, i) => (
+                                <div key={`${item.id}-${i}`} className="p-2.5 flex items-center gap-2 group hover:bg-gray-50 transition-colors">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-center mb-0.5">
+                                      <h4 className="font-bold text-gray-800 text-[11px] sm:text-xs truncate pr-2 uppercase tracking-wide">{item.name}</h4>
+                                      <span className="font-mono font-black text-gray-900 text-xs">{formatCurrency(item.sellPrice * (item.quantity || 1))}</span>
+                                    </div>
+                                    <div className="text-[10px] text-gray-400 font-medium">{formatCurrency(item.sellPrice)} / unit</div>
+                                  </div>
 
-                              <div className="space-y-2">
-                                <div className="grid grid-cols-3 gap-2">
-                                  {['Cash', 'Visa', 'Online'].map(method => (
-                                    <button
-                                      key={method}
-                                      onClick={() => {
-                                        setPaymentMethod(method);
-                                        if (method === 'Online') setShowUpiQr(true);
-                                      }}
-                                      className={`py-2 flex flex-col items-center gap-1 rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-white text-gray-400 border-gray-100'}`}
-                                    >
-                                      {method === 'Cash' && <Banknote size={16} />}
-                                      {method === 'Visa' && <CreditCard size={16} />}
-                                      {method === 'Online' && <Smartphone size={16} />}
-                                      <span className="text-[9px] font-black uppercase">{t(method.toLowerCase()) || method}</span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex items-center border border-gray-200 rounded-lg bg-white h-6 shadow-sm">
+                                      <button onClick={() => {
+                                        const newCart = [...serviceCart];
+                                        if (newCart[i].quantity > 1) {
+                                          newCart[i].quantity -= 1;
+                                          setServiceCart(newCart);
+                                        } else {
+                                          setServiceCart(serviceCart.filter((_, idx) => idx !== i));
+                                        }
+                                      }} className="px-1.5 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-l-lg transition-colors font-bold text-xs">-</button>
+                                      <span className="w-5 text-center text-[10px] font-black text-gray-700">{item.quantity}</span>
+                                      <button onClick={() => {
+                                        const newCart = [...serviceCart];
+                                        newCart[i].quantity += 1;
+                                        setServiceCart(newCart);
+                                      }} className="px-1.5 h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg transition-colors font-bold text-xs">+</button>
+                                    </div>
+                                    <button onClick={() => setServiceCart(serviceCart.filter((_, idx) => idx !== i))} className="text-gray-300 hover:text-rose-500 transition-colors p-1 group/del">
+                                      <X size={12} className="group-active/del:scale-90" />
                                     </button>
-                                  ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="bg-gray-50/50 backdrop-blur-md border-t border-gray-200 p-3.5 space-y-3">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-xs text-gray-500">
+                              <span>{t('subtotal')}</span>
+                              <span className="font-mono">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * (b.quantity || 1)), 0))}</span>
+                            </div>
+                            <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-[11px] font-black uppercase text-slate-400">
+                              <span>{t('total')}</span>
+                              <span className="text-xl font-black text-gray-900 leading-none">{formatCurrency(serviceCart.reduce((a, b) => a + (b.sellPrice * (b.quantity || 1)), 0))}</span>
+                            </div>
+                          </div>
+
+                          <div className="mb-1">
+                            <button
+                              onClick={() => { setPinAction('changeSalesEmployee'); setIsPinModalOpen(true); }}
+                              className="w-full flex items-center justify-between p-1.5 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-100 transition-colors shadow-sm"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white"><User size={16} /></div>
+                                <div className="text-left">
+                                  <div className="text-[9px] text-blue-500 font-black uppercase tracking-widest leading-none mb-1">{t('salesEmployee')}</div>
+                                  <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">{salesEmployee ? salesEmployee.name : t('selectEmployee')}</div>
                                 </div>
                               </div>
+                              <ChevronDown size={14} className="text-blue-400 mr-1" />
+                            </button>
+                          </div>
 
-                              {paymentMethod === 'Online' && (
-                                <div className="grid grid-cols-3 gap-2 animate-in slide-in-from-top-2 duration-300">
-                                  {['UPI', 'InstaPay', 'Other'].map(sub => (
-                                    <button
-                                      key={sub}
-                                      onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
-                                      className={`py-2.5 sm:py-2 text-[8px] font-black uppercase tracking-widest rounded-xl border transition-all active:scale-95 touch-manipulation min-h-[40px] ${digitalSubMethod === sub ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'bg-slate-50 text-slate-400 border-slate-100'}`}
-                                    >
-                                      {t(sub.toLowerCase()) || sub}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-
+                          <div className="flex bg-slate-100 p-0.5 rounded-xl mb-1.5">
+                            {['Walk-in', 'Takeaway'].map(type => (
                               <button
-                                onClick={() => handleCheckoutServiceCart(printFormat)}
-                                disabled={serviceCart.length === 0}
-                                className="w-full py-4 sm:py-5 bg-blue-600 text-white rounded-xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-3 sm:gap-4 touch-manipulation min-h-[52px]"
+                                key={type}
+                                onClick={() => setOrderType(type)}
+                                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${orderType === type ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
                               >
-                                <CreditCard size={20} strokeWidth={3} className="shrink-0" />
-                                <span className="truncate">{t('checkout') || 'Checkout'} - {formatCurrency(serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0))}</span>
+                                {type === 'Walk-in' ? t('walkIn') : t('takeaway')}
                               </button>
+                            ))}
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                            <div className="relative group">
+                              <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
+                              <input
+                                className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder={t('customerId') || 'Customer ID'}
+                                value={newSaleForm.customerId}
+                                onChange={e => setNewSaleForm({ ...newSaleForm, customerId: e.target.value })}
+                              />
+                            </div>
+                            <input
+                              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                              placeholder={t('customerNameOptional') || 'Customer Name'}
+                              value={newSaleForm.customer}
+                              onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-3 gap-2">
+                              {['Cash', 'Visa', 'Online'].map(method => (
+                                <button
+                                  key={method}
+                                  onClick={() => {
+                                    setPaymentMethod(method);
+                                    if (method === 'Online') setShowUpiQr(true);
+                                  }}
+                                  className={`py-2 flex flex-col items-center gap-1 rounded-xl border transition-all ${paymentMethod === method ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-white text-gray-400 border-gray-100'}`}
+                                >
+                                  {method === 'Cash' && <Banknote size={16} />}
+                                  {method === 'Visa' && <CreditCard size={16} />}
+                                  {method === 'Online' && <Smartphone size={16} />}
+                                  <span className="text-[9px] font-black uppercase">{t(method.toLowerCase()) || method}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {paymentMethod === 'Online' && (
+                            <div className="grid grid-cols-3 gap-2 animate-in slide-in-from-top-2 duration-300">
+                              {['UPI', 'InstaPay', 'Other'].map(sub => (
+                                <button
+                                  key={sub}
+                                  onClick={() => { setDigitalSubMethod(sub); setShowUpiQr(true); }}
+                                  className={`py-2.5 sm:py-2 text-[8px] font-black uppercase tracking-widest rounded-xl border transition-all active:scale-95 touch-manipulation min-h-[40px] ${digitalSubMethod === sub ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'bg-slate-50 text-slate-400 border-slate-100'}`}
+                                >
+                                  {t(sub.toLowerCase()) || sub}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          <button
+                            onClick={() => handleCheckoutServiceCart(printFormat)}
+                            disabled={serviceCart.length === 0}
+                            className="w-full py-4 sm:py-5 bg-blue-600 text-white rounded-xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-3 sm:gap-4 touch-manipulation min-h-[52px]"
+                          >
+                            <CreditCard size={20} strokeWidth={3} className="shrink-0" />
+                            <span className="truncate">{t('checkout') || 'Checkout'} - {formatCurrency(serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0))}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {serviceSubTab === 'new' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 max-w-5xl mx-auto pb-32">
+                      <div className="flex items-center justify-between mb-8 px-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-blue-200 ring-4 ring-white">
+                            <Plus size={28} strokeWidth={3} />
+                          </div>
+                          <div>
+                            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase leading-none">{t('createNewRepairTicket') || 'New Ticket'}</h1>
+                            <div className="text-[10px] md:text-[11px] text-slate-400 font-extrabold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div> {t('serviceModule') || 'Repair Center'} • {new Date().toLocaleDateString()}
                             </div>
                           </div>
                         </div>
-                      )}
+                      </div>
 
+                      <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        setLoading(true);
+                        try {
+                          const ticketData = {
+                            ...serviceForm,
+                            userId: user.uid,
+                            createdAt: serverTimestamp(),
+                            statusLogs: [{
+                              status: 'Received',
+                              date: new Date().toISOString(),
+                              by: user?.email || 'System'
+                            }]
+                          };
+                          await addDoc(collection(db, 'serviceTickets'), ticketData);
+                          setServiceForm({
+                            customerName: '', customerPhone: '', customerEmail: '', customerAddress: '',
+                            deviceType: 'Mobile', brand: '', model: '', serialNo: '',
+                            issue: '', priority: 'Normal', technician: '', estimatedCost: '', status: 'Received',
+                            notes: '', diagnostics: '', partsUsed: [], paymentStatus: 'Unpaid', amountPaid: 0, paymentMethod: 'Cash', laborCost: 0,
+                            photos: []
+                          });
+                          setServiceSubTab('active');
+                        } catch (err) {
+                          console.error(err);
+                          alert("Error creating ticket: " + err.message);
+                        } finally {
+                          setLoading(false);
+                        }
+                      }} className="space-y-6 px-4 md:px-0">
 
-                      {/* Sub Tab: NEW TICKET */}
-                      {serviceSubTab === 'new' && (
-                        <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-gray-100 animate-in fade-in zoom-in-95 duration-700 max-w-4xl mx-auto">
-                          <div className="flex items-center gap-4 mb-8">
-                            <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
-                              <Plus size={24} strokeWidth={3} />
-                            </div>
-                            <div>
-                              <h2 className="text-gray-900 text-2xl font-black uppercase tracking-tight">{t('createNewRepairTicket') || 'Create New Repair Ticket'}</h2>
-                              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{t('serviceModule') || 'Service Module'}</p>
-                            </div>
-                          </div>
+                        {/* Main Grid Layout for Forms */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                          <form onSubmit={async (e) => {
-                            e.preventDefault();
-                            try {
-                              const ticketData = {
-                                ...serviceForm,
-                                userId: user.uid,
-                                createdAt: serverTimestamp(),
-                                statusLogs: [{
-                                  status: 'Received',
-                                  date: new Date().toISOString(),
-                                  by: user?.email || 'System'
-                                }]
-                              };
-                              await addDoc(collection(db, 'serviceTickets'), ticketData);
-                              setServiceForm({
-                                customerName: '', customerPhone: '', customerEmail: '', customerAddress: '',
-                                deviceType: 'Mobile', brand: '', model: '', serialNo: '',
-                                issue: '', priority: 'Normal', technician: '', estimatedCost: '', status: 'Received',
-                                notes: '', diagnostics: '', partsUsed: [], paymentStatus: 'Unpaid', amountPaid: 0, paymentMethod: 'Cash', laborCost: 0,
-                                photos: []
-                              });
-                              setServiceSubTab('active');
-                            } catch (err) {
-                              console.error(err);
-                            }
-                          }} className="space-y-8">
+                          {/* Left Column: Customer & Device (Wider) */}
+                          <div className="lg:col-span-8 space-y-6">
+                            {/* Customer Profile Card */}
+                            <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-xl shadow-slate-200/40 border border-slate-100 flex flex-col gap-8 relative overflow-hidden group">
+                              <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity -rotate-12 translate-x-6 -translate-y-6 pointer-events-none">
+                                <User size={120} />
+                              </div>
+                              <div className="relative z-10 flex items-center gap-3">
+                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl"><User size={20} weight="bold" /></div>
+                                <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em]">{t('customerInfo')}</h3>
+                              </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                              {/* Customer Section */}
-                              <div className="space-y-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
-                                <label className="text-[10px] font-black uppercase text-blue-600 tracking-widest flex items-center gap-2">
-                                  <User size={14} /> {t('customerInfo')}
-                                </label>
-                                <div className="space-y-3">
-                                  <div className="relative group">
-                                    <input
-                                      className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-                                      placeholder={t('customerName') || 'Customer Name'}
-                                      value={serviceForm.customerName}
-                                      onChange={e => setServiceForm({ ...serviceForm, customerName: e.target.value })}
-                                      required
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div className="space-y-2 relative group">
+                                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{t('customerName')}</label>
+                                    <div className="relative">
+                                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
+                                      <input
+                                        className="w-full pl-12 pr-6 py-5 bg-slate-50/50 hover:bg-slate-50 border border-transparent focus:border-blue-500/20 rounded-[1.5rem] text-sm font-black focus:ring-8 focus:ring-blue-500/5 transition-all outline-none placeholder:text-slate-300"
+                                        placeholder={t('enterCustomerName') || 'Search or Enter Name...'}
+                                        value={serviceForm.customerName}
+                                        onChange={e => setServiceForm({ ...serviceForm, customerName: e.target.value })}
+                                        required
+                                      />
+                                    </div>
                                     {serviceForm.customerName.length > 1 && serviceCustomers.filter(c => c.name.toLowerCase().includes(serviceForm.customerName.toLowerCase())).length > 0 && (
-                                      <div className="absolute top-full left-0 right-0 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 mt-2 max-h-48 overflow-y-auto overflow-x-hidden backdrop-blur-xl bg-white/95">
+                                      <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border border-slate-100 rounded-[2rem] shadow-2xl z-50 mt-3 p-2 max-h-64 overflow-y-auto animate-in slide-in-from-top-4 duration-300">
                                         {serviceCustomers.filter(c => c.name.toLowerCase().includes(serviceForm.customerName.toLowerCase())).slice(0, 5).map(c => (
                                           <button
                                             key={c.id}
                                             type="button"
                                             onClick={() => setServiceForm({ ...serviceForm, customerName: c.name, customerPhone: c.phone })}
-                                            className="w-full text-left p-4 hover:bg-blue-50 transition-colors border-b border-gray-50 flex justify-between items-center"
+                                            className="w-full text-left p-4 hover:bg-blue-50 rounded-2xl transition-all border border-transparent hover:border-blue-100/50 flex items-center gap-4 group/item"
                                           >
-                                            <div>
-                                              <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{c.name}</p>
-                                              <p className="text-[10px] font-mono text-slate-400 mt-0.5">{c.phone}</p>
+                                            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-black text-sm uppercase group-hover/item:scale-110 transition-transform">{c.name[0]}</div>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-sm font-black text-slate-900 uppercase tracking-tight truncate">{c.name}</p>
+                                              <p className="text-[10px] font-mono text-slate-400 mt-0.5 tracking-tighter">{c.phone}</p>
                                             </div>
-                                            <ChevronRight size={16} className="text-slate-200" />
+                                            <ChevronRight size={18} className="text-slate-200 group-hover/item:text-blue-400 group-hover/item:translate-x-1 transition-all" />
                                           </button>
                                         ))}
                                       </div>
                                     )}
                                   </div>
+                                <div className="space-y-2 group">
+                                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{t('phone')}</label>
+                                  <div className="relative">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
+                                    <input
+                                      className="w-full pl-12 pr-6 py-5 bg-slate-50/50 hover:bg-slate-50 border border-transparent focus:border-blue-500/20 rounded-[1.5rem] text-sm font-black focus:ring-8 focus:ring-blue-500/5 transition-all outline-none placeholder:text-slate-300"
+                                      placeholder={t('phonePlaceholder') || '05X XXX XXXX'}
+                                      value={serviceForm.customerPhone}
+                                      onChange={e => setServiceForm({ ...serviceForm, customerPhone: e.target.value })}
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Device Details Card */}
+                            <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-xl shadow-slate-200/40 border border-slate-100 space-y-8 relative overflow-hidden group">
+                              <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity rotate-12 translate-x-6 -translate-y-6 pointer-events-none">
+                                <Smartphone size={120} />
+                              </div>
+                              <div className="relative z-10 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><Smartphone size={20} /></div>
+                                  <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em]">{t('deviceDetails')}</h3>
+                                </div>
+                                <span className="text-[9px] font-black text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-widest">Select Category</span>
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-3 md:gap-6">
+                                {[
+                                  { id: 'Mobile', icon: <Smartphone size={24} />, label: t('mobile') || 'Mobile' },
+                                  { id: 'Tablet', icon: <Tablet size={24} />, label: t('tablet') || 'Tablet' },
+                                  { id: 'PC', icon: <Laptop size={24} />, label: t('pc') || 'Laptop/PC' }
+                                ].map(type => (
+                                  <button
+                                    key={type.id}
+                                    type="button"
+                                    onClick={() => setServiceForm({ ...serviceForm, deviceType: type.id })}
+                                    className={`flex flex-col items-center gap-3 p-5 md:p-8 rounded-[2rem] border-2 transition-all active:scale-95 group/btn ${serviceForm.deviceType === type.id
+                                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xl shadow-indigo-200 ring-4 ring-indigo-50 scale-[1.02]'
+                                      : 'bg-slate-50/50 border-transparent hover:bg-white hover:border-indigo-200 text-slate-400 hover:text-indigo-600'
+                                      }`}
+                                  >
+                                    <div className={`transition-transform duration-500 ${serviceForm.deviceType === type.id ? 'scale-110 drop-shadow-md' : 'group-hover/btn:scale-110'}`}>{type.icon}</div>
+                                    <span className={`text-[10px] md:text-sm font-black uppercase tracking-widest transition-opacity ${serviceForm.deviceType === type.id ? 'opacity-100' : 'opacity-60'}`}>{type.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                                <div className="space-y-2 group">
+                                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{t('brand')}</label>
                                   <input
-                                    className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-                                    placeholder={t('phone') || 'Phone Number'}
-                                    value={serviceForm.customerPhone}
-                                    onChange={e => setServiceForm({ ...serviceForm, customerPhone: e.target.value })}
+                                    className="w-full px-6 py-5 bg-slate-50/50 hover:bg-slate-50 border border-transparent focus:border-indigo-500/20 rounded-[1.5rem] text-sm font-black focus:ring-8 focus:ring-indigo-500/5 transition-all outline-none"
+                                    placeholder="e.g. Apple, Samsung"
+                                    value={serviceForm.brand}
+                                    onChange={e => setServiceForm({ ...serviceForm, brand: e.target.value })}
                                     required
                                   />
                                 </div>
+                                <div className="space-y-2 group">
+                                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{t('model')}</label>
+                                  <input
+                                    className="w-full px-6 py-5 bg-slate-50/50 hover:bg-slate-50 border border-transparent focus:border-indigo-500/20 rounded-[1.5rem] text-sm font-black focus:ring-8 focus:ring-indigo-500/5 transition-all outline-none"
+                                    placeholder="e.g. iPhone 15 Pro, MacBook M3"
+                                    value={serviceForm.model}
+                                    onChange={e => setServiceForm({ ...serviceForm, model: e.target.value })}
+                                    required
+                                  />
+                                </div>
+                                <div className="md:col-span-2 space-y-2 group">
+                                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{t('devicePhotos') || 'Device Photos'}</label>
+                                  <div className="flex flex-wrap gap-4 p-6 bg-slate-50/50 rounded-[1.5rem] border-2 border-dashed border-slate-100 min-h-[120px] items-center">
+                                    {serviceForm.photos && serviceForm.photos.map((url, i) => (
+                                      <div key={i} className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-xl animate-in zoom-in-75">
+                                        <img src={url} alt="" className="w-full h-full object-cover" />
+                                        <button type="button" onClick={() => setServiceForm({ ...serviceForm, photos: serviceForm.photos.filter((_, idx) => idx !== i) })} className="absolute top-1 right-1 bg-rose-500 text-white p-1 rounded-full shadow-lg"><X size={12} /></button>
+                                      </div>
+                                    ))}
+                                    <label className="w-20 h-20 rounded-2xl bg-indigo-50 border-2 border-dashed border-indigo-200 flex flex-col items-center justify-center text-indigo-400 hover:text-indigo-600 hover:bg-white hover:border-indigo-400 transition-all cursor-pointer group/upload">
+                                      <Camera size={24} className="mb-1 group-hover/upload:scale-110 transition-transform" />
+                                      <span className="text-[8px] font-black uppercase">{t('add')}</span>
+                                      <input
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={async (e) => {
+                                          const files = Array.from(e.target.files);
+                                          setLoading(true);
+                                          const newUrls = [];
+                                          for (const file of files) {
+                                            const storageRef = ref(storage, `service/${Date.now()}_${file.name}`);
+                                            const snapshot = await uploadBytes(storageRef, file);
+                                            const url = await getDownloadURL(snapshot.ref);
+                                            newUrls.push(url);
+                                          }
+                                          setServiceForm({ ...serviceForm, photos: [...(serviceForm.photos || []), ...newUrls] });
+                                          setLoading(false);
+                                        }}
+                                      />
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className="md:col-span-2 space-y-2 group">
+                                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{t('serialNo')} / IMEI</label>
+                                  <div className="relative">
+                                    <QrCode className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                    <input
+                                      className="w-full pl-12 pr-6 py-5 bg-slate-50/50 hover:bg-slate-50 border-2 border-dashed border-slate-100 focus:border-indigo-500/20 rounded-[1.5rem] text-[10px] md:text-xs font-black focus:ring-8 focus:ring-indigo-500/5 transition-all outline-none uppercase tracking-widest placeholder:text-slate-300"
+                                      placeholder="Scan or Type SN/IMEI"
+                                      value={serviceForm.serialNo}
+                                      onChange={e => setServiceForm({ ...serviceForm, serialNo: e.target.value })}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Column: Problem & Actions (Narrower) */}
+                          <div className="lg:col-span-4 space-y-6">
+                            {/* Issue Detail Card */}
+                            <div className="bg-white rounded-[2.5rem] p-6 md:p-8 shadow-xl shadow-slate-200/40 border border-slate-100 flex flex-col h-full group">
+                              <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl"><AlertTriangle size={20} /></div>
+                                <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em]">{t('issueDescription')}</h3>
                               </div>
 
-                              {/* Device Section */}
-                              <div className="space-y-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
-                                <label className="text-[10px] font-black uppercase text-indigo-600 tracking-widest flex items-center gap-2">
-                                  <Activity size={14} /> {t('deviceDetails')}
-                                </label>
-                                <div className="space-y-4">
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {[
-                                      { id: 'Mobile', icon: <Smartphone size={20} /> },
-                                      { id: 'Tablet', icon: <Tablet size={20} /> },
-                                      { id: 'PC', icon: <Laptop size={20} /> }
-                                    ].map(type => (
-                                      <button
-                                        key={type.id}
-                                        type="button"
-                                        onClick={() => setServiceForm({ ...serviceForm, deviceType: type.id })}
-                                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all active-haptic ${serviceForm.deviceType === type.id ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' : 'bg-white border-slate-100 text-slate-400'}`}
-                                      >
-                                        {type.icon}
-                                        <span className="text-[9px] font-black uppercase tracking-widest">{t(type.id.toLowerCase()) || type.id}</span>
-                                      </button>
-                                    ))}
+                              <div className="flex-1 space-y-6">
+                                <div className="space-y-2 group">
+                                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{t('describeIssue')}</label>
+                                  <textarea
+                                    className="w-full px-6 py-5 bg-amber-50/30 hover:bg-amber-50 border border-transparent focus:border-amber-500/20 rounded-[2rem] text-sm font-bold focus:ring-8 focus:ring-amber-500/5 transition-all outline-none min-h-[160px] md:min-h-[220px] resize-none"
+                                    placeholder="What's wrong with the device?"
+                                    value={serviceForm.issue}
+                                    onChange={e => setServiceForm({ ...serviceForm, issue: e.target.value })}
+                                    required
+                                  ></textarea>
+                                </div>
+
+                                <div className="space-y-6 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
+                                  <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase text-rose-500 tracking-widest block px-1">{t('priority')}</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {['Low', 'Normal', 'High', 'Urgent'].map(p => {
+                                        const colors = {
+                                          Low: 'bg-slate-100 text-slate-600 border-transparent',
+                                          Normal: 'bg-blue-50 text-blue-600 border-transparent',
+                                          High: 'bg-orange-50 text-orange-600 border-transparent',
+                                          Urgent: 'bg-red-50 text-red-600 border-transparent'
+                                        };
+                                        const activeColors = {
+                                          Low: 'bg-slate-600 text-white border-slate-600',
+                                          Normal: 'bg-blue-600 text-white border-blue-600',
+                                          High: 'bg-orange-500 text-white border-orange-500',
+                                          Urgent: 'bg-red-600 text-white border-red-600'
+                                        };
+                                        return (
+                                          <button
+                                            key={p}
+                                            type="button"
+                                            onClick={() => setServiceForm({ ...serviceForm, priority: p })}
+                                            className={`py-3.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest border transition-all active:scale-95 ${serviceForm.priority === p ? `${activeColors[p]} shadow-lg` : `${colors[p]}`}`}
+                                          >
+                                            {t(p.toLowerCase()) || p}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
-                                  <div className="flex gap-3">
-                                    <input className="flex-1 px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" placeholder={t('brand') || 'Brand'} value={serviceForm.brand} onChange={e => setServiceForm({ ...serviceForm, brand: e.target.value })} required />
-                                    <input className="flex-1 px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" placeholder={t('model') || 'Model'} value={serviceForm.model} onChange={e => setServiceForm({ ...serviceForm, model: e.target.value })} required />
+
+                                  <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block px-1">{t('assignedTechnician')}</label>
+                                    <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-[11px] font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none" value={serviceForm.technician} onChange={e => setServiceForm({ ...serviceForm, technician: e.target.value })}>
+                                      <option value="">{t('unassigned')}</option>
+                                      {employees.filter(e => e.dept === 'IT' || e.dept === 'Service' || e.role?.toLowerCase().includes('tech')).map(emp => (
+                                        <option key={emp.id} value={emp.name}>{emp.name}</option>
+                                      ))}
+                                    </select>
                                   </div>
-                                  <input className="w-full px-5 py-4 bg-white border border-dashed border-gray-200 rounded-2xl text-xs font-black text-slate-300 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none uppercase tracking-widest" placeholder={t('serialNo') || 'Serial / IMEI'} value={serviceForm.serialNo} onChange={e => setServiceForm({ ...serviceForm, serialNo: e.target.value })} />
+
+                                  <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase text-emerald-600 tracking-widest block px-1">{t('estimatedCost')} ({currency})</label>
+                                    <div className="relative">
+                                      <DollarSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" />
+                                      <input type="number" className="w-full pl-12 pr-6 py-4 bg-white border border-emerald-100 rounded-2xl text-lg font-black text-emerald-600 font-mono focus:ring-8 focus:ring-emerald-500/5 transition-all outline-none" placeholder="0.00" value={serviceForm.estimatedCost} onChange={e => setServiceForm({ ...serviceForm, estimatedCost: e.target.value })} />
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
 
-                            <div className="space-y-3 bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
-                              <label className="text-[10px] font-black uppercase text-amber-600 tracking-widest flex items-center gap-2">
-                                <AlertTriangle size={14} /> {t('issueDescription')}
-                              </label>
-                              <textarea
-                                className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black focus:ring-4 focus:ring-blue-500/10 transition-all outline-none min-h-[120px] resize-none"
-                                placeholder={t('describeIssue') || 'Describe the problem in detail...'}
-                                value={serviceForm.issue}
-                                onChange={e => setServiceForm({ ...serviceForm, issue: e.target.value })}
-                                required
-                              ></textarea>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                              <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase text-rose-500 tracking-widest pl-2">{t('priority')}</label>
-                                <select className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black text-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all outline-none" value={serviceForm.priority} onChange={e => setServiceForm({ ...serviceForm, priority: e.target.value })}>
-                                  <option value="Low">{t('low')}</option>
-                                  <option value="Normal">{t('normal')}</option>
-                                  <option value="High">{t('high')} ⚡</option>
-                                  <option value="Urgent">{t('urgent')} 🔥</option>
-                                </select>
-                              </div>
-                              <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('assignedTechnician')}</label>
-                                <select className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceForm.technician} onChange={e => setServiceForm({ ...serviceForm, technician: e.target.value })}>
-                                  <option value="">{t('unassigned')}</option>
-                                  {employees.filter(e => e.dept === 'IT' || e.dept === 'Service' || e.role?.toLowerCase().includes('tech')).map(emp => (
-                                    <option key={emp.id} value={emp.name}>{emp.name}</option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase text-emerald-600 tracking-widest pl-2">{t('estimatedCost')} ({currency})</label>
-                                <input type="number" className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-black text-emerald-600 font-mono focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none" placeholder="0.00" value={serviceForm.estimatedCost} onChange={e => setServiceForm({ ...serviceForm, estimatedCost: e.target.value })} />
-                              </div>
-                            </div>
-
-                            <div className="pt-10 pb-20 sm:pb-0">
-                              <button type="submit" className="w-full sm:w-auto px-10 py-5 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 font-black uppercase tracking-widest shadow-2xl shadow-blue-200 transition-all flex items-center justify-center gap-3 transform active:scale-[0.98]">
-                                <Save size={24} /> {t('createTicket') || 'Create Repair Ticket'}
+                            {/* Form Action */}
+                            <div className="lg:pt-6">
+                              <button
+                                disabled={loading}
+                                type="submit"
+                                className={`w-full py-6 md:py-8 bg-slate-900 text-white rounded-[2.5rem] hover:bg-blue-600 font-black uppercase tracking-[0.25em] text-sm shadow-2xl shadow-slate-300 transition-all flex items-center justify-center gap-4 group active:scale-[0.97] ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+                              >
+                                {loading ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />}
+                                {t('createTicket') || 'Create Repair Ticket'}
                               </button>
                             </div>
-                          </form>
-                        </div>
-                      )}
-
-                      {/* Sub Tab: ACTIVE JOBS */}
-                      {serviceSubTab === 'active' && (
-                        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
-                          <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                            <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
-                              {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready', 'Delivered'].map(stat => {
-                                const labelMap = { 'All': t('filterAll'), 'Received': t('received'), 'In Progress': t('inProgress'), 'Waiting for Parts': t('waitingParts'), 'Ready': t('readyPickup'), 'Delivered': t('delivered') };
-                                return (
-                                  <button
-                                    key={stat}
-                                    onClick={() => setServiceStatusFilter(stat === 'All' ? '' : stat)}
-                                    className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${serviceStatusFilter === (stat === 'All' ? '' : stat) ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
-                                  >
-                                    {labelMap[stat] || stat}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            <div className="relative w-full md:w-64">
-                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                              <input
-                                type="text"
-                                placeholder={t('searchTickets') || 'Search customer/device...'}
-                                className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                value={serviceSearch}
-                                onChange={e => setServiceSearch(e.target.value)}
-                              />
-                            </div>
                           </div>
+                        </div>
+                      </form>
+                    </div>
+                  )}
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-0 sm:px-0">
-                            {serviceTickets
-                              .filter(t => t.status !== 'Delivered')
-                              .filter(t => !serviceStatusFilter || t.status === serviceStatusFilter)
-                              .filter(t => !serviceSearch || t.customerName.toLowerCase().includes(serviceSearch.toLowerCase()) || t.brand?.toLowerCase().includes(serviceSearch.toLowerCase()) || t.model?.toLowerCase().includes(serviceSearch.toLowerCase()))
-                              .map(ticket => (
-                                <div
-                                  key={ticket.id}
-                                  onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}
-                                  className="bg-white rounded-[2.5rem] p-5 shadow-sm border border-gray-100/50 hover:shadow-xl hover:border-blue-200 transition-all flex flex-col group relative overflow-hidden active:scale-[0.98] cursor-pointer"
-                                >
-                                  {/* Priority Indicator */}
-                                  {(ticket.priority === 'Urgent' || ticket.priority === 'High') && (
-                                    <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[8px] font-black uppercase tracking-widest text-white ${ticket.priority === 'Urgent' ? 'bg-red-500 animate-pulse' : 'bg-orange-500'}`}>
-                                      {ticket.priority}
-                                    </div>
+                  {/* Sub Tab: ACTIVE JOBS */}
+                  {serviceSubTab === 'active' && (
+                    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
+                      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto overflow-x-auto">
+                          {['All', 'Received', 'In Progress', 'Waiting for Parts', 'Ready', 'Delivered'].map(stat => {
+                            const labelMap = { 'All': t('filterAll'), 'Received': t('received'), 'In Progress': t('inProgress'), 'Waiting for Parts': t('waitingParts'), 'Ready': t('readyPickup'), 'Delivered': t('delivered') };
+                            return (
+                              <button
+                                key={stat}
+                                onClick={() => setServiceStatusFilter(stat === 'All' ? '' : stat)}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg flex-1 md:flex-none whitespace-nowrap transition-all ${serviceStatusFilter === (stat === 'All' ? '' : stat) ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
+                              >
+                                {labelMap[stat] || stat}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="relative w-full md:w-64">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                          <input
+                            type="text"
+                            placeholder={t('searchTickets') || 'Search customer/device...'}
+                            className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
+                            value={serviceSearch}
+                            onChange={e => setServiceSearch(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-0 sm:px-0">
+                        {serviceTickets
+                          .filter(t => t.status !== 'Delivered')
+                          .filter(t => !serviceStatusFilter || t.status === serviceStatusFilter)
+                          .filter(t => !serviceSearch || t.customerName.toLowerCase().includes(serviceSearch.toLowerCase()) || t.brand?.toLowerCase().includes(serviceSearch.toLowerCase()) || t.model?.toLowerCase().includes(serviceSearch.toLowerCase()))
+                          .map(ticket => (
+                            <div
+                              key={ticket.id}
+                              onClick={() => { setEditingTicket(ticket); setIsTicketModalOpen(true); }}
+                              className="bg-white rounded-[2.5rem] p-5 shadow-sm border border-gray-100/50 hover:shadow-xl hover:border-blue-200 transition-all flex flex-col group relative overflow-hidden active:scale-[0.98] cursor-pointer"
+                            >
+                              {/* Priority Indicator */}
+                              {(ticket.priority === 'Urgent' || ticket.priority === 'High') && (
+                                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[8px] font-black uppercase tracking-widest text-white ${ticket.priority === 'Urgent' ? 'bg-red-500 animate-pulse' : 'bg-orange-500'}`}>
+                                  {ticket.priority}
+                                </div>
+                              )}
+
+                              <div className="flex justify-between items-start mb-4">
+                                <div className="flex-1 pr-12">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-[10px] font-black text-blue-600/40 uppercase tracking-[0.15em] font-mono">#{ticket.id.slice(0, 6)}</span>
+                                  </div>
+                                  <h3 className="font-black text-gray-900 leading-tight text-base uppercase tracking-tight">{ticket.customerName}</h3>
+                                  <p className="text-xs text-blue-600 font-bold mt-1.5 flex items-center gap-1.5">
+                                    <Phone size={12} fill="currentColor" className="opacity-20" /> {ticket.customerPhone}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="bg-slate-50/50 rounded-3xl p-4 mb-4 flex-1 border border-slate-100/50 backdrop-blur-sm">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="p-2.5 bg-white rounded-xl shadow-sm text-blue-500">
+                                    {ticket.deviceType === 'Mobile' ? <Smartphone size={18} /> :
+                                      ticket.deviceType === 'PC' || ticket.deviceType === 'Tablet' ? <Laptop size={18} /> :
+                                        <Database size={18} />}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-black text-slate-800 uppercase tracking-tight">{ticket.brand} {ticket.model}</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{ticket.serialNo || 'N/A'}</p>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed bg-white/50 p-2.5 rounded-xl border border-white italic">
+                                  "{ticket.issue}"
+                                </p>
+                                {ticket.photos && ticket.photos.length > 0 && (
+                                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                                    {ticket.photos.map((url, i) => (
+                                      <div key={i} className="relative w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
+                                        <img src={url} alt="" className="w-full h-full object-cover" />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-black shadow-lg shadow-blue-200">
+                                    {ticket.technician ? ticket.technician[0].toUpperCase() : '?'}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">{t('technician')}</span>
+                                    <span className="text-[10px] font-black text-gray-900 truncate max-w-[80px]">{ticket.technician || t('unassigned')}</span>
+                                  </div>
+                                </div>
+
+                                <div className="text-right">
+                                  <div className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest inline-block mb-1.5 ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' :
+                                    ticket.status === 'In Progress' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' :
+                                      ticket.status === 'Waiting for Parts' ? 'bg-rose-100 text-rose-600' :
+                                        'bg-slate-100 text-slate-500'
+                                    }`}>
+                                    {t(ticket.status.toLowerCase().replace(/ /g, '')) || ticket.status}
+                                  </div>
+                                  {ticket.estimatedCost && (
+                                    <div className="text-sm font-black text-slate-900 font-mono tracking-tighter block">{formatCurrency(ticket.estimatedCost)}</div>
                                   )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
 
-                                  <div className="flex justify-between items-start mb-4">
-                                    <div className="flex-1 pr-12">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-[10px] font-black text-blue-600/40 uppercase tracking-[0.15em] font-mono">#{ticket.id.slice(0, 6)}</span>
-                                      </div>
-                                      <h3 className="font-black text-gray-900 leading-tight text-base uppercase tracking-tight">{ticket.customerName}</h3>
-                                      <p className="text-xs text-blue-600 font-bold mt-1.5 flex items-center gap-1.5">
-                                        <Phone size={12} fill="currentColor" className="opacity-20" /> {ticket.customerPhone}
-                                      </p>
-                                    </div>
+                        {serviceTickets.filter(t => t.status !== 'Delivered' && (!serviceStatusFilter || t.status === serviceStatusFilter)).length === 0 && (
+                          <div className="col-span-full py-20 flex flex-col items-center justify-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                            <CheckSquare size={48} className="text-gray-300 mb-4" />
+                            <h3 className="text-lg font-black text-gray-400 uppercase tracking-widest">{t('noActiveJobs') || 'No Active Repair Jobs'}</h3>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub Tab: CUSTOMERS */}
+                  {serviceSubTab === 'customers' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-32">
+                      <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                        <div className="relative flex-1 w-full max-w-2xl group">
+                          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={20} />
+                          <input
+                            type="text"
+                            placeholder={t('search') || 'Search customers by name or phone...'}
+                            className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                            onChange={e => setServiceSearch(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          onClick={() => { setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); }}
+                          className="w-full md:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[10px] shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-3 active:scale-95"
+                        >
+                          <UserPlus size={20} /> {t('addCustomer')}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {serviceCustomers
+                          .filter(c => !serviceSearch || (c.name?.toLowerCase().includes(serviceSearch.toLowerCase())) || (c.phone?.includes(serviceSearch)))
+                          .map(customer => (
+                            <div key={customer.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-blue-500/5 transition-all group flex flex-col relative overflow-hidden">
+                              <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity -rotate-12 translate-x-4 -translate-y-4">
+                                <User size={80} />
+                              </div>
+
+                              <div className="flex justify-between items-start mb-6">
+                                <div className="w-16 h-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-blue-600 font-black text-2xl uppercase border border-blue-100/50 shadow-sm shadow-blue-50">
+                                  {customer.name?.slice(0, 1)}
+                                </div>
+                                <div className="flex gap-2">
+                                  <button onClick={() => { setSelectedServiceCustomer(customer); setServiceCustomerForm(customer); setIsCustomerModalOpen(true); }} className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-90"><Edit size={18} /></button>
+                                  <button onClick={async () => {
+                                    if (window.confirm('Delete this customer?')) {
+                                      await deleteDoc(doc(db, 'serviceCustomers', customer.id));
+                                    }
+                                  }} className="p-3 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all active:scale-90"><Trash2 size={18} /></button>
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-tight">{customer.name}</h3>
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{t('customerInformation') || 'Client Profile'}</p>
+                              </div>
+
+                              <div className="space-y-4 mt-8 pt-8 border-t border-slate-50">
+                                <div className="flex items-center gap-4 text-slate-600 bg-slate-50/50 p-3 rounded-2xl border border-transparent hover:border-slate-100 transition-colors">
+                                  <div className="p-2 bg-white rounded-lg shadow-sm"><Phone size={14} className="text-blue-500" /></div>
+                                  <span className="text-xs font-black font-mono tracking-tight">{customer.phone}</span>
+                                </div>
+                                {customer.email && (
+                                  <div className="flex items-center gap-4 text-slate-600 bg-slate-50/50 p-3 rounded-2xl border border-transparent hover:border-slate-100 transition-colors">
+                                    <div className="p-2 bg-white rounded-lg shadow-sm"><Mail size={14} className="text-indigo-500" /></div>
+                                    <span className="text-xs font-bold truncate">{customer.email}</span>
                                   </div>
+                                )}
+                                {customer.address && (
+                                  <div className="flex items-center gap-4 text-slate-600 bg-slate-50/50 p-3 rounded-2xl border border-transparent hover:border-slate-100 transition-colors">
+                                    <div className="p-2 bg-white rounded-lg shadow-sm"><MapPin size={14} className="text-emerald-500" /></div>
+                                    <span className="text-[10px] font-bold truncate leading-relaxed">{customer.address}</span>
+                                  </div>
+                                )}
+                              </div>
 
-                                  <div className="bg-slate-50/50 rounded-3xl p-4 mb-4 flex-1 border border-slate-100/50 backdrop-blur-sm">
-                                    <div className="flex items-center gap-3 mb-3">
-                                      <div className="p-2.5 bg-white rounded-xl shadow-sm text-blue-500">
-                                        {ticket.deviceType === 'Mobile' ? <Smartphone size={18} /> :
-                                          ticket.deviceType === 'PC' || ticket.deviceType === 'Tablet' ? <Laptop size={18} /> :
-                                            <Database size={18} />}
-                                      </div>
-                                      <div>
-                                        <p className="text-xs font-black text-slate-800 uppercase tracking-tight">{ticket.brand} {ticket.model}</p>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{ticket.serialNo || 'N/A'}</p>
-                                      </div>
-                                    </div>
-                                    <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed bg-white/50 p-2.5 rounded-xl border border-white italic">
-                                      "{ticket.issue}"
-                                    </p>
-                                    {ticket.photos && ticket.photos.length > 0 && (
-                                      <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                                        {ticket.photos.map((url, i) => (
-                                          <div key={i} className="relative w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
-                                            <img src={url} alt="" className="w-full h-full object-cover" />
+                              <div className="mt-8 pt-6 border-t border-slate-50 flex justify-between items-center bg-slate-50 -mx-8 -mb-8 px-8 py-6 rounded-b-[2.5rem]">
+                                <div className="flex flex-col">
+                                  <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-1">{t('repairHistory')}</span>
+                                  <span className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100/50">
+                                    {serviceTickets.filter(t => t.customerPhone === customer.phone).length} JOBS
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() => { setServiceForm({ ...serviceForm, customerName: customer.name, customerPhone: customer.phone }); setServiceSubTab('new'); }}
+                                  className="p-4 bg-white text-blue-600 rounded-2xl shadow-sm border border-slate-100 hover:bg-blue-600 hover:text-white transition-all active:scale-95 group/btn"
+                                >
+                                  <Plus size={20} strokeWidth={3} className="group-hover/btn:rotate-90 transition-transform" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub Tab: INVENTORY */}
+                  {serviceSubTab === 'inventory' && (
+                    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
+                      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                        <div className="relative flex-1 max-w-lg">
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input
+                            type="text"
+                            placeholder={t('searchInventory') || 'Search spare parts...'}
+                            className="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all"
+                            onChange={e => setServiceSearch(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          onClick={() => setIsServiceInventoryModalOpen(true)}
+                          className="px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-200 transition-all flex items-center gap-2"
+                        >
+                          <Plus size={18} /> {t('addInventoryItem')}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 pb-32 sm:pb-0">
+                        {inventory
+                          .filter(i => !serviceSearch || i.name?.toLowerCase().includes(serviceSearch.toLowerCase()))
+                          .map(item => (
+                            <div key={item.id} className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col group relative active:scale-[0.98] transition-all">
+                              {item.quantity <= (item.minStock || 5) && (
+                                <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 bg-rose-50 text-rose-500 rounded-full border border-rose-100 animate-pulse">
+                                  <AlertTriangle size={8} />
+                                  <span className="text-[7px] font-black uppercase tracking-widest leading-none">Low</span>
+                                </div>
+                              )}
+
+                              <div className="w-full aspect-square bg-slate-50 rounded-2xl mb-4 overflow-hidden flex items-center justify-center text-slate-300 relative group-hover:bg-blue-50 transition-colors">
+                                {item.photo ? (
+                                  <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                ) : (
+                                  <Package size={32} strokeWidth={1.5} />
+                                )}
+                              </div>
+
+                              <h4 className="text-[10px] font-black uppercase text-gray-900 tracking-tight line-clamp-2 min-h-[28px] leading-tight mb-1">{item.name}</h4>
+                              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{item.category || (t('sparePart') || 'Spare Part')}</p>
+
+                              <div className="mt-auto flex justify-between items-end bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                                <div>
+                                  <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{t('units')}</p>
+                                  <p className={`text-xs font-black tabular-nums ${item.quantity <= (item.minStock || 5) ? 'text-rose-500' : 'text-slate-900'}`}>{item.quantity}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-[7px] font-black text-blue-400 uppercase tracking-widest mb-0.5">{currency}</p>
+                                  <p className="text-sm font-black text-blue-600 font-mono tracking-tighter leading-none">{formatCurrency(item.sellPrice).replace(/[^\d.]/g, '')}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub Tab: HISTORY */}
+                  {serviceSubTab === 'history' && (
+                    <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 px-2 gap-4">
+                        <h3 className="text-gray-900 text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                          <Clock size={24} className="text-blue-600" />
+                          {serviceHistoryDateFilter === new Date().toISOString().split('T')[0] ? (t('todaysServices') || "Today's Services") : (t('servicesOn') || 'Services on') + ' ' + serviceHistoryDateFilter}
+                        </h3>
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                          <input
+                            type="date"
+                            value={serviceHistoryDateFilter}
+                            onChange={(e) => setServiceHistoryDateFilter(e.target.value)}
+                            className="w-full sm:w-auto bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto px-1">
+                        {(() => {
+                          const historyItems = [
+                            ...serviceTickets
+                              .filter(t => t.status === 'Delivered')
+                              .map(t => ({
+                                id: t.id,
+                                item: t,
+                                isTicket: true,
+                                date: t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000) : new Date(),
+                                invoiceId: t.id.slice(0, 6),
+                                amount: t.estimatedCost || 0,
+                                customer: t.customerName,
+                                details: `${t.brand} ${t.model}`,
+                                soldBy: t.technician || '-'
+                              })),
+                            ...sales
+                              .filter(s => s.location === 'Repair Shop')
+                              .map(s => ({
+                                id: s.id,
+                                item: s,
+                                isTicket: false,
+                                date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : (s.date ? new Date(s.date) : new Date()),
+                                invoiceId: s.invoiceId || s.id.slice(0, 6),
+                                amount: s.amount,
+                                customer: s.client || s.customer || 'Walk-in',
+                                details: Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : 'Service POS',
+                                soldBy: s.soldBy || '-'
+                              }))
+                          ]
+                            .filter(h => !serviceHistoryDateFilter || h.date.toISOString().split('T')[0] === serviceHistoryDateFilter)
+                            .sort((a, b) => b.date - a.date);
+
+                          if (historyItems.length === 0) {
+                            return (
+                              <div className="p-20 text-center">
+                                <History size={40} className="mx-auto mb-4 text-slate-200" />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noHistory')}</p>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <>
+                              {/* Desktop View */}
+                              <div className="hidden md:block">
+                                <table className="w-full text-sm text-left">
+                                  <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                                    <tr>
+                                      <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
+                                      <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')} #</th>
+                                      <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('cost')}</th>
+                                      <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('details') || 'Details'}</th>
+                                      <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-50">
+                                    {historyItems.map(h => (
+                                      <tr key={h.id} className="hover:bg-slate-50/50 transition-colors group">
+                                        <td className="p-4 text-slate-500 font-bold">{h.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                        <td className="p-4 font-mono text-xs text-blue-600 font-black">#{h.invoiceId}</td>
+                                        <td className="p-4 font-mono font-black text-slate-900">{formatCurrency(h.amount)}</td>
+                                        <td className="p-4">
+                                          <div className="text-xs font-bold text-gray-900">{h.customer}</div>
+                                          <div className="text-[10px] text-slate-400 font-medium truncate max-w-[200px]">{h.details}</div>
+                                          <div className="text-[8px] text-blue-500 font-black uppercase mt-1 tracking-widest">BY: {h.soldBy}</div>
+                                        </td>
+                                        <td className="p-4 text-right flex items-center justify-end gap-2">
+                                          <button
+                                            onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')}
+                                            className="p-2 border border-slate-100 text-slate-400 hover:text-blue-600 rounded-lg transition-all shadow-sm"
+                                          >
+                                            <Printer size={16} />
+                                          </button>
+                                          {!h.isTicket && currentMode === 'Owner' && (
+                                            <div className="flex gap-2">
+                                              <button
+                                                onClick={() => { setEditingHistoryItem(h.item); setIsEditHistoryModalOpen(true); }}
+                                                className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-blue-400 hover:text-blue-600 hover:bg-blue-50"
+                                                title="Edit Sale"
+                                              >
+                                                <Edit size={16} />
+                                              </button>
+                                              <button
+                                                onClick={() => handleDeleteSale(h.item)}
+                                                className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-rose-400 hover:text-rose-600 hover:bg-rose-50"
+                                                title="Delete Sale"
+                                              >
+                                                <Trash2 size={16} />
+                                              </button>
+                                            </div>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              {/* Mobile View */}
+                              <div className="md:hidden space-y-4 px-0 pb-32 sm:pb-0">
+                                {historyItems.map(h => (
+                                  <div key={h.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-5 relative overflow-hidden active:scale-[0.98] transition-all group">
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-3">
+                                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6 ${h.isTicket ? 'bg-blue-600 text-white shadow-blue-100' : 'bg-indigo-600 text-white shadow-indigo-100'}`}>
+                                            {h.isTicket ? <Wrench size={18} strokeWidth={2.5} /> : <ShoppingBag size={18} strokeWidth={2.5} />}
                                           </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2.5">
-                                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-black shadow-lg shadow-blue-200">
-                                        {ticket.technician ? ticket.technician[0].toUpperCase() : '?'}
-                                      </div>
-                                      <div className="flex flex-col">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">{t('technician')}</span>
-                                        <span className="text-[10px] font-black text-gray-900 truncate max-w-[80px]">{ticket.technician || t('unassigned')}</span>
+                                          <div>
+                                            <span className="text-[10px] font-mono font-black text-slate-300 block leading-none mb-1">#{h.invoiceId}</span>
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{h.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                          </div>
+                                          <div className="ml-auto text-right">
+                                            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">{formatCurrency(h.amount)}</span>
+                                          </div>
+                                        </div>
+                                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight mb-1">{h.customer}</h4>
+                                        <p className="text-[10px] text-slate-400 font-bold line-clamp-2 leading-relaxed italic">"{h.details}"</p>
                                       </div>
                                     </div>
 
-                                    <div className="text-right">
-                                      <div className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest inline-block mb-1.5 ${ticket.status === 'Ready' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' :
-                                          ticket.status === 'In Progress' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' :
-                                            ticket.status === 'Waiting for Parts' ? 'bg-rose-100 text-rose-600' :
-                                              'bg-slate-100 text-slate-500'
-                                        }`}>
-                                        {t(ticket.status.toLowerCase().replace(/ /g, '')) || ticket.status}
-                                      </div>
-                                      {ticket.estimatedCost && (
-                                        <div className="text-sm font-black text-slate-900 font-mono tracking-tighter block">{formatCurrency(ticket.estimatedCost)}</div>
+                                    <div className="flex gap-2 pt-2 border-t border-slate-50">
+                                      <button
+                                        onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')}
+                                        className="flex-1 py-4 bg-slate-50 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 border border-slate-100 active:scale-95 transition-all"
+                                      >
+                                        <Printer size={16} /> {t('print')}
+                                      </button>
+                                      {!h.isTicket && currentMode === 'Owner' && (
+                                        <button
+                                          onClick={() => handleDeleteSale(h.item)}
+                                          className="p-4 bg-rose-50 text-rose-500 rounded-2xl border border-rose-100 active:scale-95 transition-all"
+                                        >
+                                          <Trash2 size={16} />
+                                        </button>
                                       )}
                                     </div>
                                   </div>
-                                </div>
-                              ))}
-
-                            {serviceTickets.filter(t => t.status !== 'Delivered' && (!serviceStatusFilter || t.status === serviceStatusFilter)).length === 0 && (
-                              <div className="col-span-full py-20 flex flex-col items-center justify-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-                                <CheckSquare size={48} className="text-gray-300 mb-4" />
-                                <h3 className="text-lg font-black text-gray-400 uppercase tracking-widest">{t('noActiveJobs') || 'No Active Repair Jobs'}</h3>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Sub Tab: CUSTOMERS */}
-                      {serviceSubTab === 'customers' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-32">
-                          <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                            <div className="relative flex-1 w-full max-w-2xl group">
-                              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={20} />
-                              <input
-                                type="text"
-                                placeholder={t('search') || 'Search customers by name or phone...'}
-                                className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-                                onChange={e => setServiceSearch(e.target.value)}
-                              />
-                            </div>
-                            <button
-                              onClick={() => { setSelectedServiceCustomer(null); setIsCustomerModalOpen(true); }}
-                              className="w-full md:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[10px] shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-3 active:scale-95"
-                            >
-                              <UserPlus size={20} /> {t('addCustomer')}
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {serviceCustomers
-                              .filter(c => !serviceSearch || (c.name?.toLowerCase().includes(serviceSearch.toLowerCase())) || (c.phone?.includes(serviceSearch)))
-                              .map(customer => (
-                                <div key={customer.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-blue-500/5 transition-all group flex flex-col relative overflow-hidden">
-                                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity -rotate-12 translate-x-4 -translate-y-4">
-                                    <User size={80} />
-                                  </div>
-
-                                  <div className="flex justify-between items-start mb-6">
-                                    <div className="w-16 h-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-blue-600 font-black text-2xl uppercase border border-blue-100/50 shadow-sm shadow-blue-50">
-                                      {customer.name?.slice(0, 1)}
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <button onClick={() => { setSelectedServiceCustomer(customer); setServiceCustomerForm(customer); setIsCustomerModalOpen(true); }} className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-90"><Edit size={18} /></button>
-                                      <button onClick={async () => {
-                                        if (window.confirm('Delete this customer?')) {
-                                          await deleteDoc(doc(db, 'serviceCustomers', customer.id));
-                                        }
-                                      }} className="p-3 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all active:scale-90"><Trash2 size={18} /></button>
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-1">
-                                    <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-tight">{customer.name}</h3>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{t('customerInformation') || 'Client Profile'}</p>
-                                  </div>
-
-                                  <div className="space-y-4 mt-8 pt-8 border-t border-slate-50">
-                                    <div className="flex items-center gap-4 text-slate-600 bg-slate-50/50 p-3 rounded-2xl border border-transparent hover:border-slate-100 transition-colors">
-                                      <div className="p-2 bg-white rounded-lg shadow-sm"><Phone size={14} className="text-blue-500" /></div>
-                                      <span className="text-xs font-black font-mono tracking-tight">{customer.phone}</span>
-                                    </div>
-                                    {customer.email && (
-                                      <div className="flex items-center gap-4 text-slate-600 bg-slate-50/50 p-3 rounded-2xl border border-transparent hover:border-slate-100 transition-colors">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm"><Mail size={14} className="text-indigo-500" /></div>
-                                        <span className="text-xs font-bold truncate">{customer.email}</span>
-                                      </div>
-                                    )}
-                                    {customer.address && (
-                                      <div className="flex items-center gap-4 text-slate-600 bg-slate-50/50 p-3 rounded-2xl border border-transparent hover:border-slate-100 transition-colors">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm"><MapPin size={14} className="text-emerald-500" /></div>
-                                        <span className="text-[10px] font-bold truncate leading-relaxed">{customer.address}</span>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="mt-8 pt-6 border-t border-slate-50 flex justify-between items-center bg-slate-50 -mx-8 -mb-8 px-8 py-6 rounded-b-[2.5rem]">
-                                    <div className="flex flex-col">
-                                      <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-1">{t('repairHistory')}</span>
-                                      <span className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100/50">
-                                        {serviceTickets.filter(t => t.customerPhone === customer.phone).length} JOBS
-                                      </span>
-                                    </div>
-                                    <button
-                                      onClick={() => { setServiceForm({ ...serviceForm, customerName: customer.name, customerPhone: customer.phone }); setServiceSubTab('new'); }}
-                                      className="p-4 bg-white text-blue-600 rounded-2xl shadow-sm border border-slate-100 hover:bg-blue-600 hover:text-white transition-all active:scale-95 group/btn"
-                                    >
-                                      <Plus size={20} strokeWidth={3} className="group-hover/btn:rotate-90 transition-transform" />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Sub Tab: INVENTORY */}
-                      {serviceSubTab === 'inventory' && (
-                        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
-                          <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
-                            <div className="relative flex-1 max-w-lg">
-                              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                              <input
-                                type="text"
-                                placeholder={t('searchInventory') || 'Search spare parts...'}
-                                className="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all"
-                                onChange={e => setServiceSearch(e.target.value)}
-                              />
-                            </div>
-                            <button
-                              onClick={() => setIsServiceInventoryModalOpen(true)}
-                              className="px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-200 transition-all flex items-center gap-2"
-                            >
-                              <Plus size={18} /> {t('addInventoryItem')}
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 pb-32 sm:pb-0">
-                            {inventory
-                              .filter(i => !serviceSearch || i.name?.toLowerCase().includes(serviceSearch.toLowerCase()))
-                              .map(item => (
-                                <div key={item.id} className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col group relative active:scale-[0.98] transition-all">
-                                  {item.quantity <= (item.minStock || 5) && (
-                                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 bg-rose-50 text-rose-500 rounded-full border border-rose-100 animate-pulse">
-                                      <AlertTriangle size={8} />
-                                      <span className="text-[7px] font-black uppercase tracking-widest leading-none">Low</span>
-                                    </div>
-                                  )}
-
-                                  <div className="w-full aspect-square bg-slate-50 rounded-2xl mb-4 overflow-hidden flex items-center justify-center text-slate-300 relative group-hover:bg-blue-50 transition-colors">
-                                    {item.photo ? (
-                                      <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                    ) : (
-                                      <Package size={32} strokeWidth={1.5} />
-                                    )}
-                                  </div>
-
-                                  <h4 className="text-[10px] font-black uppercase text-gray-900 tracking-tight line-clamp-2 min-h-[28px] leading-tight mb-1">{item.name}</h4>
-                                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{item.category || (t('sparePart') || 'Spare Part')}</p>
-
-                                  <div className="mt-auto flex justify-between items-end bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
-                                    <div>
-                                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{t('units')}</p>
-                                      <p className={`text-xs font-black tabular-nums ${item.quantity <= (item.minStock || 5) ? 'text-rose-500' : 'text-slate-900'}`}>{item.quantity}</p>
-                                    </div>
-                                    <div className="text-right">
-                                      <p className="text-[7px] font-black text-blue-400 uppercase tracking-widest mb-0.5">{currency}</p>
-                                      <p className="text-sm font-black text-blue-600 font-mono tracking-tighter leading-none">{formatCurrency(item.sellPrice).replace(/[^\d.]/g, '')}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Sub Tab: HISTORY */}
-                      {serviceSubTab === 'history' && (
-                        <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 px-2 gap-4">
-                            <h3 className="text-gray-900 text-2xl font-black uppercase tracking-tight flex items-center gap-2">
-                              <Clock size={24} className="text-blue-600" />
-                              {serviceHistoryDateFilter === new Date().toISOString().split('T')[0] ? (t('todaysServices') || "Today's Services") : (t('servicesOn') || 'Services on') + ' ' + serviceHistoryDateFilter}
-                            </h3>
-                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                              <input
-                                type="date"
-                                value={serviceHistoryDateFilter}
-                                onChange={(e) => setServiceHistoryDateFilter(e.target.value)}
-                                className="w-full sm:w-auto bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="overflow-x-auto px-1">
-                            {(() => {
-                              const historyItems = [
-                                ...serviceTickets
-                                  .filter(t => t.status === 'Delivered')
-                                  .map(t => ({
-                                    id: t.id,
-                                    item: t,
-                                    isTicket: true,
-                                    date: t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000) : new Date(),
-                                    invoiceId: t.id.slice(0, 6),
-                                    amount: t.estimatedCost || 0,
-                                    customer: t.customerName,
-                                    details: `${t.brand} ${t.model}`,
-                                    soldBy: t.technician || '-'
-                                  })),
-                                ...sales
-                                  .filter(s => s.location === 'Repair Shop')
-                                  .map(s => ({
-                                    id: s.id,
-                                    item: s,
-                                    isTicket: false,
-                                    date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : (s.date ? new Date(s.date) : new Date()),
-                                    invoiceId: s.invoiceId || s.id.slice(0, 6),
-                                    amount: s.amount,
-                                    customer: s.client || s.customer || 'Walk-in',
-                                    details: Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : 'Service POS',
-                                    soldBy: s.soldBy || '-'
-                                  }))
-                              ]
-                                .filter(h => !serviceHistoryDateFilter || h.date.toISOString().split('T')[0] === serviceHistoryDateFilter)
-                                .sort((a, b) => b.date - a.date);
-
-                              if (historyItems.length === 0) {
-                                return (
-                                  <div className="p-20 text-center">
-                                    <History size={40} className="mx-auto mb-4 text-slate-200" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('noHistory')}</p>
-                                  </div>
-                                );
-                              }
-
-                              return (
-                                <>
-                                  {/* Desktop View */}
-                                  <div className="hidden md:block">
-                                    <table className="w-full text-sm text-left">
-                                      <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
-                                        <tr>
-                                          <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
-                                          <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')} #</th>
-                                          <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('cost')}</th>
-                                          <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('details') || 'Details'}</th>
-                                          <th className="p-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody className="divide-y divide-slate-50">
-                                        {historyItems.map(h => (
-                                          <tr key={h.id} className="hover:bg-slate-50/50 transition-colors group">
-                                            <td className="p-4 text-slate-500 font-bold">{h.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                                            <td className="p-4 font-mono text-xs text-blue-600 font-black">#{h.invoiceId}</td>
-                                            <td className="p-4 font-mono font-black text-slate-900">{formatCurrency(h.amount)}</td>
-                                            <td className="p-4">
-                                              <div className="text-xs font-bold text-gray-900">{h.customer}</div>
-                                              <div className="text-[10px] text-slate-400 font-medium truncate max-w-[200px]">{h.details}</div>
-                                              <div className="text-[8px] text-blue-500 font-black uppercase mt-1 tracking-widest">BY: {h.soldBy}</div>
-                                            </td>
-                                            <td className="p-4 text-right flex items-center justify-end gap-2">
-                                              <button
-                                                onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')}
-                                                className="p-2 border border-slate-100 text-slate-400 hover:text-blue-600 rounded-lg transition-all shadow-sm"
-                                              >
-                                                <Printer size={16} />
-                                              </button>
-                                              {!h.isTicket && currentMode === 'Owner' && (
-                                                <div className="flex gap-2">
-                                                  <button
-                                                    onClick={() => { setEditingHistoryItem(h.item); setIsEditHistoryModalOpen(true); }}
-                                                    className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-blue-400 hover:text-blue-600 hover:bg-blue-50"
-                                                    title="Edit Sale"
-                                                  >
-                                                    <Edit size={16} />
-                                                  </button>
-                                                  <button
-                                                    onClick={() => handleDeleteSale(h.item)}
-                                                    className="p-2 border border-slate-100 rounded-lg transition-all shadow-sm text-rose-400 hover:text-rose-600 hover:bg-rose-50"
-                                                    title="Delete Sale"
-                                                  >
-                                                    <Trash2 size={16} />
-                                                  </button>
-                                                </div>
-                                              )}
-                                            </td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-
-                                  {/* Mobile View */}
-                                  <div className="md:hidden space-y-4 px-0 pb-32 sm:pb-0">
-                                    {historyItems.map(h => (
-                                      <div key={h.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-5 relative overflow-hidden active:scale-[0.98] transition-all group">
-                                        <div className="flex justify-between items-start">
-                                          <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-3">
-                                              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6 ${h.isTicket ? 'bg-blue-600 text-white shadow-blue-100' : 'bg-indigo-600 text-white shadow-indigo-100'}`}>
-                                                {h.isTicket ? <Wrench size={18} strokeWidth={2.5} /> : <ShoppingBag size={18} strokeWidth={2.5} />}
-                                              </div>
-                                              <div>
-                                                <span className="text-[10px] font-mono font-black text-slate-300 block leading-none mb-1">#{h.invoiceId}</span>
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{h.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                              </div>
-                                              <div className="ml-auto text-right">
-                                                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">{formatCurrency(h.amount)}</span>
-                                              </div>
-                                            </div>
-                                            <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight mb-1">{h.customer}</h4>
-                                            <p className="text-[10px] text-slate-400 font-bold line-clamp-2 leading-relaxed italic">"{h.details}"</p>
-                                          </div>
-                                        </div>
-
-                                        <div className="flex gap-2 pt-2 border-t border-slate-50">
-                                          <button
-                                            onClick={() => handlePrintInvoice(h.item, h.isTicket ? 'Service Invoice' : 'Service Receipt')}
-                                            className="flex-1 py-4 bg-slate-50 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 border border-slate-100 active:scale-95 transition-all"
-                                          >
-                                            <Printer size={16} /> {t('print')}
-                                          </button>
-                                          {!h.isTicket && currentMode === 'Owner' && (
-                                            <button
-                                              onClick={() => handleDeleteSale(h.item)}
-                                              className="p-4 bg-rose-50 text-rose-500 rounded-2xl border border-rose-100 active:scale-95 transition-all"
-                                            >
-                                              <Trash2 size={16} />
-                                            </button>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </>
-                              )
-                            })()}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Sub Tab: REPORTS */}
-                      {serviceSubTab === 'reports' && (
-                        <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700 pb-32">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-0 sm:px-0">
-                            {/* Revenue Summary */}
-                            <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                              <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
-                                <CreditCard className="text-blue-600" size={20} /> {t('monthlyServiceRevenue')}
-                              </h3>
-                              <div className="space-y-3">
-                                {[
-                                  { label: t('totalRevenue') || 'Total Revenue', value: formatCurrency(serviceTickets.reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-blue-600', bg: 'bg-blue-50' },
-                                  { label: t('collected') || 'Collected', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Paid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                                  { label: t('unpaid') || 'Unpaid', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Unpaid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-rose-600', bg: 'bg-rose-50' }
-                                ].map((stat, i) => (
-                                  <div key={i} className={`flex justify-between items-center p-4 ${stat.bg}/30 rounded-2xl border border-${stat.color.split('-')[1]}-100/50`}>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
-                                    <span className={`text-sm font-black mono ${stat.color}`}>{stat.value}</span>
-                                  </div>
                                 ))}
                               </div>
-                            </div>
-
-                            {/* Top Brands */}
-                            <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                              <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
-                                <Smartphone className="text-orange-600" size={20} /> {t('topRepairs')}
-                              </h3>
-                              <div className="space-y-4">
-                                {Object.entries(serviceTickets.reduce((acc, t) => {
-                                  acc[t.brand] = (acc[t.brand] || 0) + 1;
-                                  return acc;
-                                }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([brand, count], i) => (
-                                  <div key={i} className="flex flex-col gap-2 group">
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-xs font-black text-slate-600 uppercase tracking-tight">{brand || 'Unknown'}</span>
-                                      <span className="text-xs font-black text-slate-900">{count}</span>
-                                    </div>
-                                    <div className="h-2 bg-slate-50 rounded-full w-full overflow-hidden border border-slate-100 italic">
-                                      <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${(count / (serviceTickets.length || 1)) * 100}%` }}></div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Tech Performance */}
-                            <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                              <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
-                                <User className="text-indigo-600" size={20} /> {t('technicianRevenue')}
-                              </h3>
-                              <div className="space-y-3">
-                                {Object.entries(serviceTickets.reduce((acc, t) => {
-                                  if (t.technician) {
-                                    acc[t.technician] = (acc[t.technician] || 0) + Number(t.estimatedCost || 0);
-                                  }
-                                  return acc;
-                                }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tech, revenue], i) => (
-                                  <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 group hover:border-indigo-200 transition-all">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-indigo-600 border border-indigo-100 shadow-sm">
-                                        {tech[0].toUpperCase()}
-                                      </div>
-                                      <span className="text-xs font-black text-slate-600 uppercase tracking-tight">{tech}</span>
-                                    </div>
-                                    <span className="text-xs font-black text-emerald-600 font-mono">{formatCurrency(revenue)}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                            </>
+                          )
+                        })()}
+                      </div>
                     </div>
+                  )}
+
+                  {/* Sub Tab: REPORTS */}
+                  {serviceSubTab === 'reports' && (
+                    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700 pb-32">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-0 sm:px-0">
+                        {/* Revenue Summary */}
+                        <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                          <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
+                            <CreditCard className="text-blue-600" size={20} /> {t('monthlyServiceRevenue')}
+                          </h3>
+                          <div className="space-y-3">
+                            {[
+                              { label: t('totalRevenue') || 'Total Revenue', value: formatCurrency(serviceTickets.reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-blue-600', bg: 'bg-blue-50' },
+                              { label: t('collected') || 'Collected', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Paid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                              { label: t('unpaid') || 'Unpaid', value: formatCurrency(serviceTickets.filter(t => t.paymentStatus === 'Unpaid').reduce((acc, curr) => acc + Number(curr.estimatedCost || 0), 0)), color: 'text-rose-600', bg: 'bg-rose-50' }
+                            ].map((stat, i) => (
+                              <div key={i} className={`flex justify-between items-center p-4 ${stat.bg}/30 rounded-2xl border border-${stat.color.split('-')[1]}-100/50`}>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
+                                <span className={`text-sm font-black mono ${stat.color}`}>{stat.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Top Brands */}
+                        <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                          <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
+                            <Smartphone className="text-orange-600" size={20} /> {t('topRepairs')}
+                          </h3>
+                          <div className="space-y-4">
+                            {Object.entries(serviceTickets.reduce((acc, t) => {
+                              acc[t.brand] = (acc[t.brand] || 0) + 1;
+                              return acc;
+                            }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([brand, count], i) => (
+                              <div key={i} className="flex flex-col gap-2 group">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs font-black text-slate-600 uppercase tracking-tight">{brand || 'Unknown'}</span>
+                                  <span className="text-xs font-black text-slate-900">{count}</span>
+                                </div>
+                                <div className="h-2 bg-slate-50 rounded-full w-full overflow-hidden border border-slate-100 italic">
+                                  <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${(count / (serviceTickets.length || 1)) * 100}%` }}></div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Tech Performance */}
+                        <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                          <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-3">
+                            <User className="text-indigo-600" size={20} /> {t('technicianRevenue')}
+                          </h3>
+                          <div className="space-y-3">
+                            {Object.entries(serviceTickets.reduce((acc, t) => {
+                              if (t.technician) {
+                                acc[t.technician] = (acc[t.technician] || 0) + Number(t.estimatedCost || 0);
+                              }
+                              return acc;
+                            }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tech, revenue], i) => (
+                              <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 group hover:border-indigo-200 transition-all">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-indigo-600 border border-indigo-100 shadow-sm">
+                                    {tech[0].toUpperCase()}
+                                  </div>
+                                  <span className="text-xs font-black text-slate-600 uppercase tracking-tight">{tech}</span>
+                                </div>
+                                <span className="text-xs font-black text-emerald-600 font-mono">{formatCurrency(revenue)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+      {/* --- Modals --- */}
+
+      {/* Service / Repair Ticket Edit Modal */}
+      {
+        isTicketModalOpen && editingTicket && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] lg:p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet max-h-[90vh]">
+              {/* Mobile Pull Indicator */}
+              <div className="lg:hidden w-full pt-4 shrink-0">
+                <div className="pull-indicator"></div>
+              </div>
+
+              <div className="p-6 md:p-8 flex justify-between items-center border-b border-gray-100 shrink-0">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
+                    <Wrench size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-none">{t('editTicket')}</h3>
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('ticketId') || 'Ticket'}: #{editingTicket.id.slice(0, 8)}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsTicketModalOpen(false);
+                    setEditingTicket(null);
+                  }}
+                  className="p-3 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-2xl transition-all active:scale-95 border border-slate-100 flex items-center justify-center cursor-pointer group"
+                >
+                  <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 no-scrollbar pb-32 lg:pb-8">
+                {/* Customer Snapshot */}
+                <div className="flex items-center justify-between bg-slate-50 p-6 rounded-[2rem] border border-slate-100/50">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100">
+                      <User size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-gray-900 uppercase tracking-tight text-base">{editingTicket.customerName}</h4>
+                      <p className="text-xs text-blue-600 font-bold">{editingTicket.customerPhone}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => window.open(`tel:${editingTicket.customerPhone}`)} className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200 active:scale-90 transition-all">
+                    <Phone size={20} />
+                  </button>
+                </div>
+
+                {/* Status & Assignment */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('status')}</label>
+                    <select className={`w-full px-5 py-4 rounded-2xl text-sm font-black uppercase tracking-widest border-2 transition-all outline-none appearance-none ${editingTicket.status === 'Ready' ? 'bg-emerald-50 border-emerald-100 text-emerald-600 focus:ring-emerald-500/20' :
+                      editingTicket.status === 'In Progress' ? 'bg-blue-50 border-blue-100 text-blue-600 focus:ring-blue-500/20' :
+                        'bg-slate-50 border-slate-100 text-slate-600 focus:ring-slate-500/20'
+                      }`} value={editingTicket.status} onChange={e => setEditingTicket({ ...editingTicket, status: e.target.value })}>
+                      <option value="Received">{t('received')}</option>
+                      <option value="In Progress">{t('inProgress')}</option>
+                      <option value="Waiting for Parts">{t('waitingParts')}</option>
+                      <option value="Ready">{t('readyPickup')}</option>
+                      <option value="Delivered">{t('delivered')} ({t('closed') || 'Closed'})</option>
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('assignedTechnician') || 'Technician'}</label>
+                    <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={editingTicket.technician || ''} onChange={e => setEditingTicket({ ...editingTicket, technician: e.target.value })}>
+                      <option value="">{t('unassigned') || 'Unassigned'}</option>
+                      {employees.filter(e => e.dept === 'IT' || e.dept === 'Service' || e.role?.toLowerCase().includes('tech')).map(emp => (
+                        <option key={emp.id} value={emp.name}>{emp.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('issueDescription') || 'Issue'}</label>
+                  <div className="relative">
+                    <textarea
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-bold text-gray-700 min-h-[100px] focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
+                      value={editingTicket.issue}
+                      onChange={e => setEditingTicket({ ...editingTicket, issue: e.target.value })}
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('priority') || 'Priority'}</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {['Low', 'Normal', 'High', 'Urgent'].map(p => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setEditingTicket({ ...editingTicket, priority: p })}
+                          className={`py-2.5 rounded-xl text-[8px] font-black uppercase tracking-tight border transition-all ${editingTicket.priority === p ?
+                            (p === 'Urgent' ? 'bg-rose-600 text-white border-rose-600 shadow-lg shadow-rose-200' :
+                              p === 'High' ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-200' :
+                                p === 'Normal' ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' :
+                                  'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-200') :
+                            'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
+                        >
+                          {t(p.toLowerCase()) || p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-emerald-600 tracking-widest pl-2">{t('estimatedCost')} ({currency})</label>
+                    <div className="relative">
+                      <input type="number" className="w-full px-5 py-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-xl font-black text-emerald-600 font-mono focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none" value={editingTicket.estimatedCost} onChange={e => setEditingTicket({ ...editingTicket, estimatedCost: e.target.value })} />
+                      <div className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-300">
+                        <CreditCard size={20} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('paymentStatus') || 'Payment Status'}</label>
+                    <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={editingTicket.paymentStatus || 'Unpaid'} onChange={e => setEditingTicket({ ...editingTicket, paymentStatus: e.target.value })}>
+                      <option value="Unpaid">{t('unpaid')}</option>
+                      <option value="Partial">{t('partial')}</option>
+                      <option value="Paid">{t('paid')}</option>
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('paymentMethod') || 'Payment Method'}</label>
+                    <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={editingTicket.paymentMethod || 'Cash'} onChange={e => setEditingTicket({ ...editingTicket, paymentMethod: e.target.value })}>
+                      <option value="Cash">{t('cash')}</option>
+                      <option value="Card">{t('creditCard')}</option>
+                      <option value="Digital Wallet">{t('digitalPayment')}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-5 bg-slate-50/80 p-6 rounded-[2rem] border border-slate-100 outline-none">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex justify-between items-center px-2">
+                    <span>{t('partsUsed') || 'Spare Parts Used'}</span>
+                    <span className="bg-white px-2 py-0.5 rounded-full text-[8px] border border-slate-200">{(editingTicket.partsUsed || []).length} items</span>
+                  </label>
+                  <div className="relative group">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                        <input
+                          type="text"
+                          id="part-search-input"
+                          placeholder={t('searchInventory') || "Search parts..."}
+                          className="w-full bg-white border border-slate-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                          autoComplete="off"
+                          onChange={(e) => {
+                            const val = e.target.value.toLowerCase();
+                            const results = val ? inventory.filter(i => (i.name?.toLowerCase().includes(val) || i.barcode?.includes(val)) && i.quantity > 0).slice(0, 5) : [];
+                            setPartSearchResults(results);
+                          }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const val = document.getElementById('part-search-input').value;
+                          if (!val) return;
+                          const price = prompt(`${t('enterItemPrice')} for ${val}:`);
+                          if (price) {
+                            setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: 'man-' + Date.now(), name: val, price: Number(price), quantity: 1, fromInventory: false }] });
+                            document.getElementById('part-search-input').value = '';
+                            setPartSearchResults([]);
+                          }
+                        }}
+                        className="bg-slate-900 text-white px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg hover:bg-black transition-colors"
+                      >
+                        {t('manual')}
+                      </button>
+                    </div>
+
+                    {/* Search Results Dropdown */}
+                    {partSearchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 bg-white border border-slate-100 rounded-[1.5rem] shadow-2xl z-[210] mt-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                        {partSearchResults.map(item => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: item.id, name: item.name, price: item.sellPrice, quantity: 1, fromInventory: true }] });
+                              document.getElementById('part-search-input').value = '';
+                              setPartSearchResults([]);
+                            }}
+                            className="w-full text-left p-4 hover:bg-blue-50 border-b border-slate-50 flex justify-between items-center group transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600">
+                                <Package size={20} />
+                              </div>
+                              <div>
+                                <p className="text-xs font-black text-gray-900 uppercase tracking-tight">{item.name}</p>
+                                <p className="text-[9px] text-slate-400 font-mono tracking-widest uppercase">{item.barcode || 'NO BARCODE'}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-black text-blue-600 font-mono">{formatCurrency(item.sellPrice)}</p>
+                              <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">{item.quantity} in stock</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    {(editingTicket.partsUsed || []).map((part, idx) => (
+                      <div key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 text-xs shadow-sm hover:border-blue-200 transition-all group">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-slate-50 rounded-xl text-slate-400"><Tag size={12} /></div>
+                          <span className="font-black text-slate-700 uppercase tracking-tight">{part.name}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-blue-600 font-black font-mono text-sm">{formatCurrency(part.price)}</span>
+                          <button
+                            onClick={() => setEditingTicket({ ...editingTicket, partsUsed: editingTicket.partsUsed.filter((_, i) => i !== idx) })}
+                            className="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {(editingTicket.partsUsed || []).length > 0 && (
+                      <div className="flex justify-between items-center px-5 py-4 bg-blue-600 rounded-2xl text-xs font-black text-white shadow-xl shadow-blue-100">
+                        <span className="uppercase tracking-[0.2em]">{t('partsTotal') || 'Parts Total'}</span>
+                        <span className="font-mono text-lg tracking-tighter">{formatCurrency((editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0))}</span>
+                      </div>
+                    )}
+                    {(editingTicket.partsUsed || []).length === 0 && (
+                      <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-2xl">
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{t('noPartsUsed') || 'No parts used yet'}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('internalNotes') || 'Internal Technician Notes'}</label>
+                  <textarea className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-xs font-bold text-gray-700 min-h-[80px] focus:bg-white focus:ring-4 focus:ring-slate-500/10 transition-all outline-none resize-none border-dashed" placeholder="Diagnoses details, parts used, etc..." value={editingTicket.notes || ''} onChange={e => setEditingTicket({ ...editingTicket, notes: e.target.value })}></textarea>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex justify-between items-center px-2">
+                    {t('attachPhotos') || 'Device Photos'}
+                    {photoUploading && <Loader2 size={12} className="animate-spin text-blue-600" />}
+                  </label>
+                  <div className="flex flex-wrap gap-4">
+                    <label className="w-24 h-24 border-2 border-dashed border-slate-200 rounded-[1.5rem] flex flex-col items-center justify-center text-slate-300 hover:text-blue-600 hover:border-blue-200 transition-all cursor-pointer bg-slate-50 active:scale-95 group">
+                      <Camera size={24} className="group-hover:scale-110 transition-transform" />
+                      <span className="text-[8px] font-black uppercase mt-1.5 tracking-widest">{t('add')}</span>
+                      <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const url = await handleUploadRepairPhoto(file, editingTicket.id);
+                          if (url) {
+                            setEditingTicket({ ...editingTicket, photos: [...(editingTicket.photos || []), url] });
+                          }
+                        }
+                      }} />
+                    </label>
+                    {(editingTicket.photos || []).map((url, i) => (
+                      <div key={i} className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden group border-2 border-white shadow-md">
+                        <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        <button onClick={() => setEditingTicket({ ...editingTicket, photos: editingTicket.photos.filter((_, idx) => idx !== i) })} className="absolute inset-0 bg-rose-600/60 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
+                          <Trash2 size={24} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 md:p-8 border-t border-gray-100 bg-white shrink-0 sticky bottom-0 z-20 shadow-[0_-20px_40px_rgba(255,255,255,0.95)] rounded-t-[2.5rem] lg:rounded-none">
+                <div className="grid grid-cols-2 lg:flex lg:flex-row gap-3 w-full items-center">
+                  <div className="col-span-2 lg:col-auto lg:flex-1">
+                    {editingTicket.status === 'Delivered' && (
+                      <button onClick={async () => {
+                        if (window.confirm('Delete this ticket entirely?')) {
+                          await deleteDoc(doc(db, 'serviceTickets', editingTicket.id));
+                          setIsTicketModalOpen(false); setEditingTicket(null);
+                        }
+                      }} className="w-full lg:w-16 h-14 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all active:scale-95 shadow-sm border border-rose-100 flex items-center justify-center">
+                        <Trash2 size={24} />
+                      </button>
+                    )}
+                    {!(editingTicket.status === 'Delivered') && (
+                      <button onClick={() => {
+                        const laborPrice = Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0);
+                        const repairItems = [
+                          { id: 'SRV-' + editingTicket.id + '-LB', name: `Repair Labor: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
+                          ...(editingTicket.partsUsed || []).map(p => ({ id: p.id || 'man-' + Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                        ];
+                        setServiceCart([...serviceCart, ...repairItems]);
+                        setServiceSubTab('sell');
+                        setIsTicketModalOpen(false);
+                        setEditingTicket(null);
+                      }} className="w-full px-6 h-14 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[9px] transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 whitespace-nowrap active:scale-95">
+                        <ShoppingCart size={18} strokeWidth={3} /> {t('billToPOS') || 'Bill to POS'}
+                      </button>
+                    )}
+                  </div>
+
+                  <button type="button" onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="px-6 h-14 bg-gray-50 text-slate-400 rounded-2xl hover:bg-gray-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
+                  <button onClick={async () => {
+                    try {
+                      const origTicket = serviceTickets.find(t => t.id === editingTicket.id);
+                      let newLogs = editingTicket.statusLogs || [];
+                      if (origTicket && origTicket.status !== editingTicket.status) {
+                        newLogs = [...newLogs, { status: editingTicket.status, date: new Date().toISOString(), by: user.email || 'System' }];
+
+                        if (editingTicket.status === 'Delivered' && origTicket.status !== 'Delivered') {
+                          const batch = writeBatch(db);
+                          (editingTicket.partsUsed || []).forEach(part => {
+                            const invRef = doc(db, 'inventory', part.id);
+                            const currentInv = inventory.find(i => i.id === part.id);
+                            if (currentInv) {
+                              const newQty = Math.max(0, Number(currentInv.quantity) - (part.quantity || 1));
+                              batch.update(invRef, { quantity: newQty });
+                            }
+                          });
+                          await batch.commit();
+                        }
+                      }
+                      await updateDoc(doc(db, 'serviceTickets', editingTicket.id), { ...editingTicket, statusLogs: newLogs });
+                      setIsTicketModalOpen(false); setEditingTicket(null);
+                    } catch (err) { console.error(err); }
+                  }} className="flex-2 px-12 py-4 bg-blue-600 text-white rounded-[1.5rem] hover:bg-blue-700 font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-blue-200 transition-all flex items-center justify-center gap-3 active:scale-95">
+                    <Save size={18} strokeWidth={3} /> {t('saveChanges')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* --- Service Customer Modal --- */}
+      {isCustomerModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] lg:p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet">
+            {/* Mobile Pull Indicator */}
+            <div className="lg:hidden w-full pt-4 shrink-0">
+              <div className="pull-indicator"></div>
+            </div>
+
+            <div className="p-8 flex justify-between items-center border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 shadow-sm border border-blue-100/50">
+                  <UserPlus size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-none">{selectedServiceCustomer ? t('editCustomer') : t('addCustomer')}</h3>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('customerInformation') || 'Customer Profile'}</p>
+                </div>
+              </div>
+              <button onClick={() => { setIsCustomerModalOpen(false); setSelectedServiceCustomer(null); setServiceCustomerForm({ name: '', phone: '', email: '', address: '', notes: '' }); }} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 space-y-6 no-scrollbar pb-32 lg:pb-8">
+              <form id="customer-form" onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  if (selectedServiceCustomer) {
+                    await updateDoc(doc(db, 'serviceCustomers', selectedServiceCustomer.id), serviceCustomerForm);
+                  } else {
+                    await addDoc(collection(db, 'serviceCustomers'), { ...serviceCustomerForm, userId: user.uid, createdAt: serverTimestamp() });
+                  }
+                  setIsCustomerModalOpen(false);
+                  setSelectedServiceCustomer(null);
+                  setServiceCustomerForm({ name: '', phone: '', email: '', address: '', notes: '' });
+                } catch (err) { console.error(err); }
+              }} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
+                  <input type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceCustomerForm.name} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, name: e.target.value })} required />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('phone')}</label>
+                  <input type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceCustomerForm.phone} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, phone: e.target.value })} required />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('email')}</label>
+                  <input type="email" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceCustomerForm.email} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, email: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('address')}</label>
+                  <textarea className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none min-h-[100px] resize-none" value={serviceCustomerForm.address} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, address: e.target.value })}></textarea>
+                </div>
+              </form>
+            </div>
+
+            <div className="p-8 border-t border-gray-100 bg-white lg:bg-gray-50 flex gap-4 shrink-0 sticky bottom-0 rounded-t-[2.5rem] lg:rounded-none shadow-[0_-20px_40px_rgba(255,255,255,0.8)]">
+              <button type="button" onClick={() => { setIsCustomerModalOpen(false); setSelectedServiceCustomer(null); }} className="flex-1 px-8 py-4 bg-white text-slate-400 rounded-2xl hover:bg-slate-50 font-black uppercase tracking-widest text-[10px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
+              <button form="customer-form" type="submit" className="flex-[2] bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 active:scale-95">
+                <Save size={18} /> {selectedServiceCustomer ? t('saveChanges') : t('addCustomer')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- Service Inventory Modal --- */}
+      {isServiceInventoryModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] lg:p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet">
+            {/* Mobile Pull Indicator */}
+            <div className="lg:hidden w-full pt-4 shrink-0">
+              <div className="pull-indicator"></div>
+            </div>
+
+            <div className="p-8 flex justify-between items-center border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 shadow-sm border border-emerald-100/50">
+                  <Package size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-none">{editingServiceInventory ? t('editItem') : t('addStock')}</h3>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('inventoryManagement') || 'Part Details'}</p>
+                </div>
+              </div>
+              <button onClick={() => { setIsServiceInventoryModalOpen(false); setEditingServiceInventory(null); setServiceInventoryForm({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 }); }} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 space-y-6 no-scrollbar pb-32 lg:pb-8">
+              <form id="inventory-form" onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const finalData = {
+                    ...serviceInventoryForm,
+                    quantity: Number(serviceInventoryForm.stock),
+                    updatedAt: serverTimestamp()
+                  };
+                  delete finalData.stock;
+
+                  if (editingServiceInventory) {
+                    await updateDoc(doc(db, 'inventory', editingServiceInventory.id), finalData);
+                  } else {
+                    await addDoc(collection(db, 'inventory'), { ...finalData, userId: user.uid, createdAt: serverTimestamp() });
+                  }
+                  setIsServiceInventoryModalOpen(false);
+                  setEditingServiceInventory(null);
+                  setServiceInventoryForm({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 });
+                } catch (err) { console.error(err); }
+              }} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('itemName')}</label>
+                  <input type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.name} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, name: e.target.value })} required />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('category')}</label>
+                  <select className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none" value={serviceInventoryForm.category} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, category: e.target.value })}>
+                    <option value="Phone Parts">{t('phoneParts')}</option>
+                    <option value="PC Components">{t('pcComponents')}</option>
+                    <option value="Accessories">{t('accessories')}</option>
+                    <option value="Other">{t('other')}</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('quantity')}</label>
+                    <input type="number" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black font-mono focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.stock} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, stock: Number(e.target.value) })} required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('minStock')}</label>
+                    <input type="number" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black font-mono focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.minStock} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, minStock: Number(e.target.value) })} required />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('buyPrice')}</label>
+                    <input type="number" step="0.01" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black font-mono focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.buyPrice} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, buyPrice: Number(e.target.value) })} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('sellPrice')}</label>
+                    <input type="number" step="0.01" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black font-mono focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.sellPrice} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, sellPrice: Number(e.target.value) })} required />
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div className="p-8 border-t border-gray-100 bg-white lg:bg-gray-50 flex gap-4 shrink-0 sticky bottom-0 rounded-t-[2.5rem] lg:rounded-none shadow-[0_-20px_40px_rgba(255,255,255,0.8)]">
+              <button type="button" onClick={() => { setIsServiceInventoryModalOpen(false); setEditingServiceInventory(null); }} className="flex-1 px-8 py-4 bg-white text-slate-400 rounded-2xl hover:bg-slate-50 font-black uppercase tracking-widest text-[10px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
+              <button form="inventory-form" type="submit" className="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 active:scale-95">
+                <Save size={18} /> {editingServiceInventory ? t('saveChanges') : t('addStock')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Barcode Print Configuration Modal */}
+      {
+        isPrintBarcodeModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[200] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">{t('printWizard')}</h3>
+                <button onClick={() => setIsPrintBarcodeModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="max-h-[50vh] overflow-y-auto space-y-2 pr-2">
+                  {printConfigs.map((cfg, idx) => (
+                    <div key={cfg.item.id} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden">
+                        {cfg.item.photo ? <img src={cfg.item.photo} alt="" className="w-full h-full object-cover" /> : <Package size={20} className="text-gray-300" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-gray-900 truncate">{cfg.item.name}</p>
+                        <p className="text-[10px] font-mono text-gray-400">{cfg.item.barcode || t('noBarcode') || 'No Barcode'}</p>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newConfigs = [...printConfigs];
+                            newConfigs[idx].qty = Math.max(0, (newConfigs[idx].qty || 0) - 1);
+                            setPrintConfigs(newConfigs);
+                          }}
+                          className="p-1 hover:bg-gray-100 rounded text-gray-500"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                        <input
+                          type="number"
+                          className="w-12 text-center text-sm font-bold bg-transparent outline-none"
+                          value={cfg.qty}
+                          onChange={(e) => {
+                            const newConfigs = [...printConfigs];
+                            newConfigs[idx].qty = parseInt(e.target.value) || 0;
+                            setPrintConfigs(newConfigs);
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newConfigs = [...printConfigs];
+                            newConfigs[idx].qty = (newConfigs[idx].qty || 0) + 1;
+                            setPrintConfigs(newConfigs);
+                          }}
+                          className="p-1 hover:bg-gray-100 rounded text-gray-500"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-600 text-white rounded-lg">
+                      <Printer size={20} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{t('totalLabels')}</p>
+                      <p className="text-xl font-black text-blue-900">{printConfigs.reduce((sum, c) => sum + (c.qty || 0), 0)}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{t('layoutMode')}</p>
+                    <p className="text-sm font-bold text-blue-900 uppercase">{t(barcodePrintMode.toLowerCase()) || barcodePrintMode}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsPrintBarcodeModalOpen(false)}
+                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-all"
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      handlePrintBatchBarcodes(printConfigs);
+                      setIsPrintBarcodeModalOpen(false);
+                    }}
+                    className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-xl hover:bg-black font-bold shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Printer size={20} /> {t('printNow')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Employee Modal (Premium) */}
+      {
+        isAddModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('addEmployee')}</h3>
+                <button onClick={() => setIsAddModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleAddEmployee} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
+                <div className="flex justify-center mb-4">
+                  <label className="relative cursor-pointer group">
+                    <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors">
+                      {newEmployeeForm.photo ? <img src={newEmployeeForm.photo} alt="Preview" className="w-full h-full object-cover" /> : <Camera className="text-gray-400 group-hover:text-blue-500" size={32} />}
+                    </div>
+                    <input type="file" accept="image/*" onChange={handleNewEmployeeImage} className="hidden" />
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <input className="input-field" placeholder={t('name')} value={newEmployeeForm.name} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, name: e.target.value })} required />
+                  <input className="input-field" placeholder={t('role')} value={newEmployeeForm.role} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, role: e.target.value })} required />
+                </div>
+
+                <select className="input-field" value={newEmployeeForm.dept} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, dept: e.target.value })}>
+                  {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => (
+                    <option key={d} value={d}>{translations[language]?.[d.toLowerCase()] || d}</option>
+                  ))}
+                </select>
+
+                <select className="input-field" value={newEmployeeForm.location} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, location: e.target.value })} required>
+                  {sites.length === 0 ? (
+                    <option value="">{t('noLocations') || 'No locations available - Please create a location first'}</option>
+                  ) : (
+                    <>
+                      <option value="">{t('selectLocation') || 'Select Location'}</option>
+                      {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    </>
+                  )}
+                </select>
+
+                <select className="input-field" value={newEmployeeForm.shift} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, shift: e.target.value })}>
+                  {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
+                </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="number" className="input-field" placeholder={t('salary')} value={newEmployeeForm.salary} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salary: Number(e.target.value) })} required />
+                  <select className="p-2 border rounded-xl text-xs font-bold bg-white" value={newEmployeeForm.salaryMethod || 'Monthly'} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salaryMethod: e.target.value })}>
+                    <option value="Monthly">{t('monthly')}</option>
+                    <option value="Weekly">{t('weekly')}</option>
+                    <option value="Daily">{t('daily')}</option>
+                    <option value="Hourly">Hourly</option>
+                  </select>
+                </div>
+
+                <div className="pt-2 grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
+                  <button type="submit" className="px-4 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-black uppercase tracking-widest text-[9px] shadow-lg shadow-blue-600/20 transition-all active:scale-95">{t('addEmployee')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Site Modal (Premium) */}
+      {
+        isAddSiteModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('createLocation')}</h3>
+                <button onClick={() => setIsAddSiteModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleAddSite} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
+                <input className="input-field" placeholder={t('siteName')} value={newSiteForm.name} onChange={e => setNewSiteForm({ ...newSiteForm, name: e.target.value })} required />
+                <input className="input-field" placeholder={t('city')} value={newSiteForm.city} onChange={e => setNewSiteForm({ ...newSiteForm, city: e.target.value })} required />
+                <input className="input-field" placeholder={t('manager')} value={newSiteForm.manager} onChange={e => setNewSiteForm({ ...newSiteForm, manager: e.target.value })} />
+                <input className="input-field" placeholder={t('phone') || 'Phone'} value={newSiteForm.phone || ''} onChange={e => setNewSiteForm({ ...newSiteForm, phone: e.target.value })} />
+
+                <select className="input-field" value={newSiteForm.status} onChange={e => setNewSiteForm({ ...newSiteForm, status: e.target.value })}>
+                  <option value="Operational">{t('operational')}</option>
+                  <option value="Renovating">{t('renovating')}</option>
+                  <option value="Active">{t('active')}</option>
+                  <option value="Closed">{t('closed')}</option>
+                </select>
+
+                <div className="pt-2 grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => setIsAddSiteModalOpen(false)} className="px-4 py-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
+                  <button type="submit" className="px-4 py-3 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 font-black uppercase tracking-widest text-[9px] shadow-lg shadow-emerald-600/20 transition-all active:scale-95">{t('createLocation')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Detail Sidebar (Employee/Site) */}
+      {
+        (selectedEmployee || selectedSite) && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[1040] md:hidden animate-in fade-in duration-300" onClick={() => { setSelectedEmployee(null); setSelectedSite(null); }}></div>
+        )
+      }
+      {
+        (selectedEmployee || selectedSite) && (
+          <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-2xl z-[1050] transform transition-transform duration-500 ease-out border-l border-gray-100 flex flex-col translate-x-0">
+            <div className="p-6 border-b-2 border-slate-100 flex justify-between items-center shrink-0 bg-white sticky top-0 z-[1060]">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-3 h-3 rounded-full bg-blue-600 animate-pulse shadow-lg shadow-blue-200"></div>
+                <h3 className="font-black text-slate-800 uppercase tracking-[0.2em] text-xs">
+                  {selectedEmployee ? t('employeeDetails') : t('locationDetails')}
+                </h3>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedEmployee(null);
+                  setSelectedSite(null);
+                }}
+                className="w-14 h-14 flex items-center justify-center bg-rose-600 text-white hover:bg-rose-700 rounded-2xl shadow-xl transition-all active:scale-90 cursor-pointer group hover:rotate-90"
+                aria-label="Close"
+              >
+                <X size={28} strokeWidth={3} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar p-6 pb-32 space-y-8">
+              {selectedEmployee && (
+                <div className="space-y-8">
+                  <div className="flex flex-col items-center">
+                    <div className="relative group p-1 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
+                      <div className="w-24 h-24 rounded-full bg-white overflow-hidden border-2 border-white shadow-inner">
+                        {selectedEmployee.photo ? <img src={selectedEmployee.photo} alt={selectedEmployee.name} className="w-full h-full object-cover" /> : <User size={40} className="text-slate-200 m-auto mt-6" />}
+                      </div>
+                      <label className="absolute bottom-1 right-1 bg-white p-2 rounded-full text-blue-600 shadow-lg cursor-pointer hover:bg-blue-50 transition-all border border-blue-100 active:scale-90">
+                        <Camera size={14} />
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpdateEmployeeImage(selectedEmployee.id, e)} />
+                      </label>
+                    </div>
+                    <input
+                      className="text-xl font-black text-slate-900 text-center bg-transparent border-b-2 border-transparent focus:border-blue-500 focus:outline-none transition-all w-full uppercase tracking-tight"
+                      value={selectedEmployee.name}
+                      onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'name', e.target.value)}
+                    />
+                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-2 px-3 py-1 bg-blue-50 rounded-full">{t(selectedEmployee.role.toLowerCase()) || selectedEmployee.role}</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-5 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('dept')}</span>
+                        <select
+                          className="text-xs font-black bg-transparent text-right outline-none text-slate-700"
+                          value={selectedEmployee.dept || ''}
+                          onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'dept', e.target.value)}
+                        >
+                          {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => (
+                            <option key={d} value={d}>{translations[language]?.[d.toLowerCase()] || d}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('location')}</span>
+                        <select className="text-xs font-black bg-transparent text-right outline-none text-slate-700" value={selectedEmployee.location || ''} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'location', e.target.value)}>
+                          <option value="">{t('selectLocation')}</option>
+                          {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('shift')}</span>
+                        <select className="text-xs font-black bg-transparent text-right outline-none text-slate-700" value={selectedEmployee.shift} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'shift', e.target.value)}>
+                          {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="p-5 bg-blue-50/50 rounded-[2rem] border border-blue-100 space-y-4">
+                      <h4 className="text-[10px] font-black text-blue-900 uppercase tracking-widest flex items-center gap-2 mb-2"><DollarSign size={14} /> {t('compensation')}</h4>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-blue-700">{t('salary')}</span>
+                        <input type="number" className="w-24 text-right bg-white rounded-lg px-2 py-1.5 text-xs font-mono border border-blue-100" value={selectedEmployee.salary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salary', Number(e.target.value))} />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-red-500">{t('advance')}</span>
+                        <input type="number" className="w-24 text-right bg-white rounded-lg px-2 py-1.5 text-xs font-mono border border-red-100 text-red-600" value={selectedEmployee.advanceSalary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'advanceSalary', Number(e.target.value))} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleDeleteEmployee(selectedEmployee.id)}
+                    className="w-full bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 group"
+                  >
+                    <Trash2 size={16} className="group-hover:animate-bounce" /> {t('terminateService')}
+                  </button>
+                </div>
+              )}
+
+              {selectedSite && !selectedEmployee && (
+                <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
+                  <div className="space-y-6">
+                    <div className="p-6 bg-slate-50/80 rounded-[2rem] border border-slate-100 space-y-5">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('siteName')}</label>
+                        <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.name} onChange={(e) => handleUpdateSite(selectedSite.id, 'name', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('city')}</label>
+                        <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.city} onChange={(e) => handleUpdateSite(selectedSite.id, 'city', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('manager')}</label>
+                        <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.manager} onChange={(e) => handleUpdateSite(selectedSite.id, 'manager', e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('operationalStatus')}</label>
+                        <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-widest focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.status} onChange={(e) => handleUpdateSite(selectedSite.id, 'status', e.target.value)}>
+                          <option value="Operational">{t('operational')}</option>
+                          <option value="Renovating">{t('renovating')}</option>
+                          <option value="Active">{t('active')}</option>
+                          <option value="Closed">{t('closed')}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-emerald-50/50 rounded-[2rem] border border-emerald-100 space-y-4">
+                      <h4 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest flex items-center gap-2 mb-2"><Users size={16} /> {t('assignedStaff') || 'Assigned Staff'}</h4>
+                      <div className="space-y-3">
+                        {employees.filter(e => e.location === selectedSite.name).map(e => (
+                          <div key={e.id} className="flex items-center justify-between bg-white/80 p-3 rounded-xl border border-emerald-50 shadow-sm">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] font-black text-emerald-700">{e.name?.[0].toUpperCase()}</div>
+                              <span className="text-xs font-black text-slate-700 uppercase tracking-tight">{e.name}</span>
+                            </div>
+                            <span className="text-[8px] font-black text-emerald-500 uppercase px-2 py-0.5 bg-emerald-50 rounded-full">{t(e.role?.toLowerCase()) || e.role}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleDeleteSite(selectedSite.id, selectedSite.name)}
+                      className="w-full bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
+                    >
+                      <Trash2 size={16} /> {t('deleteLocation')}
+                    </button>
                   </div>
                 </div>
               )}
             </div>
-      </main>
+          </div>
+        )
+      }
 
-      {/* --- Modals --- */}
+      {/* Settings Modal (Premium with Scroll Padding) */}
+      {
+        showSettings && (
+          <div className="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-[150] backdrop-blur-xl p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-2xl h-full sm:h-[85vh] shadow-2xl overflow-hidden flex flex-col border border-white/20 relative">
 
-          {/* Service / Repair Ticket Edit Modal */}
-          {
-            isTicketModalOpen && editingTicket && (
-              <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] lg:p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet max-h-[90vh]">
-                  {/* Mobile Pull Indicator */}
-                  <div className="lg:hidden w-full pt-4 shrink-0">
-                    <div className="pull-indicator"></div>
-                  </div>
-
-                  <div className="p-6 md:p-8 flex justify-between items-center border-b border-gray-100 shrink-0">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
-                        <Wrench size={24} />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-none">{t('editTicket')}</h3>
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('ticketId') || 'Ticket'}: #{editingTicket.id.slice(0, 8)}</p>
-                      </div>
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-32 sm:pb-8">
+                {/* Header - Fixed */}
+                <div className="p-6 border-b border-gray-100 flex-shrink-0 flex justify-between items-center bg-white z-10">
+                  <h3 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                    <div className="p-2 bg-slate-100 rounded-lg">
+                      <Settings className="text-slate-600" size={24} />
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsTicketModalOpen(false);
-                        setEditingTicket(null);
-                      }}
-                      className="p-3 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-2xl transition-all active:scale-95 border border-slate-100 flex items-center justify-center cursor-pointer group"
-                    >
-                      <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-                    </button>
-                  </div>
+                    {t('settings')}
+                  </h3>
+                  <button
+                    onClick={() => setShowSettings(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
 
-                  <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 no-scrollbar pb-32 lg:pb-8">
-                    {/* Customer Snapshot */}
-                    <div className="flex items-center justify-between bg-slate-50 p-6 rounded-[2rem] border border-slate-100/50">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100">
-                          <User size={24} />
+                {/* Scrollable Content */}
+                <div className="p-6 overflow-y-auto custom-scrollbar">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    {/* Column 1: Profile & Localization */}
+                    <div className="space-y-6">
+                      {/* My Profile */}
+                      <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                          <User size={18} className="text-blue-600" /> {t('myProfile')}
+                        </h4>
+                        <div className="space-y-3 mb-4">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('emailLabel')}</span>
+                            <span className="text-sm font-medium text-gray-900 break-all">{user?.email}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('userIdLabel')}</span>
+                            <span className="text-xs font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 break-all select-all text-gray-600">{user?.uid}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('accountTypeLabel')}</span>
+                            <span className="self-start bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-bold">{t('admin')}</span>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-black text-gray-900 uppercase tracking-tight text-base">{editingTicket.customerName}</h4>
-                          <p className="text-xs text-blue-600 font-bold">{editingTicket.customerPhone}</p>
+
+                        <div className="pt-4 border-t border-gray-50">
+                          <h5 className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">{t('accountHandling')}</h5>
+                          <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-300 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                            {t('connectGoogle')}
+                          </button>
+                          <p className="text-[10px] text-gray-400 text-center px-2">{t('linkGoogleDesc')}</p>
                         </div>
                       </div>
-                      <button onClick={() => window.open(`tel:${editingTicket.customerPhone}`)} className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200 active:scale-90 transition-all">
-                        <Phone size={20} />
-                      </button>
-                    </div>
 
-                    {/* Status & Assignment */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('status')}</label>
-                        <select className={`w-full px-5 py-4 rounded-2xl text-sm font-black uppercase tracking-widest border-2 transition-all outline-none appearance-none ${editingTicket.status === 'Ready' ? 'bg-emerald-50 border-emerald-100 text-emerald-600 focus:ring-emerald-500/20' :
-                            editingTicket.status === 'In Progress' ? 'bg-blue-50 border-blue-100 text-blue-600 focus:ring-blue-500/20' :
-                              'bg-slate-50 border-slate-100 text-slate-600 focus:ring-slate-500/20'
-                          }`} value={editingTicket.status} onChange={e => setEditingTicket({ ...editingTicket, status: e.target.value })}>
-                          <option value="Received">{t('received')}</option>
-                          <option value="In Progress">{t('inProgress')}</option>
-                          <option value="Waiting for Parts">{t('waitingParts')}</option>
-                          <option value="Ready">{t('readyPickup')}</option>
-                          <option value="Delivered">{t('delivered')} ({t('closed') || 'Closed'})</option>
-                        </select>
-                      </div>
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('assignedTechnician') || 'Technician'}</label>
-                        <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={editingTicket.technician || ''} onChange={e => setEditingTicket({ ...editingTicket, technician: e.target.value })}>
-                          <option value="">{t('unassigned') || 'Unassigned'}</option>
-                          {employees.filter(e => e.dept === 'IT' || e.dept === 'Service' || e.role?.toLowerCase().includes('tech')).map(emp => (
-                            <option key={emp.id} value={emp.name}>{emp.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('issueDescription') || 'Issue'}</label>
-                      <div className="relative">
-                        <textarea
-                          className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-bold text-gray-700 min-h-[100px] focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
-                          value={editingTicket.issue}
-                          onChange={e => setEditingTicket({ ...editingTicket, issue: e.target.value })}
-                        ></textarea>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('priority') || 'Priority'}</label>
-                        <div className="grid grid-cols-4 gap-2">
-                          {['Low', 'Normal', 'High', 'Urgent'].map(p => (
-                            <button
-                              key={p}
-                              type="button"
-                              onClick={() => setEditingTicket({ ...editingTicket, priority: p })}
-                              className={`py-2.5 rounded-xl text-[8px] font-black uppercase tracking-tight border transition-all ${editingTicket.priority === p ?
-                                (p === 'Urgent' ? 'bg-rose-600 text-white border-rose-600 shadow-lg shadow-rose-200' :
-                                  p === 'High' ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-200' :
-                                    p === 'Normal' ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' :
-                                      'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-200') :
-                                'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
+                      {/* Localization */}
+                      <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                          <Globe size={18} className="text-indigo-600" /> {t('localization')}
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('language')}</label>
+                            <select
+                              value={language}
+                              onChange={(e) => {
+                                const newLang = e.target.value;
+                                setLanguage(newLang);
+                                saveUserSettings({ language: newLang });
+                              }}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                             >
-                              {t(p.toLowerCase()) || p}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase text-emerald-600 tracking-widest pl-2">{t('estimatedCost')} ({currency})</label>
-                        <div className="relative">
-                          <input type="number" className="w-full px-5 py-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-xl font-black text-emerald-600 font-mono focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none" value={editingTicket.estimatedCost} onChange={e => setEditingTicket({ ...editingTicket, estimatedCost: e.target.value })} />
-                          <div className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-300">
-                            <CreditCard size={20} />
+                              <option value="en">English</option>
+                              <option value="hi">हिंदी</option>
+                              <option value="ar">العربية</option>
+                              <option value="zh">中文</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('currency')}</label>
+                            <select
+                              value={currency}
+                              onChange={(e) => {
+                                const newCurrency = e.target.value;
+                                setCurrency(newCurrency);
+                                saveUserSettings({ currency: newCurrency });
+                              }}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            >
+                              <option value="EGP">EGP</option>
+                              <option value="USD">USD</option>
+                              <option value="EUR">EUR</option>
+                              <option value="GBP">GBP</option>
+                              <option value="SAR">SAR</option>
+                              <option value="AED">AED</option>
+                              <option value="INR">INR</option>
+                              <option value="CNY">CNY</option>
+                              <option value="JPY">JPY</option>
+                              <option value="CAD">CAD</option>
+                              <option value="AUD">AUD</option>
+                            </select>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('paymentStatus') || 'Payment Status'}</label>
-                        <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={editingTicket.paymentStatus || 'Unpaid'} onChange={e => setEditingTicket({ ...editingTicket, paymentStatus: e.target.value })}>
-                          <option value="Unpaid">{t('unpaid')}</option>
-                          <option value="Partial">{t('partial')}</option>
-                          <option value="Paid">{t('paid')}</option>
-                        </select>
-                      </div>
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('paymentMethod') || 'Payment Method'}</label>
-                        <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={editingTicket.paymentMethod || 'Cash'} onChange={e => setEditingTicket({ ...editingTicket, paymentMethod: e.target.value })}>
-                          <option value="Cash">{t('cash')}</option>
-                          <option value="Card">{t('creditCard')}</option>
-                          <option value="Digital Wallet">{t('digitalPayment')}</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-5 bg-slate-50/80 p-6 rounded-[2rem] border border-slate-100 outline-none">
-                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex justify-between items-center px-2">
-                        <span>{t('partsUsed') || 'Spare Parts Used'}</span>
-                        <span className="bg-white px-2 py-0.5 rounded-full text-[8px] border border-slate-200">{(editingTicket.partsUsed || []).length} items</span>
-                      </label>
-                      <div className="relative group">
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                    {/* Column 2: Shop, Security, Backup, Danger */}
+                    <div className="space-y-6">
+                      {/* Shop Settings */}
+                      <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                          <Building2 size={18} className="text-orange-600" /> {t('shopSettings')}
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopName')}</label>
                             <input
-                              type="text"
-                              id="part-search-input"
-                              placeholder={t('searchInventory') || "Search parts..."}
-                              className="w-full bg-white border border-slate-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                              placeholder="My Shop"
+                              value={shopSettings.name}
                               autoComplete="off"
-                              onChange={(e) => {
-                                const val = e.target.value.toLowerCase();
-                                const results = val ? inventory.filter(i => (i.name?.toLowerCase().includes(val) || i.barcode?.includes(val)) && i.quantity > 0).slice(0, 5) : [];
-                                setPartSearchResults(results);
-                              }}
+                              name="shop_name_no_autofill"
+                              onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
                             />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopAddress')}</label>
+                            <input
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                              placeholder="123 Main St"
+                              value={shopSettings.address}
+                              autoComplete="off"
+                              name="shop_address_no_autofill"
+                              onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopPhone')}</label>
+                            <input
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                              placeholder="+1 234..."
+                              value={shopSettings.phone}
+                              autoComplete="off"
+                              name="shop_phone_no_autofill"
+                              onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('upiId') || 'UPI ID'} (for India)</label>
+                            <input
+                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                              placeholder="example@upi"
+                              value={shopSettings.upiId || ''}
+                              onChange={(e) => setShopSettings({ ...shopSettings, upiId: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t('instapayId') || 'InstaPay ID'}</label>
+                            <input
+                              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
+                              placeholder="InstaPay ID"
+                              value={shopSettings.instapayId || ''}
+                              onChange={(e) => setShopSettings({ ...shopSettings, instapayId: e.target.value })}
+                            />
+                          </div>
+                          <div className="pt-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-2">{t('shopLogo') || 'Shop Logo'}</label>
+                            <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                              <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm shrink-0">
+                                {shopSettings.logo ? (
+                                  <img src={shopSettings.logo} alt="Logo preview" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Shield size={20} className="text-slate-300" />
+                                )}
+                              </div>
+                              <div className="flex-1 space-y-2">
+                                <input
+                                  type="file"
+                                  id="shop-logo-upload"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                      if (file.size > 2 * 1024 * 1024) {
+                                        alert(t('logoSizeError'));
+                                        return;
+                                      }
+                                      const reader = new FileReader();
+                                      reader.onloadend = () => {
+                                        setShopSettings({ ...shopSettings, logo: reader.result });
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }}
+                                />
+                                <label htmlFor="shop-logo-upload" className="block text-center py-2 px-4 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-lg cursor-pointer hover:bg-slate-50 hover:border-blue-300 transition-all">
+                                  {shopSettings.logo ? (t('changeLogo') || 'Change Logo') : (t('uploadLogo') || 'Upload Logo')}
+                                </label>
+                                {shopSettings.logo && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShopSettings({ ...shopSettings, logo: '' })}
+                                    className="w-full text-[9px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+                                  >
+                                    {t('removeLogo') || 'Remove Logo'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
                           <button
-                            type="button"
-                            onClick={() => {
-                              const val = document.getElementById('part-search-input').value;
-                              if (!val) return;
-                              const price = prompt(`${t('enterItemPrice')} for ${val}:`);
-                              if (price) {
-                                setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: 'man-' + Date.now(), name: val, price: Number(price), quantity: 1, fromInventory: false }] });
-                                document.getElementById('part-search-input').value = '';
-                                setPartSearchResults([]);
+                            onClick={async () => {
+                              if (!user) return;
+                              try {
+                                await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
+                                alert(t('shopSettingsSaved'));
+                              } catch (e) {
+                                console.error(e);
+                                alert(t('shopSettingsError'));
                               }
                             }}
-                            className="bg-slate-900 text-white px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg hover:bg-black transition-colors"
+                            className="w-full bg-gray-900 text-white font-bold py-2 rounded-lg hover:bg-black transition-colors text-sm mt-2"
                           >
-                            {t('manual')}
+                            {t('updateSettings')}
                           </button>
                         </div>
-
-                        {/* Search Results Dropdown */}
-                        {partSearchResults.length > 0 && (
-                          <div className="absolute top-full left-0 right-0 bg-white border border-slate-100 rounded-[1.5rem] shadow-2xl z-[210] mt-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                            {partSearchResults.map(item => (
-                              <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => {
-                                  setEditingTicket({ ...editingTicket, partsUsed: [...(editingTicket.partsUsed || []), { id: item.id, name: item.name, price: item.sellPrice, quantity: 1, fromInventory: true }] });
-                                  document.getElementById('part-search-input').value = '';
-                                  setPartSearchResults([]);
-                                }}
-                                className="w-full text-left p-4 hover:bg-blue-50 border-b border-slate-50 flex justify-between items-center group transition-colors"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600">
-                                    <Package size={20} />
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-black text-gray-900 uppercase tracking-tight">{item.name}</p>
-                                    <p className="text-[9px] text-slate-400 font-mono tracking-widest uppercase">{item.barcode || 'NO BARCODE'}</p>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-black text-blue-600 font-mono">{formatCurrency(item.sellPrice)}</p>
-                                  <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">{item.quantity} in stock</p>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        )}
                       </div>
 
-                      <div className="space-y-3">
-                        {(editingTicket.partsUsed || []).map((part, idx) => (
-                          <div key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 text-xs shadow-sm hover:border-blue-200 transition-all group">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-slate-50 rounded-xl text-slate-400"><Tag size={12} /></div>
-                              <span className="font-black text-slate-700 uppercase tracking-tight">{part.name}</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-blue-600 font-black font-mono text-sm">{formatCurrency(part.price)}</span>
-                              <button
-                                onClick={() => setEditingTicket({ ...editingTicket, partsUsed: editingTicket.partsUsed.filter((_, i) => i !== idx) })}
-                                className="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center"
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                        {(editingTicket.partsUsed || []).length > 0 && (
-                          <div className="flex justify-between items-center px-5 py-4 bg-blue-600 rounded-2xl text-xs font-black text-white shadow-xl shadow-blue-100">
-                            <span className="uppercase tracking-[0.2em]">{t('partsTotal') || 'Parts Total'}</span>
-                            <span className="font-mono text-lg tracking-tighter">{formatCurrency((editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0))}</span>
-                          </div>
-                        )}
-                        {(editingTicket.partsUsed || []).length === 0 && (
-                          <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-2xl">
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{t('noPartsUsed') || 'No parts used yet'}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                      {/* Security */}
+                      <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
+                          <Shield size={18} className="text-teal-600" /> {t('changePin')} & {t('setSecurityQuestion')}
+                        </h4>
 
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-2">{t('internalNotes') || 'Internal Technician Notes'}</label>
-                      <textarea className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-xs font-bold text-gray-700 min-h-[80px] focus:bg-white focus:ring-4 focus:ring-slate-500/10 transition-all outline-none resize-none border-dashed" placeholder="Diagnoses details, parts used, etc..." value={editingTicket.notes || ''} onChange={e => setEditingTicket({ ...editingTicket, notes: e.target.value })}></textarea>
-                    </div>
+                        {/* Multi-Mode PIN Management */}
+                        <div className="space-y-4 pt-2 border-t border-gray-100">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t('pinManagement') || 'PIN Management'}</h4>
 
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex justify-between items-center px-2">
-                        {t('attachPhotos') || 'Device Photos'}
-                        {photoUploading && <Loader2 size={12} className="animate-spin text-blue-600" />}
-                      </label>
-                      <div className="flex flex-wrap gap-4">
-                        <label className="w-24 h-24 border-2 border-dashed border-slate-200 rounded-[1.5rem] flex flex-col items-center justify-center text-slate-300 hover:text-blue-600 hover:border-blue-200 transition-all cursor-pointer bg-slate-50 active:scale-95 group">
-                          <Camera size={24} className="group-hover:scale-110 transition-transform" />
-                          <span className="text-[8px] font-black uppercase mt-1.5 tracking-widest">{t('add')}</span>
-                          <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              const url = await handleUploadRepairPhoto(file, editingTicket.id);
-                              if (url) {
-                                setEditingTicket({ ...editingTicket, photos: [...(editingTicket.photos || []), url] });
-                              }
-                            }
-                          }} />
-                        </label>
-                        {(editingTicket.photos || []).map((url, i) => (
-                          <div key={i} className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden group border-2 border-white shadow-md">
-                            <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                            <button onClick={() => setEditingTicket({ ...editingTicket, photos: editingTicket.photos.filter((_, idx) => idx !== i) })} className="absolute inset-0 bg-rose-600/60 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                              <Trash2 size={24} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-6 md:p-8 border-t border-gray-100 bg-white shrink-0 sticky bottom-0 z-20 shadow-[0_-20px_40px_rgba(255,255,255,0.95)] rounded-t-[2.5rem] lg:rounded-none">
-                    <div className="grid grid-cols-2 lg:flex lg:flex-row gap-3 w-full items-center">
-                      <div className="col-span-2 lg:col-auto lg:flex-1">
-                        {editingTicket.status === 'Delivered' && (
-                          <button onClick={async () => {
-                            if (window.confirm('Delete this ticket entirely?')) {
-                              await deleteDoc(doc(db, 'serviceTickets', editingTicket.id));
-                              setIsTicketModalOpen(false); setEditingTicket(null);
-                            }
-                          }} className="w-full lg:w-16 h-14 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all active:scale-95 shadow-sm border border-rose-100 flex items-center justify-center">
-                            <Trash2 size={24} />
-                          </button>
-                        )}
-                        {!(editingTicket.status === 'Delivered') && (
-                          <button onClick={() => {
-                            const laborPrice = Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0);
-                            const repairItems = [
-                              { id: 'SRV-' + editingTicket.id + '-LB', name: `Repair Labor: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                              ...(editingTicket.partsUsed || []).map(p => ({ id: p.id || 'man-' + Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
-                            ];
-                            setServiceCart([...serviceCart, ...repairItems]);
-                            setServiceSubTab('sell');
-                            setIsTicketModalOpen(false);
-                            setEditingTicket(null);
-                          }} className="w-full px-6 h-14 bg-slate-900 text-white rounded-2xl hover:bg-black font-black uppercase tracking-widest text-[9px] transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 whitespace-nowrap active:scale-95">
-                            <ShoppingCart size={18} strokeWidth={3} /> {t('billToPOS') || 'Bill to POS'}
-                          </button>
-                        )}
-                      </div>
-
-                      <button type="button" onClick={() => { setIsTicketModalOpen(false); setEditingTicket(null); }} className="px-6 h-14 bg-gray-50 text-slate-400 rounded-2xl hover:bg-gray-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
-                      <button onClick={async () => {
-                        try {
-                          const origTicket = serviceTickets.find(t => t.id === editingTicket.id);
-                          let newLogs = editingTicket.statusLogs || [];
-                          if (origTicket && origTicket.status !== editingTicket.status) {
-                            newLogs = [...newLogs, { status: editingTicket.status, date: new Date().toISOString(), by: user.email || 'System' }];
-
-                            if (editingTicket.status === 'Delivered' && origTicket.status !== 'Delivered') {
-                              const batch = writeBatch(db);
-                              (editingTicket.partsUsed || []).forEach(part => {
-                                const invRef = doc(db, 'inventory', part.id);
-                                const currentInv = inventory.find(i => i.id === part.id);
-                                if (currentInv) {
-                                  const newQty = Math.max(0, Number(currentInv.quantity) - (part.quantity || 1));
-                                  batch.update(invRef, { quantity: newQty });
-                                }
-                              });
-                              await batch.commit();
-                            }
-                          }
-                          await updateDoc(doc(db, 'serviceTickets', editingTicket.id), { ...editingTicket, statusLogs: newLogs });
-                          setIsTicketModalOpen(false); setEditingTicket(null);
-                        } catch (err) { console.error(err); }
-                      }} className="flex-2 px-12 py-4 bg-blue-600 text-white rounded-[1.5rem] hover:bg-blue-700 font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-blue-200 transition-all flex items-center justify-center gap-3 active:scale-95">
-                        <Save size={18} strokeWidth={3} /> {t('saveChanges')}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          }
-
-          {/* --- Service Customer Modal --- */}
-          {isCustomerModalOpen && (
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] lg:p-4 animate-in fade-in duration-300">
-              <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet">
-                {/* Mobile Pull Indicator */}
-                <div className="lg:hidden w-full pt-4 shrink-0">
-                  <div className="pull-indicator"></div>
-                </div>
-
-                <div className="p-8 flex justify-between items-center border-b border-gray-100 shrink-0">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 shadow-sm border border-blue-100/50">
-                      <UserPlus size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-none">{selectedServiceCustomer ? t('editCustomer') : t('addCustomer')}</h3>
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('customerInformation') || 'Customer Profile'}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => { setIsCustomerModalOpen(false); setSelectedServiceCustomer(null); setServiceCustomerForm({ name: '', phone: '', email: '', address: '', notes: '' }); }} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-8 space-y-6 no-scrollbar pb-32 lg:pb-8">
-                  <form id="customer-form" onSubmit={async (e) => {
-                    e.preventDefault();
-                    try {
-                      if (selectedServiceCustomer) {
-                        await updateDoc(doc(db, 'serviceCustomers', selectedServiceCustomer.id), serviceCustomerForm);
-                      } else {
-                        await addDoc(collection(db, 'serviceCustomers'), { ...serviceCustomerForm, userId: user.uid, createdAt: serverTimestamp() });
-                      }
-                      setIsCustomerModalOpen(false);
-                      setSelectedServiceCustomer(null);
-                      setServiceCustomerForm({ name: '', phone: '', email: '', address: '', notes: '' });
-                    } catch (err) { console.error(err); }
-                  }} className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
-                      <input type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceCustomerForm.name} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, name: e.target.value })} required />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('phone')}</label>
-                      <input type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceCustomerForm.phone} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, phone: e.target.value })} required />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('email')}</label>
-                      <input type="email" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceCustomerForm.email} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, email: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('address')}</label>
-                      <textarea className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none min-h-[100px] resize-none" value={serviceCustomerForm.address} onChange={e => setServiceCustomerForm({ ...serviceCustomerForm, address: e.target.value })}></textarea>
-                    </div>
-                  </form>
-                </div>
-
-                <div className="p-8 border-t border-gray-100 bg-white lg:bg-gray-50 flex gap-4 shrink-0 sticky bottom-0 rounded-t-[2.5rem] lg:rounded-none shadow-[0_-20px_40px_rgba(255,255,255,0.8)]">
-                  <button type="button" onClick={() => { setIsCustomerModalOpen(false); setSelectedServiceCustomer(null); }} className="flex-1 px-8 py-4 bg-white text-slate-400 rounded-2xl hover:bg-slate-50 font-black uppercase tracking-widest text-[10px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
-                  <button form="customer-form" type="submit" className="flex-[2] bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 active:scale-95">
-                    <Save size={18} /> {selectedServiceCustomer ? t('saveChanges') : t('addCustomer')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* --- Service Inventory Modal --- */}
-          {isServiceInventoryModalOpen && (
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[200] lg:p-4 animate-in fade-in duration-300">
-              <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col border border-gray-100 bottom-sheet">
-                {/* Mobile Pull Indicator */}
-                <div className="lg:hidden w-full pt-4 shrink-0">
-                  <div className="pull-indicator"></div>
-                </div>
-
-                <div className="p-8 flex justify-between items-center border-b border-gray-100 shrink-0">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 shadow-sm border border-emerald-100/50">
-                      <Package size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-none">{editingServiceInventory ? t('editItem') : t('addStock')}</h3>
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{t('inventoryManagement') || 'Part Details'}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => { setIsServiceInventoryModalOpen(false); setEditingServiceInventory(null); setServiceInventoryForm({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 }); }} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-8 space-y-6 no-scrollbar pb-32 lg:pb-8">
-                  <form id="inventory-form" onSubmit={async (e) => {
-                    e.preventDefault();
-                    try {
-                      const finalData = {
-                        ...serviceInventoryForm,
-                        quantity: Number(serviceInventoryForm.stock),
-                        updatedAt: serverTimestamp()
-                      };
-                      delete finalData.stock;
-
-                      if (editingServiceInventory) {
-                        await updateDoc(doc(db, 'inventory', editingServiceInventory.id), finalData);
-                      } else {
-                        await addDoc(collection(db, 'inventory'), { ...finalData, userId: user.uid, createdAt: serverTimestamp() });
-                      }
-                      setIsServiceInventoryModalOpen(false);
-                      setEditingServiceInventory(null);
-                      setServiceInventoryForm({ name: '', category: 'Phone Parts', stock: 0, minStock: 5, buyPrice: 0, sellPrice: 0 });
-                    } catch (err) { console.error(err); }
-                  }} className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('itemName')}</label>
-                      <input type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.name} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, name: e.target.value })} required />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('category')}</label>
-                      <select className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none" value={serviceInventoryForm.category} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, category: e.target.value })}>
-                        <option value="Phone Parts">{t('phoneParts')}</option>
-                        <option value="PC Components">{t('pcComponents')}</option>
-                        <option value="Accessories">{t('accessories')}</option>
-                        <option value="Other">{t('other')}</option>
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('quantity')}</label>
-                        <input type="number" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black font-mono focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.stock} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, stock: Number(e.target.value) })} required />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('minStock')}</label>
-                        <input type="number" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black font-mono focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.minStock} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, minStock: Number(e.target.value) })} required />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('buyPrice')}</label>
-                        <input type="number" step="0.01" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black font-mono focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.buyPrice} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, buyPrice: Number(e.target.value) })} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('sellPrice')}</label>
-                        <input type="number" step="0.01" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black font-mono focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={serviceInventoryForm.sellPrice} onChange={e => setServiceInventoryForm({ ...serviceInventoryForm, sellPrice: Number(e.target.value) })} required />
-                      </div>
-                    </div>
-                  </form>
-                </div>
-
-                <div className="p-8 border-t border-gray-100 bg-white lg:bg-gray-50 flex gap-4 shrink-0 sticky bottom-0 rounded-t-[2.5rem] lg:rounded-none shadow-[0_-20px_40px_rgba(255,255,255,0.8)]">
-                  <button type="button" onClick={() => { setIsServiceInventoryModalOpen(false); setEditingServiceInventory(null); }} className="flex-1 px-8 py-4 bg-white text-slate-400 rounded-2xl hover:bg-slate-50 font-black uppercase tracking-widest text-[10px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
-                  <button form="inventory-form" type="submit" className="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 active:scale-95">
-                    <Save size={18} /> {editingServiceInventory ? t('saveChanges') : t('addStock')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Barcode Print Configuration Modal */}
-          {
-            isPrintBarcodeModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[200] backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-bold text-lg text-gray-900">{t('printWizard')}</h3>
-                    <button onClick={() => setIsPrintBarcodeModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                  </div>
-                  <div className="p-6 space-y-4">
-                    <div className="max-h-[50vh] overflow-y-auto space-y-2 pr-2">
-                      {printConfigs.map((cfg, idx) => (
-                        <div key={cfg.item.id} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden">
-                            {cfg.item.photo ? <img src={cfg.item.photo} alt="" className="w-full h-full object-cover" /> : <Package size={20} className="text-gray-300" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm text-gray-900 truncate">{cfg.item.name}</p>
-                            <p className="text-[10px] font-mono text-gray-400">{cfg.item.barcode || t('noBarcode') || 'No Barcode'}</p>
-                          </div>
-                          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newConfigs = [...printConfigs];
-                                newConfigs[idx].qty = Math.max(0, (newConfigs[idx].qty || 0) - 1);
-                                setPrintConfigs(newConfigs);
-                              }}
-                              className="p-1 hover:bg-gray-100 rounded text-gray-500"
-                            >
-                              <ChevronDown size={14} />
-                            </button>
+                          {/* Cashier PIN */}
+                          <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-500 mb-1">{t('cashierPin') || 'Cashier PIN'}</label>
                             <input
-                              type="number"
-                              className="w-12 text-center text-sm font-bold bg-transparent outline-none"
-                              value={cfg.qty}
-                              onChange={(e) => {
-                                const newConfigs = [...printConfigs];
-                                newConfigs[idx].qty = parseInt(e.target.value) || 0;
-                                setPrintConfigs(newConfigs);
+                              type="password"
+                              placeholder={securityPin === '1234' ? t('setNewPin') : '****'}
+                              maxLength={4}
+                              className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm bg-blue-50/30 focus:ring-2 focus:ring-blue-500 outline-none"
+                              onBlur={(e) => {
+                                if (e.target.value.length === 4) {
+                                  if (window.confirm("Update Cashier PIN?")) {
+                                    setSecurityPin(e.target.value);
+                                    saveUserSettings({ securityPin: e.target.value });
+                                    e.target.value = '';
+                                    alert(t('pinChanged'));
+                                  }
+                                }
                               }}
                             />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newConfigs = [...printConfigs];
-                                newConfigs[idx].qty = (newConfigs[idx].qty || 0) + 1;
-                                setPrintConfigs(newConfigs);
-                              }}
-                              className="p-1 hover:bg-gray-100 rounded text-gray-500"
-                            >
-                              <Plus size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-600 text-white rounded-lg">
-                          <Printer size={20} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{t('totalLabels')}</p>
-                          <p className="text-xl font-black text-blue-900">{printConfigs.reduce((sum, c) => sum + (c.qty || 0), 0)}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{t('layoutMode')}</p>
-                        <p className="text-sm font-bold text-blue-900 uppercase">{t(barcodePrintMode.toLowerCase()) || barcodePrintMode}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setIsPrintBarcodeModalOpen(false)}
-                        className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-all"
-                      >
-                        {t('cancel')}
-                      </button>
-                      <button
-                        onClick={() => {
-                          handlePrintBatchBarcodes(printConfigs);
-                          setIsPrintBarcodeModalOpen(false);
-                        }}
-                        className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-xl hover:bg-black font-bold shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2"
-                      >
-                        <Printer size={20} /> {t('printNow')}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Employee Modal (Premium) */}
-          {
-            isAddModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
-                <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
-                  <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('addEmployee')}</h3>
-                    <button onClick={() => setIsAddModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
-                  </div>
-                  <form onSubmit={handleAddEmployee} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
-                    <div className="flex justify-center mb-4">
-                      <label className="relative cursor-pointer group">
-                        <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors">
-                          {newEmployeeForm.photo ? <img src={newEmployeeForm.photo} alt="Preview" className="w-full h-full object-cover" /> : <Camera className="text-gray-400 group-hover:text-blue-500" size={32} />}
-                        </div>
-                        <input type="file" accept="image/*" onChange={handleNewEmployeeImage} className="hidden" />
-                      </label>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <input className="input-field" placeholder={t('name')} value={newEmployeeForm.name} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, name: e.target.value })} required />
-                      <input className="input-field" placeholder={t('role')} value={newEmployeeForm.role} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, role: e.target.value })} required />
-                    </div>
-
-                    <select className="input-field" value={newEmployeeForm.dept} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, dept: e.target.value })}>
-                      {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => (
-                        <option key={d} value={d}>{translations[language]?.[d.toLowerCase()] || d}</option>
-                      ))}
-                    </select>
-
-                    <select className="input-field" value={newEmployeeForm.location} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, location: e.target.value })} required>
-                      {sites.length === 0 ? (
-                        <option value="">{t('noLocations') || 'No locations available - Please create a location first'}</option>
-                      ) : (
-                        <>
-                          <option value="">{t('selectLocation') || 'Select Location'}</option>
-                          {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                        </>
-                      )}
-                    </select>
-
-                    <select className="input-field" value={newEmployeeForm.shift} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, shift: e.target.value })}>
-                      {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
-                    </select>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <input type="number" className="input-field" placeholder={t('salary')} value={newEmployeeForm.salary} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salary: Number(e.target.value) })} required />
-                      <select className="p-2 border rounded-xl text-xs font-bold bg-white" value={newEmployeeForm.salaryMethod || 'Monthly'} onChange={e => setNewEmployeeForm({ ...newEmployeeForm, salaryMethod: e.target.value })}>
-                        <option value="Monthly">{t('monthly')}</option>
-                        <option value="Weekly">{t('weekly')}</option>
-                        <option value="Daily">{t('daily')}</option>
-                        <option value="Hourly">Hourly</option>
-                      </select>
-                    </div>
-
-                    <div className="pt-2 grid grid-cols-2 gap-3">
-                      <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
-                      <button type="submit" className="px-4 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-black uppercase tracking-widest text-[9px] shadow-lg shadow-blue-600/20 transition-all active:scale-95">{t('addEmployee')}</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Site Modal (Premium) */}
-          {
-            isAddSiteModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[120] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
-                <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
-                  <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('createLocation')}</h3>
-                    <button onClick={() => setIsAddSiteModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
-                  </div>
-                  <form onSubmit={handleAddSite} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
-                    <input className="input-field" placeholder={t('siteName')} value={newSiteForm.name} onChange={e => setNewSiteForm({ ...newSiteForm, name: e.target.value })} required />
-                    <input className="input-field" placeholder={t('city')} value={newSiteForm.city} onChange={e => setNewSiteForm({ ...newSiteForm, city: e.target.value })} required />
-                    <input className="input-field" placeholder={t('manager')} value={newSiteForm.manager} onChange={e => setNewSiteForm({ ...newSiteForm, manager: e.target.value })} />
-                    <input className="input-field" placeholder={t('phone') || 'Phone'} value={newSiteForm.phone || ''} onChange={e => setNewSiteForm({ ...newSiteForm, phone: e.target.value })} />
-
-                    <select className="input-field" value={newSiteForm.status} onChange={e => setNewSiteForm({ ...newSiteForm, status: e.target.value })}>
-                      <option value="Operational">{t('operational')}</option>
-                      <option value="Renovating">{t('renovating')}</option>
-                      <option value="Active">{t('active')}</option>
-                      <option value="Closed">{t('closed')}</option>
-                    </select>
-
-                    <div className="pt-2 grid grid-cols-2 gap-3">
-                      <button type="button" onClick={() => setIsAddSiteModalOpen(false)} className="px-4 py-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 font-black uppercase tracking-widest text-[9px] border border-slate-100 transition-all active:scale-95">{t('cancel')}</button>
-                      <button type="submit" className="px-4 py-3 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 font-black uppercase tracking-widest text-[9px] shadow-lg shadow-emerald-600/20 transition-all active:scale-95">{t('createLocation')}</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Detail Sidebar (Employee/Site) */}
-          {
-            (selectedEmployee || selectedSite) && (
-              <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[1040] md:hidden animate-in fade-in duration-300" onClick={() => { setSelectedEmployee(null); setSelectedSite(null); }}></div>
-            )
-          }
-          {
-            (selectedEmployee || selectedSite) && (
-              <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-2xl z-[1050] transform transition-transform duration-500 ease-out border-l border-gray-100 flex flex-col translate-x-0">
-                <div className="p-6 border-b-2 border-slate-100 flex justify-between items-center shrink-0 bg-white sticky top-0 z-[1060]">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="w-3 h-3 rounded-full bg-blue-600 animate-pulse shadow-lg shadow-blue-200"></div>
-                    <h3 className="font-black text-slate-800 uppercase tracking-[0.2em] text-xs">
-                      {selectedEmployee ? t('employeeDetails') : t('locationDetails')}
-                    </h3>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedEmployee(null);
-                      setSelectedSite(null);
-                    }}
-                    className="w-14 h-14 flex items-center justify-center bg-rose-600 text-white hover:bg-rose-700 rounded-2xl shadow-xl transition-all active:scale-90 cursor-pointer group hover:rotate-90"
-                    aria-label="Close"
-                  >
-                    <X size={28} strokeWidth={3} />
-                  </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto no-scrollbar p-6 pb-32 space-y-8">
-                  {selectedEmployee && (
-                    <div className="space-y-8">
-                      <div className="flex flex-col items-center">
-                        <div className="relative group p-1 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
-                          <div className="w-24 h-24 rounded-full bg-white overflow-hidden border-2 border-white shadow-inner">
-                            {selectedEmployee.photo ? <img src={selectedEmployee.photo} alt={selectedEmployee.name} className="w-full h-full object-cover" /> : <User size={40} className="text-slate-200 m-auto mt-6" />}
-                          </div>
-                          <label className="absolute bottom-1 right-1 bg-white p-2 rounded-full text-blue-600 shadow-lg cursor-pointer hover:bg-blue-50 transition-all border border-blue-100 active:scale-90">
-                            <Camera size={14} />
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpdateEmployeeImage(selectedEmployee.id, e)} />
-                          </label>
-                        </div>
-                        <input
-                          className="text-xl font-black text-slate-900 text-center bg-transparent border-b-2 border-transparent focus:border-blue-500 focus:outline-none transition-all w-full uppercase tracking-tight"
-                          value={selectedEmployee.name}
-                          onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'name', e.target.value)}
-                        />
-                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-2 px-3 py-1 bg-blue-50 rounded-full">{t(selectedEmployee.role.toLowerCase()) || selectedEmployee.role}</span>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="p-5 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
-                          <div className="flex justify-between items-center py-1">
-                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('dept')}</span>
-                            <select
-                              className="text-xs font-black bg-transparent text-right outline-none text-slate-700"
-                              value={selectedEmployee.dept || ''}
-                              onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'dept', e.target.value)}
-                            >
-                              {(shopSettings.departments || ['Security', 'Operations', 'HR', 'IT', 'Sales', 'Marketing', 'Kitchen', 'Service', 'Bar', 'Retail', 'Warehouse', 'Inventory', 'Accounts', 'Management', 'Cleaning', 'Maintenance']).map(d => (
-                                <option key={d} value={d}>{translations[language]?.[d.toLowerCase()] || d}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="flex justify-between items-center py-1">
-                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('location')}</span>
-                            <select className="text-xs font-black bg-transparent text-right outline-none text-slate-700" value={selectedEmployee.location || ''} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'location', e.target.value)}>
-                              <option value="">{t('selectLocation')}</option>
-                              {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                            </select>
-                          </div>
-                          <div className="flex justify-between items-center py-1">
-                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('shift')}</span>
-                            <select className="text-xs font-black bg-transparent text-right outline-none text-slate-700" value={selectedEmployee.shift} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'shift', e.target.value)}>
-                              {shifts.map(s => <option key={s} value={s}>{s === 'Morning (12 Hours)' ? t('morning12') : s === 'Night (12 Hours)' ? t('night12') : s}</option>)}
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="p-5 bg-blue-50/50 rounded-[2rem] border border-blue-100 space-y-4">
-                          <h4 className="text-[10px] font-black text-blue-900 uppercase tracking-widest flex items-center gap-2 mb-2"><DollarSign size={14} /> {t('compensation')}</h4>
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-blue-700">{t('salary')}</span>
-                            <input type="number" className="w-24 text-right bg-white rounded-lg px-2 py-1.5 text-xs font-mono border border-blue-100" value={selectedEmployee.salary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'salary', Number(e.target.value))} />
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-red-500">{t('advance')}</span>
-                            <input type="number" className="w-24 text-right bg-white rounded-lg px-2 py-1.5 text-xs font-mono border border-red-100 text-red-600" value={selectedEmployee.advanceSalary} onChange={(e) => handleUpdateEmployee(selectedEmployee.id, 'advanceSalary', Number(e.target.value))} />
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleDeleteEmployee(selectedEmployee.id)}
-                        className="w-full bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 group"
-                      >
-                        <Trash2 size={16} className="group-hover:animate-bounce" /> {t('terminateService')}
-                      </button>
-                    </div>
-                  )}
-
-                  {selectedSite && !selectedEmployee && (
-                    <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
-                      <div className="space-y-6">
-                        <div className="p-6 bg-slate-50/80 rounded-[2rem] border border-slate-100 space-y-5">
-                          <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('siteName')}</label>
-                            <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.name} onChange={(e) => handleUpdateSite(selectedSite.id, 'name', e.target.value)} />
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('city')}</label>
-                            <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.city} onChange={(e) => handleUpdateSite(selectedSite.id, 'city', e.target.value)} />
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('manager')}</label>
-                            <input className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.manager} onChange={(e) => handleUpdateSite(selectedSite.id, 'manager', e.target.value)} />
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">{t('operationalStatus')}</label>
-                            <select className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-black uppercase tracking-widest focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={selectedSite.status} onChange={(e) => handleUpdateSite(selectedSite.id, 'status', e.target.value)}>
-                              <option value="Operational">{t('operational')}</option>
-                              <option value="Renovating">{t('renovating')}</option>
-                              <option value="Active">{t('active')}</option>
-                              <option value="Closed">{t('closed')}</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="p-6 bg-emerald-50/50 rounded-[2rem] border border-emerald-100 space-y-4">
-                          <h4 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest flex items-center gap-2 mb-2"><Users size={16} /> {t('assignedStaff') || 'Assigned Staff'}</h4>
-                          <div className="space-y-3">
-                            {employees.filter(e => e.location === selectedSite.name).map(e => (
-                              <div key={e.id} className="flex items-center justify-between bg-white/80 p-3 rounded-xl border border-emerald-50 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] font-black text-emerald-700">{e.name?.[0].toUpperCase()}</div>
-                                  <span className="text-xs font-black text-slate-700 uppercase tracking-tight">{e.name}</span>
-                                </div>
-                                <span className="text-[8px] font-black text-emerald-500 uppercase px-2 py-0.5 bg-emerald-50 rounded-full">{t(e.role?.toLowerCase()) || e.role}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => handleDeleteSite(selectedSite.id, selectedSite.name)}
-                          className="w-full bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
-                        >
-                          <Trash2 size={16} /> {t('deleteLocation')}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          }
-
-          {/* Settings Modal (Premium with Scroll Padding) */}
-          {
-            showSettings && (
-              <div className="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-[150] backdrop-blur-xl p-0 sm:p-4 animate-in fade-in duration-300">
-                <div className="bg-white sm:rounded-[2.5rem] w-full max-w-2xl h-full sm:h-[85vh] shadow-2xl overflow-hidden flex flex-col border border-white/20 relative">
-
-                  <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-32 sm:pb-8">
-                    {/* Header - Fixed */}
-                    <div className="p-6 border-b border-gray-100 flex-shrink-0 flex justify-between items-center bg-white z-10">
-                      <h3 className="text-xl font-bold flex items-center gap-2 text-gray-800">
-                        <div className="p-2 bg-slate-100 rounded-lg">
-                          <Settings className="text-slate-600" size={24} />
-                        </div>
-                        {t('settings')}
-                      </h3>
-                      <button
-                        onClick={() => setShowSettings(false)}
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-
-                    {/* Scrollable Content */}
-                    <div className="p-6 overflow-y-auto custom-scrollbar">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                        {/* Column 1: Profile & Localization */}
-                        <div className="space-y-6">
-                          {/* My Profile */}
-                          <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
-                              <User size={18} className="text-blue-600" /> {t('myProfile')}
-                            </h4>
-                            <div className="space-y-3 mb-4">
-                              <div className="flex flex-col gap-1">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('emailLabel')}</span>
-                                <span className="text-sm font-medium text-gray-900 break-all">{user?.email}</span>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('userIdLabel')}</span>
-                                <span className="text-xs font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 break-all select-all text-gray-600">{user?.uid}</span>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('accountTypeLabel')}</span>
-                                <span className="self-start bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-bold">{t('admin')}</span>
-                              </div>
-                            </div>
-
-                            <div className="pt-4 border-t border-gray-50">
-                              <h5 className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">{t('accountHandling')}</h5>
-                              <button onClick={handleLinkGoogle} className="w-full bg-white border border-gray-300 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2 shadow-sm">
-                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-                                {t('connectGoogle')}
-                              </button>
-                              <p className="text-[10px] text-gray-400 text-center px-2">{t('linkGoogleDesc')}</p>
-                            </div>
                           </div>
 
-                          {/* Localization */}
-                          <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
-                              <Globe size={18} className="text-indigo-600" /> {t('localization')}
-                            </h4>
-                            <div className="grid grid-cols-2 gap-4">
+                          {/* Manager & Owner PINs (Owner Only) */}
+                          {currentMode === 'Owner' ? (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
                               <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('language')}</label>
-                                <select
-                                  value={language}
-                                  onChange={(e) => {
-                                    const newLang = e.target.value;
-                                    setLanguage(newLang);
-                                    saveUserSettings({ language: newLang });
-                                  }}
-                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                >
-                                  <option value="en">English</option>
-                                  <option value="hi">हिंदी</option>
-                                  <option value="ar">العربية</option>
-                                  <option value="zh">中文</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('currency')}</label>
-                                <select
-                                  value={currency}
-                                  onChange={(e) => {
-                                    const newCurrency = e.target.value;
-                                    setCurrency(newCurrency);
-                                    saveUserSettings({ currency: newCurrency });
-                                  }}
-                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                >
-                                  <option value="EGP">EGP</option>
-                                  <option value="USD">USD</option>
-                                  <option value="EUR">EUR</option>
-                                  <option value="GBP">GBP</option>
-                                  <option value="SAR">SAR</option>
-                                  <option value="AED">AED</option>
-                                  <option value="INR">INR</option>
-                                  <option value="CNY">CNY</option>
-                                  <option value="JPY">JPY</option>
-                                  <option value="CAD">CAD</option>
-                                  <option value="AUD">AUD</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Column 2: Shop, Security, Backup, Danger */}
-                        <div className="space-y-6">
-                          {/* Shop Settings */}
-                          <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
-                              <Building2 size={18} className="text-orange-600" /> {t('shopSettings')}
-                            </h4>
-                            <div className="space-y-3">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopName')}</label>
-                                <input
-                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                                  placeholder="My Shop"
-                                  value={shopSettings.name}
-                                  autoComplete="off"
-                                  name="shop_name_no_autofill"
-                                  onChange={(e) => setShopSettings({ ...shopSettings, name: e.target.value })}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopAddress')}</label>
-                                <input
-                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                                  placeholder="123 Main St"
-                                  value={shopSettings.address}
-                                  autoComplete="off"
-                                  name="shop_address_no_autofill"
-                                  onChange={(e) => setShopSettings({ ...shopSettings, address: e.target.value })}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">{t('shopPhone')}</label>
-                                <input
-                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                                  placeholder="+1 234..."
-                                  value={shopSettings.phone}
-                                  autoComplete="off"
-                                  name="shop_phone_no_autofill"
-                                  onChange={(e) => setShopSettings({ ...shopSettings, phone: e.target.value })}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">{t('upiId') || 'UPI ID'} (for India)</label>
-                                <input
-                                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
-                                  placeholder="example@upi"
-                                  value={shopSettings.upiId || ''}
-                                  onChange={(e) => setShopSettings({ ...shopSettings, upiId: e.target.value })}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">{t('instapayId') || 'InstaPay ID'}</label>
-                                <input
-                                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30"
-                                  placeholder="InstaPay ID"
-                                  value={shopSettings.instapayId || ''}
-                                  onChange={(e) => setShopSettings({ ...shopSettings, instapayId: e.target.value })}
-                                />
-                              </div>
-                              <div className="pt-2">
-                                <label className="block text-xs font-medium text-gray-500 mb-2">{t('shopLogo') || 'Shop Logo'}</label>
-                                <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                                  <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm shrink-0">
-                                    {shopSettings.logo ? (
-                                      <img src={shopSettings.logo} alt="Logo preview" className="w-full h-full object-contain" />
-                                    ) : (
-                                      <Shield size={20} className="text-slate-300" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 space-y-2">
-                                    <input
-                                      type="file"
-                                      id="shop-logo-upload"
-                                      className="hidden"
-                                      accept="image/*"
-                                      onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                          if (file.size > 2 * 1024 * 1024) {
-                                            alert(t('logoSizeError'));
-                                            return;
-                                          }
-                                          const reader = new FileReader();
-                                          reader.onloadend = () => {
-                                            setShopSettings({ ...shopSettings, logo: reader.result });
-                                          };
-                                          reader.readAsDataURL(file);
-                                        }
-                                      }}
-                                    />
-                                    <label htmlFor="shop-logo-upload" className="block text-center py-2 px-4 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-lg cursor-pointer hover:bg-slate-50 hover:border-blue-300 transition-all">
-                                      {shopSettings.logo ? (t('changeLogo') || 'Change Logo') : (t('uploadLogo') || 'Upload Logo')}
-                                    </label>
-                                    {shopSettings.logo && (
-                                      <button
-                                        type="button"
-                                        onClick={() => setShopSettings({ ...shopSettings, logo: '' })}
-                                        className="w-full text-[9px] font-black text-rose-500 uppercase tracking-widest hover:underline"
-                                      >
-                                        {t('removeLogo') || 'Remove Logo'}
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              <button
-                                onClick={async () => {
-                                  if (!user) return;
-                                  try {
-                                    await setDoc(doc(db, 'settings', 'shop_' + user.uid), shopSettings);
-                                    alert(t('shopSettingsSaved'));
-                                  } catch (e) {
-                                    console.error(e);
-                                    alert(t('shopSettingsError'));
-                                  }
-                                }}
-                                className="w-full bg-gray-900 text-white font-bold py-2 rounded-lg hover:bg-black transition-colors text-sm mt-2"
-                              >
-                                {t('updateSettings')}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Security */}
-                          <div className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-50 pb-2">
-                              <Shield size={18} className="text-teal-600" /> {t('changePin')} & {t('setSecurityQuestion')}
-                            </h4>
-
-                            {/* Multi-Mode PIN Management */}
-                            <div className="space-y-4 pt-2 border-t border-gray-100">
-                              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t('pinManagement') || 'PIN Management'}</h4>
-
-                              {/* Cashier PIN */}
-                              <div>
-                                <label className="block text-[10px] font-black uppercase text-gray-500 mb-1">{t('cashierPin') || 'Cashier PIN'}</label>
+                                <label className="block text-[10px] font-black uppercase text-amber-600 mb-1">{t('managerPin') || 'Manager PIN'}</label>
                                 <input
                                   type="password"
-                                  placeholder={securityPin === '1234' ? t('setNewPin') : '****'}
+                                  placeholder={managerPin === '8888' ? "Set Manager PIN" : "****"}
                                   maxLength={4}
-                                  className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm bg-blue-50/30 focus:ring-2 focus:ring-blue-500 outline-none"
+                                  className="w-full px-3 py-2 border border-amber-100 rounded-lg text-sm bg-amber-50/30 focus:ring-2 focus:ring-amber-500 outline-none"
                                   onBlur={(e) => {
                                     if (e.target.value.length === 4) {
-                                      if (window.confirm("Update Cashier PIN?")) {
-                                        setSecurityPin(e.target.value);
-                                        saveUserSettings({ securityPin: e.target.value });
-                                        e.target.value = '';
-                                        alert(t('pinChanged'));
-                                      }
+                                      setManagerPin(e.target.value);
+                                      saveUserSettings({ managerPin: e.target.value });
+                                      e.target.value = '';
+                                      alert("Manager PIN Restricted.");
                                     }
                                   }}
                                 />
                               </div>
-
-                              {/* Manager & Owner PINs (Owner Only) */}
-                              {currentMode === 'Owner' ? (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                                  <div>
-                                    <label className="block text-[10px] font-black uppercase text-amber-600 mb-1">{t('managerPin') || 'Manager PIN'}</label>
-                                    <input
-                                      type="password"
-                                      placeholder={managerPin === '8888' ? "Set Manager PIN" : "****"}
-                                      maxLength={4}
-                                      className="w-full px-3 py-2 border border-amber-100 rounded-lg text-sm bg-amber-50/30 focus:ring-2 focus:ring-amber-500 outline-none"
-                                      onBlur={(e) => {
-                                        if (e.target.value.length === 4) {
-                                          setManagerPin(e.target.value);
-                                          saveUserSettings({ managerPin: e.target.value });
-                                          e.target.value = '';
-                                          alert("Manager PIN Restricted.");
-                                        }
-                                      }}
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-[10px] font-black uppercase text-rose-600 mb-1">{t('ownerPin') || 'Owner PIN'}</label>
-                                    <input
-                                      type="password"
-                                      placeholder={ownerPin === '0000' ? "Set Owner PIN" : "****"}
-                                      maxLength={4}
-                                      className="w-full px-3 py-2 border border-rose-100 rounded-lg text-sm bg-rose-50/30 focus:ring-2 focus:ring-rose-500 outline-none"
-                                      onBlur={(e) => {
-                                        if (e.target.value.length === 4) {
-                                          setOwnerPin(e.target.value);
-                                          saveUserSettings({ ownerPin: e.target.value });
-                                          e.target.value = '';
-                                          alert("Owner PIN Restricted.");
-                                        }
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 italic text-[10px] text-slate-400">
-                                  {t('ownerOnlyPins') || 'Switch to Owner Mode to manage Manager/Owner PINs.'}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Security Question */}
-                            <div className="space-y-2 pt-2 border-t border-gray-100">
-                              <select
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"
-                                value={securityQuestion}
-                                onChange={(e) => setSecurityQuestion(e.target.value)}
-                              >
-                                <option value="">{t('securityQuestion')}</option>
-                                <option value="secQ_pet">{t('secQ_pet')}</option>
-                                <option value="secQ_mother">{t('secQ_mother')}</option>
-                                <option value="secQ_city">{t('secQ_city')}</option>
-                                <option value="secQ_school">{t('secQ_school')}</option>
-                              </select>
-                              <input
-                                type="text"
-                                placeholder={t('securityAnswer')}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
-                                value={securityAnswer}
-                                onChange={(e) => setSecurityAnswer(e.target.value)}
-                              />
-                              <button
-                                onClick={() => {
-                                  if (!securityQuestion || !securityAnswer) {
-                                    alert(t('Please select a question and answer!'));
-                                    return;
-                                  }
-                                  saveUserSettings({ securityQuestion, securityAnswer });
-                                  alert(t('saveSettings') + ' Success!');
-                                }}
-                                className="w-full bg-teal-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-teal-700 shadow-sm"
-                              >
-                                {t('saveSettings')}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Backup & Danger Zone Group */}
-                          <div className="grid grid-cols-1 gap-4">
-                            {/* Backup */}
-                            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                              <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2 text-sm">
-                                <Database size={16} /> {t('backupRestore')}
-                              </h4>
-                              <div className="flex gap-2">
-                                <button onClick={handleExportBackup} disabled={loading} className="flex-1 bg-white text-blue-700 border border-blue-200 font-bold py-1.5 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-1 text-xs shadow-sm">
-                                  <Download size={14} /> {t('export')}
-                                </button>
-                                <label className="flex-1 bg-blue-600 text-white font-bold py-1.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 text-xs cursor-pointer shadow-sm">
-                                  <Upload size={14} /> {t('import')}
-                                  <input type="file" accept=".json" onChange={handleImportBackup} disabled={loading} className="hidden" />
-                                </label>
+                              <div>
+                                <label className="block text-[10px] font-black uppercase text-rose-600 mb-1">{t('ownerPin') || 'Owner PIN'}</label>
+                                <input
+                                  type="password"
+                                  placeholder={ownerPin === '0000' ? "Set Owner PIN" : "****"}
+                                  maxLength={4}
+                                  className="w-full px-3 py-2 border border-rose-100 rounded-lg text-sm bg-rose-50/30 focus:ring-2 focus:ring-rose-500 outline-none"
+                                  onBlur={(e) => {
+                                    if (e.target.value.length === 4) {
+                                      setOwnerPin(e.target.value);
+                                      saveUserSettings({ ownerPin: e.target.value });
+                                      e.target.value = '';
+                                      alert("Owner PIN Restricted.");
+                                    }
+                                  }}
+                                />
                               </div>
                             </div>
-
-                            {/* Danger */}
-                            <div className="p-4 bg-red-50 rounded-xl border border-red-100">
-                              <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2 text-sm">
-                                <AlertCircle size={16} /> {t('dangerZone')}
-                              </h4>
-                              <button onClick={handleFactoryReset} className="w-full bg-white text-red-600 border border-red-200 font-bold py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-xs shadow-sm">
-                                <Trash2 size={14} /> {t('factoryReset')}
-                              </button>
-                            </div>
-                          </div>
-
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div >
-            )
-          }
-
-          {/* Add Attendance Modal */}
-          {
-            isAddAttendanceModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-bold text-lg text-gray-900">{t('addAttendance')}</h3>
-                    <button onClick={() => setIsAddAttendanceModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                  </div>
-                  <form onSubmit={handleAddAttendance} className="p-6 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('location')}</label>
-                      <select
-                        className="input-field"
-                        value={newAttendanceForm.locationFilter || ''}
-                        onChange={e => setNewAttendanceForm({ ...newAttendanceForm, locationFilter: e.target.value, employeeId: '' })}
-                      >
-                        <option value="">{t('filterAll')}</option>
-                        {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectEmployee')}</label>
-                      <select className="input-field" value={newAttendanceForm.employeeId} onChange={e => setNewAttendanceForm({ ...newAttendanceForm, employeeId: e.target.value })} required>
-                        <option value="">{t('selectEmployee')}</option>
-                        {employees
-                          .filter(e => !newAttendanceForm.locationFilter || e.location === newAttendanceForm.locationFilter)
-                          .map(e => <option key={e.id} value={e.id}>{e.name} ({e.location})</option>)
-                        }
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectDate')}</label>
-                      <input type="date" className="input-field" value={newAttendanceForm.date} onChange={e => setNewAttendanceForm({ ...newAttendanceForm, date: e.target.value })} required />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectStatus')}</label>
-                      <select className="input-field" value={newAttendanceForm.status} onChange={e => setNewAttendanceForm({ ...newAttendanceForm, status: e.target.value })}>
-                        <option value="On Time">On Time</option>
-                        <option value="Late">Late</option>
-                        <option value="Absent">Absent</option>
-                      </select>
-                    </div>
-
-                    {newAttendanceForm.status === 'Late' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('lateHours')}</label>
-                        <input
-                          type="number"
-                          className="input-field"
-                          min="0"
-                          step="0.5"
-                          value={newAttendanceForm.lateHours || ''}
-                          onChange={e => setNewAttendanceForm({ ...newAttendanceForm, lateHours: e.target.value })}
-                          required
-                        />
-                      </div>
-                    )}
-
-                    {/* Daily Replacement Dropdown */}
-                    {newAttendanceForm.employeeId && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('replacementFor')} ({t('optional')})</label>
-                        <select
-                          className="input-field"
-                          value={newAttendanceForm.replacementFor || ''}
-                          onChange={e => setNewAttendanceForm({ ...newAttendanceForm, replacementFor: e.target.value })}
-                        >
-                          <option value="">{t('none')}</option>
-                          {(() => {
-                            const selectedEmp = employees.find(e => e.id.toString() === newAttendanceForm.employeeId.toString());
-                            if (!selectedEmp) return null;
-
-                            const candidates = employees.filter(e => e.id !== selectedEmp.id);
-                            const locations = [...new Set(candidates.map(e => e.location))].sort();
-
-                            return locations.map(loc => (
-                              <optgroup key={loc} label={loc}>
-                                {candidates.filter(e => e.location === loc).map(e => (
-                                  <option key={e.id} value={e.name}>{e.name}</option>
-                                ))}
-                              </optgroup>
-                            ));
-                          })()}
-                        </select>
-                      </div>
-                    )}
-
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => setIsAddAttendanceModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                      <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{t('save')}</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Edit Attendance Modal */}
-          {
-            editingAttendance && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-bold text-lg text-gray-900">{t('editAttendance')}</h3>
-                    <button onClick={() => setEditingAttendance(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                  </div>
-                  <form onSubmit={handleUpdateAttendance} className="p-6 space-y-4">
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-800">{editingAttendance.name}</h4>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectDate')}</label>
-                      <input type="date" className="input-field" value={editingAttendance.date} onChange={e => setEditingAttendance({ ...editingAttendance, date: e.target.value })} required />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectStatus')}</label>
-                      <select className="input-field" value={editingAttendance.status} onChange={e => setEditingAttendance({ ...editingAttendance, status: e.target.value })}>
-                        <option value="On Time">{t('onTimeLabel')}</option>
-                        <option value="Late">{t('lateLabel')}</option>
-                        <option value="Absent">{t('absentLabel')}</option>
-                      </select>
-                    </div>
-
-                    {editingAttendance.status === 'Late' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('lateHours')}</label>
-                        <input
-                          type="number"
-                          className="input-field"
-                          min="0"
-                          step="0.5"
-                          value={editingAttendance.lateHours || ''}
-                          onChange={e => setEditingAttendance({ ...editingAttendance, lateHours: e.target.value })}
-                          required
-                        />
-                      </div>
-                    )}
-
-                    {/* Edit Replacement */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('replacementFor')} ({t('optional') || 'Optional'})</label>
-                      <select
-                        className="input-field"
-                        value={editingAttendance.replacementFor || ''}
-                        onChange={e => setEditingAttendance({ ...editingAttendance, replacementFor: e.target.value })}
-                      >
-                        <option value="">{t('none')}</option>
-                        {(() => {
-                          const recName = editingAttendance.name;
-                          const candidates = employees.filter(e => e.name !== recName);
-                          const locations = [...new Set(candidates.map(e => e.location))].sort();
-
-                          return locations.map(loc => (
-                            <optgroup key={loc} label={loc}>
-                              {candidates.filter(e => e.location === loc).map(e => (
-                                <option key={e.id} value={e.name}>{e.name}</option>
-                              ))}
-                            </optgroup>
-                          ));
-                        })()}
-                      </select>
-                    </div>
-
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => setEditingAttendance(null)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                      <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{t('save')}</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Add Account Modal */}
-          {
-            isAddAccountModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
-                <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
-                  <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('addAccount')}</h3>
-                    <button onClick={() => setIsAddAccountModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
-                  </div>
-                  <form onSubmit={handleAddAccount} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
-                    <input className="input-field" placeholder={t('accountName')} value={newAccountForm.name} onChange={e => setNewAccountForm({ ...newAccountForm, name: e.target.value })} required />
-
-                    <select className="input-field" value={newAccountForm.type} onChange={e => setNewAccountForm({ ...newAccountForm, type: e.target.value })}>
-                      <option value="Asset">Asset</option>
-                      <option value="Liability">Liability</option>
-                      <option value="Equity">Equity</option>
-                      <option value="Revenue">Revenue</option>
-                      <option value="Expense">Expense</option>
-                    </select>
-
-                    <input type="number" className="input-field" placeholder={t('initialBalance')} value={newAccountForm.balance} onChange={e => setNewAccountForm({ ...newAccountForm, balance: Number(e.target.value) })} />
-
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => setIsAddAccountModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                      <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Account</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-          {/* Add / Edit Item Modal */}
-          {
-            isAddItemModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
-                <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
-                  <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{editingItem ? t('editItem') : t('addInventoryItem')}</h3>
-                    <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
-                  </div>
-                  <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
-                    {/* Image Upload */}
-                    <div className="flex justify-center mb-4">
-                      <label className="relative cursor-pointer group">
-                        <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors">
-                          {(editingItem ? editingItem.photo : newItemForm.photo) ? (
-                            <img src={editingItem ? editingItem.photo : newItemForm.photo} alt="Preview" className="w-full h-full object-cover" />
                           ) : (
-                            <Camera className="text-gray-400 group-hover:text-blue-500" size={32} />
+                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 italic text-[10px] text-slate-400">
+                              {t('ownerOnlyPins') || 'Switch to Owner Mode to manage Manager/Owner PINs.'}
+                            </div>
                           )}
                         </div>
-                        <input type="file" accept="image/*" onChange={handleNewItemImage} className="hidden" />
-                      </label>
-                    </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">{t('itemName')}</label>
-                      <input className="input-field" placeholder={t('itemName')} value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">{t('location')}</label>
-                      <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })} required>
-                        <option value="">{t('selectLocation')}</option>
-                        {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                      </select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-500 mb-1">{t('buyPrice')}</label>
-                        <input type="number" className="input-field" placeholder="0.00" value={editingItem ? editingItem.buyPrice : newItemForm.buyPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, buyPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-500 mb-1">{t('sellPrice')}</label>
-                        <input type="number" className="input-field" placeholder="0.00" value={editingItem ? editingItem.sellPrice : newItemForm.sellPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, sellPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">{t('quantity')}</label>
-                      <input type="number" className="input-field" placeholder="0" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">{t('barcode')}</label>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex gap-2">
-                          <input className="input-field flex-1" placeholder={t('barcode')} value={editingItem ? (editingItem.barcode || '') : (newItemForm.barcode || '')} onChange={e => editingItem ? setEditingItem({ ...editingItem, barcode: e.target.value }) : setNewItemForm({ ...newItemForm, barcode: e.target.value })} />
-                          <button type="button" onClick={() => setIsScannerOpen(true)} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600"><Scan size={20} /></button>
-                          <button type="button" onClick={generateBarcode} className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 text-xs font-bold uppercase tracking-tighter" title={t('generate')}>{t('generate')}</button>
-                        </div>
-                        {(editingItem?.barcode || newItemForm.barcode) && (
-                          <button
-                            type="button"
-                            onClick={() => handlePrintBarcode(editingItem || newItemForm)}
-                            className="w-full flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-100 transition-colors border border-blue-100"
+                        {/* Security Question */}
+                        <div className="space-y-2 pt-2 border-t border-gray-100">
+                          <select
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"
+                            value={securityQuestion}
+                            onChange={(e) => setSecurityQuestion(e.target.value)}
                           >
-                            <Printer size={16} /> {t('printBarcodeLabel')}
+                            <option value="">{t('securityQuestion')}</option>
+                            <option value="secQ_pet">{t('secQ_pet')}</option>
+                            <option value="secQ_mother">{t('secQ_mother')}</option>
+                            <option value="secQ_city">{t('secQ_city')}</option>
+                            <option value="secQ_school">{t('secQ_school')}</option>
+                          </select>
+                          <input
+                            type="text"
+                            placeholder={t('securityAnswer')}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                            value={securityAnswer}
+                            onChange={(e) => setSecurityAnswer(e.target.value)}
+                          />
+                          <button
+                            onClick={() => {
+                              if (!securityQuestion || !securityAnswer) {
+                                alert(t('Please select a question and answer!'));
+                                return;
+                              }
+                              saveUserSettings({ securityQuestion, securityAnswer });
+                              alert(t('saveSettings') + ' Success!');
+                            }}
+                            className="w-full bg-teal-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-teal-700 shadow-sm"
+                          >
+                            {t('saveSettings')}
                           </button>
-                        )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                      <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{editingItem ? t('update') || 'Update' : t('addItem')}</button>
+                      {/* Backup & Danger Zone Group */}
+                      <div className="grid grid-cols-1 gap-4">
+                        {/* Backup */}
+                        <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                          <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2 text-sm">
+                            <Database size={16} /> {t('backupRestore')}
+                          </h4>
+                          <div className="flex gap-2">
+                            <button onClick={handleExportBackup} disabled={loading} className="flex-1 bg-white text-blue-700 border border-blue-200 font-bold py-1.5 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-1 text-xs shadow-sm">
+                              <Download size={14} /> {t('export')}
+                            </button>
+                            <label className="flex-1 bg-blue-600 text-white font-bold py-1.5 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 text-xs cursor-pointer shadow-sm">
+                              <Upload size={14} /> {t('import')}
+                              <input type="file" accept=".json" onChange={handleImportBackup} disabled={loading} className="hidden" />
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Danger */}
+                        <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+                          <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2 text-sm">
+                            <AlertCircle size={16} /> {t('dangerZone')}
+                          </h4>
+                          <button onClick={handleFactoryReset} className="w-full bg-white text-red-600 border border-red-200 font-bold py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-xs shadow-sm">
+                            <Trash2 size={14} /> {t('factoryReset')}
+                          </button>
+                        </div>
+                      </div>
+
                     </div>
-                  </form>
+                  </div>
                 </div>
               </div>
-            )
-          }
+            </div>
+          </div>
+        )
+      }
 
-          {/* Edit History Sale Modal */}
-          {
-            isEditHistoryModalOpen && editingHistoryItem && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[250] backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden border border-gray-100">
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <Edit className="text-blue-600" size={18} />
-                      <h3 className="font-bold text-lg text-gray-900">{t('editSale') || 'Edit Sale Entry'}</h3>
-                    </div>
-                    <button onClick={() => { setIsEditHistoryModalOpen(false); setEditingHistoryItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+      {/* Add Attendance Modal */}
+      {
+        isAddAttendanceModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">{t('addAttendance')}</h3>
+                <button onClick={() => setIsAddAttendanceModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleAddAttendance} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('location')}</label>
+                  <select
+                    className="input-field"
+                    value={newAttendanceForm.locationFilter || ''}
+                    onChange={e => setNewAttendanceForm({ ...newAttendanceForm, locationFilter: e.target.value, employeeId: '' })}
+                  >
+                    <option value="">{t('filterAll')}</option>
+                    {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectEmployee')}</label>
+                  <select className="input-field" value={newAttendanceForm.employeeId} onChange={e => setNewAttendanceForm({ ...newAttendanceForm, employeeId: e.target.value })} required>
+                    <option value="">{t('selectEmployee')}</option>
+                    {employees
+                      .filter(e => !newAttendanceForm.locationFilter || e.location === newAttendanceForm.locationFilter)
+                      .map(e => <option key={e.id} value={e.id}>{e.name} ({e.location})</option>)
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectDate')}</label>
+                  <input type="date" className="input-field" value={newAttendanceForm.date} onChange={e => setNewAttendanceForm({ ...newAttendanceForm, date: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectStatus')}</label>
+                  <select className="input-field" value={newAttendanceForm.status} onChange={e => setNewAttendanceForm({ ...newAttendanceForm, status: e.target.value })}>
+                    <option value="On Time">On Time</option>
+                    <option value="Late">Late</option>
+                    <option value="Absent">Absent</option>
+                  </select>
+                </div>
+
+                {newAttendanceForm.status === 'Late' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('lateHours')}</label>
+                    <input
+                      type="number"
+                      className="input-field"
+                      min="0"
+                      step="0.5"
+                      value={newAttendanceForm.lateHours || ''}
+                      onChange={e => setNewAttendanceForm({ ...newAttendanceForm, lateHours: e.target.value })}
+                      required
+                    />
                   </div>
-                  <form onSubmit={handleUpdateHistorySale} className="p-6 space-y-4">
-                    <div>
-                      <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('customerName')}</label>
-                      <input
-                        className="input-field"
-                        value={editingHistoryItem.customer}
-                        onChange={e => setEditingHistoryItem({ ...editingHistoryItem, customer: e.target.value })}
-                        required
-                      />
+                )}
+
+                {/* Daily Replacement Dropdown */}
+                {newAttendanceForm.employeeId && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('replacementFor')} ({t('optional')})</label>
+                    <select
+                      className="input-field"
+                      value={newAttendanceForm.replacementFor || ''}
+                      onChange={e => setNewAttendanceForm({ ...newAttendanceForm, replacementFor: e.target.value })}
+                    >
+                      <option value="">{t('none')}</option>
+                      {(() => {
+                        const selectedEmp = employees.find(e => e.id.toString() === newAttendanceForm.employeeId.toString());
+                        if (!selectedEmp) return null;
+
+                        const candidates = employees.filter(e => e.id !== selectedEmp.id);
+                        const locations = [...new Set(candidates.map(e => e.location))].sort();
+
+                        return locations.map(loc => (
+                          <optgroup key={loc} label={loc}>
+                            {candidates.filter(e => e.location === loc).map(e => (
+                              <option key={e.id} value={e.name}>{e.name}</option>
+                            ))}
+                          </optgroup>
+                        ));
+                      })()}
+                    </select>
+                  </div>
+                )}
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddAttendanceModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{t('save')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Edit Attendance Modal */}
+      {
+        editingAttendance && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">{t('editAttendance')}</h3>
+                <button onClick={() => setEditingAttendance(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleUpdateAttendance} className="p-6 space-y-4">
+                <div>
+                  <h4 className="text-lg font-bold text-gray-800">{editingAttendance.name}</h4>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectDate')}</label>
+                  <input type="date" className="input-field" value={editingAttendance.date} onChange={e => setEditingAttendance({ ...editingAttendance, date: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('selectStatus')}</label>
+                  <select className="input-field" value={editingAttendance.status} onChange={e => setEditingAttendance({ ...editingAttendance, status: e.target.value })}>
+                    <option value="On Time">{t('onTimeLabel')}</option>
+                    <option value="Late">{t('lateLabel')}</option>
+                    <option value="Absent">{t('absentLabel')}</option>
+                  </select>
+                </div>
+
+                {editingAttendance.status === 'Late' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('lateHours')}</label>
+                    <input
+                      type="number"
+                      className="input-field"
+                      min="0"
+                      step="0.5"
+                      value={editingAttendance.lateHours || ''}
+                      onChange={e => setEditingAttendance({ ...editingAttendance, lateHours: e.target.value })}
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Edit Replacement */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('replacementFor')} ({t('optional') || 'Optional'})</label>
+                  <select
+                    className="input-field"
+                    value={editingAttendance.replacementFor || ''}
+                    onChange={e => setEditingAttendance({ ...editingAttendance, replacementFor: e.target.value })}
+                  >
+                    <option value="">{t('none')}</option>
+                    {(() => {
+                      const recName = editingAttendance.name;
+                      const candidates = employees.filter(e => e.name !== recName);
+                      const locations = [...new Set(candidates.map(e => e.location))].sort();
+
+                      return locations.map(loc => (
+                        <optgroup key={loc} label={loc}>
+                          {candidates.filter(e => e.location === loc).map(e => (
+                            <option key={e.id} value={e.name}>{e.name}</option>
+                          ))}
+                        </optgroup>
+                      ));
+                    })()}
+                  </select>
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setEditingAttendance(null)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{t('save')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Add Account Modal */}
+      {
+        isAddAccountModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('addAccount')}</h3>
+                <button onClick={() => setIsAddAccountModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleAddAccount} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
+                <input className="input-field" placeholder={t('accountName')} value={newAccountForm.name} onChange={e => setNewAccountForm({ ...newAccountForm, name: e.target.value })} required />
+
+                <select className="input-field" value={newAccountForm.type} onChange={e => setNewAccountForm({ ...newAccountForm, type: e.target.value })}>
+                  <option value="Asset">Asset</option>
+                  <option value="Liability">Liability</option>
+                  <option value="Equity">Equity</option>
+                  <option value="Revenue">Revenue</option>
+                  <option value="Expense">Expense</option>
+                </select>
+
+                <input type="number" className="input-field" placeholder={t('initialBalance')} value={newAccountForm.balance} onChange={e => setNewAccountForm({ ...newAccountForm, balance: Number(e.target.value) })} />
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddAccountModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Account</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+      {/* Add / Edit Item Modal */}
+      {
+        isAddItemModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{editingItem ? t('editItem') : t('addInventoryItem')}</h3>
+                <button onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
+              </div>
+              <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
+                {/* Image Upload */}
+                <div className="flex justify-center mb-4">
+                  <label className="relative cursor-pointer group">
+                    <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors">
+                      {(editingItem ? editingItem.photo : newItemForm.photo) ? (
+                        <img src={editingItem ? editingItem.photo : newItemForm.photo} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="text-gray-400 group-hover:text-blue-500" size={32} />
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('totalAmount')}</label>
+                    <input type="file" accept="image/*" onChange={handleNewItemImage} className="hidden" />
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">{t('itemName')}</label>
+                  <input className="input-field" placeholder={t('itemName')} value={editingItem ? editingItem.name : newItemForm.name} onChange={e => editingItem ? setEditingItem({ ...editingItem, name: e.target.value }) : setNewItemForm({ ...newItemForm, name: e.target.value })} required />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">{t('location')}</label>
+                  <select className="input-field" value={editingItem ? editingItem.location : newItemForm.location} onChange={e => editingItem ? setEditingItem({ ...editingItem, location: e.target.value }) : setNewItemForm({ ...newItemForm, location: e.target.value })} required>
+                    <option value="">{t('selectLocation')}</option>
+                    {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">{t('buyPrice')}</label>
+                    <input type="number" className="input-field" placeholder="0.00" value={editingItem ? editingItem.buyPrice : newItemForm.buyPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, buyPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, buyPrice: Number(e.target.value) })} required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">{t('sellPrice')}</label>
+                    <input type="number" className="input-field" placeholder="0.00" value={editingItem ? editingItem.sellPrice : newItemForm.sellPrice} onChange={e => editingItem ? setEditingItem({ ...editingItem, sellPrice: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, sellPrice: Number(e.target.value) })} required />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">{t('quantity')}</label>
+                  <input type="number" className="input-field" placeholder="0" value={editingItem ? editingItem.quantity : newItemForm.quantity} onChange={e => editingItem ? setEditingItem({ ...editingItem, quantity: Number(e.target.value) }) : setNewItemForm({ ...newItemForm, quantity: Number(e.target.value) })} required />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">{t('barcode')}</label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <input className="input-field flex-1" placeholder={t('barcode')} value={editingItem ? (editingItem.barcode || '') : (newItemForm.barcode || '')} onChange={e => editingItem ? setEditingItem({ ...editingItem, barcode: e.target.value }) : setNewItemForm({ ...newItemForm, barcode: e.target.value })} />
+                      <button type="button" onClick={() => setIsScannerOpen(true)} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600"><Scan size={20} /></button>
+                      <button type="button" onClick={generateBarcode} className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 text-xs font-bold uppercase tracking-tighter" title={t('generate')}>{t('generate')}</button>
+                    </div>
+                    {(editingItem?.barcode || newItemForm.barcode) && (
+                      <button
+                        type="button"
+                        onClick={() => handlePrintBarcode(editingItem || newItemForm)}
+                        className="w-full flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-100 transition-colors border border-blue-100"
+                      >
+                        <Printer size={16} /> {t('printBarcodeLabel')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => { setIsAddItemModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">{editingItem ? t('update') || 'Update' : t('addItem')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Edit History Sale Modal */}
+      {
+        isEditHistoryModalOpen && editingHistoryItem && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[250] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden border border-gray-100">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <Edit className="text-blue-600" size={18} />
+                  <h3 className="font-bold text-lg text-gray-900">{t('editSale') || 'Edit Sale Entry'}</h3>
+                </div>
+                <button onClick={() => { setIsEditHistoryModalOpen(false); setEditingHistoryItem(null); }} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleUpdateHistorySale} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('customerName')}</label>
+                  <input
+                    className="input-field"
+                    value={editingHistoryItem.customer}
+                    onChange={e => setEditingHistoryItem({ ...editingHistoryItem, customer: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('totalAmount')}</label>
+                  <input
+                    type="number"
+                    className="input-field font-mono"
+                    value={editingHistoryItem.amount}
+                    onChange={e => setEditingHistoryItem({ ...editingHistoryItem, amount: Number(e.target.value) })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('paymentMethod')}</label>
+                  <select
+                    className="input-field"
+                    value={editingHistoryItem.paymentMethod}
+                    onChange={e => setEditingHistoryItem({ ...editingHistoryItem, paymentMethod: e.target.value })}
+                  >
+                    <option value="Cash">{t('cash')}</option>
+                    <option value="Visa">{t('visa')}</option>
+                    <option value="Online">{t('onlinePayment')}</option>
+                  </select>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button type="button" onClick={() => { setIsEditHistoryModalOpen(false); setEditingHistoryItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-bold text-xs uppercase tracking-widest">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">{t('update')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+      {
+        isAddSaleModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('newSale')}</h3>
+                <button onClick={() => setIsAddSaleModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleAddSale} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
+                <input className="input-field" placeholder={t('customerName')} value={newSaleForm.customer} onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })} required />
+                <input type="number" className="input-field" placeholder={t('totalAmount')} value={newSaleForm.amount} onChange={e => setNewSaleForm({ ...newSaleForm, amount: Number(e.target.value) })} required />
+                <select className="input-field" value={newSaleForm.status} onChange={e => setNewSaleForm({ ...newSaleForm, status: e.target.value })}>
+                  <option value="Pending">{t('pendingLabel')}</option>
+                  <option value="Completed">{t('completed')}</option>
+                  <option value="Shipped">{t('shipped')}</option>
+                </select>
+                <input className="input-field" placeholder={t('itemsSummaryLabel')} value={newSaleForm.items} onChange={e => setNewSaleForm({ ...newSaleForm, items: e.target.value })} />
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddSaleModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-lg shadow-emerald-600/20">Create Sale</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Add Purchase Modal */}
+      {
+        isAddPurchaseModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+            <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
+              <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('newPurchase')}</h3>
+                <button onClick={() => setIsAddPurchaseModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleAddPurchase} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
+                <input className="input-field" placeholder={t('supplierName')} value={newPurchaseForm.supplier} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, supplier: e.target.value })} required />
+                <input type="number" className="input-field" placeholder={t('totalCost')} value={newPurchaseForm.amount} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, amount: Number(e.target.value) })} required />
+                <select className="input-field" value={newPurchaseForm.status} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, status: e.target.value })}>
+                  <option value="Ordered">Ordered</option>
+                  <option value="Received">Received</option>
+                  <option value="Paid">Paid</option>
+                </select>
+                <input className="input-field" placeholder="Items (Summary)" value={newPurchaseForm.items} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, items: e.target.value })} />
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddPurchaseModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Order</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Add Invoice Modal */}
+      {
+        isAddInvoiceModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">Create Invoice</h3>
+                <button onClick={() => setIsAddInvoiceModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleAddInvoice} className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <input className="input-field" placeholder="Client / Customer" value={newInvoiceForm.client} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, client: e.target.value })} required />
+                  <input type="date" className="input-field" value={newInvoiceForm.date} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, date: e.target.value })} required />
+                </div>
+
+                {/* Line Items Section */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h4 className="font-bold text-sm text-gray-700 mb-2">Invoice Items</h4>
+                  {newInvoiceForm.items.length > 0 && (
+                    <ul className="mb-3 space-y-2">
+                      {newInvoiceForm.items.map((item, idx) => (
+                        <li key={idx} className="flex justify-between items-center text-sm bg-white p-2 rounded border border-gray-200 shadow-sm">
+                          <span>{item.name} x {item.quantity}</span>
+                          <span className="font-mono font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Item</label>
+                      <select
+                        className="input-field text-sm"
+                        value={tempInvoiceItem.itemId}
+                        onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, itemId: e.target.value })}
+                      >
+                        <option value="">Select Item...</option>
+                        {inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({formatCurrency(i.sellPrice || 0)})</option>)}
+                      </select>
+                    </div>
+                    <div className="w-20">
+                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Qty</label>
                       <input
                         type="number"
-                        className="input-field font-mono"
-                        value={editingHistoryItem.amount}
-                        onChange={e => setEditingHistoryItem({ ...editingHistoryItem, amount: Number(e.target.value) })}
-                        required
+                        className="input-field text-sm"
+                        min="1"
+                        value={tempInvoiceItem.quantity}
+                        onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, quantity: Number(e.target.value) })}
                       />
                     </div>
-                    <div>
-                      <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('paymentMethod')}</label>
-                      <select
-                        className="input-field"
-                        value={editingHistoryItem.paymentMethod}
-                        onChange={e => setEditingHistoryItem({ ...editingHistoryItem, paymentMethod: e.target.value })}
-                      >
-                        <option value="Cash">{t('cash')}</option>
-                        <option value="Visa">{t('visa')}</option>
-                        <option value="Online">{t('onlinePayment')}</option>
-                      </select>
-                    </div>
-
-                    <div className="pt-4 flex gap-3">
-                      <button type="button" onClick={() => { setIsEditHistoryModalOpen(false); setEditingHistoryItem(null); }} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-bold text-xs uppercase tracking-widest">{t('cancel')}</button>
-                      <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">{t('update')}</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-          {
-            isAddSaleModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
-                <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
-                  <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('newSale')}</h3>
-                    <button onClick={() => setIsAddSaleModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
-                  </div>
-                  <form onSubmit={handleAddSale} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
-                    <input className="input-field" placeholder={t('customerName')} value={newSaleForm.customer} onChange={e => setNewSaleForm({ ...newSaleForm, customer: e.target.value })} required />
-                    <input type="number" className="input-field" placeholder={t('totalAmount')} value={newSaleForm.amount} onChange={e => setNewSaleForm({ ...newSaleForm, amount: Number(e.target.value) })} required />
-                    <select className="input-field" value={newSaleForm.status} onChange={e => setNewSaleForm({ ...newSaleForm, status: e.target.value })}>
-                      <option value="Pending">{t('pendingLabel')}</option>
-                      <option value="Completed">{t('completed')}</option>
-                      <option value="Shipped">{t('shipped')}</option>
-                    </select>
-                    <input className="input-field" placeholder={t('itemsSummaryLabel')} value={newSaleForm.items} onChange={e => setNewSaleForm({ ...newSaleForm, items: e.target.value })} />
-
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => setIsAddSaleModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                      <button type="submit" className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-lg shadow-emerald-600/20">Create Sale</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Add Purchase Modal */}
-          {
-            isAddPurchaseModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
-                <div className="bg-white sm:rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 bottom-sheet flex flex-col">
-                  <div className="lg:hidden h-1.5 w-12 bg-gray-200 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">{t('newPurchase')}</h3>
-                    <button onClick={() => setIsAddPurchaseModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 active:scale-90 transition-all"><X size={24} /></button>
-                  </div>
-                  <form onSubmit={handleAddPurchase} className="p-6 space-y-4 overflow-y-auto no-scrollbar pb-32 lg:pb-6">
-                    <input className="input-field" placeholder={t('supplierName')} value={newPurchaseForm.supplier} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, supplier: e.target.value })} required />
-                    <input type="number" className="input-field" placeholder={t('totalCost')} value={newPurchaseForm.amount} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, amount: Number(e.target.value) })} required />
-                    <select className="input-field" value={newPurchaseForm.status} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, status: e.target.value })}>
-                      <option value="Ordered">Ordered</option>
-                      <option value="Received">Received</option>
-                      <option value="Paid">Paid</option>
-                    </select>
-                    <input className="input-field" placeholder="Items (Summary)" value={newPurchaseForm.items} onChange={e => setNewPurchaseForm({ ...newPurchaseForm, items: e.target.value })} />
-
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => setIsAddPurchaseModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                      <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/20">Create Order</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Add Invoice Modal */}
-          {
-            isAddInvoiceModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-bold text-lg text-gray-900">Create Invoice</h3>
-                    <button onClick={() => setIsAddInvoiceModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                  </div>
-                  <form onSubmit={handleAddInvoice} className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <input className="input-field" placeholder="Client / Customer" value={newInvoiceForm.client} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, client: e.target.value })} required />
-                      <input type="date" className="input-field" value={newInvoiceForm.date} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, date: e.target.value })} required />
-                    </div>
-
-                    {/* Line Items Section */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="font-bold text-sm text-gray-700 mb-2">Invoice Items</h4>
-                      {newInvoiceForm.items.length > 0 && (
-                        <ul className="mb-3 space-y-2">
-                          {newInvoiceForm.items.map((item, idx) => (
-                            <li key={idx} className="flex justify-between items-center text-sm bg-white p-2 rounded border border-gray-200 shadow-sm">
-                              <span>{item.name} x {item.quantity}</span>
-                              <span className="font-mono font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-
-                      <div className="flex gap-2 items-end">
-                        <div className="flex-1">
-                          <label className="text-xs font-semibold text-gray-500 mb-1 block">Item</label>
-                          <select
-                            className="input-field text-sm"
-                            value={tempInvoiceItem.itemId}
-                            onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, itemId: e.target.value })}
-                          >
-                            <option value="">Select Item...</option>
-                            {inventory.map(i => <option key={i.id} value={i.id}>{i.name} ({formatCurrency(i.sellPrice || 0)})</option>)}
-                          </select>
-                        </div>
-                        <div className="w-20">
-                          <label className="text-xs font-semibold text-gray-500 mb-1 block">Qty</label>
-                          <input
-                            type="number"
-                            className="input-field text-sm"
-                            min="1"
-                            value={tempInvoiceItem.quantity}
-                            onChange={e => setTempInvoiceItem({ ...tempInvoiceItem, quantity: Number(e.target.value) })}
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const selectedInvItem = inventory.find(i => i.id === tempInvoiceItem.itemId);
-                            if (selectedInvItem && tempInvoiceItem.quantity > 0) {
-                              setNewInvoiceForm({
-                                ...newInvoiceForm,
-                                items: [...newInvoiceForm.items, {
-                                  id: selectedInvItem.id,
-                                  name: selectedInvItem.name,
-                                  price: selectedInvItem.sellPrice || 0,
-                                  quantity: tempInvoiceItem.quantity
-                                }]
-                              });
-                              setTempInvoiceItem({ itemId: '', quantity: 1 });
-                            }
-                          }}
-                          className="bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-800 text-sm h-[42px]"
-                        >Add</button>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center pt-2 px-2">
-                      <span className="font-bold text-gray-500">Total Amount:</span>
-                      <span className="font-mono text-2xl font-bold text-indigo-600">
-                        {formatCurrency(newInvoiceForm.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
-                      </span>
-                    </div>
-
-                    <select className="input-field" value={newInvoiceForm.status} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, status: e.target.value })}>
-                      <option value="Issued">Issued</option>
-                      <option value="Paid">Paid</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
-
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => setIsAddInvoiceModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
-                      <button type="submit" disabled={newInvoiceForm.items.length === 0} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed">Generate Invoice</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Select Sales Employee Modal */}
-          {
-            isSelectSalesEmployeeModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-bold text-lg text-gray-900">Select Sales Employee</h3>
-                    <button onClick={() => setIsSelectSalesEmployeeModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                  </div>
-                  <div className="p-2 max-h-[60vh] overflow-y-auto">
-                    <div className="space-y-1">
-                      {/* Filtered Employees: Assigned to Location OR Covering Today */}
-                      {employees.filter(emp => {
-                        if (!posLocationFilter || currentMode !== 'Cashier') return true; // Safety check
-                        const isAssigned = emp.location === posLocationFilter;
-                        const today = new Date().toISOString().split('T')[0];
-                        const isCovering = attendance.some(a =>
-                          a.name === emp.name &&
-                          a.date === today &&
-                          (a.locationFilter === posLocationFilter || a.site === posLocationFilter) // check both just in case
-                        );
-                        return isAssigned || isCovering;
-                      }).map(emp => (
-                        <button
-                          key={emp.id}
-                          onClick={() => { setSalesEmployee(emp); setIsSelectSalesEmployeeModalOpen(false); }}
-                          className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition-colors ${salesEmployee?.id === emp.id ? 'bg-blue-50 border border-blue-100' : ''}`}
-                        >
-                          <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
-                            {emp.photo ? <img src={emp.photo} alt={emp.name} className="w-full h-full object-cover" /> : <User size={20} className="text-gray-400 m-auto mt-2" />}
-                          </div>
-                          <div>
-                            <div className="font-bold text-gray-900">{emp.name}</div>
-                            <div className="text-xs text-gray-500">{t(emp.role.toLowerCase()) || emp.role}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Manage Payroll Modal */}
-          {
-            isManagePayrollModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-900">{t('managePayroll')}</h3>
-                      <p className="text-xs text-slate-500">{currentPayrollForm.name} • {currentPayrollForm.month}</p>
-                    </div>
-                    <button onClick={() => setIsManagePayrollModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                  </div>
-                  <form onSubmit={handleSavePayroll} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-
-                    {/* Fixed Fields */}
-                    <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500 block mb-1">{t('basicSalary')}</label>
-                        <input type="number" className="input-field bg-white" value={currentPayrollForm.salary} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, salary: e.target.value })} required title={t('basicSalary')} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500 block mb-1">{t('advanceTaken')}</label>
-                        <input type="number" className="input-field bg-white text-red-600" value={currentPayrollForm.advance} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, advance: e.target.value })} title={t('advance')} />
-                      </div>
-                    </div>
-
-                    {/* Variable Fields */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500 block mb-1">{t('bonus')} (+)</label>
-                        <input type="number" className="input-field text-green-600 font-bold" value={currentPayrollForm.bonus} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, bonus: e.target.value })} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500 block mb-1">{t('overtime')} (+)</label>
-                        <input type="number" className="input-field text-orange-600 font-bold" value={currentPayrollForm.overtime} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, overtime: e.target.value })} />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500 block mb-1">{t('manualDeductions')} (-)</label>
-                        <input type="number" className="input-field text-red-600 font-bold" value={currentPayrollForm.deductions} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, deductions: e.target.value })} />
-                      </div>
-                      <div className="opacity-70 pointer-events-none">
-                        <label className="text-xs font-semibold text-gray-400 block mb-1">{t('lateAbsentAuto')}</label>
-                        <input type="number" className="input-field bg-gray-100 text-gray-500" value={(currentPayrollForm.lateDeduction + currentPayrollForm.absentDeduction).toFixed(2)} readOnly />
-                      </div>
-                    </div>
-
-                    {/* Summary Box */}
-                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-blue-800">{t('grossEarnings')}:</span>
-                        <span className="font-mono font-bold text-blue-900">{formatCurrency(Number(currentPayrollForm.salary) + Number(currentPayrollForm.bonus) + Number(currentPayrollForm.overtime))}</span>
-                      </div>
-                      <div className="flex justify-between items-center mb-1 text-red-700">
-                        <span className="text-sm font-medium">{t('totalDeductions')}:</span>
-                        <span className="font-mono font-bold">-{formatCurrency(Number(currentPayrollForm.advance) + Number(currentPayrollForm.deductions) + Number(currentPayrollForm.lateDeduction) + Number(currentPayrollForm.absentDeduction))}</span>
-                      </div>
-                      <div className="h-px bg-blue-200 my-2"></div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-base font-bold text-blue-900">{t('netPayable')}:</span>
-                        <span className="text-xl font-bold text-blue-700 font-mono">
-                          {formatCurrency(
-                            (Number(currentPayrollForm.salary) + Number(currentPayrollForm.bonus) + Number(currentPayrollForm.overtime)) -
-                            (Number(currentPayrollForm.advance) + Number(currentPayrollForm.deductions) + Number(currentPayrollForm.lateDeduction) + Number(currentPayrollForm.absentDeduction))
-                          )}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => setIsManagePayrollModalOpen(false)} className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-colors">{t('cancel')}</button>
-                      {payrolls.find(p => p.employeeId === currentPayrollForm.id && p.month === currentPayrollForm.month) && (
-                        <button
-                          type="button"
-                          onClick={() => handleDeletePayrollRecord(currentPayrollForm.id, currentPayrollForm.month)}
-                          className="flex-1 px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 font-bold transition-all flex items-center justify-center gap-2 border border-red-200"
-                          title="Delete custom record and reset to employee defaults"
-                        >
-                          <X size={18} /> {t('reset')}
-                        </button>
-                      )}
-                      <button type="submit" className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
-                        <Save size={18} /> {t('saveRecord')}
-                      </button>
-                    </div>
-
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* PIN Verification Modal */}
-          {
-            isPinModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                  <div className="p-6 text-center">
-                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                      <Shield size={32} className="text-blue-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{t('securityCheck')}</h3>
-                    <p className="text-sm text-gray-500 mb-6">
-                      {pinAction === 'changeSalesEmployee' ? t('changeUserPrompt') :
-                        pinAction === 'switchMode' ? t('switchModePrompt') :
-                          t('pinPrompt')}
-                    </p>
-
-                    <div className="flex justify-center gap-3 mb-6">
-                      {[0, 1, 2, 3].map((i) => (
-                        <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 ${pinInput.length > i ? 'bg-blue-600 scale-110' : 'bg-gray-200'}`} />
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3 mb-4">
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                        <button
-                          key={num}
-                          onClick={() => {
-                            const newPin = pinInput + num;
-                            if (newPin.length <= 4) {
-                              setPinInput(newPin);
-                            }
-                          }}
-                          className="h-12 rounded-xl bg-gray-50 hover:bg-gray-100 text-lg font-bold text-gray-700 transition-colors flex items-center justify-center active:scale-95"
-                        >
-                          {num}
-                        </button>
-                      ))}
-                      <button onClick={() => setPinInput('')} className="h-12 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold flex items-center justify-center transition-colors active:scale-95">C</button>
-                      <button
-                        onClick={() => {
-                          const newPin = pinInput + '0';
-                          if (newPin.length <= 4) {
-                            setPinInput(newPin);
-                          }
-                        }}
-                        className="h-12 rounded-xl bg-gray-50 hover:bg-gray-100 text-lg font-bold text-gray-700 transition-colors flex items-center justify-center active:scale-95"
-                      >
-                        0
-                      </button>
-                      <button onClick={() => setIsPinModalOpen(false)} className="h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center transition-colors active:scale-95"><X size={20} /></button>
-                    </div>
-
-                    {/* Forgot PIN Link */}
                     <button
+                      type="button"
                       onClick={() => {
-                        if (!securityQuestion || !securityAnswer) {
-                          alert(t('setSecurityQuestion') + " in Settings first!");
-                          return;
-                        }
-                        const ans = prompt(`${t('securityQuestion')}: ${t(securityQuestion) || securityQuestion}\n${t('enterSecurityAnswer')}:`);
-                        if (ans && ans.toLowerCase().trim() === securityAnswer.toLowerCase().trim()) {
-                          const resetPin = '1234';
-                          setSecurityPin(resetPin);
-                          saveUserSettings({ securityPin: resetPin });
-                          alert(t('pinResetSuccess'));
-                        } else {
-                          alert(t('incorrectAnswer'));
+                        const selectedInvItem = inventory.find(i => i.id === tempInvoiceItem.itemId);
+                        if (selectedInvItem && tempInvoiceItem.quantity > 0) {
+                          setNewInvoiceForm({
+                            ...newInvoiceForm,
+                            items: [...newInvoiceForm.items, {
+                              id: selectedInvItem.id,
+                              name: selectedInvItem.name,
+                              price: selectedInvItem.sellPrice || 0,
+                              quantity: tempInvoiceItem.quantity
+                            }]
+                          });
+                          setTempInvoiceItem({ itemId: '', quantity: 1 });
                         }
                       }}
-                      className="text-sm text-blue-500 hover:text-blue-700 underline mt-2"
-                    >
-                      {t('forgotPin')}
-                    </button>
+                      className="bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-800 text-sm h-[42px]"
+                    >Add</button>
                   </div>
                 </div>
+
+                <div className="flex justify-between items-center pt-2 px-2">
+                  <span className="font-bold text-gray-500">Total Amount:</span>
+                  <span className="font-mono text-2xl font-bold text-indigo-600">
+                    {formatCurrency(newInvoiceForm.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+                  </span>
+                </div>
+
+                <select className="input-field" value={newInvoiceForm.status} onChange={e => setNewInvoiceForm({ ...newInvoiceForm, status: e.target.value })}>
+                  <option value="Issued">Issued</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsAddInvoiceModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">{t('cancel')}</button>
+                  <button type="submit" disabled={newInvoiceForm.items.length === 0} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed">Generate Invoice</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Select Sales Employee Modal */}
+      {
+        isSelectSalesEmployeeModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-900">Select Sales Employee</h3>
+                <button onClick={() => setIsSelectSalesEmployeeModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
-            )
-          }
+              <div className="p-2 max-h-[60vh] overflow-y-auto">
+                <div className="space-y-1">
+                  {/* Filtered Employees: Assigned to Location OR Covering Today */}
+                  {employees.filter(emp => {
+                    if (!posLocationFilter || currentMode !== 'Cashier') return true; // Safety check
+                    const isAssigned = emp.location === posLocationFilter;
+                    const today = new Date().toISOString().split('T')[0];
+                    const isCovering = attendance.some(a =>
+                      a.name === emp.name &&
+                      a.date === today &&
+                      (a.locationFilter === posLocationFilter || a.site === posLocationFilter) // check both just in case
+                    );
+                    return isAssigned || isCovering;
+                  }).map(emp => (
+                    <button
+                      key={emp.id}
+                      onClick={() => { setSalesEmployee(emp); setIsSelectSalesEmployeeModalOpen(false); }}
+                      className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition-colors ${salesEmployee?.id === emp.id ? 'bg-blue-50 border border-blue-100' : ''}`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
+                        {emp.photo ? <img src={emp.photo} alt={emp.name} className="w-full h-full object-cover" /> : <User size={20} className="text-gray-400 m-auto mt-2" />}
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">{emp.name}</div>
+                        <div className="text-xs text-gray-500">{t(emp.role.toLowerCase()) || emp.role}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Manage Payroll Modal */}
+      {
+        isManagePayrollModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-900">{t('managePayroll')}</h3>
+                  <p className="text-xs text-slate-500">{currentPayrollForm.name} • {currentPayrollForm.month}</p>
+                </div>
+                <button onClick={() => setIsManagePayrollModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleSavePayroll} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+
+                {/* Fixed Fields */}
+                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('basicSalary')}</label>
+                    <input type="number" className="input-field bg-white" value={currentPayrollForm.salary} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, salary: e.target.value })} required title={t('basicSalary')} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('advanceTaken')}</label>
+                    <input type="number" className="input-field bg-white text-red-600" value={currentPayrollForm.advance} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, advance: e.target.value })} title={t('advance')} />
+                  </div>
+                </div>
+
+                {/* Variable Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('bonus')} (+)</label>
+                    <input type="number" className="input-field text-green-600 font-bold" value={currentPayrollForm.bonus} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, bonus: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('overtime')} (+)</label>
+                    <input type="number" className="input-field text-orange-600 font-bold" value={currentPayrollForm.overtime} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, overtime: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">{t('manualDeductions')} (-)</label>
+                    <input type="number" className="input-field text-red-600 font-bold" value={currentPayrollForm.deductions} onChange={e => setCurrentPayrollForm({ ...currentPayrollForm, deductions: e.target.value })} />
+                  </div>
+                  <div className="opacity-70 pointer-events-none">
+                    <label className="text-xs font-semibold text-gray-400 block mb-1">{t('lateAbsentAuto')}</label>
+                    <input type="number" className="input-field bg-gray-100 text-gray-500" value={(currentPayrollForm.lateDeduction + currentPayrollForm.absentDeduction).toFixed(2)} readOnly />
+                  </div>
+                </div>
+
+                {/* Summary Box */}
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-2">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium text-blue-800">{t('grossEarnings')}:</span>
+                    <span className="font-mono font-bold text-blue-900">{formatCurrency(Number(currentPayrollForm.salary) + Number(currentPayrollForm.bonus) + Number(currentPayrollForm.overtime))}</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-1 text-red-700">
+                    <span className="text-sm font-medium">{t('totalDeductions')}:</span>
+                    <span className="font-mono font-bold">-{formatCurrency(Number(currentPayrollForm.advance) + Number(currentPayrollForm.deductions) + Number(currentPayrollForm.lateDeduction) + Number(currentPayrollForm.absentDeduction))}</span>
+                  </div>
+                  <div className="h-px bg-blue-200 my-2"></div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-base font-bold text-blue-900">{t('netPayable')}:</span>
+                    <span className="text-xl font-bold text-blue-700 font-mono">
+                      {formatCurrency(
+                        (Number(currentPayrollForm.salary) + Number(currentPayrollForm.bonus) + Number(currentPayrollForm.overtime)) -
+                        (Number(currentPayrollForm.advance) + Number(currentPayrollForm.deductions) + Number(currentPayrollForm.lateDeduction) + Number(currentPayrollForm.absentDeduction))
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setIsManagePayrollModalOpen(false)} className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-colors">{t('cancel')}</button>
+                  {payrolls.find(p => p.employeeId === currentPayrollForm.id && p.month === currentPayrollForm.month) && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePayrollRecord(currentPayrollForm.id, currentPayrollForm.month)}
+                      className="flex-1 px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 font-bold transition-all flex items-center justify-center gap-2 border border-red-200"
+                      title="Delete custom record and reset to employee defaults"
+                    >
+                      <X size={18} /> {t('reset')}
+                    </button>
+                  )}
+                  <button type="submit" className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
+                    <Save size={18} /> {t('saveRecord')}
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* PIN Verification Modal */}
+      {
+        isPinModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[130] backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                  <Shield size={32} className="text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('securityCheck')}</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  {pinAction === 'changeSalesEmployee' ? t('changeUserPrompt') :
+                    pinAction === 'switchMode' ? t('switchModePrompt') :
+                      t('pinPrompt')}
+                </p>
+
+                <div className="flex justify-center gap-3 mb-6">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 ${pinInput.length > i ? 'bg-blue-600 scale-110' : 'bg-gray-200'}`} />
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => {
+                        const newPin = pinInput + num;
+                        if (newPin.length <= 4) {
+                          setPinInput(newPin);
+                        }
+                      }}
+                      className="h-12 rounded-xl bg-gray-50 hover:bg-gray-100 text-lg font-bold text-gray-700 transition-colors flex items-center justify-center active:scale-95"
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <button onClick={() => setPinInput('')} className="h-12 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold flex items-center justify-center transition-colors active:scale-95">C</button>
+                  <button
+                    onClick={() => {
+                      const newPin = pinInput + '0';
+                      if (newPin.length <= 4) {
+                        setPinInput(newPin);
+                      }
+                    }}
+                    className="h-12 rounded-xl bg-gray-50 hover:bg-gray-100 text-lg font-bold text-gray-700 transition-colors flex items-center justify-center active:scale-95"
+                  >
+                    0
+                  </button>
+                  <button onClick={() => setIsPinModalOpen(false)} className="h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center transition-colors active:scale-95"><X size={20} /></button>
+                </div>
+
+                {/* Forgot PIN Link */}
+                <button
+                  onClick={() => {
+                    if (!securityQuestion || !securityAnswer) {
+                      alert(t('setSecurityQuestion') + " in Settings first!");
+                      return;
+                    }
+                    const ans = prompt(`${t('securityQuestion')}: ${t(securityQuestion) || securityQuestion}\n${t('enterSecurityAnswer')}:`);
+                    if (ans && ans.toLowerCase().trim() === securityAnswer.toLowerCase().trim()) {
+                      const resetPin = '1234';
+                      setSecurityPin(resetPin);
+                      saveUserSettings({ securityPin: resetPin });
+                      alert(t('pinResetSuccess'));
+                    } else {
+                      alert(t('incorrectAnswer'));
+                    }
+                  }}
+                  className="text-sm text-blue-500 hover:text-blue-700 underline mt-2"
+                >
+                  {t('forgotPin')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
 
 
@@ -9524,11 +9662,11 @@ export default function App() {
 
 
 
-          {/* Scanner Modal */}
-          {
-            isScannerOpen && (
-              <div className="fixed inset-0 bg-slate-950/90 flex flex-col items-center justify-center z-[150] p-4 backdrop-blur-sm">
-                <style>{`
+      {/* Scanner Modal */}
+      {
+        isScannerOpen && (
+          <div className="fixed inset-0 bg-slate-950/90 flex flex-col items-center justify-center z-[150] p-4 backdrop-blur-sm">
+            <style>{`
               @keyframes scan {
                 0% { top: 10%; }
                 100% { top: 90%; }
@@ -9557,570 +9695,574 @@ export default function App() {
               }
             `}</style>
 
-                <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden relative shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
-                  <div className="p-5 border-b flex justify-between items-center bg-gray-50/50 backdrop-blur-xl">
-                    <div className="flex flex-col flex-1 text-left">
-                      <h3 className="font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight text-sm"><Scan size={18} className="text-blue-600" /> {t('scanBarcode')}</h3>
-                      <div className="flex items-center gap-2 mt-2">
-                        {cameras.length > 1 && (
-                          <select
-                            className="text-[10px] bg-white border border-gray-100 rounded-full px-3 py-1.5 outline-none font-black text-gray-400 hover:text-blue-600 transition-colors uppercase tracking-widest shadow-sm"
-                            value={activeCameraId || ''}
-                            onChange={(e) => setActiveCameraId(e.target.value)}
-                          >
-                            {cameras.map(cam => (
-                              <option key={cam.id} value={cam.id}>{cam.label || `Camera ${cam.id}`}</option>
-                            ))}
-                          </select>
-                        )}
-                        {hasFlash && (
-                          <button
-                            onClick={toggleFlash}
-                            className={`p-2 rounded-full border transition-all shadow-sm ${isFlashOn ? 'bg-amber-100 border-amber-300 text-amber-600' : 'bg-white border-gray-100 text-gray-400'}`}
-                            title="Toggle Flash"
-                          >
-                            <Zap size={16} fill={isFlashOn ? "currentColor" : "none"} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsScannerOpen(false)}
-                      className="p-3 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-600 transition-all ml-2 bg-gray-100/50"
-                    >
-                      <X size={24} />
-                    </button>
-                  </div>
-
-                  {/* Retry Overlay if black screen */}
-                  <div className="absolute top-24 right-6 z-[60]">
-                    <button
-                      onClick={() => {
-                        setIsScannerOpen(false);
-                        setTimeout(() => setIsScannerOpen(true), 100);
-                      }}
-                      className="px-3 py-1.5 bg-blue-600/80 backdrop-blur-md text-white text-[10px] font-black uppercase rounded-full shadow-lg border border-white/20 hover:bg-blue-700 transition-all flex items-center gap-2"
-                    >
-                      <RefreshCw size={12} className="animate-spin-slow" /> {t('retryCamera')}
-                    </button>
-                  </div>
-
-                  <div className="relative overflow-hidden bg-black aspect-square sm:aspect-video flex items-center justify-center">
-                    <div id="reader" className="w-full h-full"></div>
-
-                    {/* Manual Focus Trigger Overlay */}
-                    <button
-                      onClick={async () => {
-                        try {
-                          const track = scannerRef.current?.getRunningTrack();
-                          if (track) {
-                            await track.applyConstraints({ focusMode: "continuous" });
-                            // Visual focus pulse animation
-                            const focusUI = document.getElementById('focus-pulse');
-                            if (focusUI) {
-                              focusUI.classList.remove('hidden');
-                              setTimeout(() => focusUI.classList.add('hidden'), 500);
-                            }
-                          }
-                        } catch (e) { }
-                      }}
-                      className="absolute inset-0 z-40 cursor-crosshair flex items-center justify-center"
-                    >
-                      <div id="focus-pulse" className="hidden w-20 h-20 border border-blue-400 rounded-full animate-ping"></div>
-                    </button>
-
-                    {/* Visual Scanning Effects */}
-                    <div className="scanner-overlay"></div>
-                    <div className="scanning-line"></div>
-
-                    {/* Corner Frame */}
-                    <div className="absolute top-10 left-10 w-10 h-10 border-t-4 border-l-4 border-blue-500 rounded-tl-xl z-30"></div>
-                    <div className="absolute top-10 right-10 w-10 h-10 border-t-4 border-r-4 border-blue-500 rounded-tr-xl z-30"></div>
-                    <div className="absolute bottom-10 left-10 w-10 h-10 border-b-4 border-l-4 border-blue-500 rounded-bl-xl z-30"></div>
-                    <div className="absolute bottom-10 right-10 w-10 h-10 border-b-4 border-r-4 border-blue-500 rounded-br-xl z-30"></div>
-
-                    {/* Zoom Control UI overlayed on video */}
-                    {hasZoom && zoomRange.max > zoomRange.min && (
-                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3/4 bg-black/60 backdrop-blur-xl px-4 py-3 rounded-full flex items-center gap-4 z-50 border border-white/20 shadow-lg">
-                        <span className="text-white text-[10px] font-black opacity-50 uppercase">1x</span>
-                        <input
-                          type="range"
-                          min={zoomRange.min}
-                          max={zoomRange.max}
-                          step={zoomRange.step}
-                          value={currentZoom}
-                          onChange={handleZoomChange}
-                          className="flex-1 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                        />
-                        <span className="text-white text-[10px] font-black opacity-50 uppercase">{Math.round(zoomRange.max)}x</span>
-                      </div>
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden relative shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
+              <div className="p-5 border-b flex justify-between items-center bg-gray-50/50 backdrop-blur-xl">
+                <div className="flex flex-col flex-1 text-left">
+                  <h3 className="font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight text-sm"><Scan size={18} className="text-blue-600" /> {t('scanBarcode')}</h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    {cameras.length > 1 && (
+                      <select
+                        className="text-[10px] bg-white border border-gray-100 rounded-full px-3 py-1.5 outline-none font-black text-gray-400 hover:text-blue-600 transition-colors uppercase tracking-widest shadow-sm"
+                        value={activeCameraId || ''}
+                        onChange={(e) => setActiveCameraId(e.target.value)}
+                      >
+                        {cameras.map(cam => (
+                          <option key={cam.id} value={cam.id}>{cam.label || `Camera ${cam.id}`}</option>
+                        ))}
+                      </select>
+                    )}
+                    {hasFlash && (
+                      <button
+                        onClick={toggleFlash}
+                        className={`p-2 rounded-full border transition-all shadow-sm ${isFlashOn ? 'bg-amber-100 border-amber-300 text-amber-600' : 'bg-white border-gray-100 text-gray-400'}`}
+                        title="Toggle Flash"
+                      >
+                        <Zap size={16} fill={isFlashOn ? "currentColor" : "none"} />
+                      </button>
                     )}
                   </div>
-
-                  <div className="p-6 bg-white text-center">
-                    <p className="text-gray-900 font-bold text-sm tracking-tight mb-1">
-                      {hasZoom ? t('scanFocusInfo') : t('tapToFocus')}
-                    </p>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black leading-relaxed">
-                      {t('centerCodeFrame')}<br />
-                      <span className="text-blue-500">{t('holdAwayTap')}</span>
-                    </p>
-                  </div>
                 </div>
+                <button
+                  onClick={() => setIsScannerOpen(false)}
+                  className="p-3 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-600 transition-all ml-2 bg-gray-100/50"
+                >
+                  <X size={24} />
+                </button>
               </div>
-            )
-          }
 
-          {/* UPI QR Payment Modal (Improved with Close and Overlap fix) */}
-          {
-            (activeTab === 'sales_purchases' || activeTab === 'service') && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && (
-              <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[280px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,.1)] border border-blue-50 p-6 animate-in slide-in-from-bottom-10 duration-500 z-[100]">
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <div className="flex items-center gap-3 text-blue-800">
-                    <div className="p-2 bg-blue-50 rounded-xl"><QrCode size={20} /></div>
-                    <span className="font-black text-xs uppercase tracking-widest">
-                      {digitalSubMethod === 'UPI' ? t('payWithUPI') : digitalSubMethod === 'InstaPay' ? t('payWithInstapay') : (t('otherPayment') || 'Other Payment')}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setShowUpiQr(false)}
-                    className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                <div className="flex justify-center bg-gray-50 p-5 rounded-3xl mb-4 border border-gray-100 shadow-inner">
-                  {digitalSubMethod === 'UPI' && shopSettings.upiId ? (
-                    <QRCodeSVG
-                      value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
-                      size={180}
-                      level="H"
-                      includeMargin={true}
+              {/* Retry Overlay if black screen */}
+              <div className="absolute top-24 right-6 z-[60]">
+                <button
+                  onClick={() => {
+                    setIsScannerOpen(false);
+                    setTimeout(() => setIsScannerOpen(true), 100);
+                  }}
+                  className="px-3 py-1.5 bg-blue-600/80 backdrop-blur-md text-white text-[10px] font-black uppercase rounded-full shadow-lg border border-white/20 hover:bg-blue-700 transition-all flex items-center gap-2"
+                >
+                  <RefreshCw size={12} className="animate-spin-slow" /> {t('retryCamera')}
+                </button>
+              </div>
+
+              <div className="relative overflow-hidden bg-black aspect-square sm:aspect-video flex items-center justify-center">
+                <div id="reader" className="w-full h-full"></div>
+
+                {/* Manual Focus Trigger Overlay */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const track = scannerRef.current?.getRunningTrack();
+                      if (track) {
+                        await track.applyConstraints({ focusMode: "continuous" });
+                        // Visual focus pulse animation
+                        const focusUI = document.getElementById('focus-pulse');
+                        if (focusUI) {
+                          focusUI.classList.remove('hidden');
+                          setTimeout(() => focusUI.classList.add('hidden'), 500);
+                        }
+                      }
+                    } catch (e) { }
+                  }}
+                  className="absolute inset-0 z-40 cursor-crosshair flex items-center justify-center"
+                >
+                  <div id="focus-pulse" className="hidden w-20 h-20 border border-blue-400 rounded-full animate-ping"></div>
+                </button>
+
+                {/* Visual Scanning Effects */}
+                <div className="scanner-overlay"></div>
+                <div className="scanning-line"></div>
+
+                {/* Corner Frame */}
+                <div className="absolute top-10 left-10 w-10 h-10 border-t-4 border-l-4 border-blue-500 rounded-tl-xl z-30"></div>
+                <div className="absolute top-10 right-10 w-10 h-10 border-t-4 border-r-4 border-blue-500 rounded-tr-xl z-30"></div>
+                <div className="absolute bottom-10 left-10 w-10 h-10 border-b-4 border-l-4 border-blue-500 rounded-bl-xl z-30"></div>
+                <div className="absolute bottom-10 right-10 w-10 h-10 border-b-4 border-r-4 border-blue-500 rounded-br-xl z-30"></div>
+
+                {/* Zoom Control UI overlayed on video */}
+                {hasZoom && zoomRange.max > zoomRange.min && (
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3/4 bg-black/60 backdrop-blur-xl px-4 py-3 rounded-full flex items-center gap-4 z-50 border border-white/20 shadow-lg">
+                    <span className="text-white text-[10px] font-black opacity-50 uppercase">1x</span>
+                    <input
+                      type="range"
+                      min={zoomRange.min}
+                      max={zoomRange.max}
+                      step={zoomRange.step}
+                      value={currentZoom}
+                      onChange={handleZoomChange}
+                      className="flex-1 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
-                  ) : digitalSubMethod === 'InstaPay' && shopSettings.instapayId ? (
-                    <div className="text-center">
-                      <div className="bg-white p-2 rounded-lg inline-block border border-gray-100 shadow-sm mb-2">
-                        <QRCodeSVG value={shopSettings.instapayId} size={150} />
-                      </div>
-                      <p className="text-[10px] font-bold text-gray-500">InstaPay ID: {shopSettings.instapayId}</p>
-                    </div>
-                  ) : digitalSubMethod === 'Other' ? (
-                    <div className="text-center py-4 flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
-                        <QrCode size={32} />
-                      </div>
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('useExternalTerminal') || 'Use External Terminal or QR'}</p>
-                    </div>
-                  ) : (
-                    <div className="p-4 text-center text-xs text-red-500 italic">
-                      {t('paymentMethodNotConfigured') || 'Details not configured in Settings'}
+                    <span className="text-white text-[10px] font-black opacity-50 uppercase">{Math.round(zoomRange.max)}x</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 bg-white text-center">
+                <p className="text-gray-900 font-bold text-sm tracking-tight mb-1">
+                  {hasZoom ? t('scanFocusInfo') : t('tapToFocus')}
+                </p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black leading-relaxed">
+                  {t('centerCodeFrame')}<br />
+                  <span className="text-blue-500">{t('holdAwayTap')}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* UPI QR Payment Modal (Improved with Close and Overlap fix) */}
+      {
+        (activeTab === 'sales_purchases' || activeTab === 'service') && !showSettings && !isPinModalOpen && showUpiQr && paymentMethod === 'Online' && (
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[280px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,.1)] border border-blue-50 p-6 animate-in slide-in-from-bottom-10 duration-500 z-[100]">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-3 text-blue-800">
+                <div className="p-2 bg-blue-50 rounded-xl"><QrCode size={20} /></div>
+                <span className="font-black text-xs uppercase tracking-widest">
+                  {digitalSubMethod === 'UPI' ? t('payWithUPI') : digitalSubMethod === 'InstaPay' ? t('payWithInstapay') : (t('otherPayment') || 'Other Payment')}
+                </span>
+              </div>
+              <button
+                onClick={() => setShowUpiQr(false)}
+                className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex justify-center bg-gray-50 p-5 rounded-3xl mb-4 border border-gray-100 shadow-inner">
+              {digitalSubMethod === 'UPI' && shopSettings.upiId ? (
+                <QRCodeSVG
+                  value={`upi://pay?pa=${shopSettings.upiId}&pn=${shopSettings.name}&am=${(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount)).toFixed(2)}&cu=${currency === 'INR' ? 'INR' : 'INR'}`}
+                  size={180}
+                  level="H"
+                  includeMargin={true}
+                />
+              ) : digitalSubMethod === 'InstaPay' && shopSettings.instapayId ? (
+                <div className="text-center">
+                  <div className="bg-white p-2 rounded-lg inline-block border border-gray-100 shadow-sm mb-2">
+                    <QRCodeSVG value={shopSettings.instapayId} size={150} />
+                  </div>
+                  <p className="text-[10px] font-bold text-gray-500">InstaPay ID: {shopSettings.instapayId}</p>
+                </div>
+              ) : digitalSubMethod === 'Other' ? (
+                <div className="text-center py-4 flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                    <QrCode size={32} />
+                  </div>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('useExternalTerminal') || 'Use External Terminal or QR'}</p>
+                </div>
+              ) : (
+                <div className="p-4 text-center text-xs text-red-500 italic">
+                  {t('paymentMethodNotConfigured') || 'Details not configured in Settings'}
+                </div>
+              )}
+            </div>
+            <div className="text-center mb-6">
+              <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">
+                {digitalSubMethod === 'Other' ? '' : (digitalSubMethod === 'UPI' ? shopSettings.upiId : shopSettings.instapayId)}
+              </p>
+              <p className="text-lg font-black text-gray-900 font-mono tracking-tight">
+                {formatCurrency(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount))}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-600 transition-all duration-1000 ease-linear rounded-full"
+                  style={{ width: `${(upiQrTimer / 30) * 100}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                <span className="text-blue-600">{t('autoHide') || 'Auto-hide'}</span>
+                <span className="text-gray-400">{upiQrTimer}{t('seconds') || 's'}</span>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Cafe Order Modal */}
+      {
+        isCafeOrderModalOpen && activeCafeSession && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col relative">
+              <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white/50 backdrop-blur-xl">
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                    <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                    {t('addOrder')} <span className="text-slate-300 font-normal">/</span> {activeCafeSession.roomName}
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{t('appendSession')}</p>
+                </div>
+                <button
+                  onClick={() => { setIsCafeOrderModalOpen(false); setCart([]); }}
+                  className="p-3 hover:bg-rose-50 rounded-full text-slate-300 hover:text-rose-600 transition-all active:scale-95 bg-slate-50"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+                {/* Left: Menu */}
+                <div className="flex-1 p-8 overflow-y-auto flex flex-col gap-8 bg-slate-50/30">
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    {['All', 'Hot Drinks', 'Cold Drinks', 'Snacks', 'Meals'].map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCafeCategory(cat)}
+                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${activeCafeCategory === cat ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' : 'bg-white text-slate-400 border-gray-100 hover:border-blue-500/30 hover:text-blue-600'}`}
+                      >
+                        {cat === 'All' ? t('all') : cat === 'Hot Drinks' ? t('hotDrinks') : cat === 'Cold Drinks' ? t('coldDrinks') : cat === 'Snacks' ? t('snacks') : t('meals')}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {recipes
+                      .filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory)
+                      .map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            const stock = Number(item.quantity) || 0;
+                            const isRecipe = item.ingredients;
+
+                            // For recipes, we just allow adding and check at checkout OR perform a shallow check here if we want to be fancy.
+                            // For now, let's just do direct item check.
+                            if (!isRecipe && stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
+
+                            const existing = cart.find(c => c.id === item.id);
+                            if (existing) {
+                              if (!isRecipe && Number(existing.quantity) + 1 > stock) {
+                                return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
+                              }
+                              setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
+                            } else {
+                              setCart([...cart, { ...item, quantity: 1 }]);
+                            }
+                          }}
+                          className="p-5 bg-white rounded-2xl border border-gray-100 hover:border-blue-500/30 hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative text-left flex flex-col justify-between min-h-[130px] shadow-sm"
+                        >
+                          <div>
+                            <p className="font-black text-slate-800 text-sm mb-1 uppercase tracking-tight leading-tight">{item.name}</p>
+                            <p className="text-blue-600 font-bold text-xs tracking-widest">{formatCurrency(item.sellPrice)}</p>
+                          </div>
+                          <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:rotate-12">
+                            <Plus size={16} strokeWidth={3} />
+                          </div>
+                        </button>
+                      ))}
+                  </div>
+
+                  {recipes.filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory).length === 0 && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-30">
+                      <Package size={48} className="mb-4 text-slate-300" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('menuItemsMissingTitle')}</p>
                     </div>
                   )}
                 </div>
-                <div className="text-center mb-6">
-                  <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em] mb-1">
-                    {digitalSubMethod === 'Other' ? '' : (digitalSubMethod === 'UPI' ? shopSettings.upiId : shopSettings.instapayId)}
-                  </p>
-                  <p className="text-lg font-black text-gray-900 font-mono tracking-tight">
-                    {formatCurrency(activeTab === 'service' ? serviceCart.reduce((a, b) => a + (Number(b.sellPrice) * Number(b.quantity)), 0) : (calculateTotal() - cartDiscount))}
-                  </p>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-600 transition-all duration-1000 ease-linear rounded-full"
-                      style={{ width: `${(upiQrTimer / 30) * 100}%` }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-blue-600">{t('autoHide') || 'Auto-hide'}</span>
-                    <span className="text-gray-400">{upiQrTimer}{t('seconds') || 's'}</span>
-                  </div>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Cafe Order Modal */}
-          {
-            isCafeOrderModalOpen && activeCafeSession && (
-              <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col relative">
-                  <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white/50 backdrop-blur-xl">
-                    <div>
-                      <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
-                        <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
-                        {t('addOrder')} <span className="text-slate-300 font-normal">/</span> {activeCafeSession.roomName}
-                      </h3>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{t('appendSession')}</p>
-                    </div>
-                    <button
-                      onClick={() => { setIsCafeOrderModalOpen(false); setCart([]); }}
-                      className="p-3 hover:bg-rose-50 rounded-full text-slate-300 hover:text-rose-600 transition-all active:scale-95 bg-slate-50"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-
-                  <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
-                    {/* Left: Menu */}
-                    <div className="flex-1 p-8 overflow-y-auto flex flex-col gap-8 bg-slate-50/30">
-                      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {['All', 'Hot Drinks', 'Cold Drinks', 'Snacks', 'Meals'].map(cat => (
-                          <button
-                            key={cat}
-                            onClick={() => setActiveCafeCategory(cat)}
-                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${activeCafeCategory === cat ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' : 'bg-white text-slate-400 border-gray-100 hover:border-blue-500/30 hover:text-blue-600'}`}
-                          >
-                            {cat === 'All' ? t('all') : cat === 'Hot Drinks' ? t('hotDrinks') : cat === 'Cold Drinks' ? t('coldDrinks') : cat === 'Snacks' ? t('snacks') : t('meals')}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {recipes
-                          .filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory)
-                          .map(item => (
-                            <button
-                              key={item.id}
-                              onClick={() => {
-                                const stock = Number(item.quantity) || 0;
-                                const isRecipe = item.ingredients;
-
-                                // For recipes, we just allow adding and check at checkout OR perform a shallow check here if we want to be fancy.
-                                // For now, let's just do direct item check.
-                                if (!isRecipe && stock <= 0) { return alert(t('outOfStock') || "Out of stock!"); }
-
-                                const existing = cart.find(c => c.id === item.id);
-                                if (existing) {
-                                  if (!isRecipe && Number(existing.quantity) + 1 > stock) {
-                                    return alert(`${t('maxStockReached') || 'Max stock reached:'} ${stock}`);
-                                  }
-                                  setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
-                                } else {
-                                  setCart([...cart, { ...item, quantity: 1 }]);
-                                }
-                              }}
-                              className="p-5 bg-white rounded-2xl border border-gray-100 hover:border-blue-500/30 hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative text-left flex flex-col justify-between min-h-[130px] shadow-sm"
-                            >
-                              <div>
-                                <p className="font-black text-slate-800 text-sm mb-1 uppercase tracking-tight leading-tight">{item.name}</p>
-                                <p className="text-blue-600 font-bold text-xs tracking-widest">{formatCurrency(item.sellPrice)}</p>
-                              </div>
-                              <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:rotate-12">
-                                <Plus size={16} strokeWidth={3} />
-                              </div>
-                            </button>
-                          ))}
-                      </div>
-
-                      {recipes.filter(r => activeCafeCategory === 'All' || r.category === activeCafeCategory).length === 0 && (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-30">
-                          <Package size={48} className="mb-4 text-slate-300" />
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('menuItemsMissingTitle')}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right: Cart & History */}
-                    <div className="w-full md:w-[380px] bg-white border-l border-gray-100 p-8 flex flex-col h-full overflow-hidden">
-                      <div className="flex-1 overflow-y-auto space-y-8 pr-2 custom-scrollbar">
-                        {(() => {
-                          const currentSession = cafeSessions.find(s => s.id === activeCafeSession.id);
-                          const history = currentSession?.orders || [];
-                          if (history.length === 0) return null;
-                          return (
-                            <div className="bg-slate-50 p-6 rounded-3xl border border-gray-100/50">
-                              <h4 className="font-black text-[9px] uppercase tracking-widest text-blue-600 mb-4 flex items-center gap-2">
-                                <History size={14} /> {t('orderHistory')}
-                              </h4>
-                              <div className="space-y-3">
-                                {history.map((item, idx) => (
-                                  <div key={idx} className="flex justify-between items-center px-1">
-                                    <span className="text-[11px] font-bold text-slate-600 uppercase tracking-tight truncate max-w-[150px]">{item.name}</span>
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-[10px] font-black text-slate-300">x{item.quantity}</span>
-                                      <span className="text-[11px] font-mono font-bold text-slate-700">{formatCurrency(Number(item.sellPrice) * Number(item.quantity))}</span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t('subtotalLabel')}</span>
-                                <span className="text-sm font-black text-slate-900">{formatCurrency(history.reduce((sum, h) => sum + (Number(h.sellPrice) * Number(h.quantity)), 0))}</span>
-                              </div>
-                            </div>
-                          );
-                        })()}
-
-                        <div>
-                          <h4 className="font-black text-[9px] uppercase tracking-widest text-slate-400 mb-4 px-1">{t('newSelection')}</h4>
+                {/* Right: Cart & History */}
+                <div className="w-full md:w-[380px] bg-white border-l border-gray-100 p-8 flex flex-col h-full overflow-hidden">
+                  <div className="flex-1 overflow-y-auto space-y-8 pr-2 custom-scrollbar">
+                    {(() => {
+                      const currentSession = cafeSessions.find(s => s.id === activeCafeSession.id);
+                      const history = currentSession?.orders || [];
+                      if (history.length === 0) return null;
+                      return (
+                        <div className="bg-slate-50 p-6 rounded-3xl border border-gray-100/50">
+                          <h4 className="font-black text-[9px] uppercase tracking-widest text-blue-600 mb-4 flex items-center gap-2">
+                            <History size={14} /> {t('orderHistory')}
+                          </h4>
                           <div className="space-y-3">
-                            {cart.length === 0 ? (
-                              <div className="py-8 flex flex-col items-center justify-center opacity-20">
-                                <ShoppingCart size={32} className="mb-2 text-slate-400" />
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('trayEmpty')}</p>
-                              </div>
-                            ) : (
-                              cart.map((item, idx) => (
-                                <div key={idx} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-3 animate-in slide-in-from-right-4 duration-300 shadow-sm">
-                                  <div className="flex-1 overflow-hidden">
-                                    <p className="font-bold text-[11px] text-slate-800 truncate uppercase tracking-tight mb-0.5">{item.name}</p>
-                                    <p className="text-[10px] text-blue-600 font-black tracking-widest">{formatCurrency(item.sellPrice)}</p>
-                                  </div>
-                                  <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-1.5 border border-gray-100">
-                                    <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Math.max(0, Number(c.quantity) - 1) } : c).filter(c => c.quantity > 0))} className="p-1.5 hover:bg-white hover:text-rose-600 rounded-lg text-slate-400 transition-all"><Minus size={12} /></button>
-                                    <span className="text-[11px] font-black text-slate-700 tabular-nums min-w-[20px] text-center">{item.quantity}</span>
-                                    <button
-                                      onClick={() => {
-                                        const invItem = inventory.find(i => i.id === item.id);
-                                        const isRecipe = recipes.find(r => r.id === item.id);
-                                        if (isRecipe) {
-                                          setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
-                                        } else if (invItem && Number(item.quantity) < Number(invItem.quantity)) {
-                                          setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
-                                        } else {
-                                          alert(t('outOfStock') || "No more stock available!");
-                                        }
-                                      }}
-                                      className="p-1.5 hover:bg-white hover:text-blue-600 rounded-lg text-slate-400 transition-all"
-                                    >
-                                      <Plus size={12} />
-                                    </button>
-                                  </div>
+                            {history.map((item, idx) => (
+                              <div key={idx} className="flex justify-between items-center px-1">
+                                <span className="text-[11px] font-bold text-slate-600 uppercase tracking-tight truncate max-w-[150px]">{item.name}</span>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-[10px] font-black text-slate-300">x{item.quantity}</span>
+                                  <span className="text-[11px] font-mono font-bold text-slate-700">{formatCurrency(Number(item.sellPrice) * Number(item.quantity))}</span>
                                 </div>
-                              ))
-                            )}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t('subtotalLabel')}</span>
+                            <span className="text-sm font-black text-slate-900">{formatCurrency(history.reduce((sum, h) => sum + (Number(h.sellPrice) * Number(h.quantity)), 0))}</span>
                           </div>
                         </div>
-                      </div>
+                      );
+                    })()}
 
-                      <div className="pt-8 border-t border-gray-100 mt-auto">
-                        <div className="flex justify-between items-end mb-6">
-                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('trayTotal')}</span>
-                          <span className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(cart.reduce((sum, i) => sum + (Number(i.sellPrice) * Number(i.quantity)), 0))}</span>
-                        </div>
-                        <button
-                          disabled={cart.length === 0}
-                          onClick={() => {
-                            handleCheckoutCafeOrder(activeCafeSession.id, cart);
-                            setIsCafeOrderModalOpen(false);
-                          }}
-                          className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-slate-200 disabled:opacity-20 flex items-center justify-center gap-2 transform active:scale-95"
-                        >
-                          <CheckCircle size={18} strokeWidth={3} /> {t('confirmOrder')}
-                        </button>
+                    <div>
+                      <h4 className="font-black text-[9px] uppercase tracking-widest text-slate-400 mb-4 px-1">{t('newSelection')}</h4>
+                      <div className="space-y-3">
+                        {cart.length === 0 ? (
+                          <div className="py-8 flex flex-col items-center justify-center opacity-20">
+                            <ShoppingCart size={32} className="mb-2 text-slate-400" />
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('trayEmpty')}</p>
+                          </div>
+                        ) : (
+                          cart.map((item, idx) => (
+                            <div key={idx} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-3 animate-in slide-in-from-right-4 duration-300 shadow-sm">
+                              <div className="flex-1 overflow-hidden">
+                                <p className="font-bold text-[11px] text-slate-800 truncate uppercase tracking-tight mb-0.5">{item.name}</p>
+                                <p className="text-[10px] text-blue-600 font-black tracking-widest">{formatCurrency(item.sellPrice)}</p>
+                              </div>
+                              <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-1.5 border border-gray-100">
+                                <button onClick={() => setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Math.max(0, Number(c.quantity) - 1) } : c).filter(c => c.quantity > 0))} className="p-1.5 hover:bg-white hover:text-rose-600 rounded-lg text-slate-400 transition-all"><Minus size={12} /></button>
+                                <span className="text-[11px] font-black text-slate-700 tabular-nums min-w-[20px] text-center">{item.quantity}</span>
+                                <button
+                                  onClick={() => {
+                                    const invItem = inventory.find(i => i.id === item.id);
+                                    const isRecipe = recipes.find(r => r.id === item.id);
+                                    if (isRecipe) {
+                                      setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
+                                    } else if (invItem && Number(item.quantity) < Number(invItem.quantity)) {
+                                      setCart(cart.map(c => c.id === item.id ? { ...c, quantity: Number(c.quantity) + 1 } : c));
+                                    } else {
+                                      alert(t('outOfStock') || "No more stock available!");
+                                    }
+                                  }}
+                                  className="p-1.5 hover:bg-white hover:text-blue-600 rounded-lg text-slate-400 transition-all"
+                                >
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )
-          }
 
-          {/* Start Session Modal */}
-          {
-            isStartSessionModalOpen && pendingRoom && (
-              <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col p-8">
-                  <div className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
-                        <Play size={24} fill="currentColor" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase">{t('startSessionTitle')}</h3>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{pendingRoom.name}</p>
-                      </div>
+                  <div className="pt-8 border-t border-gray-100 mt-auto">
+                    <div className="flex justify-between items-end mb-6">
+                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('trayTotal')}</span>
+                      <span className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(cart.reduce((sum, i) => sum + (Number(i.sellPrice) * Number(i.quantity)), 0))}</span>
                     </div>
-                    <button onClick={() => setIsStartSessionModalOpen(false)} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
-                  </div>
-
-                  <form onSubmit={handleConfirmStartSession} className="space-y-5">
-                    <div className="bg-slate-50 p-6 rounded-2xl border border-gray-100 flex justify-between items-center group transition-all">
-                      <div>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('hourlyRateLabel')}</span>
-                        <span className="text-xl font-black text-slate-900 tabular-nums">{formatCurrency(pendingRoom.hourlyPrice)}</span>
-                      </div>
-                      <div className="p-3 bg-white rounded-xl shadow-sm border border-gray-100 group-hover:bg-blue-600 group-hover:text-white transition-all text-slate-400">
-                        <DollarSign size={20} />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('sessionTypeLabel')}</label>
-                      <select
-                        value={sessionStartForm.sessionType}
-                        onChange={e => setSessionStartForm({ ...sessionStartForm, sessionType: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer"
-                      >
-                        <option value="Open">{t('openSession')}</option>
-                        <option value="Fixed">{t('fixedDuration')}</option>
-                      </select>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerPhone')}</label>
-                      <input
-                        type="text"
-                        value={sessionStartForm.customerPhone}
-                        onChange={e => setSessionStartForm({ ...sessionStartForm, customerPhone: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
-                        placeholder={t('phonePlaceholder')}
-                        required
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
-                      <input
-                        type="text"
-                        value={sessionStartForm.customerName}
-                        onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
-                        placeholder={t('guestName')}
-                      />
-                    </div>
-
-                    <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
-                      <Play size={18} fill="currentColor" /> {t('startSession')}
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )
-          }
-
-          {/* Service Module Specific Mobile Navigation */}
-          {/* Global Ethereal Command Center - Native Phone UI Core */}
-          {!isKiosk && !isPinModalOpen && !showSettings && (
-            <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-sm bg-white/80 backdrop-blur-3xl border border-white/20 p-2.5 flex justify-around items-center z-[500] rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] animate-in slide-in-from-bottom-10 duration-700">
-              {(() => {
-                const navs = {
-                  dashboard: [
-                    { id: 'home', label: t('menuDashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') },
-                    { id: 'settings', label: t('settings'), icon: <Settings size={22} />, onClick: () => setShowSettings(true) },
-                  ],
-                  employees: [
-                    { id: 'all', label: t('allEmployees'), icon: <Users size={22} />, onClick: () => setActiveTab('employees') },
-                    { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddModalOpen(true) },
-                    { id: 'sites', label: t('menuSites'), icon: <MapPin size={22} />, onClick: () => setActiveTab('sites') }
-                  ],
-                  sites: [
-                    { id: 'all', label: t('filterAll'), icon: <MapPin size={22} />, onClick: () => setActiveTab('sites') },
-                    { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddSiteModalOpen(true) },
-                    { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
-                  ],
-                  attendance: [
-                    { id: 'daily', label: t('menuAttendance'), icon: <Clock size={22} />, onClick: () => setActiveTab('attendance') },
-                    { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddAttendanceModalOpen(true) },
-                    { id: 'export', label: t('export'), icon: <Download size={22} />, onClick: handleExportAttendance }
-                  ],
-                  payroll: [
-                    { id: 'mgmt', label: t('menuPayroll'), icon: <DollarSign size={22} />, onClick: () => setActiveTab('payroll') },
-                    { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => { /* No direct add yet */ } },
-                    { id: 'export', label: t('export'), icon: <Download size={22} />, onClick: handleExportPayroll }
-                  ],
-                  reports: [
-                    { id: 'dashboard', label: t('summary'), icon: <BarChart3 size={22} />, onClick: () => setActiveTab('reports') },
-                    { id: 'download', isFab: true, icon: <Download size={24} strokeWidth={3} />, onClick: () => downloadReport('all') },
-                    { id: 'pl', label: t('profit_loss'), icon: <DollarSign size={22} />, onClick: () => setProfitPeriod('Monthly') }
-                  ],
-                  sales_purchases: [
-                    { id: 'pos', label: t('products'), icon: <ShoppingCart size={22} />, onClick: () => { setActiveTab('sales_purchases'); setIsMobileCartOpen(false); } },
-                    { id: 'scanner', label: t('scanner'), icon: <Scan size={22} />, onClick: () => setIsScannerOpen(true) },
-                    {
-                      id: 'cart', isFab: true, icon: (
-                        <div className="relative">
-                          <ShoppingCart size={24} strokeWidth={3} />
-                          {cart.length > 0 && (
-                            <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">{cart.reduce((a, b) => a + b.quantity, 0)}</span>
-                          )}
-                        </div>
-                      ), onClick: () => setIsMobileCartOpen(true)
-                    },
-                    { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setActiveTab('history') }
-                  ],
-                  cafe: [
-                    { id: 'board', label: t('dashboard'), icon: <Coffee size={22} />, onClick: () => setCafeSubTab('board') },
-                    { id: 'rooms', label: t('rooms'), icon: <Monitor size={22} />, onClick: () => setCafeSubTab('rooms') },
-                    { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setCafeSubTab('rooms') },
-                    { id: 'recipes', label: t('recipes'), icon: <History size={22} />, onClick: () => setCafeSubTab('recipes') },
-                    { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setCafeSubTab('history') }
-                  ],
-                  service: [
-                    { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setServiceSubTab('board') },
-                    {
-                      id: 'sell', label: t('sell'), icon: (
-                        <div className="relative">
-                          <ShoppingCart size={22} />
-                          {serviceCart.length > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[7px] w-4 h-4 flex items-center justify-center rounded-full border border-white">
-                              {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
-                            </span>
-                          )}
-                        </div>
-                      ), onClick: () => {
-                        if (serviceSubTab === 'sell' && serviceCart.length > 0) setIsMobileCartOpen(!isMobileCartOpen);
-                        else setServiceSubTab('sell');
-                      }
-                    },
-                    { id: 'new', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setServiceSubTab('new') },
-                    { id: 'active', label: t('activeJobs'), icon: <Wrench size={22} />, onClick: () => setServiceSubTab('active') },
-                    { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setServiceSubTab('history') }
-                  ],
-                  warehouses: [
-                    { id: 'stock', label: t('inventory'), icon: <Package size={22} />, onClick: () => setActiveTab('warehouses') },
-                    { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddItemModalOpen(true) },
-                    { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setActiveTab('history') }
-                  ],
-                  history: [
-                    { id: 'invoices', label: t('menuInvoices'), icon: <Receipt size={22} />, onClick: () => setActiveTab('history') },
-                    { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
-                  ],
-                  accounts: [
-                    { id: 'all', label: t('menuAccounts'), icon: <Calculator size={22} />, onClick: () => setActiveTab('accounts') },
-                    { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddAccountModalOpen(true) },
-                    { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
-                  ]
-                };
-
-                const currentNav = navs[activeTab] || navs.dashboard;
-                return currentNav.map(tab => {
-                  const isActive = tab.isFab ? false : (
-                    (activeTab === 'service' && serviceSubTab === tab.id) ||
-                    (activeTab === 'cafe' && cafeSubTab === tab.id) ||
-                    (activeTab === 'sales_purchases' && tab.id === 'pos' && !isMobileCartOpen) ||
-                    (activeTab === 'sales_purchases' && tab.id === 'cart' && isMobileCartOpen) ||
-                    (activeTab === tab.id && !['service', 'cafe', 'sales_purchases'].includes(activeTab))
-                  );
-
-                  return (
                     <button
-                      key={tab.id}
+                      disabled={cart.length === 0}
                       onClick={() => {
-                        tab.onClick();
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        handleCheckoutCafeOrder(activeCafeSession.id, cart);
+                        setIsCafeOrderModalOpen(false);
                       }}
-                      className={`flex flex-col items-center gap-1 transition-all ${tab.isFab ? '' : (isActive ? 'text-blue-600' : 'text-gray-400')}`}
+                      className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-slate-200 disabled:opacity-20 flex items-center justify-center gap-2 transform active:scale-95"
                     >
-                      {tab.isFab ? (
-                        <div className="bg-blue-600 text-white p-5 rounded-[2rem] shadow-xl shadow-blue-200 transform -translate-y-8 border-4 border-white active:scale-90 transition-all">
-                          {tab.icon}
-                        </div>
-                      ) : (
-                        <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-blue-50' : ''}`}>
-                          {tab.icon}
-                        </div>
-                      )}
-                      {tab.label && !tab.isFab && <span className="text-[9px] font-black uppercase tracking-widest">{tab.label}</span>}
+                      <CheckCircle size={18} strokeWidth={3} /> {t('confirmOrder')}
                     </button>
-                  );
-                });
-              })()}
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+        )
+      }
+
+      {/* Start Session Modal */}
+      {
+        isStartSessionModalOpen && pendingRoom && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col p-8">
+              <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
+                    <Play size={24} fill="currentColor" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase">{t('startSessionTitle')}</h3>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{pendingRoom.name}</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsStartSessionModalOpen(false)} className="p-2 text-slate-300 hover:text-rose-600 transition-all active:scale-95"><X size={24} /></button>
+              </div>
+
+              <form onSubmit={handleConfirmStartSession} className="space-y-5">
+                <div className="bg-slate-50 p-6 rounded-2xl border border-gray-100 flex justify-between items-center group transition-all">
+                  <div>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('hourlyRateLabel')}</span>
+                    <span className="text-xl font-black text-slate-900 tabular-nums">{formatCurrency(pendingRoom.hourlyPrice)}</span>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl shadow-sm border border-gray-100 group-hover:bg-blue-600 group-hover:text-white transition-all text-slate-400">
+                    <DollarSign size={20} />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('sessionTypeLabel')}</label>
+                  <select
+                    value={sessionStartForm.sessionType}
+                    onChange={e => setSessionStartForm({ ...sessionStartForm, sessionType: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="Open">{t('openSession')}</option>
+                    <option value="Fixed">{t('fixedDuration')}</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerPhone')}</label>
+                  <input
+                    type="text"
+                    value={sessionStartForm.customerPhone}
+                    onChange={e => setSessionStartForm({ ...sessionStartForm, customerPhone: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
+                    placeholder={t('phonePlaceholder')}
+                    required
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 pl-4">{t('customerName')}</label>
+                  <input
+                    type="text"
+                    value={sessionStartForm.customerName}
+                    onChange={e => setSessionStartForm({ ...sessionStartForm, customerName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-300"
+                    placeholder={t('guestName')}
+                  />
+                </div>
+
+                <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] active:scale-[0.98]">
+                  <Play size={18} fill="currentColor" /> {t('startSession')}
+                </button>
+              </form>
+            </div>
+          </div>
+        )
+      }
+      </div>
+    </main>
+
+          {/* Service Module Specific Mobile Navigation */ }
+  {/* Global Ethereal Command Center - Native Phone UI Core */ }
+  {
+    !isKiosk && !isPinModalOpen && !showSettings && (
+      <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-sm bg-white/80 backdrop-blur-3xl border border-white/20 p-2.5 flex justify-around items-center z-[500] rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] animate-in slide-in-from-bottom-10 duration-700">
+        {(() => {
+          const navs = {
+            dashboard: [
+              { id: 'home', label: t('menuDashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') },
+              { id: 'settings', label: t('settings'), icon: <Settings size={22} />, onClick: () => setShowSettings(true) },
+            ],
+            employees: [
+              { id: 'all', label: t('allEmployees'), icon: <Users size={22} />, onClick: () => setActiveTab('employees') },
+              { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddModalOpen(true) },
+              { id: 'sites', label: t('menuSites'), icon: <MapPin size={22} />, onClick: () => setActiveTab('sites') }
+            ],
+            sites: [
+              { id: 'all', label: t('filterAll'), icon: <MapPin size={22} />, onClick: () => setActiveTab('sites') },
+              { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddSiteModalOpen(true) },
+              { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
+            ],
+            attendance: [
+              { id: 'daily', label: t('menuAttendance'), icon: <Clock size={22} />, onClick: () => setActiveTab('attendance') },
+              { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddAttendanceModalOpen(true) },
+              { id: 'export', label: t('export'), icon: <Download size={22} />, onClick: handleExportAttendance }
+            ],
+            payroll: [
+              { id: 'mgmt', label: t('menuPayroll'), icon: <DollarSign size={22} />, onClick: () => setActiveTab('payroll') },
+              { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => { /* No direct add yet */ } },
+              { id: 'export', label: t('export'), icon: <Download size={22} />, onClick: handleExportPayroll }
+            ],
+            reports: [
+              { id: 'dashboard', label: t('summary'), icon: <BarChart3 size={22} />, onClick: () => setActiveTab('reports') },
+              { id: 'download', isFab: true, icon: <Download size={24} strokeWidth={3} />, onClick: () => downloadReport('all') },
+              { id: 'pl', label: t('profit_loss'), icon: <DollarSign size={22} />, onClick: () => setProfitPeriod('Monthly') }
+            ],
+            sales_purchases: [
+              { id: 'pos', label: t('products'), icon: <ShoppingCart size={22} />, onClick: () => { setActiveTab('sales_purchases'); setIsMobileCartOpen(false); } },
+              { id: 'scanner', label: t('scanner'), icon: <Scan size={22} />, onClick: () => setIsScannerOpen(true) },
+              {
+                id: 'cart', isFab: true, icon: (
+                  <div className="relative">
+                    <ShoppingCart size={24} strokeWidth={3} />
+                    {cart.length > 0 && (
+                      <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">{cart.reduce((a, b) => a + b.quantity, 0)}</span>
+                    )}
+                  </div>
+                ), onClick: () => setIsMobileCartOpen(true)
+              },
+              { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setActiveTab('history') }
+            ],
+            cafe: [
+              { id: 'board', label: t('dashboard'), icon: <Coffee size={22} />, onClick: () => setCafeSubTab('board') },
+              { id: 'rooms', label: t('rooms'), icon: <Monitor size={22} />, onClick: () => setCafeSubTab('rooms') },
+              { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setCafeSubTab('rooms') },
+              { id: 'recipes', label: t('recipes'), icon: <History size={22} />, onClick: () => setCafeSubTab('recipes') },
+              { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setCafeSubTab('history') }
+            ],
+            service: [
+              { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setServiceSubTab('board') },
+              {
+                id: 'sell', label: t('sell'), icon: (
+                  <div className="relative">
+                    <ShoppingCart size={22} />
+                    {serviceCart.length > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[7px] w-4 h-4 flex items-center justify-center rounded-full border border-white">
+                        {serviceCart.reduce((a, b) => a + (b.quantity || 1), 0)}
+                      </span>
+                    )}
+                  </div>
+                ), onClick: () => {
+                  if (serviceSubTab === 'sell' && serviceCart.length > 0) setIsMobileCartOpen(!isMobileCartOpen);
+                  else setServiceSubTab('sell');
+                }
+              },
+              { id: 'new', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setServiceSubTab('new') },
+              { id: 'active', label: t('activeJobs'), icon: <Wrench size={22} />, onClick: () => setServiceSubTab('active') },
+              { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setServiceSubTab('history') }
+            ],
+            warehouses: [
+              { id: 'stock', label: t('inventory'), icon: <Package size={22} />, onClick: () => setActiveTab('warehouses') },
+              { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddItemModalOpen(true) },
+              { id: 'history', label: t('history'), icon: <Clock size={22} />, onClick: () => setActiveTab('history') }
+            ],
+            history: [
+              { id: 'invoices', label: t('menuInvoices'), icon: <Receipt size={22} />, onClick: () => setActiveTab('history') },
+              { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
+            ],
+            accounts: [
+              { id: 'all', label: t('menuAccounts'), icon: <Calculator size={22} />, onClick: () => setActiveTab('accounts') },
+              { id: 'add', isFab: true, icon: <Plus size={24} strokeWidth={3} />, onClick: () => setIsAddAccountModalOpen(true) },
+              { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard size={22} />, onClick: () => setActiveTab('dashboard') }
+            ]
+          };
+
+          const currentNav = navs[activeTab] || navs.dashboard;
+          return currentNav.map(tab => {
+            const isActive = tab.isFab ? false : (
+              (activeTab === 'service' && serviceSubTab === tab.id) ||
+              (activeTab === 'cafe' && cafeSubTab === tab.id) ||
+              (activeTab === 'sales_purchases' && tab.id === 'pos' && !isMobileCartOpen) ||
+              (activeTab === 'sales_purchases' && tab.id === 'cart' && isMobileCartOpen) ||
+              (activeTab === tab.id && !['service', 'cafe', 'sales_purchases'].includes(activeTab))
+            );
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  tab.onClick();
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`flex flex-col items-center gap-1 transition-all ${tab.isFab ? '' : (isActive ? 'text-blue-600' : 'text-gray-400')}`}
+              >
+                {tab.isFab ? (
+                  <div className="bg-blue-600 text-white p-5 rounded-[2rem] shadow-xl shadow-blue-200 transform -translate-y-8 border-4 border-white active:scale-90 transition-all">
+                    {tab.icon}
+                  </div>
+                ) : (
+                  <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-blue-50' : ''}`}>
+                    {tab.icon}
+                  </div>
+                )}
+                {tab.label && !tab.isFab && <span className="text-[9px] font-black uppercase tracking-widest">{tab.label}</span>}
+              </button>
+            );
+          });
+        })()}
+      </div>
+    )
+  }
 
     </div>
   );
