@@ -5315,7 +5315,7 @@ export default function App() {
                   </div>
 
                   {/* Daily History Toggle / View - Responsive Card/Table */}
-                  <div className="bg-white p-4 mx-4 mb-40 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-64 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
+                  <div className="bg-white p-4 mx-4 mb-28 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-gray-900 flex items-center gap-2 truncate">
                         <Clock size={18} className="text-blue-600" />
@@ -6291,10 +6291,10 @@ export default function App() {
                                         <span className="text-sm font-black text-slate-900 font-mono">{formatCurrency(item.amount)}</span>
                                       </td>
                                       <td className="p-5 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-end gap-2 transition-all">
                                           <button
                                             onClick={() => handlePrintInvoice(item, item.type === 'Repair' ? 'Service Receipt' : 'retail')}
-                                            className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-slate-100"
+                                            className="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-slate-100 shadow-sm active:scale-95"
                                             title={t('reprint')}
                                           >
                                             <Printer size={16} />
@@ -6302,7 +6302,7 @@ export default function App() {
                                           {currentMode === 'Owner' && (
                                             <button
                                               onClick={() => item.type === 'Repair' ? alert('Delete via Service Active Jobs') : handleDeleteSale(item)}
-                                              className="p-2 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-slate-100"
+                                              className="p-2.5 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-slate-100 shadow-sm active:scale-95"
                                               title={t('delete')}
                                             >
                                               <Trash2 size={16} />
@@ -6343,9 +6343,9 @@ export default function App() {
                                       </span>
                                       <button
                                         onClick={() => handlePrintInvoice(item, item.type === 'Repair' ? 'Service Receipt' : 'retail')}
-                                        className="p-1.5 bg-slate-50 text-slate-400 rounded-lg active:scale-95 transition-all"
+                                        className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl active:scale-95 transition-all border border-slate-100 shadow-sm"
                                       >
-                                        <Printer size={14} />
+                                        <Printer size={18} />
                                       </button>
                                     </div>
                                   </div>
