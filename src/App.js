@@ -5315,7 +5315,7 @@ export default function App() {
                   </div>
 
                   {/* Daily History Toggle / View - Responsive Card/Table */}
-                  <div className="bg-white p-4 mx-4 mb-8 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-32 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
+                  <div className="bg-white p-4 mx-4 mb-8 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-gray-900 flex items-center gap-2 truncate">
                         <Clock size={18} className="text-blue-600" />
