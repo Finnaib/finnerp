@@ -5174,7 +5174,7 @@ export default function App() {
           {/* Full-Screen Zone: Sales & Purchases */}
           {activeTab === 'sales_purchases' && (
             <div className="flex-1 overflow-hidden h-full flex flex-col bg-slate-50">
-              <div className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-gray-50 pb-24 lg:pb-0">
+              <div className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-gray-50 pb-32 lg:pb-0">
                 {/* Left: Product Grid */}
                 <div className={`flex-1 flex flex-col h-full overflow-hidden ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
                   <div className="p-4 flex-shrink-0 bg-white border-b border-gray-200">
@@ -5315,7 +5315,7 @@ export default function App() {
                   </div>
 
                   {/* Daily History Toggle / View - Responsive Card/Table */}
-                  <div className="bg-white p-4 mx-4 mb-4 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-32 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
+                  <div className="bg-white p-4 mx-4 mb-8 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-32 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-gray-900 flex items-center gap-2 truncate">
                         <Clock size={18} className="text-blue-600" />
