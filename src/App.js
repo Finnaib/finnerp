@@ -10135,7 +10135,9 @@ export default function App() {
           {/* Service Module Specific Mobile Navigation */ }
   {/* Global Ethereal Command Center - Native Phone UI Core */ }
   {
-    !isKiosk && !isPinModalOpen && !showSettings && !isTicketModalOpen && (
+    !isKiosk && !isPinModalOpen && !showSettings && !isTicketModalOpen && !isAddModalOpen && !isAddSiteModalOpen && 
+    !isAddAttendanceModalOpen && !isAddItemModalOpen && !isAddSaleModalOpen && !isAddPurchaseModalOpen && 
+    !isAddInvoiceModalOpen && !isAddAccountModalOpen && !isScannerOpen && !isManagePayrollModalOpen && !isMobileCartOpen && (
       <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-sm bg-white/80 backdrop-blur-3xl border border-white/20 p-2.5 flex justify-around items-center z-[500] rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] animate-in slide-in-from-bottom-10 duration-700">
         {(() => {
           const navs = {
