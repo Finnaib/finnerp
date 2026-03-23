@@ -6312,15 +6312,34 @@ export default function App() {
                     <div className="bg-white rounded-[2rem] border border-gray-100 shadow-xl shadow-slate-200/50 overflow-hidden">
                       {(() => {
                         const allHistory = [
-                          ...sales.map(s => ({
-                            ...s,
-                            type: 'Retail',
-                            dateStr: s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
-                            customerName: s.client || s.customer || t('walkInCustomer'),
-                            itemsSummary: Array.isArray(s.items) ? s.items.map(i => `${i.qty || i.quantity || 1}x ${i.name} @ ${formatCurrency(i.price || i.sellPrice || 0)}`).join(', ') : (s.items || '-'),
-                            totalQty: Array.isArray(s.items) ? s.items.reduce((sum, i) => sum + (Number(i.qty || i.quantity || 1)), 0) : 1,
-                            invoiceId: s.invoiceId || s.id.slice(0, 6)
-                          })),
+                          ...sales.map(s => {
+                            const isRepair = s.type === 'service_pos' || (Array.isArray(s.items) && s.items.some(i => i.type === 'service'));
+                            return {
+                              ...s,
+                              type: isRepair ? 'Repair' : 'Retail',
+                              dateStr: (() => {
+                                if (!s.date && !s.createdAt) return '';
+                                const d = s.date ? new Date(s.date) : new Date(s.createdAt.seconds * 1000);
+                                if (isNaN(d.getTime())) {
+                                    // Handle locale format if needed
+                                    if (typeof s.date === 'string' && s.date.includes('/')) {
+                                        const p = s.date.split('/');
+                                        if (p.length === 3) {
+                                            const normalized = p[0].length === 4 ? s.date : `${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;
+                                            const d2 = new Date(normalized);
+                                            if (!isNaN(d2.getTime())) return d2.toISOString().split('T')[0];
+                                        }
+                                    }
+                                    return '';
+                                }
+                                return d.toISOString().split('T')[0];
+                              })(),
+                              customerName: s.client || s.customer || t('walkInCustomer'),
+                              itemsSummary: Array.isArray(s.items) ? s.items.map(i => `${i.qty || i.quantity || 1}x ${i.name} @ ${formatCurrency(i.price || i.sellPrice || 0)}`).join(', ') : (s.items || '-'),
+                              totalQty: Array.isArray(s.items) ? s.items.reduce((sum, i) => sum + (Number(i.qty || i.quantity || 1)), 0) : 1,
+                              invoiceId: s.invoiceId || s.id.slice(0, 6)
+                            };
+                          }),
                           ...serviceTickets.filter(t => t.status === 'Delivered').map(t => ({
                             ...t,
                             type: 'Repair',
