@@ -6318,21 +6318,20 @@ export default function App() {
                               ...s,
                               type: isRepair ? 'Repair' : 'Retail',
                               dateStr: (() => {
-                                if (!s.date && !s.createdAt) return '';
-                                const d = s.date ? new Date(s.date) : new Date(s.createdAt.seconds * 1000);
-                                if (isNaN(d.getTime())) {
-                                    // Handle locale format if needed
-                                    if (typeof s.date === 'string' && s.date.includes('/')) {
-                                        const p = s.date.split('/');
-                                        if (p.length === 3) {
-                                            const normalized = p[0].length === 4 ? s.date : `${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;
-                                            const d2 = new Date(normalized);
-                                            if (!isNaN(d2.getTime())) return d2.toISOString().split('T')[0];
-                                        }
-                                    }
-                                    return '';
+                                let d;
+                                if (s.createdAt?.seconds) d = new Date(s.createdAt.seconds * 1000);
+                                else if (s.date) {
+                                  d = new Date(s.date);
+                                  if (isNaN(d.getTime()) && s.date.includes('/')) {
+                                      const p = s.date.split('/');
+                                      if (p.length === 3) d = new Date(p[2], Number(p[0])-1, p[1]);
+                                  }
                                 }
-                                return d.toISOString().split('T')[0];
+                                if (!d || isNaN(d.getTime())) return '';
+                                const year = d.getFullYear();
+                                const month = String(d.getMonth() + 1).padStart(2, '0');
+                                const day = String(d.getDate()).padStart(2, '0');
+                                return `${year}-${month}-${day}`;
                               })(),
                               customerName: s.client || s.customer || t('walkInCustomer'),
                               itemsSummary: Array.isArray(s.items) ? s.items.map(i => `${i.qty || i.quantity || 1}x ${i.name} @ ${formatCurrency(i.price || i.sellPrice || 0)}`).join(', ') : (s.items || '-'),
@@ -6343,7 +6342,13 @@ export default function App() {
                           ...serviceTickets.filter(t => t.status === 'Delivered').map(t => ({
                             ...t,
                             type: 'Repair',
-                            dateStr: (t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
+                            dateStr: (() => {
+                              const d = (t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000) : new Date());
+                              const year = d.getFullYear();
+                              const month = String(d.getMonth() + 1).padStart(2, '0');
+                              const day = String(d.getDate()).padStart(2, '0');
+                              return `${year}-${month}-${day}`;
+                            })(),
                             customerName: t.customerName,
                             itemsSummary: `${t.brand} ${t.model} (${t.issue})`,
                             amount: Number(t.estimatedCost || 0),
@@ -6363,7 +6368,24 @@ export default function App() {
                           }))
                         ];
 
-                        const filteredHistory = allHistory
+                        const parseHistoryDate = (s) => {
+                          if (s.createdAt?.seconds) return new Date(s.createdAt.seconds * 1000);
+                          if (s.date) {
+                            const d = new Date(s.date);
+                            if (!isNaN(d.getTime())) return d;
+                            // Fallback for slashes
+                            const parts = s.date.split('/');
+                            if (parts.length === 3) {
+                                if (parts[0].length === 4) return new Date(s.date);
+                                return new Date(parts[2], Number(parts[0])-1, parts[1]);
+                            }
+                          }
+                          return new Date(0);
+                        };
+
+                        const sortedAllHistory = allHistory.sort((a,b) => parseHistoryDate(b) - parseHistoryDate(a));
+
+                        const filteredHistory = sortedAllHistory
                           .filter(s => {
                             const matchDate = !historyDateFilter || s.dateStr === historyDateFilter;
                             const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter || s.type === historyFilter;
