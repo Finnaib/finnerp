@@ -3361,6 +3361,7 @@ export default function App() {
 
         filteredSales.forEach(sale => {
           if (Array.isArray(sale.items)) {
+            const dateStr = sale.date || (sale.createdAt?.seconds ? new Date(sale.createdAt.seconds * 1000).toLocaleDateString() : '-');
             sale.items.forEach(item => {
               const invItem = inventory.find(i => i.name === item.name);
               const ubp = invItem ? (Number(invItem.buyPrice) || 0) : 0;
@@ -3368,12 +3369,13 @@ export default function App() {
               const qty = Number(item.qty) || 1;
               const ts = usp * qty, tc = ubp * qty, pr = ts - tc;
               sumSoldQty2 += qty; sumSoldSales2 += ts; sumSoldCost2 += tc; sumSoldProfit2 += pr;
-              soldRows.push([item.name || t('unknown'), qty, usp, ubp, ts, tc, pr]);
+              soldRows.push([item.name || t('unknown'), dateStr, qty, usp, ubp, ts, tc, pr]);
             });
           }
         });
         soldRows.push([
           { content: t('totals').toUpperCase(), styles: { fontStyle: 'bold', fillColor: [239, 246, 255], textColor: [30, 64, 175] } },
+          '',
           { content: sumSoldQty2, styles: { fontStyle: 'bold', halign: 'right', fillColor: [239, 246, 255], textColor: [30, 64, 175] } },
           { content: '', styles: { fillColor: [239, 246, 255] } },
           { content: '', styles: { fillColor: [239, 246, 255] } },
@@ -3385,19 +3387,20 @@ export default function App() {
         const nextY1 = doc.lastAutoTable.finalY + 8;
         autoTable(doc, {
           head: [
-            [{ content: t('soldItemsDetail').toUpperCase(), colSpan: 7, styles: { fillColor: [15, 118, 110], textColor: 255, fontStyle: 'bold', fontSize: 10 } }],
-            [t('itemName'), t('quantity'), t('sellPrice'), t('buyPrice'), t('total'), t('totalCost'), t('profit')]
+            [{ content: t('soldItemsDetail').toUpperCase(), colSpan: 8, styles: { fillColor: [15, 118, 110], textColor: 255, fontStyle: 'bold', fontSize: 10 } }],
+            [t('itemName'), t('date'), t('quantity'), t('sellPrice'), t('buyPrice'), t('total'), t('totalCost'), t('profit')]
           ],
           body: soldRows,
           ...tableDefaults(nextY1),
           columnStyles: {
-            0: { cellWidth: 50 },
-            1: { halign: 'right' },
+            0: { cellWidth: 40 },
+            1: { cellWidth: 25 },
             2: { halign: 'right' },
             3: { halign: 'right' },
             4: { halign: 'right' },
             5: { halign: 'right' },
-            6: { halign: 'right', fontStyle: 'bold' }
+            6: { halign: 'right' },
+            7: { halign: 'right', fontStyle: 'bold' }
           },
           didParseCell: (d) => {
             if (d.row.section === 'head') return;
