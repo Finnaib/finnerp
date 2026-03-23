@@ -3165,26 +3165,25 @@ export default function App() {
 
 
         // 1. Revenue Analysis
-        const filteredSales = sales.filter(s => {
-          let d;
-          if (s.createdAt?.seconds) {
-            d = new Date(s.createdAt.seconds * 1000);
-          } else if (s.date) {
-            // Support both YYYY-MM-DD and locale strings
-            d = new Date(s.date);
-            // Fallback for some common locale formats that Date() might miss depending on environment
-            if (isNaN(d.getTime()) && typeof s.date === 'string' && s.date.includes('/')) {
-              const parts = s.date.split('/');
-              if (parts.length === 3) {
-                // Try M/D/Y or D/M/Y depending on parts
-                if (Number(parts[0]) > 12) d = new Date(parts[2], Number(parts[1]) - 1, parts[0]);
-                else d = new Date(parts[2], Number(parts[0]) - 1, parts[1]);
-              }
+        const parseSaleDate = (s) => {
+          if (s.createdAt?.seconds) return new Date(s.createdAt.seconds * 1000);
+          if (!s.date) return new Date(0);
+          const d = new Date(s.date);
+          if (!isNaN(d.getTime())) return d;
+          if (typeof s.date === 'string' && s.date.includes('/')) {
+            const parts = s.date.split('/');
+            if (parts.length === 3) {
+              if (Number(parts[0]) > 12) return new Date(parts[2], Number(parts[1]) - 1, parts[0]);
+              return new Date(parts[2], Number(parts[0]) - 1, parts[1]);
             }
           }
-          if (!d || isNaN(d.getTime())) return false;
+          return new Date(0);
+        };
+
+        const filteredSales = sales.filter(s => {
+          const d = parseSaleDate(s);
           return d >= startDate && d <= endDate && (!reportLocationFilter || s.location === reportLocationFilter);
-        });
+        }).sort((a, b) => parseSaleDate(a) - parseSaleDate(b));
 
         const revByMethod = {};
         let totalRevenue = 0;
@@ -3386,7 +3385,8 @@ export default function App() {
 
         filteredSales.forEach(sale => {
           if (Array.isArray(sale.items)) {
-            const dateStr = sale.date || (sale.createdAt?.seconds ? new Date(sale.createdAt.seconds * 1000).toLocaleDateString() : '-');
+            const dateObj = parseSaleDate(sale);
+            const dateStr = dateObj.getFullYear() > 1970 ? dateObj.toISOString().split('T')[0] : '-';
             sale.items.forEach(item => {
               const invItem = inventory.find(i => i.name === item.name);
               const ubp = invItem ? (Number(invItem.buyPrice) || 0) : 0;
