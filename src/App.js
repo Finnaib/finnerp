@@ -2834,7 +2834,7 @@ export default function App() {
       type: 'service_pos',
       client: newSaleForm.customer || 'Service Customer',
       customerId: newSaleForm.customerId || null,
-      date: new Date().toLocaleDateString(),
+      date: new Date().toISOString().split('T')[0],
       items: serviceCart.map(i => ({ ...i, price: Number(i.sellPrice || 0), qty: Number(i.quantity || 1) })),
       amount: total,
       paymentMethod: paymentMethod,
@@ -3166,7 +3166,23 @@ export default function App() {
 
         // 1. Revenue Analysis
         const filteredSales = sales.filter(s => {
-          const d = s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000) : new Date(s.date);
+          let d;
+          if (s.createdAt?.seconds) {
+            d = new Date(s.createdAt.seconds * 1000);
+          } else if (s.date) {
+            // Support both YYYY-MM-DD and locale strings
+            d = new Date(s.date);
+            // Fallback for some common locale formats that Date() might miss depending on environment
+            if (isNaN(d.getTime()) && typeof s.date === 'string' && s.date.includes('/')) {
+              const parts = s.date.split('/');
+              if (parts.length === 3) {
+                // Try M/D/Y or D/M/Y depending on parts
+                if (Number(parts[0]) > 12) d = new Date(parts[2], Number(parts[1]) - 1, parts[0]);
+                else d = new Date(parts[2], Number(parts[0]) - 1, parts[1]);
+              }
+            }
+          }
+          if (!d || isNaN(d.getTime())) return false;
           return d >= startDate && d <= endDate && (!reportLocationFilter || s.location === reportLocationFilter);
         });
 
@@ -3175,8 +3191,17 @@ export default function App() {
         filteredSales.forEach(s => {
           const method = s.paymentMethod || 'Cash';
           if (!revByMethod[method]) revByMethod[method] = 0;
-          revByMethod[method] += (s.amount || 0);
-          totalRevenue += (s.amount || 0);
+          
+          // Robust amount calculation
+          let amt = Number(s.amount);
+          if (isNaN(amt) && Array.isArray(s.items)) {
+            // Recalculate from items if amount is missing/invalid
+            amt = s.items.reduce((acc, curr) => acc + (Number(curr.price || curr.sellPrice || 0) * (curr.qty || curr.quantity || 1)), 0);
+          }
+          amt = amt || 0;
+
+          revByMethod[method] += amt;
+          totalRevenue += amt;
         });
 
         // 2. COGS
