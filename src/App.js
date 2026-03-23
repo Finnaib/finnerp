@@ -6288,7 +6288,8 @@ export default function App() {
                             type: 'Retail',
                             dateStr: s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
                             customerName: s.client || s.customer || t('walkInCustomer'),
-                            itemsSummary: Array.isArray(s.items) ? s.items.map(i => `${i.qty}x ${i.name}`).join(', ') : (s.items || '-'),
+                            itemsSummary: Array.isArray(s.items) ? s.items.map(i => `${i.qty || i.quantity || 1}x ${i.name} @ ${formatCurrency(i.price || i.sellPrice || 0)}`).join(', ') : (s.items || '-'),
+                            totalQty: Array.isArray(s.items) ? s.items.reduce((sum, i) => sum + (Number(i.qty || i.quantity || 1)), 0) : 1,
                             invoiceId: s.invoiceId || s.id.slice(0, 6)
                           })),
                           ...serviceTickets.filter(t => t.status === 'Delivered').map(t => ({
@@ -6298,17 +6299,19 @@ export default function App() {
                             customerName: t.customerName,
                             itemsSummary: `${t.brand} ${t.model} (${t.issue})`,
                             amount: Number(t.estimatedCost || 0),
+                            totalQty: 1,
                             invoiceId: t.id.slice(0, 6)
                           })),
                           ...purchases.map(p => ({
                             ...p,
                             type: 'Warehouse',
-                            dateStr: p.date || (p.createdAt?.seconds ? new Date(p.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
+                            dateStr: p.date || (p.createdAt?.seconds ? p.date || new Date(p.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
                             customerName: p.supplier || t('supplier'),
-                            itemsSummary: p.items || p.description || p.itemName || '-',
+                            itemsSummary: `${p.quantity || 1}x ${p.name || p.itemName || p.items || p.description || '-'} @ ${formatCurrency(p.buyPrice || (p.amount / (p.quantity || 1)))}`,
                             amount: Number(p.amount || 0),
+                            totalQty: p.quantity || 1,
                             invoiceId: 'PUR-' + (p.id || '').slice(0, 6),
-                            paymentMethod: 'Cash' // Default to Cash for purchases filtering or leave as is
+                            paymentMethod: 'Cash'
                           }))
                         ];
 
@@ -6334,6 +6337,8 @@ export default function App() {
                                     <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('time')}</th>
                                     <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('invoiceId')}</th>
                                     <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('customer')}</th>
+                                    <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('qty')}</th>
+                                    <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('unitPrice') || 'Unit Price'}</th>
                                     <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('payment')}</th>
                                     <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{t('amount')}</th>
                                     <th className="p-5 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">{t('actions')}</th>
@@ -6356,11 +6361,25 @@ export default function App() {
                                           <span className="text-xs font-bold text-slate-700">{item.customerName}</span>
                                           <div className="flex items-center gap-1.5 mt-0.5">
                                             {item.type === 'Repair' ? <Wrench size={8} className="text-orange-400" /> : item.type === 'Warehouse' ? <Package size={8} className="text-emerald-400" /> : <ShoppingCart size={8} className="text-blue-400" />}
-                                            <p className="text-[9px] text-slate-300 font-black uppercase tracking-tight truncate max-w-[180px]">
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tight truncate max-w-[250px]">
                                               {item.itemsSummary}
                                             </p>
                                           </div>
                                         </div>
+                                      </td>
+                                      <td className="p-5">
+                                        <span className="text-xs font-black text-slate-900 font-mono">{item.totalQty}</span>
+                                      </td>
+                                      <td className="p-5">
+                                        <span className="text-xs font-black text-blue-600 font-mono">
+                                          {item.type === 'Retail' && Array.isArray(item.items) && item.items.length === 1 
+                                            ? formatCurrency(item.items[0].price || item.items[0].sellPrice || 0)
+                                            : item.type === 'Warehouse' 
+                                              ? formatCurrency(item.buyPrice || (item.amount / (item.totalQty || 1)))
+                                              : item.type === 'Repair'
+                                                ? formatCurrency(item.amount)
+                                                : '-'}
+                                        </span>
                                       </td>
                                       <td className="p-5">
                                         <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${item.paymentMethod === 'Cash' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
@@ -6415,7 +6434,7 @@ export default function App() {
                                         </span>
                                       </div>
                                       <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight truncate">{item.customerName}</h4>
-                                      <p className="text-[10px] text-slate-400 truncate mt-0.5 line-clamp-1 italic">{item.itemsSummary}</p>
+                                      <p className="text-[10px] text-slate-400 truncate mt-0.5 line-clamp-1 italic">{item.itemsSummary} (Qty: {item.totalQty})</p>
                                     </div>
                                   </div>
                                   <div className="text-right shrink-0 flex flex-col items-end gap-2">
