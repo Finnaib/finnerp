@@ -171,13 +171,17 @@ export default function App() {
   // --- Auth & UI State (Moved to top to fix TDZ) ---
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const isRegistered = user && !user.isAnonymous;
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024); // Default open on Desktop
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [authForm, setAuthForm] = useState({ email: '', password: '', apiKey: '' });
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [globalError, setGlobalError] = useState(null); // Explicit Error State
+  const [globalError, setGlobalError] = useState(null); 
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpInput, setOtpInput] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
   const [printFormat, setPrintFormat] = useState('Thermal'); // 'Thermal' or 'A4'
   const [printDual, setPrintDual] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -971,9 +975,37 @@ export default function App() {
       if (authMode === 'login') {
         await signInWithEmailAndPassword(auth, authForm.email, authForm.password);
       } else {
+        // Registration Flow with OTP
+        if (!otpSent) {
+          // Generate 6-digit OTP
+          const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+          setGeneratedOtp(newOtp);
+          
+          // Simulation of sending OTP to shoaibwwe01@outlook.com
+          // In a real app, you'd use a backend function or EmailJS
+          console.log(`Sending OTP ${newOtp} to shoaibwwe01@outlook.com for user ${authForm.email}`);
+          
+          // Mocking the API call
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          setOtpSent(true);
+          alert(t('otpSent') || "OTP sent to admin (shoaibwwe01@outlook.com). Please get the code from him to complete registration.");
+          setLoading(false);
+          return;
+        }
+
+        // Verify OTP
+        if (otpInput !== generatedOtp) {
+          alert(t('invalidOtp') || "Invalid OTP code. Please try again.");
+          setLoading(false);
+          return;
+        }
+
         await createUserWithEmailAndPassword(auth, authForm.email, authForm.password);
       }
       setAuthForm({ email: '', password: '' });
+      setOtpSent(false);
+      setOtpInput('');
     } catch (error) {
       alert(t('authError') + error.message);
     } finally {
@@ -3980,8 +4012,27 @@ export default function App() {
                     </div>
                   )}
 
+                  {authMode === 'signup' && otpSent && (
+                    <div className="animate-in slide-in-from-top-2 duration-300">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('otp') || 'OTP Code'}</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          className="pl-12 w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
+                          placeholder="000000"
+                          maxLength={6}
+                          value={otpInput}
+                          onChange={e => setOtpInput(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <p className="text-[10px] text-blue-600 mt-2 font-black uppercase tracking-widest">{t('otpSentDetail') || "Enter code from admin shoaibwwe01@outlook.com"}</p>
+                    </div>
+                  )}
+
                   <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
-                    {loading ? <Loader2 className="animate-spin" /> : (authMode === 'login' ? t('login') : t('signup'))}
+                    {loading ? <Loader2 className="animate-spin" /> : (authMode === 'login' ? t('login') : (otpSent ? t('verify') || 'Verify & Complete' : t('signup')))}
                   </button>
                 </form>
 
@@ -4003,7 +4054,11 @@ export default function App() {
                 <div className="mt-6 text-center text-sm">
                   <span className="text-gray-500">{authMode === 'login' ? t('noAccount') : t('haveAccount')}</span>
                   <button
-                    onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                    onClick={() => {
+                      setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                      setOtpSent(false);
+                      setOtpInput('');
+                    }}
                     className="ml-2 text-blue-600 font-bold hover:underline"
                   >
                     {authMode === 'login' ? t('signup') : t('login')}
@@ -4023,6 +4078,8 @@ export default function App() {
                 <option value="hi">हिंदी</option>
                 <option value="ar">العربية</option>
                 <option value="zh">中文</option>
+                <option value="ur">اردو</option>
+                <option value="bn">বাংলা</option>
               </select>
             </div>
           </div>
@@ -4143,22 +4200,27 @@ export default function App() {
           </div>
 
           <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-2 no-scrollbar">
-            <SidebarItem icon={<LayoutDashboard size={20} />} label={t('menuDashboard')} active={activeTab === 'dashboard'} onClick={() => { setActiveTab('dashboard'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+            <SidebarItem icon={<LayoutDashboard size={20} />} label={t('menuDashboard')} active={activeTab === 'dashboard'} onClick={() => { 
+                if (!isRegistered) { alert(t('registeredOnly') || "This is an online feature for registered users only."); return; }
+                setActiveTab('dashboard'); 
+                if (window.innerWidth < 1024) setIsSidebarOpen(false); 
+            }} />
 
             {/* Owner & Manager ERP Tabs */}
             {currentMode !== 'Cashier' && (
               <div className="pt-2 animate-in slide-in-from-left duration-500">
                 <div className="px-4 mb-2"><span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{t('management') || 'Management'}</span></div>
-                <SidebarItem icon={<Users size={20} />} label={t('menuEmployees')} active={activeTab === 'employees'} onClick={() => { setActiveTab('employees'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
-                <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { setActiveTab('sites'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
-                <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
-                <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { setActiveTab('payroll'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+                <SidebarItem icon={<Users size={20} />} label={t('menuEmployees')} active={activeTab === 'employees'} onClick={() => { if (!isRegistered) { alert(t('registeredOnly')); return; } setActiveTab('employees'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+                <SidebarItem icon={<MapPin size={20} />} label={t('menuSites')} active={activeTab === 'sites'} onClick={() => { if (!isRegistered) { alert(t('registeredOnly')); return; } setActiveTab('sites'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+                <SidebarItem icon={<Clock size={20} />} label={t('menuAttendance')} active={activeTab === 'attendance'} onClick={() => { if (!isRegistered) { alert(t('registeredOnly')); return; } setActiveTab('attendance'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+                <SidebarItem icon={<DollarSign size={20} />} label={t('menuPayroll')} active={activeTab === 'payroll'} onClick={() => { if (!isRegistered) { alert(t('registeredOnly')); return; } setActiveTab('payroll'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
 
                 <SidebarItem
                   icon={<BarChart3 size={20} />}
                   label={t('menuReports')}
                   active={activeTab === 'reports'}
                   onClick={() => {
+                    if (!isRegistered) { alert(t('registeredOnly')); return; }
                     setActiveTab('reports');
                     if (window.innerWidth < 1024) setIsSidebarOpen(false);
                   }}
@@ -4182,7 +4244,7 @@ export default function App() {
               <Tablet size={18} className="mr-3 group-hover:scale-110 transition-transform duration-500" />
               {t('menuKiosk') || 'Kiosk Mode'}
             </button>
-            <button onClick={() => setShowSettings(true)} className="flex items-center w-full px-4 py-3 text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-2xl transition-all group">
+            <button onClick={() => { if (!isRegistered) { alert(t('registeredOnly')); return; } setShowSettings(true); }} className="flex items-center w-full px-4 py-3 text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-2xl transition-all group">
               <Settings size={18} className="mr-3 group-hover:rotate-90 transition-transform duration-500" />
               {t('settings')}
             </button>
@@ -4236,6 +4298,11 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4 h-full">
+              {!isRegistered && user && (
+                <div className="hidden lg:flex items-center gap-2 px-4 py-1.5 bg-amber-50 border border-amber-100 rounded-2xl text-amber-600 font-bold text-[10px] uppercase tracking-widest animate-pulse">
+                  <Shield size={14} /> {t('guestNotice') || "Guest Mode"}
+                </div>
+              )}
               <div className="hidden md:flex items-center bg-gray-50 p-1 rounded-2xl border border-gray-100 shadow-inner">
                 <select
                   value={currency}
@@ -4267,6 +4334,8 @@ export default function App() {
                   <option value="ar">AR</option>
                   <option value="hi">HI</option>
                   <option value="zh">ZH</option>
+                  <option value="ur">UR</option>
+                  <option value="bn">BN</option>
                 </select>
               </div>
 
@@ -6201,6 +6270,9 @@ export default function App() {
                           className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer"
                         >
                           <option value="All">{t('allTransactions') || 'All'}</option>
+                          <option value="Retail">{t('retail') || 'Sales'}</option>
+                          <option value="Warehouse">{t('warehouse') || 'Warehouse/Stock'}</option>
+                          <option value="Repair">{t('repair') || 'Repairs'}</option>
                           <option value="Cash">{t('cash')}</option>
                           <option value="Visa">{t('visa')}</option>
                           <option value="Online">{t('onlinePayment')}</option>
@@ -6227,16 +6299,27 @@ export default function App() {
                             itemsSummary: `${t.brand} ${t.model} (${t.issue})`,
                             amount: Number(t.estimatedCost || 0),
                             invoiceId: t.id.slice(0, 6)
+                          })),
+                          ...purchases.map(p => ({
+                            ...p,
+                            type: 'Warehouse',
+                            dateStr: p.date || (p.createdAt?.seconds ? new Date(p.createdAt.seconds * 1000).toISOString().split('T')[0] : ''),
+                            customerName: p.supplier || t('supplier'),
+                            itemsSummary: p.items || p.description || p.itemName || '-',
+                            amount: Number(p.amount || 0),
+                            invoiceId: 'PUR-' + (p.id || '').slice(0, 6),
+                            paymentMethod: 'Cash' // Default to Cash for purchases filtering or leave as is
                           }))
                         ];
 
                         const filteredHistory = allHistory
                           .filter(s => {
                             const matchDate = !historyDateFilter || s.dateStr === historyDateFilter;
-                            const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter;
+                            const matchType = historyFilter === 'All' || s.paymentMethod === historyFilter || s.type === historyFilter;
                             const matchSearch = !historyLocationFilter ||
                               (s.customerName && s.customerName.toLowerCase().includes(historyLocationFilter.toLowerCase())) ||
-                              (s.invoiceId && s.invoiceId.toLowerCase().includes(historyLocationFilter.toLowerCase()));
+                              (s.invoiceId && s.invoiceId.toLowerCase().includes(historyLocationFilter.toLowerCase())) ||
+                               (s.itemsSummary && s.itemsSummary.toLowerCase().includes(historyLocationFilter.toLowerCase()));
                             return matchDate && matchType && matchSearch;
                           })
                           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
@@ -6264,7 +6347,7 @@ export default function App() {
                                       </td>
                                       <td className="p-5">
                                         <div className="flex items-center gap-2">
-                                          <div className={`w-1.5 h-1.5 rounded-full ${item.type === 'Repair' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
+                                          <div className={`w-1.5 h-1.5 rounded-full ${item.type === 'Repair' ? 'bg-orange-500' : item.type === 'Warehouse' ? 'bg-emerald-500' : 'bg-blue-500'}`}></div>
                                           <span className="text-xs font-black text-slate-900 font-mono tracking-tighter">#{item.invoiceId}</span>
                                         </div>
                                       </td>
@@ -6272,7 +6355,7 @@ export default function App() {
                                         <div className="flex flex-col">
                                           <span className="text-xs font-bold text-slate-700">{item.customerName}</span>
                                           <div className="flex items-center gap-1.5 mt-0.5">
-                                            {item.type === 'Repair' ? <Wrench size={8} className="text-orange-400" /> : <ShoppingCart size={8} className="text-blue-400" />}
+                                            {item.type === 'Repair' ? <Wrench size={8} className="text-orange-400" /> : item.type === 'Warehouse' ? <Package size={8} className="text-emerald-400" /> : <ShoppingCart size={8} className="text-blue-400" />}
                                             <p className="text-[9px] text-slate-300 font-black uppercase tracking-tight truncate max-w-[180px]">
                                               {item.itemsSummary}
                                             </p>
@@ -6321,8 +6404,8 @@ export default function App() {
                               {filteredHistory.map(item => (
                                 <div key={item.id} className="p-5 hover:bg-slate-50 active:bg-slate-100 transition-all group flex items-center justify-between gap-4">
                                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                                    <div className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border ${item.type === 'Repair' ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
-                                      {item.type === 'Repair' ? <Wrench size={22} /> : <Receipt size={22} />}
+                                    <div className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border ${item.type === 'Repair' ? 'bg-orange-50 border-orange-100 text-orange-600' : item.type === 'Warehouse' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
+                                      {item.type === 'Repair' ? <Wrench size={22} /> : item.type === 'Warehouse' ? <Package size={22} /> : <Receipt size={22} />}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-2">
@@ -6368,7 +6451,8 @@ export default function App() {
                     {(() => {
                       const count = [
                         ...sales,
-                        ...serviceTickets.filter(t => t.status === 'Delivered')
+                        ...serviceTickets.filter(t => t.status === 'Delivered'),
+                        ...purchases
                       ].filter(s => {
                         const dateStr = s.date || (s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toISOString().split('T')[0] : '');
                         const matchDate = !historyDateFilter || dateStr === historyDateFilter;
@@ -8682,6 +8766,8 @@ export default function App() {
                               <option value="hi">हिंदी</option>
                               <option value="ar">العربية</option>
                               <option value="zh">中文</option>
+                              <option value="ur">اردو</option>
+                              <option value="bn">বাংলা</option>
                             </select>
                           </div>
                           <div>
