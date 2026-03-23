@@ -2000,7 +2000,7 @@ export default function App() {
     }));
   };
 
-  const calculateTotal = useCallback(() => cart.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0), [cart]);
+  const calculateTotal = useCallback(() => cart.reduce((sum, item) => sum + (Number(item.price || item.sellPrice || 0) * Number(item.quantity)), 0), [cart]);
 
   const handleCheckout = useCallback(async () => {
     if (!user || cart.length === 0) return;
@@ -5320,6 +5320,7 @@ export default function App() {
                                         id: 'SRV-' + ticket.id,
                                         name: `Repair: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`,
                                         sellPrice: Number(ticket.estimatedCost),
+                                        price: Number(ticket.estimatedCost),
                                         quantity: 1,
                                         type: 'service'
                                       }]);
@@ -6733,8 +6734,8 @@ export default function App() {
                                     onClick={() => {
                                       const laborPrice = Number(ticket.estimatedCost || 0);
                                       const items = [
-                                        { id: 'SRV-' + ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                                        ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-' + Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                                        { id: 'SRV-' + ticket.id + '-LB', name: `${t('repairLabor') || 'Repair Labor'}: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`, sellPrice: laborPrice, price: laborPrice, quantity: 1, type: 'service' },
+                                        ...(ticket.partsUsed || []).map(p => ({ id: p.id || 'man-' + Date.now(), name: `${t('part') || 'Part'}: ${p.name}`, sellPrice: p.price, price: p.price, quantity: p.quantity, type: 'part' }))
                                       ];
                                       setServiceCart([...serviceCart, ...items]);
                                       if (window.innerWidth < 1024) setIsMobileCartOpen(true);
@@ -8152,10 +8153,10 @@ export default function App() {
                     )}
                     {!(editingTicket.status === 'Delivered') && (
                       <button onClick={() => {
-                        const laborPrice = Number(editingTicket.estimatedCost) - (editingTicket.partsUsed || []).reduce((s, p) => s + (Number(p.price) * (p.quantity || 1)), 0);
+                        const laborPrice = Number(editingTicket.estimatedCost || 0);
                         const repairItems = [
-                          { id: 'SRV-' + editingTicket.id + '-LB', name: `Repair Labor: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.id.slice(0, 6)})`, sellPrice: laborPrice, quantity: 1, type: 'service' },
-                          ...(editingTicket.partsUsed || []).map(p => ({ id: p.id || 'man-' + Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, quantity: p.quantity, type: 'part' }))
+                          { id: 'SRV-' + editingTicket.id + '-LB', name: `Repair Labor: ${editingTicket.brand} ${editingTicket.model} (${editingTicket.id.slice(0, 6)})`, sellPrice: laborPrice, price: laborPrice, quantity: 1, type: 'service' },
+                          ...(editingTicket.partsUsed || []).map(p => ({ id: p.id || 'man-' + Date.now(), name: `Part: ${p.name}`, sellPrice: p.price, price: p.price, quantity: p.quantity, type: 'part' }))
                         ];
                         setServiceCart([...serviceCart, ...repairItems]);
                         setServiceSubTab('sell');
