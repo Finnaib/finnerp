@@ -66,6 +66,7 @@ export const translations = {
     "otp": "OTP Code",
     "otpSent": "OTP Sent to Admin",
     "otpSentDetail": "An OTP code has been sent to shoaibwwe01@outlook.com. Please ask the admin for the code.",
+    "registrationId": "Registration ID",
     "invalidOtp": "Invalid OTP code",
     "registeredOnly": "Registered feature only",
     "guestNotice": "You are in Guest Mode. Register to access all online features.",

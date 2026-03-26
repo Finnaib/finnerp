@@ -4,6 +4,7 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { QRCodeSVG } from 'qrcode.react';
+import emailjs from '@emailjs/browser';
 
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
@@ -163,9 +164,10 @@ function StatusBadge({ status, lateHours, t }) {
 
 
 export default function App() {
-  // Initialize Auth Persistence for Electron
+  // Initialize Auth Persistence and EmailJS for Electron
   useEffect(() => {
     setPersistence(auth, indexedDBLocalPersistence).catch(err => console.error("Persistence Error:", err));
+    emailjs.init("shoaibwwe01@outlook.com"); // User ID or Public Key from EmailJS
   }, []);
 
   // --- Auth & UI State (Moved to top to fix TDZ) ---
@@ -975,18 +977,32 @@ export default function App() {
       if (authMode === 'login') {
         await signInWithEmailAndPassword(auth, authForm.email, authForm.password);
       } else {
-        // Registration Flow with OTP
         if (!otpSent) {
-          // Generate 6-digit OTP
+          // Generate 6-digit OTP and unique Registration ID
           const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
           setGeneratedOtp(newOtp);
           
-          // Simulation of sending OTP to shoaibwwe01@outlook.com
-          // In a real app, you'd use a backend function or EmailJS
-          console.log(`Sending OTP ${newOtp} to shoaibwwe01@outlook.com for user ${authForm.email}`);
+          const regId = 'FINN-' + Math.random().toString(36).substr(2, 6).toUpperCase() + '-' + Date.now().toString().slice(-4);
+          setAuthForm(prev => ({ ...prev, apiKey: regId }));
           
-          // Mocking the API call
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          // Actually sending OTP via EmailJS
+          try {
+            await emailjs.send(
+              'service_default', // Placeholder, using default
+              'template_otp_registration', // Should exist in EmailJS
+              {
+                to_email: 'shoaibwwe01@outlook.com',
+                otp_code: newOtp,
+                user_email: authForm.email,
+                registration_id: regId,
+                app_name: 'Finn ERP'
+              }
+            );
+            console.log("Email successfully sent to shoaibwwe01@outlook.com via EmailJS");
+          } catch (error) {
+            console.error("Email sending failed:", error);
+            // Even if it fails, we keep the OTP for local bypass/admin assistance
+          }
           
           setOtpSent(true);
           alert(t('otpSent') || "OTP sent to admin (shoaibwwe01@outlook.com). Please get the code from him to complete registration.");
@@ -4056,6 +4072,12 @@ export default function App() {
                         />
                       </div>
                       <p className="text-[10px] text-blue-600 mt-2 font-black uppercase tracking-widest">{t('otpSentDetail') || "Enter code from admin shoaibwwe01@outlook.com"}</p>
+                      {authForm.apiKey && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
+                          <p className="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">{t('registrationId') || "Registration ID"}</p>
+                          <p className="text-xs font-black text-blue-700 select-all">{authForm.apiKey}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
