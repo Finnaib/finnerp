@@ -167,7 +167,7 @@ export default function App() {
   // Initialize Auth Persistence and EmailJS for Electron
   useEffect(() => {
     setPersistence(auth, indexedDBLocalPersistence).catch(err => console.error("Persistence Error:", err));
-    emailjs.init("shoaibwwe01@outlook.com"); // User ID or Public Key from EmailJS
+    emailjs.init("IgVOMU-SebZmlIgQk"); // Initialized with user's Public Key
   }, []);
 
   // --- Auth & UI State (Moved to top to fix TDZ) ---
@@ -266,6 +266,7 @@ export default function App() {
   const [purchases, setPurchases] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [selectedInventoryItems, setSelectedInventoryItems] = useState([]);
+  const [pendingRegistrations, setPendingRegistrations] = useState([]); // [New] For Admin Approval
 
   // --- Sales UI & Filter States ---
   const [salesEmployee, setSalesEmployee] = useState(null);
@@ -988,7 +989,7 @@ export default function App() {
           // Actually sending OTP via EmailJS
           try {
             await emailjs.send(
-              'service_default', // Placeholder, using default
+              'service_omt8tsa', // User provided Service ID
               'template_otp_registration', // Should exist in EmailJS
               {
                 to_email: 'shoaibwwe01@outlook.com',
@@ -1001,7 +1002,20 @@ export default function App() {
             console.log("Email successfully sent to shoaibwwe01@outlook.com via EmailJS");
           } catch (error) {
             console.error("Email sending failed:", error);
-            // Even if it fails, we keep the OTP for local bypass/admin assistance
+          }
+
+          // BACKUP: Store registration request in Firestore so Admin can see it in-app
+          try {
+            await addDoc(collection(db, 'registrations'), {
+              userEmail: authForm.email,
+              otp: newOtp,
+              registrationId: regId,
+              status: 'Pending',
+              timestamp: serverTimestamp()
+            });
+            console.log("Registration request backed up to Firestore");
+          } catch (e) {
+            console.error("Firestore Backup Error:", e);
           }
           
           setOtpSent(true);
@@ -1269,6 +1283,15 @@ export default function App() {
       unsubAtt();
       unsubPay();
     };
+  }, [user]);
+
+  // Registrations Listener (Only if User is Owner or Manager to avoid broad reads)
+  useEffect(() => {
+    if (!user) return;
+    const unsubReg = onSnapshot(query(collection(db, 'registrations')), (snapshot) => {
+      setPendingRegistrations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsubReg();
   }, [user]);
 
   // --- New Modules State & Listeners ---
@@ -9100,9 +9123,40 @@ export default function App() {
                                   }}
                                 />
                               </div>
+                               {/* Pending Registrations [Admin View] */}
+                               <div className="pt-4 border-t border-gray-100 mt-6 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                                 <h4 className="text-[10px] font-bold text-slate-500 mb-2 flex items-center gap-1 uppercase tracking-tight">
+                                   <Users size={12} /> {t('pendingRepairs') || "Pending Registrations"}
+                                 </h4>
+                                 <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                                    {pendingRegistrations.length === 0 ? (
+                                      <p className="text-[9px] text-gray-400 italic font-medium px-1">No pending registrations found.</p>
+                                    ) : pendingRegistrations.map((reg) => (
+                                      <div key={reg.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-1 transition-all hover:border-blue-300">
+                                        <div className="flex justify-between items-center whitespace-nowrap overflow-hidden">
+                                          <span className="text-[10px] font-black text-slate-800 break-all">{reg.userEmail}</span>
+                                          <span className="bg-blue-100 text-blue-800 text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase">{reg.otp}</span>
+                                        </div>
+                                        <div className="flex justify-between items-end gap-1">
+                                          <span className="text-[8px] text-slate-400 font-mono opacity-80 select-all truncate">#{reg.registrationId}</span>
+                                          <button
+                                            onClick={async () => {
+                                              if (window.confirm("Delete this registration record?")) {
+                                                try { await deleteDoc(doc(db, 'registrations', reg.id)); } catch (e) { alert(e.message); }
+                                              }
+                                            }}
+                                            className="text-[8px] font-black text-rose-500 uppercase tracking-widest hover:underline whitespace-nowrap"
+                                          >
+                                            Dismiss
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                 </div>
+                               </div>
                             </div>
                           ) : (
-                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 italic text-[10px] text-slate-400">
+                            <div className="mt-4 p-4 bg-slate-50 border border-slate-100 rounded-xl italic text-[10px] text-slate-400">
                               {t('ownerOnlyPins') || 'Switch to Owner Mode to manage Manager/Owner PINs.'}
                             </div>
                           )}
