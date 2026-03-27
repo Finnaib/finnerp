@@ -990,7 +990,7 @@ export default function App() {
           try {
             await emailjs.send(
               'service_omt8tsa', // User provided Service ID
-              'template_otp_registration', // Should exist in EmailJS
+              'template_yct5kru', // User provided Template ID
               {
                 to_email: 'shoaibwwe01@outlook.com',
                 otp_code: newOtp,
@@ -1002,6 +1002,7 @@ export default function App() {
             console.log("Email successfully sent to shoaibwwe01@outlook.com via EmailJS");
           } catch (error) {
             console.error("Email sending failed:", error);
+            alert("EmailJS Error: " + (error.text || JSON.stringify(error)));
           }
 
           // BACKUP: Store registration request in Firestore so Admin can see it in-app
