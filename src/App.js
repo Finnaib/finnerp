@@ -1055,7 +1055,6 @@ export default function App() {
     }
   };
 
-  /*
   const handleAnonymousLogin = async () => {
     setLoading(true);
     try {
@@ -1067,7 +1066,6 @@ export default function App() {
       setLoading(false);
     }
   };
-  */
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
@@ -4135,9 +4133,14 @@ export default function App() {
                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
                            <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest"><span className="px-4 bg-white text-gray-400">{t('orContinue')}</span></div>
                         </div>
-                        <button onClick={handleGoogleLogin} type="button" className="w-full bg-white border border-slate-100 text-slate-700 font-black py-3.5 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3 shadow-sm text-xs tracking-wider uppercase">
+                        <button onClick={handleGoogleLogin} type="button" className="w-full bg-white border border-slate-100 text-slate-700 font-black py-3.5 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3 shadow-sm text-xs tracking-wider uppercase mb-3">
                           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5 grayscale opacity-70" alt="Google" />
                           {t('signInGoogle')}
+                        </button>
+
+                        <button onClick={handleAnonymousLogin} type="button" className="w-full bg-slate-900 border border-slate-800 text-white font-black py-3.5 rounded-2xl hover:bg-black transition-all flex items-center justify-center gap-3 shadow-md text-xs tracking-wider uppercase">
+                          <User size={18} className="text-blue-500" />
+                          {t('guestLogin') || 'Guest Login'}
                         </button>
                       </div>
                     )}
