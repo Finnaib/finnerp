@@ -992,8 +992,8 @@ export default function App() {
               'service_omt8tsa', // User provided Service ID
               'template_yct5kru', // User provided Template ID
               {
-                to_email: 'shoaibwwe01@outlook.com',
-                otp_code: newOtp,
+                email: 'shoaibwwe01@outlook.com',
+                passcode: newOtp,
                 user_email: authForm.email,
                 registration_id: regId,
                 app_name: 'Finn ERP'
