@@ -1045,6 +1045,42 @@ export default function App() {
     }
   };
 
+  const handleResendOtp = async () => {
+    if (!authForm.email) return;
+    setLoading(true);
+    try {
+      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtp(newOtp);
+      
+      await emailjs.send(
+        'service_omt8tsa',
+        'template_yct5kru',
+        {
+          email: 'shoaibwwe01@outlook.com',
+          passcode: newOtp,
+          time: new Date().toLocaleTimeString(),
+          user_email: authForm.email,
+          registration_id: authForm.apiKey,
+          app_name: 'Finn ERP'
+        }
+      );
+      
+      // Update Firestore with new OTP
+      const q = query(collection(db, 'registrations'), where('registrationId', '==', authForm.apiKey));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        await updateDoc(doc(db, 'registrations', snapshot.docs[0].id), { otp: newOtp, timestamp: serverTimestamp() });
+      }
+
+      alert(t('otpResent') || "A new OTP code has been sent successfully!");
+    } catch (e) {
+      console.error(e);
+      alert("Resend failed: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -4106,6 +4142,18 @@ export default function App() {
                               required
                             />
                           </div>
+                        </div>
+
+                        <div className="flex justify-between items-center px-4">
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Did not get code?</p>
+                           <button 
+                             type="button" 
+                             onClick={handleResendOtp}
+                             disabled={loading}
+                             className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline disabled:opacity-30 transition-all"
+                           >
+                              {loading ? "..." : "Resend OTP"}
+                           </button>
                         </div>
                         
                         {authForm.apiKey && (
