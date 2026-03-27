@@ -994,6 +994,7 @@ export default function App() {
               {
                 email: 'shoaibwwe01@outlook.com',
                 passcode: newOtp,
+                time: new Date().toLocaleTimeString(),
                 user_email: authForm.email,
                 registration_id: regId,
                 app_name: 'Finn ERP'
