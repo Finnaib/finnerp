@@ -4000,148 +4000,162 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20">
-          <div className="p-8">
-            <div className="text-center mb-8">
-              <div className="inline-flex mb-6 drop-shadow-md">
-                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-200">
-                  <Shield size={32} className="text-white" />
-                </div>
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{showForgotPassword ? t('resetPassword') : (authMode === 'login' ? t('welcome') : t('createAccount'))}</h1>
-              <p className="text-gray-500 mt-2 text-sm">{showForgotPassword ? t('enterEmail') : t('signInToAccess')}</p>
-            </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0f172a] p-6 relative animate-in fade-in duration-700 overflow-hidden">
+        {/* Architectural Background Elements */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse delay-1000 pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none"></div>
 
-            {showForgotPassword ? (
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-                    <input
-                      type="email"
-                      className="pl-12 input-field"
-                      placeholder="name@example.com"
-                      value={resetEmail}
-                      onChange={e => setResetEmail(e.target.value)}
-                      required
-                    />
-                  </div>
+        <div className="w-full max-w-[440px] z-10">
+          <div className="bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] border border-white/50 overflow-hidden">
+            <div className="p-10 sm:p-12">
+              <div className="text-center mb-10">
+                <div className="inline-block p-5 bg-slate-900 rounded-[2rem] shadow-2xl mb-6 transform hover:rotate-6 transition-all duration-500">
+                  <Shield size={40} className="text-blue-500" strokeWidth={2.5} />
                 </div>
-                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
-                  {loading ? <Loader2 className="animate-spin" /> : t('sendResetLink')}
-                </button>
-                <div className="text-center">
-                  <button type="button" onClick={() => setShowForgotPassword(false)} className="text-sm text-gray-600 hover:text-gray-900 font-medium hover:underline">
-                    {t('backToLogin')}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <form onSubmit={handleAuth} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
+                  {showForgotPassword ? t('resetPassword') : (authMode === 'login' ? t('welcome') : t('createAccount'))}
+                </h1>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-3 italic opacity-70">
+                  {showForgotPassword ? t('enterEmail') : (authMode === 'login' ? t('signInToAccess') : "Verification Required")}
+                </p>
+              </div>
+
+              {showForgotPassword ? (
+                <form onSubmit={handleForgotPassword} className="space-y-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">{t('email')}</label>
+                    <div className="relative group">
+                      <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
                       <input
                         type="email"
-                        className="pl-12 input-field"
+                        className="w-full pl-14 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
                         placeholder="name@example.com"
-                        value={authForm.email}
-                        onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
+                        value={resetEmail}
+                        onChange={e => setResetEmail(e.target.value)}
                         required
-                        autoComplete="off"
-                        name="new-password-field-hack-email"
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('password')}</label>
-                    <div className="relative">
-                      <div className="absolute left-3 top-3 text-gray-400"><Shield size={18} /></div>
-                      <input
-                        type="password"
-                        className="pl-12 input-field"
-                        placeholder="••••••••"
-                        value={authForm.password}
-                        onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
-                        required
-                        autoComplete="new-password"
-                      />
-                    </div>
+                  <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-xs mt-2 hover:scale-[1.02] active:scale-[0.98]">
+                    {loading ? <Loader2 className="animate-spin" /> : t('sendResetLink')}
+                  </button>
+                  <div className="text-center pt-2">
+                    <button type="button" onClick={() => setShowForgotPassword(false)} className="text-[11px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors" title={t('backToLogin')}>
+                      {t('backToLogin')}
+                    </button>
                   </div>
-
-                  {authMode === 'login' && (
-                    <div className="flex justify-end">
-                      <button type="button" onClick={() => setShowForgotPassword(true)} className="text-sm text-blue-600 hover:text-blue-700 font-semibold hover:underline">
-                        {t('forgotPassword') || 'Forgot Password?'}
-                      </button>
-                    </div>
-                  )}
-
-                  {authMode === 'signup' && otpSent && (
-                    <div className="animate-in slide-in-from-top-2 duration-300">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('otp') || 'OTP Code'}</label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                </form>
+              ) : (
+                <>
+                  <form onSubmit={handleAuth} className="space-y-5">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">{t('email')}</label>
+                      <div className="relative group">
+                        <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
                         <input
-                          type="text"
-                          className="pl-12 w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
-                          placeholder="000000"
-                          maxLength={6}
-                          value={otpInput}
-                          onChange={e => setOtpInput(e.target.value)}
+                          type="email"
+                          className="w-full pl-14 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                          placeholder="name@example.com"
+                          value={authForm.email}
+                          onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
                           required
+                          autoComplete="off"
+                          name="new-password-field-hack-email"
                         />
                       </div>
-                      <p className="text-[10px] text-blue-600 mt-2 font-black uppercase tracking-widest">{t('otpSentDetail') || "Enter code from admin shoaibwwe01@outlook.com"}</p>
-                      {authForm.apiKey && (
-                        <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                          <p className="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">{t('registrationId') || "Registration ID"}</p>
-                          <p className="text-xs font-black text-blue-700 select-all">{authForm.apiKey}</p>
-                        </div>
-                      )}
                     </div>
-                  )}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">{t('password')}</label>
+                      <div className="relative group">
+                        <Shield className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
+                        <input
+                          type="password"
+                          className="w-full pl-14 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                          placeholder="••••••••"
+                          value={authForm.password}
+                          onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
+                          required
+                          autoComplete="new-password"
+                        />
+                      </div>
+                    </div>
 
-                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
-                    {loading ? <Loader2 className="animate-spin" /> : (authMode === 'login' ? t('login') : (otpSent ? t('verify') || 'Verify & Complete' : t('signup')))}
-                  </button>
-                </form>
+                    {authMode === 'login' && (
+                      <div className="flex justify-between items-center pr-2">
+                        <div></div>
+                        <button type="button" onClick={() => setShowForgotPassword(true)} className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest transition-colors">
+                          {t('forgotPassword')}
+                        </button>
+                      </div>
+                    )}
 
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
-                  <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">{t('orContinue')}</span></div>
-                </div>
+                    {authMode === 'signup' && otpSent && (
+                      <div className="animate-in slide-in-from-top-4 duration-500 space-y-4 py-2">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-blue-600 ml-4">{t('otp')}</label>
+                          <div className="relative group">
+                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-blue-600/40 group-focus-within:text-blue-600 transition-colors" size={20} />
+                            <input
+                              type="text"
+                              className="w-full pl-14 pr-6 py-4 bg-blue-50/30 border border-blue-100 rounded-2xl text-lg font-black tracking-[0.5em] text-blue-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-blue-200"
+                              placeholder="000000"
+                              maxLength={6}
+                              value={otpInput}
+                              onChange={e => setOtpInput(e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        {authForm.apiKey && (
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group overflow-hidden relative">
+                            <div className="absolute right-0 top-0 h-full w-1 bg-blue-600 transition-all group-hover:w-full opacity-0 group-hover:opacity-[0.03]"></div>
+                            <div>
+                              <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-0.5">{t('registrationId')}</p>
+                              <p className="text-xs font-black text-slate-900 font-mono select-all tracking-tighter">{authForm.apiKey}</p>
+                            </div>
+                            <div className="p-2 bg-white rounded-xl shadow-sm border border-gray-100 text-blue-600">
+                              <Shield size={16} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mb-2">
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-                  {t('signInGoogle')}
-                </button>
+                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-[0_20px_40px_-10px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-xs mt-4 hover:scale-[1.02] active:scale-[0.98]">
+                      {loading ? <Loader2 className="animate-spin" /> : (authMode === 'login' ? t('login') : (otpSent ? t('verify') : t('signup')))}
+                    </button>
+                    
+                    {authMode === 'login' && (
+                      <div className="pt-2">
+                        <div className="relative my-6">
+                           <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+                           <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest"><span className="px-4 bg-white text-gray-400">{t('orContinue')}</span></div>
+                        </div>
+                        <button onClick={handleGoogleLogin} type="button" className="w-full bg-white border border-slate-100 text-slate-700 font-black py-3.5 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3 shadow-sm text-xs tracking-wider uppercase">
+                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5 grayscale opacity-70" alt="Google" />
+                          {t('signInGoogle')}
+                        </button>
+                      </div>
+                    )}
+                  </form>
 
-                <button onClick={handleAnonymousLogin} className="w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-2 mb-6">
-                  <User size={20} />
-                  {t('guestLogin') || 'Guest Login'}
-                </button>
-
-                <div className="mt-6 text-center text-sm">
-                  <span className="text-gray-500">{authMode === 'login' ? t('noAccount') : t('haveAccount')}</span>
-                  <button
-                    onClick={() => {
-                      setAuthMode(authMode === 'login' ? 'signup' : 'login');
-                      setOtpSent(false);
-                      setOtpInput('');
-                    }}
-                    className="ml-2 text-blue-600 font-bold hover:underline"
-                  >
-                    {authMode === 'login' ? t('signup') : t('login')}
-                  </button>
-                </div>
-
-              </>
-            )}
+                  <div className="mt-8 text-center">
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{authMode === 'login' ? t('noAccount') : t('haveAccount')}</span>
+                    <button
+                      onClick={() => {
+                        setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                        setOtpSent(false);
+                        setOtpInput('');
+                      }}
+                      className="ml-2 text-[11px] font-black text-blue-600 uppercase tracking-widest hover:underline transition-all"
+                    >
+                      {authMode === 'login' ? t('signup') : t('login')}
+                    </button>
+                  </div>
+                </>
+              )}
 
             <div className="mt-4 flex justify-center gap-4">
               <select
@@ -4160,6 +4174,7 @@ export default function App() {
           </div>
         </div>
       </div>
+    </div>
     );
   }
   const renderKioskView = () => {
