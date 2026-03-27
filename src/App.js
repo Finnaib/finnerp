@@ -1055,6 +1055,7 @@ export default function App() {
     }
   };
 
+  /*
   const handleAnonymousLogin = async () => {
     setLoading(true);
     try {
@@ -1066,6 +1067,7 @@ export default function App() {
       setLoading(false);
     }
   };
+  */
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
