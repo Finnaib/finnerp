@@ -4474,4 +4474,4 @@ export const translations = {
     "taxableAmt": "Taxable Amt",
     "gst": "GST"
   }
-}\n
+}
