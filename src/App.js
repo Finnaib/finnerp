@@ -568,8 +568,8 @@ export default function App() {
         <div class="header">
           ${shopSettings.logo ? `<img src="${shopSettings.logo}" style="height: 80px; width: auto; max-width: 100%; margin-bottom: 12px; object-fit: contain;" alt="Logo" />` : ''}
           <div class="title">${printName}</div>
-          <div class="subtitle">${printAddress} | ${printPhone}</div>
-          ${shopSettings.gstEnabled && shopSettings.gstNumber ? `<div class="subtitle" style="font-weight:bold; margin-top:3px;">GSTIN: ${shopSettings.gstNumber}</div>` : ''}
+          <div class="subtitle">${printAddress} | ${t('phone')}: ${printPhone}</div>
+          ${shopSettings.gstEnabled && shopSettings.gstNumber ? `<div class="subtitle" style="font-weight:bold; margin-top:3px;">${t('gstNumber')}: ${shopSettings.gstNumber}</div>` : ''}
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         
@@ -671,8 +671,8 @@ export default function App() {
                <div>
                   <h1 style="font-size: 38px; color: #1e293b; margin: 0;">${printName}</h1>
                   <p style="color: #64748b; font-size: 14px; margin-top: 5px;">${printAddress}</p>
-                  <p style="color: #64748b; font-size: 14px;">Phone: ${printPhone}</p>
-                   ${shopSettings.gstEnabled && shopSettings.gstNumber ? `<p style="color: #1e293b; font-size: 14px; font-weight: bold; margin-top: 4px;">GSTIN: ${shopSettings.gstNumber}</p>` : ''}
+                  <p style="color: #64748b; font-size: 14px;">${t('phone')}: ${printPhone}</p>
+                   ${shopSettings.gstEnabled && shopSettings.gstNumber ? `<p style="color: #1e293b; font-size: 14px; font-weight: bold; margin-top: 4px;">${t('gstNumber')}: ${shopSettings.gstNumber}</p>` : ''}
                </div>
             </div>
           </div>
@@ -5674,6 +5674,7 @@ export default function App() {
                         ))}
                     </div>
                   </div>
+                  </div>
                 </div>
 
                 {/* Right: Cart Sidebar (Mobile Drawer) */}
@@ -5715,7 +5716,6 @@ export default function App() {
                       </div>
                     </div>
                   )}
-                  </div>
 
                   <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
                     {cart.length === 0 ? (
@@ -9211,7 +9211,7 @@ export default function App() {
                                   </div>
                                   <div>
                                     <span className="text-sm font-black text-gray-800 tracking-tight uppercase block">{t('enableGst')}</span>
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('taxableAmt')} Management</span>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('taxableAmtMgmt')}</span>
                                   </div>
                                 </div>
                                 <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${shopSettings.gstEnabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
@@ -9231,7 +9231,7 @@ export default function App() {
                                     <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">{t('gstNumber')}</label>
                                     <input
                                       className="w-full bg-transparent text-sm font-bold text-slate-800 placeholder-slate-300 outline-none"
-                                      placeholder="Ex: 22AAAAA0000"
+                                      placeholder={t('gstPlaceholder')}
                                       value={shopSettings.gstNumber || ''}
                                       onChange={(e) => setShopSettings({ ...shopSettings, gstNumber: e.target.value })}
                                     />
