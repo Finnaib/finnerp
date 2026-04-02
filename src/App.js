@@ -6765,7 +6765,7 @@ export default function App() {
               <div className="flex-1 overflow-y-auto no-scrollbar pb-[140px] lg:pb-0">
                 <div className={serviceSubTab === 'sell' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}>
                   {/* Sub Tab Navigation - ERP Style */}
-                  <div className={`hidden lg:flex gap-2 p-1 bg-white border border-gray-100 rounded-2xl w-fit shadow-sm ${serviceSubTab === 'sell' ? 'mx-4 my-3 mb-1' : 'mb-8'}`}>
+                  <div className={`flex gap-2 p-1.5 bg-white/50 backdrop-blur-md border border-gray-200 rounded-2xl w-full lg:w-fit overflow-x-auto no-scrollbar shadow-sm ${serviceSubTab === 'sell' ? 'mx-4 my-3 mb-1' : 'mb-8'}`}>
                     {[
                       { id: 'board', label: t('dashboard'), icon: <LayoutDashboard size={14} /> },
                       { id: 'sell', label: t('sales') || 'Sales', icon: <ShoppingCart size={14} /> },
