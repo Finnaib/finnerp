@@ -186,6 +186,10 @@ export default function App() {
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [printFormat, setPrintFormat] = useState('Thermal'); // 'Thermal' or 'A4'
   const [printDual, setPrintDual] = useState(false);
+  const [printBigOrderNumber, setPrintBigOrderNumber] = useState(true);
+  const [borrowRecords, setBorrowRecords] = useState([]);
+  const [borrowForm, setBorrowForm] = useState({ borrowerName: '', itemName: '', borrowDate: new Date().toISOString().split('T')[0], returnDate: '', returned: false, info: '' });
+  const [isBorrowModalOpen, setIsBorrowModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [securityPin, setSecurityPin] = useState('1234');
   const [managerPin, setManagerPin] = useState('8888');
@@ -242,7 +246,10 @@ export default function App() {
     phone: '',
     upiId: '',
     instapayId: '',
-    logo: '' // Base64 or URL
+    logo: '', // Base64 or URL
+    gstEnabled: false,
+    gstNumber: '',
+    gstPercent: 0
   });
   const [cameras, setCameras] = useState([]);
   const [activeCameraId, setActiveCameraId] = useState(null);
@@ -544,6 +551,15 @@ export default function App() {
 
       const total = subtotal - Number(invoiceData.discount || 0);
 
+      const gstRate = shopSettings.gstEnabled ? (Number(shopSettings.gstPercent) || 0) : 0;
+      let taxableAmount = total;
+      let taxAmount = 0;
+      if (gstRate > 0) {
+        taxableAmount = total / (1 + (gstRate / 100));
+        taxAmount = total - taxableAmount;
+      }
+
+
       if (printFormat === 'Thermal') {
         return `
       <div class="page ${isFirstPage && printDual ? 'page-break' : ''}">
@@ -553,10 +569,11 @@ export default function App() {
           ${shopSettings.logo ? `<img src="${shopSettings.logo}" style="height: 80px; width: auto; max-width: 100%; margin-bottom: 12px; object-fit: contain;" alt="Logo" />` : ''}
           <div class="title">${printName}</div>
           <div class="subtitle">${printAddress} | ${printPhone}</div>
+          ${shopSettings.gstEnabled && shopSettings.gstNumber ? `<div class="subtitle" style="font-weight:bold; margin-top:3px;">GSTIN: ${shopSettings.gstNumber}</div>` : ''}
         </div>
         <div class="seller-info">${t('soldBy')}: ${invoiceData.soldBy || 'Admin'}</div>
         
-        ${invoiceData.type === 'sale' ? `
+        ${(invoiceData.type === 'sale' || Boolean(invoiceData.invoiceId)) && printBigOrderNumber ? `
         <div class="big-id">
           <span class="big-id-label">${t('orderNumber')}</span>
           ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
@@ -602,6 +619,15 @@ export default function App() {
              <span>${t('discount') || 'Discount'}</span>
              <span>-${formatCurrency(invoiceData.discount)}</span>
           </div>` : ''}
+          ${gstRate > 0 ? `
+          <div class="totals-row subtotal" style="font-size: 0.8em; margin-top: 5px; color: #555;">
+             <span>Taxable Amt.</span>
+             <span>${formatCurrency(taxableAmount)}</span>
+          </div>
+          <div class="totals-row subtotal" style="font-size: 0.8em; margin-bottom: 5px; color: #555;">
+             <span>GST (${gstRate}%)</span>
+             <span>${formatCurrency(taxAmount)}</span>
+          </div>` : ''}
           <div class="totals-row total">
             <span>${t('total')}</span>
             <span>${formatCurrency(total)}</span>
@@ -646,6 +672,7 @@ export default function App() {
                   <h1 style="font-size: 38px; color: #1e293b; margin: 0;">${printName}</h1>
                   <p style="color: #64748b; font-size: 14px; margin-top: 5px;">${printAddress}</p>
                   <p style="color: #64748b; font-size: 14px;">Phone: ${printPhone}</p>
+                   ${shopSettings.gstEnabled && shopSettings.gstNumber ? `<p style="color: #1e293b; font-size: 14px; font-weight: bold; margin-top: 4px;">GSTIN: ${shopSettings.gstNumber}</p>` : ''}
                </div>
             </div>
           </div>
@@ -697,8 +724,10 @@ export default function App() {
           <div class="totals-box">
             <table class="totals-table">
               <tr><td class="label">Subtotal</td><td class="right">${formatCurrency(subtotal)}</td></tr>
-              <tr><td class="label">Tax/VAT</td><td class="right">${formatCurrency(subtotal * 0.0625)}</td></tr>
-              <tr><td class="label">Tax rate</td><td class="right">6.250%</td></tr>
+              ${gstRate > 0 ? `
+              <tr><td class="label">Taxable Amt</td><td class="right">${formatCurrency(taxableAmount)}</td></tr>
+              <tr><td class="label">GST (${gstRate}%)</td><td class="right">${formatCurrency(taxAmount)}</td></tr>
+              ` : ''}
               <tr class="total-row"><td>TOTAL</td><td class="right">${formatCurrency(total)}</td></tr>
             </table>
           </div>
@@ -748,7 +777,7 @@ export default function App() {
     setTimeout(() => {
       printWindow.print();
     }, 250);
-  }, [printFormat, sites, shopSettings, digitalSubMethod, t, formatCurrency, printDual]);
+  }, [printFormat, sites, shopSettings, digitalSubMethod, t, formatCurrency, printDual, printBigOrderNumber]);
 
 
 
@@ -809,7 +838,10 @@ export default function App() {
           address: '',
           phone: '',
           upiId: '',
-          instapayId: ''
+          instapayId: '',
+          gstEnabled: false,
+          gstNumber: '',
+          gstPercent: 0
         });
         setSecurityPin('1234');
         setSecurityQuestion('');
@@ -931,9 +963,19 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, 'serviceTickets'), where('userId', '==', user.uid));
-    return onSnapshot(q, (snapshot) => {
+    const unsub1 = onSnapshot(q, (snapshot) => {
       setServiceTickets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
+    
+    const qBorrow = query(collection(db, 'borrowRecords'), where('userId', '==', user.uid));
+    const unsub2 = onSnapshot(qBorrow, (snapshot) => {
+      setBorrowRecords(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    
+    return () => {
+      unsub1();
+      unsub2();
+    };
   }, [user]);
 
   // Firestore: Service Customers (Real-time)
@@ -3089,6 +3131,39 @@ export default function App() {
     setEditingAttendance(null);
   };
 
+
+
+  const handleAddBorrowRecord = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'borrowRecords'), {
+        ...borrowForm,
+        userId: user.uid,
+        createdAt: serverTimestamp()
+      });
+      setIsBorrowModalOpen(false);
+      setBorrowForm({ borrowerName: '', itemName: '', borrowDate: new Date().toISOString().split('T')[0], returnDate: '', returned: false, info: '' });
+    } catch (err) {
+      console.error(err);
+      alert('Error adding borrow record: ' + err.message);
+    }
+  };
+
+  const handleToggleBorrowReturn = async (id, currentStatus) => {
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'borrowRecords', id), {
+        returned: !currentStatus,
+        returnDate: !currentStatus ? new Date().toISOString().split('T')[0] : ''
+      });
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteBorrowRecord = async (id) => {
+    if (!user || !window.confirm('Delete this record?')) return;
+    try { await deleteDoc(doc(db, 'borrowRecords', id)); } catch (err) { console.error(err); }
+  };
 
   const downloadReport = (reportType) => {
     let headers = [], data = [], filename = '', extraMetadata = [];
@@ -5411,6 +5486,13 @@ export default function App() {
                           2x
                         </button>
                         <button
+                          onClick={() => setPrintBigOrderNumber(!printBigOrderNumber)}
+                          className={`text-xs font-bold px-2 py-1 rounded transition-colors ${printBigOrderNumber ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}
+                          title="Big Order Number"
+                        >
+                          # Big
+                        </button>
+                        <button
                           onClick={() => setIsScannerOpen(true)}
                           className="flex items-center gap-1 text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 text-xs font-bold transition-all ml-2"
                         >
@@ -6692,6 +6774,7 @@ export default function App() {
                       { id: 'active', label: t('activeJobs'), icon: <Wrench size={14} /> },
                       { id: 'new', label: t('newTicket'), icon: <Plus size={14} /> },
                       { id: 'history', label: t('history') || 'History', icon: <History size={14} /> },
+                      { id: 'borrow', label: t('borrow') || 'Borrow', icon: <Package size={14} /> },
                       { id: 'reports', label: t('menuReports'), icon: <BarChart3 size={14} /> }
                     ].map(tab => (
                       <button
@@ -7961,6 +8044,66 @@ export default function App() {
                     </div>
                   )}
 
+
+                  {/* Sub Tab: BORROW */}
+                  {serviceSubTab === 'borrow' && (
+                    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700 pb-32">
+                      <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                        <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+                          <Package size={24} className="text-blue-500" /> {t('borrowItems') || 'Borrowed Items'}
+                        </h3>
+                        <button onClick={() => setIsBorrowModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all font-black uppercase text-[10px] tracking-widest shadow-lg shadow-blue-200">
+                          <Plus size={16} strokeWidth={3} /> {t('addRecord') || 'Add Record'}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {borrowRecords.length === 0 ? (
+                          <div className="col-span-full py-16 text-center bg-white rounded-[2rem] border border-gray-100 border-dashed">
+                            <Package size={40} className="mx-auto text-slate-200 mb-4" />
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('noBorrowRecords') || 'No Borrow Records'}</p>
+                          </div>
+                        ) : (
+                          borrowRecords.map(record => (
+                            <div key={record.id} className={`p-6 rounded-[2rem] border transition-all ${record.returned ? 'bg-slate-50 border-gray-100 opacity-60' : 'bg-white border-blue-100 shadow-sm'}`}>
+                              <div className="flex justify-between items-start mb-4">
+                                <div>
+                                  <span className={`text-[9px] font-black uppercase px-2 py-1 rounded tracking-widest ${record.returned ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                    {record.returned ? (t('returned') || 'Returned') : (t('borrowed') || 'Borrowed')}
+                                  </span>
+                                </div>
+                                <button onClick={() => handleDeleteBorrowRecord(record.id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                              <h4 className="font-black text-lg text-gray-900 leading-tight">{record.itemName}</h4>
+                              <p className="text-sm font-bold text-blue-600 mb-4">{t('borrower') || 'Borrower'}: {record.borrowerName}</p>
+                              <div className="space-y-1 mb-4 border-t border-gray-50 pt-4">
+                                <p className="text-[10px] uppercase font-bold text-slate-400 flex items-center justify-between">
+                                  <span>{t('dateBorrowed') || 'Borrowed'}:</span> <span className="text-slate-700 font-mono">{record.borrowDate}</span>
+                                </p>
+                                {record.returned && (
+                                  <p className="text-[10px] uppercase font-bold text-emerald-500 flex items-center justify-between">
+                                    <span>{t('dateReturned') || 'Returned'}:</span> <span className="font-mono">{record.returnDate}</span>
+                                  </p>
+                                )}
+                              </div>
+                              {record.info && (
+                                <p className="text-xs text-slate-500 italic mb-4 bg-slate-50 p-3 rounded-xl line-clamp-2">"{record.info}"</p>
+                              )}
+                              <button
+                                onClick={() => handleToggleBorrowReturn(record.id, record.returned)}
+                                className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${record.returned ? 'bg-gray-100 text-slate-500 hover:bg-amber-50 hover:text-amber-600' : 'bg-blue-600 text-white shadow-lg shadow-blue-200 hover:bg-blue-700'}`}
+                              >
+                                {record.returned ? (t('markAsBorrowed') || 'Mark as Borrowed') : (t('markAsReturned') || 'Mark as Returned')}
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Sub Tab: REPORTS */}
                   {serviceSubTab === 'reports' && (
                     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700 pb-32">
@@ -9062,6 +9205,40 @@ export default function App() {
                             />
                           </div>
                           <div className="pt-2">
+                            <div className="mb-4 p-4 border border-blue-100 bg-blue-50/20 rounded-xl space-y-3">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  className="w-4 h-4 text-blue-600 rounded"
+                                  checked={shopSettings.gstEnabled || false}
+                                  onChange={(e) => setShopSettings({ ...shopSettings, gstEnabled: e.target.checked })}
+                                />
+                                <span className="text-sm font-bold text-gray-700">{t('enableGst') || 'Enable GST'}</span>
+                              </label>
+                              {shopSettings.gstEnabled && (
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('gstNumber') || 'GSTIN Number'}</label>
+                                    <input
+                                      className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                      placeholder="Ex: 22AAAAA0000A1Z5"
+                                      value={shopSettings.gstNumber || ''}
+                                      onChange={(e) => setShopSettings({ ...shopSettings, gstNumber: e.target.value })}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('gstPercent') || 'GST Rate (%)'}</label>
+                                    <input
+                                      type="number"
+                                      className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                      placeholder="18"
+                                      value={shopSettings.gstPercent || ''}
+                                      onChange={(e) => setShopSettings({ ...shopSettings, gstPercent: Number(e.target.value) })}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                             <label className="block text-xs font-medium text-gray-500 mb-2">{t('shopLogo') || 'Shop Logo'}</label>
                             <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                               <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm shrink-0">
@@ -10246,6 +10423,42 @@ export default function App() {
           </div>
         )
       }
+
+
+      {/* Borrow Modal */}
+      {isBorrowModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[130] p-4">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-blue-50/30">
+              <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                <Package size={20} className="text-blue-500" /> {t('addBorrowRecord') || 'Borrow Record'}
+              </h3>
+              <button onClick={() => setIsBorrowModalOpen(false)} className="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full shadow-sm"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddBorrowRecord} className="p-8 space-y-5">
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('borrowerName') || 'Borrower Name'}</label>
+                <input required type="text" className="w-full px-5 py-3 rounded-xl bg-slate-50 border-0 focus:ring-2 focus:ring-blue-500 text-sm font-bold" value={borrowForm.borrowerName} onChange={e => setBorrowForm({ ...borrowForm, borrowerName: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('itemName') || 'Item Borrowed'}</label>
+                <input required type="text" className="w-full px-5 py-3 rounded-xl bg-slate-50 border-0 focus:ring-2 focus:ring-blue-500 text-sm font-bold" value={borrowForm.itemName} onChange={e => setBorrowForm({ ...borrowForm, itemName: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('borrowDate') || 'Borrow Date'}</label>
+                <input required type="date" className="w-full px-5 py-3 rounded-xl bg-slate-50 border-0 focus:ring-2 focus:ring-blue-500 text-sm font-bold" value={borrowForm.borrowDate} onChange={e => setBorrowForm({ ...borrowForm, borrowDate: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('additionalInfo') || 'Additional Info (Optional)'}</label>
+                <textarea className="w-full px-5 py-3 rounded-xl bg-slate-50 border-0 focus:ring-2 focus:ring-blue-500 text-sm" rows="2" value={borrowForm.info} onChange={e => setBorrowForm({ ...borrowForm, info: e.target.value })}></textarea>
+              </div>
+              <button type="submit" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-200 mt-4 active:scale-95 transition-all">
+                {t('saveRecord') || 'Save Record'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Cafe Order Modal */}
       {
