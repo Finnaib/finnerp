@@ -188,7 +188,7 @@ export default function App() {
   const [printDual, setPrintDual] = useState(false);
   const [printBigOrderNumber, setPrintBigOrderNumber] = useState(true);
   const [borrowRecords, setBorrowRecords] = useState([]);
-  const [borrowForm, setBorrowForm] = useState({ borrowerName: '', itemName: '', borrowDate: new Date().toISOString().split('T')[0], returnDate: '', returned: false, info: '' });
+  const [borrowForm, setBorrowForm] = useState({ borrowerName: '', itemName: '', borrowDate: new Date().toISOString().split('T')[0], borrowTime: new Date().toTimeString().slice(0,5), returnDate: '', returnTime: '', returned: false, info: '' });
   const [isBorrowModalOpen, setIsBorrowModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [securityPin, setSecurityPin] = useState('1234');
@@ -576,7 +576,7 @@ export default function App() {
         ${(invoiceData.type === 'sale' || Boolean(invoiceData.invoiceId)) && printBigOrderNumber ? `
         <div class="big-id">
           <span class="big-id-label">${t('orderNumber')}</span>
-          ${invoiceData.invoiceId ? (invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
+          ${invoiceData.invoiceId ? (!isNaN(invoiceData.invoiceId.split('-').pop()) ? Number(invoiceData.invoiceId.split('-').pop()) : invoiceData.invoiceId.split('-').pop() || invoiceData.invoiceId) : 'N/A'}
         </div>
         ` : ''}
 
@@ -2121,6 +2121,31 @@ export default function App() {
 
   const calculateTotal = useCallback(() => cart.reduce((sum, item) => sum + (Number(item.price || item.sellPrice || 0) * Number(item.quantity)), 0), [cart]);
 
+  
+  const generateSequentialInvoiceId = async (prefix, locName) => {
+    try {
+      return await runTransaction(db, async (transaction) => {
+        const counterRef = doc(db, 'counters', 'daily_invoice');
+        const counterDoc = await transaction.get(counterRef);
+        const today = new Date().toISOString().split('T')[0];
+        const locationName = locName || 'Main';
+        const locCode = locationName.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4);
+        const counterKey = `${locCode}_${prefix}`;
+        
+        let data = counterDoc.exists() ? counterDoc.data() : { date: today };
+        if (data.date !== today) { data = { date: today }; }
+        
+        const count = (data[counterKey] || 0) + 1;
+        data[counterKey] = count;
+        transaction.set(counterRef, data);
+        return `${locCode}-${prefix}-${count.toString().padStart(4, '0')}`;
+      });
+    } catch (e) {
+      console.error("Counter failed", e);
+      return prefix + '-' + Date.now().toString().slice(-6);
+    }
+  };
+
   const handleCheckout = useCallback(async () => {
     if (!user || cart.length === 0) return;
 
@@ -2133,35 +2158,7 @@ export default function App() {
       const prefix = orderType === 'Walk-in' ? 'W' : 'T';
       let uniqueId;
 
-      try {
-        uniqueId = await runTransaction(db, async (transaction) => {
-          const counterRef = doc(db, 'counters', 'daily_invoice');
-          const counterDoc = await transaction.get(counterRef);
-          const today = new Date().toISOString().split('T')[0];
-
-          // Construct Key based on Location and Type
-          const locationName = posLocationFilter || 'Main';
-          const locCode = locationName.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4); // First 4 alphanumeric chars
-          const counterKey = `${locCode}_${prefix}`;
-
-          let data = counterDoc.exists() ? counterDoc.data() : { date: today };
-
-          // Reset if new day (keeping independent counters for now, or global day reset?)
-          // Current logic resets ALL counters if date changes.
-          if (data.date !== today) {
-            data = { date: today };
-          }
-
-          const count = (data[counterKey] || 0) + 1;
-          data[counterKey] = count;
-
-          transaction.set(counterRef, data);
-          return `${locCode}-${prefix}-${count.toString().padStart(4, '0')}`;
-        });
-      } catch (e) {
-        console.error("Counter failed, using fallback", e);
-        uniqueId = prefix + '-' + Date.now().toString().slice(-6);
-      }
+      uniqueId = await generateSequentialInvoiceId(prefix, posLocationFilter);
 
       const saleData = {
         invoiceId: uniqueId,
@@ -2307,7 +2304,7 @@ export default function App() {
       });
 
       const saleData = {
-        invoiceId: session.sessionId || ('CAFE-' + Date.now().toString().slice(-6)),
+        invoiceId: session.sessionId || (await generateSequentialInvoiceId('C', 'CAFE')),
         type: 'cafe',
         orderType: 'Dine-in',
         paymentMethod: 'Cash',
@@ -2946,7 +2943,7 @@ export default function App() {
 
   const handleCheckoutServiceCart = async (format) => {
     if (serviceCart.length === 0) return;
-    const currentId = `SRV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    const currentId = await generateSequentialInvoiceId('SRV', 'REP');
     const total = serviceCart.reduce((a, b) => a + (Number(b.sellPrice || 0) * Number(b.quantity || 1)), 0);
     const invData = {
       invoiceId: currentId,
@@ -3143,7 +3140,7 @@ export default function App() {
         createdAt: serverTimestamp()
       });
       setIsBorrowModalOpen(false);
-      setBorrowForm({ borrowerName: '', itemName: '', borrowDate: new Date().toISOString().split('T')[0], returnDate: '', returned: false, info: '' });
+      setBorrowForm({ borrowerName: '', itemName: '', borrowDate: new Date().toISOString().split('T')[0], borrowTime: new Date().toTimeString().slice(0,5), returnDate: '', returnTime: '', returned: false, info: '' });
     } catch (err) {
       console.error(err);
       alert('Error adding borrow record: ' + err.message);
@@ -3155,7 +3152,8 @@ export default function App() {
     try {
       await updateDoc(doc(db, 'borrowRecords', id), {
         returned: !currentStatus,
-        returnDate: !currentStatus ? new Date().toISOString().split('T')[0] : ''
+        returnDate: !currentStatus ? new Date().toISOString().split('T')[0] : '',
+        returnTime: !currentStatus ? new Date().toTimeString().slice(0,5) : ''
       });
     } catch (err) { console.error(err); }
   };
@@ -8080,11 +8078,11 @@ export default function App() {
                               <p className="text-sm font-bold text-blue-600 mb-4">{t('borrower') || 'Borrower'}: {record.borrowerName}</p>
                               <div className="space-y-1 mb-4 border-t border-gray-50 pt-4">
                                 <p className="text-[10px] uppercase font-bold text-slate-400 flex items-center justify-between">
-                                  <span>{t('dateBorrowed') || 'Borrowed'}:</span> <span className="text-slate-700 font-mono">{record.borrowDate}</span>
+                                  <span>{t('dateBorrowed') || 'Borrowed'}:</span> <span className="text-slate-700 font-mono">{record.borrowDate} {record.borrowTime}</span>
                                 </p>
                                 {record.returned && (
                                   <p className="text-[10px] uppercase font-bold text-emerald-500 flex items-center justify-between">
-                                    <span>{t('dateReturned') || 'Returned'}:</span> <span className="font-mono">{record.returnDate}</span>
+                                    <span>{t('dateReturned') || 'Returned'}:</span> <span className="font-mono">{record.returnDate} {record.returnTime}</span>
                                   </p>
                                 )}
                               </div>
@@ -10444,9 +10442,15 @@ export default function App() {
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('itemName') || 'Item Borrowed'}</label>
                 <input required type="text" className="w-full px-5 py-3 rounded-xl bg-slate-50 border-0 focus:ring-2 focus:ring-blue-500 text-sm font-bold" value={borrowForm.itemName} onChange={e => setBorrowForm({ ...borrowForm, itemName: e.target.value })} />
               </div>
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('borrowDate') || 'Borrow Date'}</label>
-                <input required type="date" className="w-full px-5 py-3 rounded-xl bg-slate-50 border-0 focus:ring-2 focus:ring-blue-500 text-sm font-bold" value={borrowForm.borrowDate} onChange={e => setBorrowForm({ ...borrowForm, borrowDate: e.target.value })} />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('borrowDate') || 'Borrow Date'}</label>
+                  <input required type="date" className="w-full px-5 py-3 rounded-xl bg-slate-50 border-0 focus:ring-2 focus:ring-blue-500 text-sm font-bold" value={borrowForm.borrowDate} onChange={e => setBorrowForm({ ...borrowForm, borrowDate: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('borrowTime') || 'Time'}</label>
+                  <input required type="time" className="w-full px-5 py-3 rounded-xl bg-slate-50 border-0 focus:ring-2 focus:ring-blue-500 text-sm font-bold" value={borrowForm.borrowTime} onChange={e => setBorrowForm({ ...borrowForm, borrowTime: e.target.value })} />
+                </div>
               </div>
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">{t('additionalInfo') || 'Additional Info (Optional)'}</label>
