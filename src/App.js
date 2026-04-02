@@ -5605,13 +5605,12 @@ export default function App() {
                           </button>
                         ))}
                     </div>
-                  </div>
-
-                  {/* Daily History Toggle / View - Responsive Card/Table */}
-                  <div className="bg-white p-4 mx-4 mb-32 lg:mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-48 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="font-bold text-gray-900 flex items-center gap-2 truncate">
-                        <Clock size={18} className="text-blue-600" />
+                    
+                    {/* Daily History Toggle / View - Responsive Card/Table */}
+                    <div className="bg-white p-4 mx-0 mt-6 lg:mx-4 mb-4 rounded-2xl shadow-sm border border-gray-100 max-h-64 overflow-y-auto shrink-0 animate-in slide-in-from-bottom-4 duration-500">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-gray-900 flex items-center gap-2 truncate">
+                          <Clock size={18} className="text-blue-600" />
                         {posHistoryDate === new Date().toISOString().split('T')[0] ? t('todaysSales') : t('salesOn') + ' ' + posHistoryDate}
                       </h3>
                       <input
@@ -5716,6 +5715,7 @@ export default function App() {
                       </div>
                     </div>
                   )}
+                  </div>
 
                   <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
                     {cart.length === 0 ? (
@@ -9203,36 +9203,51 @@ export default function App() {
                             />
                           </div>
                           <div className="pt-2">
-                            <div className="mb-4 p-4 border border-blue-100 bg-blue-50/20 rounded-xl space-y-3">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  className="w-4 h-4 text-blue-600 rounded"
-                                  checked={shopSettings.gstEnabled || false}
-                                  onChange={(e) => setShopSettings({ ...shopSettings, gstEnabled: e.target.checked })}
-                                />
-                                <span className="text-sm font-bold text-gray-700">{t('enableGst') || 'Enable GST'}</span>
-                              </label>
-                              {shopSettings.gstEnabled && (
-                                <div className="grid grid-cols-2 gap-4">
+                            <div className="mb-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm transition-all hover:border-blue-200">
+                              <label className="flex items-center justify-between cursor-pointer group">
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-2 rounded-xl transition-colors ${shopSettings.gstEnabled ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
+                                    <Calculator size={18} />
+                                  </div>
                                   <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('gstNumber') || 'GSTIN Number'}</label>
+                                    <span className="text-sm font-black text-gray-800 tracking-tight uppercase block">{t('enableGst')}</span>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('taxableAmt')} Management</span>
+                                  </div>
+                                </div>
+                                <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${shopSettings.gstEnabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
+                                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${shopSettings.gstEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only"
+                                    checked={shopSettings.gstEnabled || false}
+                                    onChange={(e) => setShopSettings({ ...shopSettings, gstEnabled: e.target.checked })}
+                                  />
+                                </div>
+                              </label>
+
+                              {shopSettings.gstEnabled && (
+                                <div className="mt-5 grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 focus-within:border-blue-300 focus-within:ring-4 focus-within:ring-blue-50 transition-all">
+                                    <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">{t('gstNumber')}</label>
                                     <input
-                                      className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                      placeholder="Ex: 22AAAAA0000A1Z5"
+                                      className="w-full bg-transparent text-sm font-bold text-slate-800 placeholder-slate-300 outline-none"
+                                      placeholder="Ex: 22AAAAA0000"
                                       value={shopSettings.gstNumber || ''}
                                       onChange={(e) => setShopSettings({ ...shopSettings, gstNumber: e.target.value })}
                                     />
                                   </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('gstPercent') || 'GST Rate (%)'}</label>
-                                    <input
-                                      type="number"
-                                      className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                      placeholder="18"
-                                      value={shopSettings.gstPercent || ''}
-                                      onChange={(e) => setShopSettings({ ...shopSettings, gstPercent: Number(e.target.value) })}
-                                    />
+                                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 focus-within:border-blue-300 focus-within:ring-4 focus-within:ring-blue-50 transition-all">
+                                    <label className="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">{t('gstPercent')}</label>
+                                    <div className="flex items-center">
+                                      <input
+                                        type="number"
+                                        className="w-full bg-transparent text-sm font-bold text-slate-800 placeholder-slate-300 outline-none"
+                                        placeholder="18"
+                                        value={shopSettings.gstPercent || ''}
+                                        onChange={(e) => setShopSettings({ ...shopSettings, gstPercent: Number(e.target.value) })}
+                                      />
+                                      <span className="text-slate-400 font-bold ml-2">%</span>
+                                    </div>
                                   </div>
                                 </div>
                               )}
