@@ -145,7 +145,7 @@ export const translations = {
     "totalLabel": "Total",
     "goBackToApp": "Go back to App",
     "inventorySubtitle": "Inventory levels and stock movements",
-    "searchInventory": "Search inventory by name ...",
+    "searchInventory": "Search inventory...",
     "itemName": "Item Name",
     "buyPrice": "Buy Price",
     "sellPrice": "Sell Price",

@@ -5463,101 +5463,113 @@ export default function App() {
                 {/* Left: Product Grid */}
                 <div className={`flex-1 flex flex-col h-full overflow-hidden ${isMobileCartOpen ? 'hidden lg:flex' : 'flex'}`}>
                   <div className="p-4 flex-shrink-0 bg-white border-b border-gray-200">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-xl font-bold text-gray-900">{shopSettings.name || t('posTerminal')}</h2>
-                        <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block"></div>
-                        <select
-                          value={printFormat}
-                          onChange={(e) => setPrintFormat(e.target.value)}
-                          className="text-sm font-medium text-gray-600 bg-transparent outline-none cursor-pointer hover:text-blue-600"
-                          title={t('printSettings')}
-                        >
-                          <option value="Thermal">{t('thermal')}</option>
-                          <option value="A4">{t('a4')}</option>
-                        </select>
-                        <button
-                          onClick={() => setPrintDual(!printDual)}
-                          className={`text-xs font-bold px-2 py-1 rounded transition-colors ${printDual ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}
-                          title={t('dualPrint')}
-                        >
-                          2x
-                        </button>
-                        <button
-                          onClick={() => setPrintBigOrderNumber(!printBigOrderNumber)}
-                          className={`text-xs font-bold px-2 py-1 rounded transition-colors ${printBigOrderNumber ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}
-                          title="Big Order Number"
-                        >
-                          # Big
-                        </button>
-                        <button
-                          onClick={() => setIsScannerOpen(true)}
-                          className="flex items-center gap-1 text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 text-xs font-bold transition-all ml-2"
-                        >
-                          <Scan size={16} /> {t('scanBarcode')}
-                        </button>
-
-
-
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+                      <div className="flex items-center justify-between lg:justify-start gap-4">
+                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 truncate">{shopSettings.name || t('posTerminal')}</h2>
+                        <div className="h-6 w-px bg-slate-200 hidden lg:block mx-1"></div>
                       </div>
-                      <div className="flex items-center gap-3 w-full sm:w-auto">
-                        <select
-                          className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
-                          value={posLocationFilter}
-                          onChange={e => setPosLocationFilter(e.target.value)}
-                          disabled={cart.length > 0}
-                        >
-                          {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                        </select>
-                        <div className="relative flex-1 sm:w-64">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                          <input
-                            type="text"
-                            placeholder={t('searchInventory') || "Search Parts or Repair IDs..."}
-                            id="pos-search"
-                            className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:border-blue-500 focus:ring-0 transition-all text-sm"
-                            value={inventorySearch}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                // Search Inventory
-                                const filteredInv = inventory.filter(item =>
-                                  (!posLocationFilter || item.location === posLocationFilter) &&
-                                  ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
-                                    (item.barcode || '').includes(inventorySearch))
-                                );
-                                if (filteredInv.length === 1) {
-                                  addToCart(filteredInv[0]);
-                                  setInventorySearch('');
-                                  return;
-                                }
 
-                                // Search Repairs
-                                if (inventorySearch.length >= 3) {
-                                  const ticket = serviceTickets.find(t => t.id.toUpperCase().includes(inventorySearch.toUpperCase()) || t.customerPhone === inventorySearch);
-                                  if (ticket) {
-                                    if (!cart.some(i => i.id === 'SRV-' + ticket.id)) {
-                                      setCart([...cart, {
-                                        id: 'SRV-' + ticket.id,
-                                        name: `Repair: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`,
-                                        sellPrice: Number(ticket.estimatedCost),
-                                        price: Number(ticket.estimatedCost),
-                                        quantity: 1,
-                                        type: 'service'
-                                      }]);
-                                      setInventorySearch('');
-                                    } else {
-                                      alert('Repair already in cart!');
-                                    }
+                      <div className="flex-1 min-w-[200px] group relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-all duration-300 group-focus-within:scale-110" size={18} />
+                        <input
+                          type="text"
+                          placeholder={t('searchInventory') || "SEARCH PRODUCTS OR SERVICES..."}
+                          id="pos-search"
+                          className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:border-blue-400 focus:ring-8 focus:ring-blue-500/5 transition-all shadow-inner outline-none placeholder:text-slate-300"
+                          value={inventorySearch}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              // Search Inventory
+                              const filteredInv = inventory.filter(item =>
+                                (!posLocationFilter || item.location === posLocationFilter) &&
+                                ((item.name?.toLowerCase() || '').includes(inventorySearch.toLowerCase()) ||
+                                  (item.barcode || '').includes(inventorySearch))
+                              );
+                              if (filteredInv.length === 1) {
+                                addToCart(filteredInv[0]);
+                                setInventorySearch('');
+                                return;
+                              }
+
+                              // Search Repairs
+                              if (inventorySearch.length >= 3) {
+                                const ticket = serviceTickets.find(t => t.id.toUpperCase().includes(inventorySearch.toUpperCase()) || t.customerPhone === inventorySearch);
+                                if (ticket) {
+                                  if (!cart.some(i => i.id === 'SRV-' + ticket.id)) {
+                                    setCart([...cart, {
+                                      id: 'SRV-' + ticket.id,
+                                      name: `Repair: ${ticket.brand} ${ticket.model} (${ticket.id.slice(0, 6)})`,
+                                      sellPrice: Number(ticket.estimatedCost),
+                                      price: Number(ticket.estimatedCost),
+                                      quantity: 1,
+                                      type: 'service'
+                                    }]);
+                                    setInventorySearch('');
+                                  } else {
+                                    alert('Repair already in cart!');
                                   }
                                 }
                               }
-                            }}
-                            onChange={(e) => setInventorySearch(e.target.value)}
-                          />
+                            }
+                          }}
+                          onChange={(e) => setInventorySearch(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                        <button
+                          onClick={() => setIsScannerOpen(true)}
+                          className="flex items-center gap-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white px-4 py-2.5 rounded-2xl border border-emerald-100 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-emerald-200 group"
+                        >
+                          <Scan size={18} className="group-hover:rotate-90 transition-transform duration-500" />
+                          <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{t('scanBarcode')}</span>
+                        </button>
+
+                        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-2xl border border-slate-100 shadow-sm">
+                          <MapPin size={16} className="text-slate-400" />
+                          <select
+                            className="bg-transparent text-[10px] font-black uppercase tracking-widest text-slate-600 focus:outline-none cursor-pointer min-w-[60px]"
+                            value={posLocationFilter}
+                            onChange={e => setPosLocationFilter(e.target.value)}
+                            disabled={cart.length > 0}
+                          >
+                            {sites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-2xl border border-slate-100">
+                          <Printer size={16} className="text-slate-400" />
+                          <select
+                            value={printFormat}
+                            onChange={(e) => setPrintFormat(e.target.value)}
+                            className="text-[10px] font-black uppercase tracking-widest text-slate-600 bg-transparent outline-none cursor-pointer hover:text-blue-600 min-w-[70px]"
+                            title={t('printSettings')}
+                          >
+                            <option value="Thermal">{t('thermal')}</option>
+                            <option value="A4">{t('a4')}</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                          <button
+                            onClick={() => setPrintDual(!printDual)}
+                            className={`w-9 h-9 flex items-center justify-center rounded-xl text-[10px] font-black transition-all ${printDual ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400 hover:bg-slate-50'}`}
+                            title={t('dualPrint')}
+                          >
+                            2X
+                          </button>
+                          <button
+                            onClick={() => setPrintBigOrderNumber(!printBigOrderNumber)}
+                            className={`w-9 h-9 flex items-center justify-center rounded-xl text-[10px] font-black transition-all ${printBigOrderNumber ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400 hover:bg-slate-50'}`}
+                            title="Big Order Number"
+                          >
+                            #B
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
+
 
                   <div className="flex-1 overflow-y-auto p-3 sm:p-5 pb-32 lg:pb-6 no-scrollbar">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
